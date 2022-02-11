@@ -1,0 +1,13 @@
+statement ok
+CREATE TABLE integers AS SELECT * FROM (VALUES (1), (2), (3)) tbl(i);
+
+statement ok
+CREATE TABLE integers2 AS SELECT * FROM (VALUES (1), (5), (6)) tbl(i);
+
+statement ok
+PRAGMA explain_output = OPTIMIZED_ONLY;
+
+query I
+SELECT i1.i FROM integers i1 JOIN integers i2 ON i1.i=i2.i;
+----
+1

@@ -27,7 +27,8 @@ enum class OptimizerType : uint32_t {
 	COMMON_AGGREGATE,
 	COLUMN_LIFETIME,
 	TOP_N,
-	REORDER_FILTER
+	REORDER_FILTER,
+	SHARED_HASH_JOIN
 };
 
 string OptimizerTypeToString(OptimizerType type);

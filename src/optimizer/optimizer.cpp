@@ -16,6 +16,7 @@
 #include "duckdb/optimizer/rule/list.hpp"
 #include "duckdb/optimizer/statistics_propagator.hpp"
 #include "duckdb/optimizer/topn_optimizer.hpp"
+#include "duckdb/optimizer/shared_hash_join.h"
 #include "duckdb/planner/binder.hpp"
 #include "duckdb/main/config.hpp"
 
@@ -134,6 +135,11 @@ unique_ptr<LogicalOperator> Optimizer::Optimize(unique_ptr<LogicalOperator> plan
 	RunOptimizer(OptimizerType::REORDER_FILTER, [&]() {
 		ExpressionHeuristics expression_heuristics(*this);
 		plan = expression_heuristics.Rewrite(move(plan));
+	});
+
+	RunOptimizer(OptimizerType::SHARED_HASH_JOIN, [&]() {
+		SharedHashJoin shared_hash_join(context);
+		plan = shared_hash_join.Optimize(move(plan));
 	});
 
 	return plan;
