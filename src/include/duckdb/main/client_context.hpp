@@ -16,6 +16,7 @@
 #include "duckdb/common/progress_bar.hpp"
 #include "duckdb/common/unordered_set.hpp"
 #include "duckdb/common/winapi.hpp"
+#include "duckdb/common/shared_hash_join_table.h"
 #include "duckdb/main/prepared_statement.hpp"
 #include "duckdb/main/stream_query_result.hpp"
 #include "duckdb/main/table_description.hpp"
@@ -39,6 +40,7 @@ class BufferedFileWriter;
 class QueryProfiler;
 class QueryProfilerHistory;
 class ClientContextLock;
+class SharedJoinTable;
 struct CreateScalarFunctionInfo;
 class ScalarFunctionCatalogEntry;
 struct ActiveQueryContext;
@@ -77,6 +79,8 @@ public:
 	const unique_ptr<CatalogSearchPath> catalog_search_path;
 
 	unique_ptr<FileOpener> file_opener;
+
+	unordered_set<string> join_tables;
 
 	//! The client configuration
 	ClientConfig config;
@@ -176,6 +180,8 @@ public:
 
 	//! Fetch a list of table names that are required for a given query
 	DUCKDB_API unordered_set<string> GetTableNames(const string &query);
+
+	DUCKDB_API void SharedTable(const string& table_name);
 
 private:
 	//! Parse statements and resolve pragmas from a query

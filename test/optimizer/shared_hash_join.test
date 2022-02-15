@@ -11,3 +11,5 @@ query I
 SELECT i1.i FROM integers i1 JOIN integers i2 ON i1.i=i2.i;
 ----
 1
+2
+3

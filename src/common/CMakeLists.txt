@@ -36,6 +36,7 @@ add_library_unity(
   tree_renderer.cpp
   types.cpp
   virtual_file_system.cpp
+  shared_hash_join_table.cpp
   windows_util.cpp)
 set(ALL_OBJECT_FILES
     ${ALL_OBJECT_FILES} $<TARGET_OBJECTS:duckdb_common>

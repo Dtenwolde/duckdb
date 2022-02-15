@@ -1111,5 +1111,10 @@ ParserOptions ClientContext::GetParserOptions() {
 	options.preserve_identifier_case = ClientConfig::GetConfig(*this).preserve_identifier_case;
 	return options;
 }
+void ClientContext::SharedTable(const string& table_name) {
+	if (join_tables.find(table_name) == join_tables.end()) {
+		join_tables.insert(table_name);
+	}
+}
 
 } // namespace duckdb

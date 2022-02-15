@@ -10,7 +10,7 @@ class Optimizer;
 class SharedHashJoin {
 
 public:
-	SharedHashJoin(duckdb::ClientContext &context);
+	explicit SharedHashJoin(duckdb::ClientContext &context);
 	//! Optimize joins on same hash table
 	unique_ptr<LogicalOperator> Optimize(unique_ptr<LogicalOperator> op);
 
