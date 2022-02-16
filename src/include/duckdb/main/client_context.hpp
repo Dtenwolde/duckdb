@@ -25,6 +25,7 @@
 #include <random>
 #include "duckdb/common/atomic.hpp"
 #include "duckdb/main/client_config.hpp"
+#include "duckdb/execution/join_hashtable.hpp"
 
 namespace duckdb {
 class Appender;
@@ -80,7 +81,9 @@ public:
 
 	unique_ptr<FileOpener> file_opener;
 
-	unordered_set<string> join_tables;
+	unordered_set<string> found_tables;
+
+	unordered_map<string, unique_ptr<JoinHashTable>> found_join_tables;
 
 	//! The client configuration
 	ClientConfig config;
@@ -181,7 +184,9 @@ public:
 	//! Fetch a list of table names that are required for a given query
 	DUCKDB_API unordered_set<string> GetTableNames(const string &query);
 
-	DUCKDB_API void SharedTable(const string& table_name);
+	DUCKDB_API void SharedTable(string table_name);
+
+	DUCKDB_API unique_ptr<JoinHashTable> AddSharedTable(string table_name, unique_ptr<JoinHashTable> ptr);
 
 private:
 	//! Parse statements and resolve pragmas from a query

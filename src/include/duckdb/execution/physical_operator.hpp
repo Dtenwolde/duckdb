@@ -84,6 +84,8 @@ public:
 	//! The global sink state of this operator
 	unique_ptr<GlobalSinkState> sink_state;
 
+	string table_name;
+
 public:
 	virtual string GetName() const;
 	virtual string ParamsToString() const {

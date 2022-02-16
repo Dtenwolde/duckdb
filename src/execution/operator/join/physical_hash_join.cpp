@@ -65,8 +65,12 @@ public:
 
 unique_ptr<GlobalSinkState> PhysicalHashJoin::GetGlobalSinkState(ClientContext &context) const {
 	auto state = make_unique<HashJoinGlobalState>();
+
 	state->hash_table =
-	    make_unique<JoinHashTable>(BufferManager::GetBufferManager(context), conditions, build_types, join_type);
+		make_unique<JoinHashTable>(BufferManager::GetBufferManager(context), conditions, build_types, join_type);
+	state->hash_table = context.AddSharedTable(this->children[0].get()->table_name, move(state->hash_table));
+//	context.SharedTable(this->children[0].get()->table_name, state->hash_table);
+//				shared_table->second = state->hash_table;
 	if (!delim_types.empty() && join_type == JoinType::MARK) {
 		// correlated MARK join
 		if (delim_types.size() + 1 == conditions.size()) {
@@ -76,7 +80,8 @@ unique_ptr<GlobalSinkState> PhysicalHashJoin::GetGlobalSinkState(ClientContext &
 			// - (1) the total amount of elements per group
 			// - (2) the amount of non-null elements per group
 			// we need these to correctly deal with the cases of either:
-			// - (1) the group being empty [in which case the result is always false, even if the comparison is NULL]
+			// - (1) the group being empty [in which case the result is always false, even if the comparison is
+			// NULL]
 			// - (2) the group containing a NULL value [in which case FALSE becomes NULL]
 			auto &info = state->hash_table->correlated_mark_join_info;
 
@@ -86,14 +91,15 @@ unique_ptr<GlobalSinkState> PhysicalHashJoin::GetGlobalSinkState(ClientContext &
 
 			// jury-rigging the GroupedAggregateHashTable
 			// we need a count_star and a count to get counts with and without NULLs
-			aggr = AggregateFunction::BindAggregateFunction(context, CountStarFun::GetFunction(), {}, nullptr, false);
+			aggr =
+				AggregateFunction::BindAggregateFunction(context, CountStarFun::GetFunction(), {}, nullptr, false);
 			correlated_aggregates.push_back(&*aggr);
 			payload_types.push_back(aggr->return_type);
 			info.correlated_aggregates.push_back(move(aggr));
 
 			auto count_fun = CountFun::GetFunction();
 			vector<unique_ptr<Expression>> children;
-			// this is a dummy but we need it to make the hash table understand whats going on
+			// this is a dummy, but we need it to make the hash table understand what's going on
 			children.push_back(make_unique_base<Expression, BoundReferenceExpression>(count_fun.return_type, 0));
 			aggr = AggregateFunction::BindAggregateFunction(context, count_fun, move(children), nullptr, false);
 			correlated_aggregates.push_back(&*aggr);
@@ -101,7 +107,7 @@ unique_ptr<GlobalSinkState> PhysicalHashJoin::GetGlobalSinkState(ClientContext &
 			info.correlated_aggregates.push_back(move(aggr));
 
 			info.correlated_counts = make_unique<GroupedAggregateHashTable>(
-			    BufferManager::GetBufferManager(context), delim_types, payload_types, correlated_aggregates);
+				BufferManager::GetBufferManager(context), delim_types, payload_types, correlated_aggregates);
 			info.correlated_types = delim_types;
 			info.group_chunk.Initialize(delim_types);
 			info.result_chunk.Initialize(payload_types);

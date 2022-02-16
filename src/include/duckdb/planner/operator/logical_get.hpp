@@ -17,6 +17,9 @@ namespace duckdb {
 //! LogicalGet represents a scan operation from a data source
 class LogicalGet : public LogicalOperator {
 public:
+	// TODO Remove duplicate constructor
+	LogicalGet(idx_t table_index, TableFunction function, unique_ptr<FunctionData> bind_data,
+	           vector<LogicalType> returned_types, vector<string> returned_names, string table_name);
 	LogicalGet(idx_t table_index, TableFunction function, unique_ptr<FunctionData> bind_data,
 	           vector<LogicalType> returned_types, vector<string> returned_names);
 
@@ -34,6 +37,8 @@ public:
 	vector<column_t> column_ids;
 	//! Filters pushed down for table scan
 	TableFilterSet table_filters;
+
+	string table_name;
 
 	string GetName() const override;
 	string ParamsToString() const override;

@@ -12,10 +12,10 @@ unique_ptr<LogicalOperator> SharedHashJoin::Optimize(unique_ptr<LogicalOperator>
 		auto &left_child = op->children[0];
 		auto &right_child = op->children[1];
 		if (left_child->type == LogicalOperatorType::LOGICAL_GET) {
-			context.SharedTable(left_child.get()->ParamsToString());
+			context.SharedTable(((LogicalGet *)left_child.get())->table_name);
 		}
 		if (right_child->type == LogicalOperatorType::LOGICAL_GET) {
-			context.SharedTable(left_child.get()->ParamsToString());
+			context.SharedTable(((LogicalGet *)left_child.get())->table_name);
 		}
 
 	} else {
