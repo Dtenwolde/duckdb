@@ -1113,7 +1113,7 @@ ParserOptions ClientContext::GetParserOptions() {
 }
 
 
-void ClientContext::SharedTable(string table_name) {
+void ClientContext::SharedTable(const string& table_name) {
 	if (found_tables.find(table_name) == found_tables.end()) {
 		found_tables.insert(table_name);
 	}

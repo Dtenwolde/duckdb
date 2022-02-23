@@ -6,24 +6,29 @@ namespace duckdb {
 SharedHashJoin::SharedHashJoin(ClientContext &context) : context(context) {
 }
 
-unique_ptr<LogicalOperator> SharedHashJoin::Optimize(unique_ptr<LogicalOperator> op) {
+void SharedHashJoin::Optimize(LogicalOperator *op) {
 	if (op->type == LogicalOperatorType::LOGICAL_COMPARISON_JOIN) {
-		const auto &join = (LogicalComparisonJoin &)*op;
-		auto &left_child = op->children[0];
-		auto &right_child = op->children[1];
-		if (left_child->type == LogicalOperatorType::LOGICAL_GET) {
-			context.SharedTable(((LogicalGet *)left_child.get())->table_name);
+		auto left_child = (LogicalOperator*) op->children[0].get();
+		auto right_child = (LogicalOperator*) op->children[1].get();
+		if (left_child->type == LogicalOperatorType::LOGICAL_COMPARISON_JOIN) {
+			Optimize(left_child);
+		} else {
+			if (left_child->type == LogicalOperatorType::LOGICAL_GET) {
+				context.SharedTable(((LogicalGet *)left_child)->table_name);
+			}
 		}
-		if (right_child->type == LogicalOperatorType::LOGICAL_GET) {
-			context.SharedTable(((LogicalGet *)left_child.get())->table_name);
+		if (right_child->type == LogicalOperatorType::LOGICAL_COMPARISON_JOIN) {
+			Optimize(right_child);
+		} else {
+			if (right_child->type == LogicalOperatorType::LOGICAL_GET) {
+				context.SharedTable(((LogicalGet *)left_child)->table_name);
+			}
 		}
-
 	} else {
 		for (auto &child : op->children) {
-			child = Optimize(move(child));
+			Optimize(child.get());
 		}
 	}
-	return op;
 }
 
 } // namespace duckdb

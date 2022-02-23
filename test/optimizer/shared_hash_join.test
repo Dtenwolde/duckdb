@@ -1,20 +1,74 @@
 statement ok
-CREATE TABLE person AS SELECT * FROM (VALUES (1), (2), (3)) tbl(i);
+CREATE TABLE person (i string)
 
 statement ok
-CREATE TABLE knows (i int, j int);
+INSERT INTO person VALUES ('j'), ('d'), ('p');
 
 statement ok
-INSERT INTO knows VALUES (1,2), (1,3), (2,3);
+CREATE TABLE knows (i string, j string);
 
 statement ok
-PRAGMA explain_output = OPTIMIZED_ONLY;
+INSERT INTO knows VALUES ('j','p'), ('p','d'), ('d','j');
 
-query II
-select p.i, p2.i from person p
-INNER JOIN knows k on p.i = k.i
-INNER JOIN person p2 on p2.i = k.j
+query III
+SELECT  p1.i, p2.i, p3.i
+FROM    person p1, person p2, person p3, knows k1, knows k2, knows k3
+WHERE   p1.i = k1.i
+    AND p2.i = k1.j
+    AND p2.i = k2.i
+    AND p3.i = k2.j
+    AND p3.i = k3.i
+    AND p1.i = k3.j
 ----
-1	3
-2	3
-1	2
+j	p	d
+d	j	p
+p	d	j
+
+require tpch
+#query I
+#PRAGMA tpch(21)
+#----
+#<FILE>:extension/tpch/dbgen/answers/sf1/q21.csv
+
+
+SELECT
+    s_name,
+    count(*) AS numwait
+FROM
+    supplier,
+    lineitem l1,
+    orders,
+    nation
+WHERE
+    s_suppkey = l1.l_suppkey
+    AND o_orderkey = l1.l_orderkey
+    AND o_orderstatus = 'F'
+    AND l1.l_receiptdate > l1.l_commitdate
+    AND EXISTS (
+        SELECT
+            *
+        FROM
+            lineitem l2
+        WHERE
+            l2.l_orderkey = l1.l_orderkey
+            AND l2.l_suppkey <> l1.l_suppkey)
+    AND NOT EXISTS (
+        SELECT
+            *
+        FROM
+            lineitem l3
+        WHERE
+            l3.l_orderkey = l1.l_orderkey
+            AND l3.l_suppkey <> l1.l_suppkey
+            AND l3.l_receiptdate > l3.l_commitdate)
+    AND s_nationkey = n_nationkey
+    AND n_name = 'SAUDI ARABIA'
+GROUP BY
+    s_name
+ORDER BY
+    numwait DESC,
+    s_name
+LIMIT 100;
+
+
+
