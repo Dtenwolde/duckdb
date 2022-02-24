@@ -1,18 +1,18 @@
 #include "duckdb/catalog/catalog.hpp"
-#include "duckdb/parser/expression/function_expression.hpp"
-#include "duckdb/parser/tableref/table_function_ref.hpp"
-#include "duckdb/planner/binder.hpp"
+#include "duckdb/common/algorithm.hpp"
+#include "duckdb/execution/expression_executor.hpp"
 #include "duckdb/parser/expression/columnref_expression.hpp"
 #include "duckdb/parser/expression/comparison_expression.hpp"
+#include "duckdb/parser/expression/function_expression.hpp"
+#include "duckdb/parser/expression/subquery_expression.hpp"
+#include "duckdb/parser/tableref/table_function_ref.hpp"
+#include "duckdb/planner/binder.hpp"
 #include "duckdb/planner/expression_binder/constant_binder.hpp"
 #include "duckdb/planner/expression_binder/select_binder.hpp"
 #include "duckdb/planner/operator/logical_get.hpp"
-#include "duckdb/planner/tableref/bound_table_function.hpp"
-#include "duckdb/planner/tableref/bound_subqueryref.hpp"
 #include "duckdb/planner/query_node/bound_select_node.hpp"
-#include "duckdb/execution/expression_executor.hpp"
-#include "duckdb/common/algorithm.hpp"
-#include "duckdb/parser/expression/subquery_expression.hpp"
+#include "duckdb/planner/tableref/bound_subqueryref.hpp"
+#include "duckdb/planner/tableref/bound_table_function.hpp"
 
 namespace duckdb {
 
@@ -139,7 +139,8 @@ unique_ptr<BoundTableRef> Binder::Bind(TableFunctionRef &ref) {
 			return_names[i] = "C" + to_string(i);
 		}
 	}
-	auto get = make_unique<LogicalGet>(bind_index, table_function, move(bind_data), return_types, return_names);
+	auto get = make_unique<LogicalGet>(bind_index, table_function, move(bind_data), return_types, return_names,
+	                                   table_function.name, false);
 	// now add the table function to the bind context so its columns can be bound
 	bind_context.AddTableFunction(bind_index, ref.alias.empty() ? fexpr->function_name : ref.alias, return_names,
 	                              return_types, *get);

@@ -8,8 +8,8 @@
 
 #pragma once
 
-#include "duckdb/planner/logical_operator.hpp"
 #include "duckdb/function/table_function.hpp"
+#include "duckdb/planner/logical_operator.hpp"
 #include "duckdb/planner/table_filter.hpp"
 
 namespace duckdb {
@@ -19,9 +19,10 @@ class LogicalGet : public LogicalOperator {
 public:
 	// TODO Remove duplicate constructor
 	LogicalGet(idx_t table_index, TableFunction function, unique_ptr<FunctionData> bind_data,
-	           vector<LogicalType> returned_types, vector<string> returned_names, string table_name);
-	LogicalGet(idx_t table_index, TableFunction function, unique_ptr<FunctionData> bind_data,
-	           vector<LogicalType> returned_types, vector<string> returned_names);
+	           vector<LogicalType> returned_types, vector<string> returned_names, string table_name,
+	           bool duplicate_table);
+//	LogicalGet(idx_t table_index, TableFunction function, unique_ptr<FunctionData> bind_data,
+//	           vector<LogicalType> returned_types, vector<string> returned_names);
 
 	//! The table index in the current bind context
 	idx_t table_index;
@@ -39,6 +40,8 @@ public:
 	TableFilterSet table_filters;
 
 	string table_name;
+
+	bool duplicate_table;
 
 	string GetName() const override;
 	string ParamsToString() const override;

@@ -35,6 +35,7 @@
 #include "duckdb/common/to_string.hpp"
 #include "duckdb/common/file_system.hpp"
 #include "duckdb/execution/column_binding_resolver.hpp"
+#include "duckdb/planner/operator/logical_get.hpp"
 
 namespace duckdb {
 
@@ -1113,9 +1114,11 @@ ParserOptions ClientContext::GetParserOptions() {
 }
 
 
-void ClientContext::SharedTable(const string& table_name) {
-	if (found_tables.find(table_name) == found_tables.end()) {
-		found_tables.insert(table_name);
+void ClientContext::SharedTable(LogicalGet* table) {
+	if (found_tables.find(table->table_name) == found_tables.end()) {
+		found_tables.insert(table->table_name);
+	} else {
+		table->duplicate_table = true;
 	}
 }
 

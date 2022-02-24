@@ -14,14 +14,14 @@ void SharedHashJoin::Optimize(LogicalOperator *op) {
 			Optimize(left_child);
 		} else {
 			if (left_child->type == LogicalOperatorType::LOGICAL_GET) {
-				context.SharedTable(((LogicalGet *)left_child)->table_name);
+				context.SharedTable(((LogicalGet *)left_child));
 			}
 		}
 		if (right_child->type == LogicalOperatorType::LOGICAL_COMPARISON_JOIN) {
 			Optimize(right_child);
 		} else {
 			if (right_child->type == LogicalOperatorType::LOGICAL_GET) {
-				context.SharedTable(((LogicalGet *)left_child)->table_name);
+				context.SharedTable(((LogicalGet *)left_child));
 			}
 		}
 	} else {
