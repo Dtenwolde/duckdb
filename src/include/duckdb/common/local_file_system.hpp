@@ -53,6 +53,9 @@ public:
 	void MoveFile(const string &source, const string &target) override;
 	//! Check if a file exists
 	bool FileExists(const string &filename) override;
+
+	//! Check if path is a pipe
+	bool IsPipe(const string &filename) override;
 	//! Remove a file from disk
 	void RemoveFile(const string &filename) override;
 	//! Sync a file handle to disk
@@ -80,6 +83,10 @@ public:
 	std::string GetName() const override {
 		return "LocalFileSystem";
 	}
+
+	//! Returns the last Win32 error, in string format. Returns an empty string if there is no error, or on non-Windows
+	//! systems.
+	static std::string GetLastErrorAsString();
 
 private:
 	//! Set the file pointer of a file handle to a specified location. Reads and writes will happen from this location
