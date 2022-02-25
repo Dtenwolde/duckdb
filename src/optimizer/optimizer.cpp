@@ -16,7 +16,7 @@
 #include "duckdb/optimizer/rule/list.hpp"
 #include "duckdb/optimizer/statistics_propagator.hpp"
 #include "duckdb/optimizer/topn_optimizer.hpp"
-#include "duckdb/optimizer/shared_hash_join.h"
+#include "duckdb/optimizer/shared_hash_join.hpp"
 #include "duckdb/planner/binder.hpp"
 #include "duckdb/main/config.hpp"
 

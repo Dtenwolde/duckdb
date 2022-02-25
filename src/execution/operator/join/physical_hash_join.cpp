@@ -65,7 +65,6 @@ public:
 
 unique_ptr<GlobalSinkState> PhysicalHashJoin::GetGlobalSinkState(ClientContext &context) const {
 	auto state = make_unique<HashJoinGlobalState>();
-
 	state->hash_table =
 		make_unique<JoinHashTable>(BufferManager::GetBufferManager(context), conditions, build_types, join_type);
 //	unique_ptr<JoinHashTable> ptr = context.AddSharedTable(this->children[0].get()->table_name, move(state->hash_table));
@@ -74,7 +73,7 @@ unique_ptr<GlobalSinkState> PhysicalHashJoin::GetGlobalSinkState(ClientContext &
 //	} else {
 //		state->hash_table = context.AddSharedTable(this->children[1].get()->table_name, move(state->hash_table));
 //	}
-//	context.SharedTable(this->children[0].get()->table_name, state->hash_table);
+//	context.FindDuplicateTables(this->children[0].get()->table_name, state->hash_table);
 //				shared_table->second = state->hash_table;
 	if (!delim_types.empty() && join_type == JoinType::MARK) {
 		// correlated MARK join

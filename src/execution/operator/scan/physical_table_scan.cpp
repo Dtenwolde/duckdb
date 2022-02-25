@@ -13,19 +13,10 @@ namespace duckdb {
 PhysicalTableScan::PhysicalTableScan(vector<LogicalType> types, TableFunction function_p,
                                      unique_ptr<FunctionData> bind_data_p, vector<column_t> column_ids_p,
                                      vector<string> names_p, unique_ptr<TableFilterSet> table_filters_p,
-                                     idx_t estimated_cardinality)
+                                     idx_t estimated_cardinality, string table_name, bool duplicate_table)
     : PhysicalOperator(PhysicalOperatorType::TABLE_SCAN, move(types), estimated_cardinality),
       function(move(function_p)), bind_data(move(bind_data_p)), column_ids(move(column_ids_p)), names(move(names_p)),
-      table_filters(move(table_filters_p)) {
-}
-
-PhysicalTableScan::PhysicalTableScan(vector<LogicalType> types, TableFunction function_p,
-                                     unique_ptr<FunctionData> bind_data_p, vector<column_t> column_ids_p,
-                                     vector<string> names_p, unique_ptr<TableFilterSet> table_filters_p,
-                                     idx_t estimated_cardinality, string table_name)
-    : PhysicalOperator(PhysicalOperatorType::TABLE_SCAN, move(types), estimated_cardinality),
-      function(move(function_p)), bind_data(move(bind_data_p)), column_ids(move(column_ids_p)), names(move(names_p)),
-      table_filters(move(table_filters_p)), table_name(move(table_name)) {
+      table_filters(move(table_filters_p)), table_name(move(table_name)), duplicate_table(duplicate_table) {
 }
 
 class TableScanGlobalState : public GlobalSourceState {

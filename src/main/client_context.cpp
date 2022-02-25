@@ -1114,19 +1114,11 @@ ParserOptions ClientContext::GetParserOptions() {
 }
 
 
-void ClientContext::SharedTable(LogicalGet* table) {
+void ClientContext::FindDuplicateTables(LogicalGet* table) {
 	if (found_tables.find(table->table_name) == found_tables.end()) {
 		found_tables.insert(table->table_name);
 	} else {
 		table->duplicate_table = true;
 	}
 }
-
-unique_ptr<JoinHashTable> ClientContext::AddSharedTable(string table_name, unique_ptr<JoinHashTable> ptr) {
-	if (found_join_tables.find(table_name) == found_join_tables.end()) {
-		found_join_tables.insert(make_pair(table_name, move(ptr)));
-	}
-	return move(found_join_tables.at(table_name));
-}
-
 } // namespace duckdb

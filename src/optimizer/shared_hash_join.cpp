@@ -1,4 +1,4 @@
-#include "duckdb/optimizer/shared_hash_join.h"
+#include "duckdb/optimizer/shared_hash_join.hpp"
 #include "duckdb/planner/operator/logical_limit.hpp"
 
 namespace duckdb {
@@ -14,14 +14,14 @@ void SharedHashJoin::Optimize(LogicalOperator *op) {
 			Optimize(left_child);
 		} else {
 			if (left_child->type == LogicalOperatorType::LOGICAL_GET) {
-				context.SharedTable(((LogicalGet *)left_child));
+				context.FindDuplicateTables(((LogicalGet *)left_child));
 			}
 		}
 		if (right_child->type == LogicalOperatorType::LOGICAL_COMPARISON_JOIN) {
 			Optimize(right_child);
 		} else {
 			if (right_child->type == LogicalOperatorType::LOGICAL_GET) {
-				context.SharedTable(((LogicalGet *)left_child));
+				context.FindDuplicateTables(((LogicalGet *)left_child));
 			}
 		}
 	} else {

@@ -16,7 +16,6 @@
 #include "duckdb/common/progress_bar.hpp"
 #include "duckdb/common/unordered_set.hpp"
 #include "duckdb/common/winapi.hpp"
-#include "duckdb/common/shared_hash_join_table.h"
 #include "duckdb/main/prepared_statement.hpp"
 #include "duckdb/main/stream_query_result.hpp"
 #include "duckdb/main/table_description.hpp"
@@ -184,9 +183,7 @@ public:
 	//! Fetch a list of table names that are required for a given query
 	DUCKDB_API unordered_set<string> GetTableNames(const string &query);
 
-	DUCKDB_API void SharedTable(LogicalGet* table);
-
-	DUCKDB_API unique_ptr<JoinHashTable> AddSharedTable(string table_name, unique_ptr<JoinHashTable> ptr);
+	DUCKDB_API void FindDuplicateTables(LogicalGet* table);
 
 private:
 	//! Parse statements and resolve pragmas from a query

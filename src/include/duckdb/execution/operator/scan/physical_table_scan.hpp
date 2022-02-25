@@ -18,14 +18,9 @@ namespace duckdb {
 //! Represents a scan of a base table
 class PhysicalTableScan : public PhysicalOperator {
 public:
-	// TODO remove this duplicate constructor
 	PhysicalTableScan(vector<LogicalType> types, TableFunction function, unique_ptr<FunctionData> bind_data,
 	                  vector<column_t> column_ids, vector<string> names, unique_ptr<TableFilterSet> table_filters,
-	                  idx_t estimated_cardinality);
-
-	PhysicalTableScan(vector<LogicalType> types, TableFunction function, unique_ptr<FunctionData> bind_data,
-	                  vector<column_t> column_ids, vector<string> names, unique_ptr<TableFilterSet> table_filters,
-	                  idx_t estimated_cardinality, string table_name);
+	                  idx_t estimated_cardinality, string table_name, bool duplicate_table);
 
 	//! The table function
 	TableFunction function;
@@ -39,6 +34,8 @@ public:
 	unique_ptr<TableFilterSet> table_filters;
 
 	string table_name;
+
+	bool duplicate_table;
 
 public:
 	string GetName() const override;
