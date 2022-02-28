@@ -39,7 +39,7 @@ public:
 
 protected:
 	unique_ptr<PhysicalOperator> CreatePlan(LogicalOperator &op);
-
+	unique_ptr<PhysicalOperator> CreatePlan(LogicalSharedHashJoin &op);
 	unique_ptr<PhysicalOperator> CreatePlan(LogicalAggregate &op);
 	unique_ptr<PhysicalOperator> CreatePlan(LogicalAnyJoin &op);
 	unique_ptr<PhysicalOperator> CreatePlan(LogicalChunkGet &op);

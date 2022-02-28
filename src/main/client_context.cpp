@@ -1124,12 +1124,13 @@ ParserOptions ClientContext::GetParserOptions() {
 	return options;
 }
 
-
-void ClientContext::FindDuplicateTables(LogicalGet* table) {
+bool ClientContext::FindDuplicateTables(LogicalGet* table) {
 	if (found_tables.find(table->table_name) == found_tables.end()) {
 		found_tables.insert(table->table_name);
+		return false;
 	} else {
 		table->duplicate_table = true;
+		return true;
 	}
 }
 } // namespace duckdb

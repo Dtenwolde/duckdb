@@ -141,6 +141,8 @@ unique_ptr<PhysicalOperator> PhysicalPlanGenerator::CreatePlan(LogicalOperator &
 		return CreatePlan((LogicalExport &)op);
 	case LogicalOperatorType::LOGICAL_SET:
 		return CreatePlan((LogicalSet &)op);
+	case LogicalOperatorType::LOGICAL_SHARED_HASH_JOIN:
+		return CreatePlan((LogicalSharedHashJoin &)op);
 	default:
 		throw NotImplementedException("Unimplemented logical operator type!");
 	}

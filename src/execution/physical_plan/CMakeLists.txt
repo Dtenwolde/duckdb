@@ -37,6 +37,7 @@ add_library_unity(
   plan_update.cpp
   plan_window.cpp
   plan_unnest.cpp
+  plan_shared_hash_join.cpp
   plan_expression_get.cpp
   plan_recursive_cte.cpp)
 set(ALL_OBJECT_FILES

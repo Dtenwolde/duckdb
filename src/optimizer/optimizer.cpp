@@ -139,7 +139,7 @@ unique_ptr<LogicalOperator> Optimizer::Optimize(unique_ptr<LogicalOperator> plan
 
 	RunOptimizer(OptimizerType::SHARED_HASH_JOIN, [&]() {
 		SharedHashJoin shared_hash_join(context);
-		shared_hash_join.Optimize(plan.get());
+		plan = shared_hash_join.Optimize(plan.get());
 	});
 
 	return plan;

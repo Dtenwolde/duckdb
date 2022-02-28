@@ -24,13 +24,17 @@ j	p	d
 d	j	p
 p	d	j
 
-require tpch
+#require tpch
+#
+#statement ok
+#call dbgen(sf=0.1);
+#
 #query I
 #PRAGMA tpch(21)
 #----
 #<FILE>:extension/tpch/dbgen/answers/sf1/q21.csv
-
-
+#
+#
 #SELECT
 #    s_name,
 #    count(*) AS numwait
@@ -69,6 +73,6 @@ require tpch
 #    numwait DESC,
 #    s_name
 #LIMIT 100;
-#
+
 
 

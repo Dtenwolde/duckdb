@@ -14,6 +14,7 @@ class LogicalOperator;
 
 class LogicalAggregate;
 class LogicalAnyJoin;
+class LogicalSharedHashJoin;
 class LogicalChunkGet;
 class LogicalComparisonJoin;
 class LogicalCopyToFile;

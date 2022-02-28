@@ -13,7 +13,7 @@
 
 namespace duckdb {
 
-//! LogicalTopN represents a comibination of ORDER BY and LIMIT clause, using Min/Max Heap
+//! LogicalTopN represents a combination of ORDER BY and LIMIT clause, using Min/Max Heap
 class LogicalTopN : public LogicalOperator {
 public:
 	LogicalTopN(vector<BoundOrderByNode> orders, int64_t limit, int64_t offset)

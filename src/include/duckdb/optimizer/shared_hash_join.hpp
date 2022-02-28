@@ -12,7 +12,7 @@ class SharedHashJoin {
 public:
 	explicit SharedHashJoin(duckdb::ClientContext &context);
 	//! Optimize joins on same hash table
-	void Optimize(LogicalOperator* op);
+	unique_ptr<LogicalOperator> Optimize(LogicalOperator* op);
 
 private:
 	ClientContext &context;
