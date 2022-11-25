@@ -112,10 +112,10 @@ void BenchmarkRunner::LogLine(string message) {
 	fprintf(stderr, "%s\n", message.c_str());
 }
 
-void BenchmarkRunner::LogResult(string message) {
+void BenchmarkRunner::LogResult(string benchmark_name, string message) {
 	LogLine(message);
 	if (out_file.good()) {
-		out_file << message << endl;
+		out_file << benchmark_name << " " << message << endl;
 		out_file.flush();
 	}
 }
@@ -155,18 +155,18 @@ void BenchmarkRunner::RunBenchmark(Benchmark *benchmark) {
 			LogOutput(benchmark->GetLogOutput(state.get()));
 			if (timeout) {
 				// write timeout
-				LogResult("TIMEOUT");
+				LogResult(benchmark->name, "TIMEOUT");
 				break;
 			} else {
 				// write time
 				auto verify = benchmark->Verify(state.get());
 				if (!verify.empty()) {
-					LogResult("INCORRECT");
+					LogResult(benchmark->name, "INCORRECT");
 					LogLine("INCORRECT RESULT: " + verify);
 					LogOutput("INCORRECT RESULT: " + verify);
 					break;
 				} else {
-					LogResult(std::to_string(profiler.Elapsed()));
+					LogResult(benchmark->name, std::to_string(profiler.Elapsed()));
 				}
 			}
 		}
