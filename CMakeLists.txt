@@ -347,7 +347,7 @@ if(BUILD_PYTHON)
   set(BUILD_EXCEL_EXTENSION TRUE)
 endif()
 
-if (BUILD_BENCHMARKS)
+if (BUILD_BENCHMARK)
   set(BUILD_PARQUET_EXTENSION TRUE)
 endif()
 
@@ -838,7 +838,7 @@ if(NOT CLANG_TIDY)
     add_subdirectory(test)
     if(NOT WIN32
       AND NOT SUN
-      AND ${BUILD_BENCHMARKS})
+      AND ${BUILD_BENCHMARK})
       add_subdirectory(benchmark)
     endif()
   endif()
