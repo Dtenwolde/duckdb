@@ -179,6 +179,7 @@ void BenchmarkRunner::RunBenchmarks() {
 	LogLine("Starting benchmark run.");
 	LogLine("name\trun\ttiming");
 	for (auto &benchmark : benchmarks) {
+		std::cout << benchmark->name << std::endl;
 		RunBenchmark(benchmark);
 	}
 }
@@ -279,9 +280,9 @@ ConfigurationError run_benchmarks() {
 		std::vector<int> benchmark_indices {};
 		benchmark_indices.reserve(benchmarks.size());
 		for (idx_t index = 0; index < benchmarks.size(); ++index) {
-			if (RE2::FullMatch(benchmarks[index]->name, instance.configuration.name_pattern)) {
+			if (RE2::PartialMatch(benchmarks[index]->name, instance.configuration.name_pattern)) {
 				benchmark_indices.emplace_back(index);
-			} else if (RE2::FullMatch(benchmarks[index]->group, instance.configuration.name_pattern)) {
+			} else if (RE2::PartialMatch(benchmarks[index]->group, instance.configuration.name_pattern)) {
 				benchmark_indices.emplace_back(index);
 			}
 		}
@@ -310,7 +311,7 @@ ConfigurationError run_benchmarks() {
 			}
 		} else {
 			instance.LogLine("name\trun\ttiming");
-			for (const auto &benchmark_index : benchmark_indices) {
+ 			for (const auto &benchmark_index : benchmark_indices) {
 				instance.RunBenchmark(benchmarks[benchmark_index]);
 			}
 		}
