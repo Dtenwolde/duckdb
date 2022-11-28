@@ -7,6 +7,7 @@ group join
 
 load
 CREATE TABLE small_table ( pkey integer, c0 char(2), c_1k integer, c_10k integer, c_100k integer, c_1m integer, c_10m integer, c_100m integer );
+SELECT SETSEED(0.8675309);
 insert into small_table
 select i, concat('A',mod(i,2)), (random()* 1000)::int, (random()* 10000)::int, (random()* 100000)::int,
          (random()* 1000000)::int, (random()* 10000000)::int, (random()* 100000000)::int  FROM range(0,10000) tbl(i) ;
@@ -19,4 +20,4 @@ run
 select count(*) from small_table d left outer join big_table f on ( d.pkey=f.c_10k);
 
 result I
-100000000
+99994970
