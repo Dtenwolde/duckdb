@@ -42,4 +42,4 @@ SELECT COUNT(*) FROM (
 ) q2;
 
 result I
-3772
+3702
