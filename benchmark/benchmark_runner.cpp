@@ -133,8 +133,9 @@ void BenchmarkRunner::RunBenchmark(Benchmark *benchmark) {
 
 	auto state = benchmark->Initialize(configuration);
 	if (!benchmark->GetError(state.get()).empty()) {
-		LogResult(benchmark->name, benchmark->GetError(state.get()));
-		benchmark->Finalize();
+		LogResult(benchmark->name, "ERROR");
+		LogLine("ERROR: " + benchmark->GetError(state.get()));
+		LogOutput("ERROR: " + benchmark->GetError(state.get()));
 		return;
 	}
 
