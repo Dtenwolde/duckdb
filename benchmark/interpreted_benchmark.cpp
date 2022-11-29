@@ -518,6 +518,11 @@ string InterpretedBenchmark::GetLogOutput(BenchmarkState *state_p) {
 	return profiler.ToJSON();
 }
 
+string InterpretedBenchmark::GetError(BenchmarkState *state_p) {
+	auto &state = (InterpretedBenchmarkState &)*state_p;
+	return state.error;
+}
+
 string InterpretedBenchmark::DisplayName() {
 	LoadBenchmark();
 	return display_name.empty() ? name : display_name;

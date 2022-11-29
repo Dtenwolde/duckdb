@@ -132,6 +132,10 @@ void BenchmarkRunner::RunBenchmark(Benchmark *benchmark) {
 	auto display_name = benchmark->DisplayName();
 
 	auto state = benchmark->Initialize(configuration);
+	if (!benchmark->GetError(state.get()).empty()) {
+		LogResult(benchmark->name, benchmark->GetError(state.get()));
+	}
+
 	auto nruns = benchmark->NRuns();
 	for (size_t i = 0; i < nruns + 1; i++) {
 		bool hotrun = i > 0;
