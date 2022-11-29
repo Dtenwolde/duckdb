@@ -179,7 +179,6 @@ void BenchmarkRunner::RunBenchmarks() {
 	LogLine("Starting benchmark run.");
 	LogLine("name\trun\ttiming");
 	for (auto &benchmark : benchmarks) {
-		std::cout << benchmark->name << std::endl;
 		RunBenchmark(benchmark);
 	}
 }
@@ -195,6 +194,7 @@ void print_help() {
 	fprintf(stderr, "              --log=[file]           Move log output to file\n");
 	fprintf(stderr, "              --info                 Prints info about the benchmark\n");
 	fprintf(stderr, "              --query                Prints query of the benchmark\n");
+	fprintf(stderr, "              --ignore-errors        Continues to the next query in case of an error instead of aborting\n");
 	fprintf(stderr,
 	        "              [name_pattern]         Run only the benchmark which names match the specified name pattern, "
 	        "e.g., DS.* for TPC-DS benchmarks\n");
@@ -229,9 +229,11 @@ void parse_arguments(const int arg_counter, char const *const *arg_values) {
 		} else if (arg == "--info") {
 			// write info of benchmark
 			instance.configuration.meta = BenchmarkMetaType::INFO;
+		} else if (arg == "--ignore-errors") {
+			instance.configuration.ignore_errors = true;
 		} else if (arg == "--profile") {
-			// write info of benchmark
-			instance.configuration.profile_info = BenchmarkProfileInfo::NORMAL;
+				// write info of benchmark
+				instance.configuration.profile_info = BenchmarkProfileInfo::NORMAL;
 		} else if (arg == "--detailed-profile") {
 			// write info of benchmark
 			instance.configuration.profile_info = BenchmarkProfileInfo::DETAILED;

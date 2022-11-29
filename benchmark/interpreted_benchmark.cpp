@@ -39,6 +39,8 @@ struct InterpretedBenchmarkState : public BenchmarkState {
 	Connection con;
 	unique_ptr<MaterializedQueryResult> result;
 
+	string error;
+
 	explicit InterpretedBenchmarkState(string path)
 	    : benchmark_config(GetBenchmarkConfig()), db(path.empty() ? nullptr : path.c_str(), benchmark_config.get()),
 	      con(db) {
@@ -332,6 +334,10 @@ unique_ptr<BenchmarkState> InterpretedBenchmark::Initialize(BenchmarkConfigurati
 		result = state->con.Query(init_query);
 		while (result) {
 			if (result->HasError()) {
+				if (config.ignore_errors) {
+					state->error = result->GetError();
+					return state;
+				}
 				result->ThrowError();
 			}
 			result = move(result->next);
@@ -356,6 +362,10 @@ unique_ptr<BenchmarkState> InterpretedBenchmark::Initialize(BenchmarkConfigurati
 	}
 	while (result) {
 		if (result->HasError()) {
+			if (config.ignore_errors) {
+				state->error = result->GetError();
+				return state;
+			}
 			result->ThrowError();
 		}
 		result = move(result->next);

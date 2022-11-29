@@ -22,6 +22,7 @@ struct BenchmarkConfiguration {
 	std::string name_pattern {};
 	BenchmarkMetaType meta = BenchmarkMetaType::NONE;
 	BenchmarkProfileInfo profile_info = BenchmarkProfileInfo::NONE;
+	bool ignore_errors = false;
 };
 
 } // namespace duckdb
