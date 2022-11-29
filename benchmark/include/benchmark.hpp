@@ -79,7 +79,9 @@ public:
 
 	virtual string GetLogOutput(BenchmarkState *state) = 0;
 
-	virtual string GetError(BenchmarkState *state) = 0;
+	virtual string GetError(BenchmarkState *state) {
+		return "";
+	};
 
 	//! Whether or not Initialize() should be called once for every run or just
 	//! once

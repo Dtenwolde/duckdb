@@ -37,7 +37,7 @@ public:
 	string BenchmarkInfo() override;
 
 	string GetLogOutput(BenchmarkState *state) override;
-	string GetError(BenchmarkState *state);
+	string GetError(BenchmarkState *state) override;
 
 	string DisplayName() override;
 	string Group() override;
