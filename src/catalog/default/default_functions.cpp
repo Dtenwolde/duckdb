@@ -1,5 +1,4 @@
 #include "duckdb/catalog/default/default_functions.hpp"
-#include "duckdb/parser/parser.hpp"
 #include "duckdb/parser/parsed_data/create_macro_info.hpp"
 #include "duckdb/parser/expression/columnref_expression.hpp"
 #include "duckdb/catalog/catalog_entry/scalar_macro_catalog_entry.hpp"
@@ -184,25 +183,26 @@ unique_ptr<CreateMacroInfo> DefaultFunctionGenerator::CreateInternalMacroInfo(ar
 	auto type = CatalogType::MACRO_ENTRY;
 	auto bind_info = make_uniq<CreateMacroInfo>(type);
 	for(auto &default_macro : macros) {
+        throw NotImplementedException("Not implemented yet");
 		// parse the expression
-		auto expressions = Parser::ParseExpressionList(default_macro.macro);
-		D_ASSERT(expressions.size() == 1);
-
-		auto function = make_uniq<ScalarMacroFunction>(std::move(expressions[0]));
-		for (idx_t param_idx = 0; default_macro.parameters[param_idx] != nullptr; param_idx++) {
-			function->parameters.push_back(
-			    make_uniq<ColumnRefExpression>(default_macro.parameters[param_idx]));
-		}
-		for (idx_t named_idx = 0; default_macro.named_parameters[named_idx].name != nullptr; named_idx++) {
-			auto expr_list = Parser::ParseExpressionList(default_macro.named_parameters[named_idx].default_value);
-			if (expr_list.size() != 1) {
-				throw InternalException("Expected a single expression");
-			}
-			function->default_parameters.insert(
-				make_pair(default_macro.named_parameters[named_idx].name, std::move(expr_list[0])));
-		}
-		D_ASSERT(function->type == MacroType::SCALAR_MACRO);
-		bind_info->macros.push_back(std::move(function));
+//		auto expressions = Parser::ParseExpressionList(default_macro.macro);
+//		D_ASSERT(expressions.size() == 1);
+//
+//		auto function = make_uniq<ScalarMacroFunction>(std::move(expressions[0]));
+//		for (idx_t param_idx = 0; default_macro.parameters[param_idx] != nullptr; param_idx++) {
+//			function->parameters.push_back(
+//			    make_uniq<ColumnRefExpression>(default_macro.parameters[param_idx]));
+//		}
+//		for (idx_t named_idx = 0; default_macro.named_parameters[named_idx].name != nullptr; named_idx++) {
+//			auto expr_list = Parser::ParseExpressionList(default_macro.named_parameters[named_idx].default_value);
+//			if (expr_list.size() != 1) {
+//				throw InternalException("Expected a single expression");
+//			}
+//			function->default_parameters.insert(
+//				make_pair(default_macro.named_parameters[named_idx].name, std::move(expr_list[0])));
+//		}
+//		D_ASSERT(function->type == MacroType::SCALAR_MACRO);
+//		bind_info->macros.push_back(std::move(function));
 	}
 	bind_info->schema = macros[0].schema;
 	bind_info->name = macros[0].name;

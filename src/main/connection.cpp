@@ -13,7 +13,6 @@
 #include "duckdb/main/relation/table_relation.hpp"
 #include "duckdb/main/relation/value_relation.hpp"
 #include "duckdb/main/relation/view_relation.hpp"
-#include "duckdb/parser/parser.hpp"
 #include "duckdb/planner/logical_operator.hpp"
 
 namespace duckdb {
@@ -262,12 +261,13 @@ shared_ptr<Relation> Connection::ReadCSV(const string &csv_file, const vector<st
 	named_parameter_map_t options;
 	child_list_t<Value> column_list;
 	for (auto &column : columns) {
-		auto col_list = Parser::ParseColumnList(column, context->GetParserOptions());
-		if (col_list.LogicalColumnCount() != 1) {
-			throw ParserException("Expected a single column definition");
-		}
-		auto &col_def = col_list.GetColumnMutable(LogicalIndex(0));
-		column_list.push_back({col_def.GetName(), col_def.GetType().ToString()});
+        throw NotImplementedException("Not implemented.");
+//		auto col_list = Parser::ParseColumnList(column, context->GetParserOptions());
+//		if (col_list.LogicalColumnCount() != 1) {
+//			throw ParserException("Expected a single column definition");
+//		}
+//		auto &col_def = col_list.GetColumnMutable(LogicalIndex(0));
+//		column_list.push_back({col_def.GetName(), col_def.GetType().ToString()});
 	}
 	vector<string> files {csv_file};
 	return make_shared_ptr<ReadCSVRelation>(context, files, std::move(options));

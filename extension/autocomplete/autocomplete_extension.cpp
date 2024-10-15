@@ -12,7 +12,6 @@
 #include "duckdb/main/client_data.hpp"
 #include "duckdb/main/extension_util.hpp"
 #include "duckdb/parser/keyword_helper.hpp"
-#include "duckdb/parser/parser.hpp"
 
 namespace duckdb {
 

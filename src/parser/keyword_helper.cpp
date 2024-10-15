@@ -1,15 +1,17 @@
 #include "duckdb/parser/keyword_helper.hpp"
-#include "duckdb/parser/parser.hpp"
 #include "duckdb/common/string_util.hpp"
 
 namespace duckdb {
 
 bool KeywordHelper::IsKeyword(const string &text) {
-	return Parser::IsKeyword(text) != KeywordCategory::KEYWORD_NONE;
+    throw NotImplementedException("Not implemented yet");
+//	return Parser::IsKeyword(text) != KeywordCategory::KEYWORD_NONE;
 }
 
 KeywordCategory KeywordHelper::KeywordCategoryType(const string &text) {
-	return Parser::IsKeyword(text);
+    throw NotImplementedException("Not implemented yet");
+
+//	return Parser::IsKeyword(text);
 }
 
 bool KeywordHelper::RequiresQuotes(const string &text, bool allow_caps) {

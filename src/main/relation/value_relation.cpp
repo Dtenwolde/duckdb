@@ -4,7 +4,6 @@
 #include "duckdb/parser/tableref/expressionlistref.hpp"
 #include "duckdb/parser/expression/constant_expression.hpp"
 #include "duckdb/main/client_context.hpp"
-#include "duckdb/parser/parser.hpp"
 
 namespace duckdb {
 
@@ -27,7 +26,8 @@ ValueRelation::ValueRelation(const shared_ptr<ClientContext> &context, const vec
 ValueRelation::ValueRelation(const shared_ptr<ClientContext> &context, const string &values_list,
                              vector<string> names_p, string alias_p)
     : Relation(context, RelationType::VALUE_LIST_RELATION), names(std::move(names_p)), alias(std::move(alias_p)) {
-	this->expressions = Parser::ParseValuesList(values_list, context->GetParserOptions());
+//	this->expressions = Parser::ParseValuesList(values_list, context->GetParserOptions());
+    throw NotImplementedException("Not implemented yet");
 	QueryResult::DeduplicateColumns(names);
 	context->TryBindRelation(*this, this->columns);
 }

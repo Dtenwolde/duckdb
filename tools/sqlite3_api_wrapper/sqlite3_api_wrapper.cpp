@@ -9,7 +9,6 @@
 #include "duckdb/common/types.hpp"
 #include "duckdb/main/client_context.hpp"
 #include "duckdb/main/error_manager.hpp"
-#include "duckdb/parser/parser.hpp"
 #include "sqlite3.h"
 #include "sqlite3_udf_wrapper.hpp"
 #include "udf_struct_sqlite3.h"
@@ -172,60 +171,61 @@ int sqlite3_prepare_v2(sqlite3 *db,           /* Database handle */
 		*pzTail = zSql + query.size();
 	}
 	try {
-		Parser parser(db->con->context->GetParserOptions());
-		parser.ParseQuery(query);
-		if (parser.statements.size() == 0) {
-			return SQLITE_OK;
-		}
-		// extract the remainder
-		idx_t next_location = parser.statements[0]->stmt_location + parser.statements[0]->stmt_length;
-		bool set_remainder = next_location < query.size();
-
-		// extract the first statement
-		duckdb::vector<duckdb::unique_ptr<SQLStatement>> statements;
-		statements.push_back(std::move(parser.statements[0]));
-
-		db->con->context->HandlePragmaStatements(statements);
-		if (statements.empty()) {
-			return SQLITE_OK;
-		}
+        throw NotImplementedException("Not implemented yet.");
+//		Parser parser(db->con->context->GetParserOptions());
+//		parser.ParseQuery(query);
+//		if (parser.statements.size() == 0) {
+//			return SQLITE_OK;
+//		}
+//		 extract the remainder
+//		idx_t next_location = parser.statements[0]->stmt_location + parser.statements[0]->stmt_length;
+//		bool set_remainder = next_location < query.size();
+//
+//		 extract the first statement
+//		duckdb::vector<duckdb::unique_ptr<SQLStatement>> statements;
+//		statements.push_back(std::move(parser.statements[0]));
+//
+//		db->con->context->HandlePragmaStatements(statements);
+//		if (statements.empty()) {
+//			return SQLITE_OK;
+//		}
 
 		// if there are multiple statements here, we are dealing with an import database statement
 		// we directly execute all statements besides the final one
-		for (idx_t i = 0; i + 1 < statements.size(); i++) {
-			auto res = db->con->Query(std::move(statements[i]));
-			if (res->HasError()) {
-				db->last_error = res->GetErrorObject();
-				return SQLITE_ERROR;
-			}
-		}
+//		for (idx_t i = 0; i + 1 < statements.size(); i++) {
+//			auto res = db->con->Query(std::move(statements[i]));
+//			if (res->HasError()) {
+//				db->last_error = res->GetErrorObject();
+//				return SQLITE_ERROR;
+//			}
+//		}
+//
+//		// now prepare the query
+//		auto prepared = db->con->Prepare(std::move(statements.back()));
+//		if (prepared->HasError()) {
+//			// failed to prepare: set the error message
+//			db->last_error = prepared->error;
+//			return SQLITE_ERROR;
+//		}
 
-		// now prepare the query
-		auto prepared = db->con->Prepare(std::move(statements.back()));
-		if (prepared->HasError()) {
-			// failed to prepare: set the error message
-			db->last_error = prepared->error;
-			return SQLITE_ERROR;
-		}
-
-		// create the statement entry
-		duckdb::unique_ptr<sqlite3_stmt> stmt = make_uniq<sqlite3_stmt>();
-		stmt->db = db;
-		stmt->query_string = query;
-		stmt->prepared = std::move(prepared);
-		stmt->current_row = -1;
-		for (idx_t i = 0; i < stmt->prepared->named_param_map.size(); i++) {
-			stmt->bound_names.push_back("$" + to_string(i + 1));
-			stmt->bound_values.push_back(Value());
-		}
-
-		// extract the remainder of the query and assign it to the pzTail
-		if (pzTail && set_remainder) {
-			*pzTail = zSql + next_location + 1;
-		}
-
-		*ppStmt = stmt.release();
-		return SQLITE_OK;
+//		// create the statement entry
+//		duckdb::unique_ptr<sqlite3_stmt> stmt = make_uniq<sqlite3_stmt>();
+//		stmt->db = db;
+//		stmt->query_string = query;
+//		stmt->prepared = std::move(prepared);
+//		stmt->current_row = -1;
+//		for (idx_t i = 0; i < stmt->prepared->named_param_map.size(); i++) {
+//			stmt->bound_names.push_back("$" + to_string(i + 1));
+//			stmt->bound_values.push_back(Value());
+//		}
+//
+//		// extract the remainder of the query and assign it to the pzTail
+//		if (pzTail && set_remainder) {
+//			*pzTail = zSql + next_location + 1;
+//		}
+//
+//		*ppStmt = stmt.release();
+//		return SQLITE_OK;
 	} catch (std::exception &ex) {
 		db->last_error = ErrorData(ex);
 		db->con->context->ProcessError(db->last_error, query);

@@ -1,43 +1,41 @@
-#include <string>
+#include "duckdb/parser/peg_parser.hpp"
 #include <fstream>
 #include <streambuf>
+#include <stdexcept>
+#include <iostream>
 
 namespace duckdb {
 
-string FileToString(const std::string& file_name) {
-    std::ifstream str(file_name);
-    if (!str.is_open()) {
-        throw IOException("Cannot open file: " + file_name);
+    std::string FileToString(const string& file_name) {
+        std::ifstream str(file_name);
+        if (!str.is_open()) {
+            throw std::runtime_error("Cannot open file: " + file_name);
+        }
+        return std::string((std::istreambuf_iterator<char>(str)),
+                           std::istreambuf_iterator<char>());
     }
-    return string((std::istreambuf_iterator<char>(str)),
-                  std::istreambuf_iterator<char>());
-}
 
-class PEGParser {
-public:
-    PEGParser(const string& grammar_file) {
+    PEGParser::PEGParser(const string& grammar_file) {
         auto base_grammar = FileToString(grammar_file);
 
         parser_ = make_uniq<peg::parser>(base_grammar);
         parser_->enable_packrat_parsing();
 
         if (!*parser_) {
-            throw FatalException("Parser construction error");
+            throw std::runtime_error("Parser construction error");
         }
 
         // Enable error logging
-        parser_->set_logger([](size_t line, size_t col, const string& msg) {
-            printf("Error on line %zu:%zu -> %s\n", line, col, msg.c_str());
+        parser_->set_logger([](size_t line, size_t col, const std::string& msg) {
+            std::cout << "Error on line " << line << ":" << col << " -> " << msg << '\n';
         });
     }
 
-    void parse(const string &query) {
+    void PEGParser::ParseQuery(const string &query) {
         auto input = FileToString(query);
         if (!parser_->parse(input)) {
-            throw SyntaxException("Parsing failed");
+            throw std::runtime_error("Parsing failed");
         }
     }
-private:
-    std::unique_ptr<peg::parser> parser_;
-};
-}
+
+} // namespace duckdb

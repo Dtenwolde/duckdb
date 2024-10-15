@@ -2,7 +2,7 @@
 #include "linenoise.h"
 #include "highlighting.hpp"
 #include <sstream>
-#include "duckdb/parser/parser.hpp"
+#include "duckdb/parser/peg_parser.hpp"
 
 #if defined(_WIN32) || defined(__WIN32__) || defined(WIN32)
 // disable highlighting on windows (for now?)
@@ -84,50 +84,51 @@ void Highlighting::SetHighlightingColor(HighlightingType type, const char *color
 	}
 }
 
-static tokenType convertToken(duckdb::SimplifiedTokenType token_type) {
-	switch (token_type) {
-	case duckdb::SimplifiedTokenType::SIMPLIFIED_TOKEN_IDENTIFIER:
-		return tokenType::TOKEN_IDENTIFIER;
-	case duckdb::SimplifiedTokenType::SIMPLIFIED_TOKEN_NUMERIC_CONSTANT:
-		return tokenType::TOKEN_NUMERIC_CONSTANT;
-	case duckdb::SimplifiedTokenType::SIMPLIFIED_TOKEN_STRING_CONSTANT:
-		return tokenType::TOKEN_STRING_CONSTANT;
-	case duckdb::SimplifiedTokenType::SIMPLIFIED_TOKEN_OPERATOR:
-		return tokenType::TOKEN_OPERATOR;
-	case duckdb::SimplifiedTokenType::SIMPLIFIED_TOKEN_KEYWORD:
-		return tokenType::TOKEN_KEYWORD;
-	case duckdb::SimplifiedTokenType::SIMPLIFIED_TOKEN_COMMENT:
-		return tokenType::TOKEN_COMMENT;
-	default:
-		throw duckdb::InternalException("Unrecognized token type");
-	}
-}
+//static tokenType convertToken(duckdb::SimplifiedTokenType token_type) {
+//	switch (token_type) {
+//	case duckdb::SimplifiedTokenType::SIMPLIFIED_TOKEN_IDENTIFIER:
+//		return tokenType::TOKEN_IDENTIFIER;
+//	case duckdb::SimplifiedTokenType::SIMPLIFIED_TOKEN_NUMERIC_CONSTANT:
+//		return tokenType::TOKEN_NUMERIC_CONSTANT;
+//	case duckdb::SimplifiedTokenType::SIMPLIFIED_TOKEN_STRING_CONSTANT:
+//		return tokenType::TOKEN_STRING_CONSTANT;
+//	case duckdb::SimplifiedTokenType::SIMPLIFIED_TOKEN_OPERATOR:
+//		return tokenType::TOKEN_OPERATOR;
+//	case duckdb::SimplifiedTokenType::SIMPLIFIED_TOKEN_KEYWORD:
+//		return tokenType::TOKEN_KEYWORD;
+//	case duckdb::SimplifiedTokenType::SIMPLIFIED_TOKEN_COMMENT:
+//		return tokenType::TOKEN_COMMENT;
+//	default:
+//		throw duckdb::InternalException("Unrecognized token type");
+//	}
+//}
 
 vector<highlightToken> GetParseTokens(char *buf, size_t len) {
 	string sql(buf, len);
-	auto parseTokens = duckdb::Parser::Tokenize(sql);
+    throw NotImplementedException("Not implemented yet.");
+//	auto parseTokens = PEGParser::Tokenize(sql);
 
-	vector<highlightToken> tokens;
-	for (auto &token : parseTokens) {
-		highlightToken new_token;
-		new_token.type = convertToken(token.type);
-		new_token.start = token.start;
-		tokens.push_back(new_token);
-	}
-
-	if (!tokens.empty() && tokens[0].start > 0) {
-		highlightToken new_token;
-		new_token.type = tokenType::TOKEN_IDENTIFIER;
-		new_token.start = 0;
-		tokens.insert(tokens.begin(), new_token);
-	}
-	if (tokens.empty() && sql.size() > 0) {
-		highlightToken new_token;
-		new_token.type = tokenType::TOKEN_IDENTIFIER;
-		new_token.start = 0;
-		tokens.push_back(new_token);
-	}
-	return tokens;
+//	vector<highlightToken> tokens;
+//	for (auto &token : parseTokens) {
+//		highlightToken new_token;
+//		new_token.type = convertToken(token.type);
+//		new_token.start = token.start;
+//		tokens.push_back(new_token);
+//	}
+//
+//	if (!tokens.empty() && tokens[0].start > 0) {
+//		highlightToken new_token;
+//		new_token.type = tokenType::TOKEN_IDENTIFIER;
+//		new_token.start = 0;
+//		tokens.insert(tokens.begin(), new_token);
+//	}
+//	if (tokens.empty() && sql.size() > 0) {
+//		highlightToken new_token;
+//		new_token.type = tokenType::TOKEN_IDENTIFIER;
+//		new_token.start = 0;
+//		tokens.push_back(new_token);
+//	}
+//	return tokens;
 }
 
 vector<highlightToken> GetDotCommandTokens(char *buf, size_t len) {

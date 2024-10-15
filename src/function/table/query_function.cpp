@@ -1,4 +1,3 @@
-#include "duckdb/parser/parser.hpp"
 #include "duckdb/main/client_context.hpp"
 #include "duckdb/function/table/range.hpp"
 #include "duckdb/function/function_set.hpp"
@@ -7,13 +6,15 @@
 namespace duckdb {
 
 static unique_ptr<SubqueryRef> ParseSubquery(const string &query, const ParserOptions &options, const string &err_msg) {
-	Parser parser(options);
-	parser.ParseQuery(query);
-	if (parser.statements.size() != 1 || parser.statements[0]->type != StatementType::SELECT_STATEMENT) {
-		throw ParserException(err_msg);
-	}
-	auto select_stmt = unique_ptr_cast<SQLStatement, SelectStatement>(std::move(parser.statements[0]));
-	return duckdb::make_uniq<SubqueryRef>(std::move(select_stmt));
+    throw NotImplementedException("Not implemented yet");
+
+//	Parser parser(options);
+//	parser.ParseQuery(query);
+//	if (parser.statements.size() != 1 || parser.statements[0]->type != StatementType::SELECT_STATEMENT) {
+//		throw ParserException(err_msg);
+//	}
+//	auto select_stmt = unique_ptr_cast<SQLStatement, SelectStatement>(std::move(parser.statements[0]));
+//	return duckdb::make_uniq<SubqueryRef>(std::move(select_stmt));
 }
 
 static void UnionTablesQuery(TableFunctionBindInput &input, string &query) {
@@ -47,16 +48,19 @@ static void UnionTablesQuery(TableFunctionBindInput &input, string &query) {
 
 static unique_ptr<TableRef> QueryBindReplace(ClientContext &context, TableFunctionBindInput &input) {
 	auto query = input.inputs[0].ToString();
-	auto subquery_ref = ParseSubquery(query, context.GetParserOptions(), "Expected a single SELECT statement");
-	return std::move(subquery_ref);
+//	auto subquery_ref = ParseSubquery(query, context.GetParserOptions(), "Expected a single SELECT statement");
+//	return std::move(subquery_ref);
+    throw NotImplementedException("Not implemented yet");
 }
 
 static unique_ptr<TableRef> TableBindReplace(ClientContext &context, TableFunctionBindInput &input) {
 	string query;
 	UnionTablesQuery(input, query);
-	auto subquery_ref =
-	    ParseSubquery(query, context.GetParserOptions(), "Expected a table or a list with tables as input");
-	return std::move(subquery_ref);
+//	auto subquery_ref =
+//	    ParseSubquery(query, context.GetParserOptions(), "Expected a table or a list with tables as input");
+//	return std::move(subquery_ref);
+    throw NotImplementedException("Not implemented yet");
+
 }
 
 void QueryTableFunction::RegisterFunction(BuiltinFunctions &set) {

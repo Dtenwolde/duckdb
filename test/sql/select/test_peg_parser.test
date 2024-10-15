@@ -1,0 +1,4 @@
+
+
+statement ok
+select 1 from foo;

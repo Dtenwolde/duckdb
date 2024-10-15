@@ -4,7 +4,7 @@
 #include "duckdb/parallel/thread_context.hpp"
 #include "duckdb/planner/planner.hpp"
 #include "test_helpers.hpp"
-#include "duckdb/parser/parser.hpp"
+#include "duckdb/parser/peg_parser.hpp"
 
 #include <map>
 #include <set>
@@ -20,7 +20,7 @@ static void test_helper(string sql, duckdb::vector<string> fixtures = duckdb::ve
 		con.SendQuery(fixture);
 	}
 
-	Parser p;
+	PEGParser p("third_party/peg_parser/sql.gram");
 	p.ParseQuery(sql);
 
 	for (auto &statement : p.statements) {
@@ -52,7 +52,7 @@ static void test_helper_multi_db(string sql, duckdb::vector<string> fixtures = d
 		con.SendQuery(fixture);
 	}
 
-	Parser p;
+	PEGParser p("third_party/peg_parser/sql.gram");
 	p.ParseQuery(sql);
 
 	for (auto &statement : p.statements) {

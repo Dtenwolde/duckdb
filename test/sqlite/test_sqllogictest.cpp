@@ -2,7 +2,7 @@
 #include "duckdb.hpp"
 #include "duckdb/common/string_util.hpp"
 #include "duckdb/main/extension/generated_extension_loader.hpp"
-#include "duckdb/parser/parser.hpp"
+#include "duckdb/parser/peg_parser.hpp"
 #include "sqllogic_test_runner.hpp"
 #include "test_helpers.hpp"
 

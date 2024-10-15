@@ -1,7 +1,6 @@
 #include "duckdb/parser/parsed_data/create_view_info.hpp"
 #include "duckdb/catalog/catalog_entry/schema_catalog_entry.hpp"
 #include "duckdb/catalog/catalog.hpp"
-#include "duckdb/parser/parser.hpp"
 #include "duckdb/planner/binder.hpp"
 #include "duckdb/parser/statement/select_statement.hpp"
 #include "duckdb/parser/statement/create_statement.hpp"
@@ -57,15 +56,16 @@ unique_ptr<CreateInfo> CreateViewInfo::Copy() const {
 }
 
 unique_ptr<SelectStatement> CreateViewInfo::ParseSelect(const string &sql) {
-	Parser parser;
-	parser.ParseQuery(sql);
-	if (parser.statements.size() != 1 || parser.statements[0]->type != StatementType::SELECT_STATEMENT) {
-		throw BinderException(
-		    "Failed to create view from SQL string - \"%s\" - statement did not contain a single SELECT statement",
-		    sql);
-	}
-	D_ASSERT(parser.statements.size() == 1 && parser.statements[0]->type == StatementType::SELECT_STATEMENT);
-	return unique_ptr_cast<SQLStatement, SelectStatement>(std::move(parser.statements[0]));
+    throw NotImplementedException("Not implemented yet");
+//	Parser parser;
+//	parser.ParseQuery(sql);
+//	if (parser.statements.size() != 1 || parser.statements[0]->type != StatementType::SELECT_STATEMENT) {
+//		throw BinderException(
+//		    "Failed to create view from SQL string - \"%s\" - statement did not contain a single SELECT statement",
+//		    sql);
+//	}
+//	D_ASSERT(parser.statements.size() == 1 && parser.statements[0]->type == StatementType::SELECT_STATEMENT);
+//	return unique_ptr_cast<SQLStatement, SelectStatement>(std::move(parser.statements[0]));
 }
 
 unique_ptr<CreateViewInfo> CreateViewInfo::FromSelect(ClientContext &context, unique_ptr<CreateViewInfo> info) {
@@ -86,26 +86,27 @@ unique_ptr<CreateViewInfo> CreateViewInfo::FromCreateView(ClientContext &context
 	D_ASSERT(!sql.empty());
 
 	// parse the SQL statement
-	Parser parser;
-	parser.ParseQuery(sql);
-
-	if (parser.statements.size() != 1 || parser.statements[0]->type != StatementType::CREATE_STATEMENT) {
-		throw BinderException(
-		    "Failed to create view from SQL string - \"%s\" - statement did not contain a single CREATE VIEW statement",
-		    sql);
-	}
-	auto &create_statement = parser.statements[0]->Cast<CreateStatement>();
-	if (create_statement.info->type != CatalogType::VIEW_ENTRY) {
-		throw BinderException(
-		    "Failed to create view from SQL string - \"%s\" - view did not contain a CREATE VIEW statement", sql);
-	}
-
-	auto result = unique_ptr_cast<CreateInfo, CreateViewInfo>(std::move(create_statement.info));
-
-	auto binder = Binder::CreateBinder(context);
-	binder->BindCreateViewInfo(*result);
-
-	return result;
+    throw NotImplementedException("Not implemented yet");
+//	Parser parser;
+//	parser.ParseQuery(sql);
+//
+//	if (parser.statements.size() != 1 || parser.statements[0]->type != StatementType::CREATE_STATEMENT) {
+//		throw BinderException(
+//		    "Failed to create view from SQL string - \"%s\" - statement did not contain a single CREATE VIEW statement",
+//		    sql);
+//	}
+//	auto &create_statement = parser.statements[0]->Cast<CreateStatement>();
+//	if (create_statement.info->type != CatalogType::VIEW_ENTRY) {
+//		throw BinderException(
+//		    "Failed to create view from SQL string - \"%s\" - view did not contain a CREATE VIEW statement", sql);
+//	}
+//
+//	auto result = unique_ptr_cast<CreateInfo, CreateViewInfo>(std::move(create_statement.info));
+//
+//	auto binder = Binder::CreateBinder(context);
+//	binder->BindCreateViewInfo(*result);
+//
+//	return result;
 }
 
 } // namespace duckdb

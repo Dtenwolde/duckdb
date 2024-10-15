@@ -2,7 +2,6 @@
 
 #include "duckdb/common/error_data.hpp"
 #include "duckdb/common/types/column/column_data_collection.hpp"
-#include "duckdb/parser/parser.hpp"
 #include "duckdb/verification/copied_statement_verifier.hpp"
 #include "duckdb/verification/deserialized_statement_verifier.hpp"
 #include "duckdb/verification/external_statement_verifier.hpp"

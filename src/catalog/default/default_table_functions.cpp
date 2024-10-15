@@ -1,6 +1,5 @@
 #include "duckdb/catalog/default/default_table_functions.hpp"
 #include "duckdb/catalog/catalog_entry/table_macro_catalog_entry.hpp"
-#include "duckdb/parser/parser.hpp"
 #include "duckdb/parser/parsed_data/create_macro_info.hpp"
 #include "duckdb/parser/statement/select_statement.hpp"
 #include "duckdb/function/table_macro_function.hpp"
@@ -81,12 +80,13 @@ DefaultTableFunctionGenerator::CreateInternalTableMacroInfo(const DefaultTableMa
 		function->parameters.push_back(make_uniq<ColumnRefExpression>(default_macro.parameters[param_idx]));
 	}
 	for (idx_t named_idx = 0; default_macro.named_parameters[named_idx].name != nullptr; named_idx++) {
-		auto expr_list = Parser::ParseExpressionList(default_macro.named_parameters[named_idx].default_value);
-		if (expr_list.size() != 1) {
-			throw InternalException("Expected a single expression");
-		}
-		function->default_parameters.insert(
-		    make_pair(default_macro.named_parameters[named_idx].name, std::move(expr_list[0])));
+        throw NotImplementedException("Not implemented yet.");
+//		auto expr_list = Parser::ParseExpressionList(default_macro.named_parameters[named_idx].default_value);
+//		if (expr_list.size() != 1) {
+//			throw InternalException("Expected a single expression");
+//		}
+//		function->default_parameters.insert(
+//		    make_pair(default_macro.named_parameters[named_idx].name, std::move(expr_list[0])));
 	}
 
 	auto type = CatalogType::TABLE_MACRO_ENTRY;
@@ -101,15 +101,16 @@ DefaultTableFunctionGenerator::CreateInternalTableMacroInfo(const DefaultTableMa
 
 unique_ptr<CreateMacroInfo>
 DefaultTableFunctionGenerator::CreateTableMacroInfo(const DefaultTableMacro &default_macro) {
-	Parser parser;
-	parser.ParseQuery(default_macro.macro);
-	if (parser.statements.size() != 1 || parser.statements[0]->type != StatementType::SELECT_STATEMENT) {
-		throw InternalException("Expected a single select statement in CreateTableMacroInfo internal");
-	}
-	auto node = std::move(parser.statements[0]->Cast<SelectStatement>().node);
-
-	auto result = make_uniq<TableMacroFunction>(std::move(node));
-	return CreateInternalTableMacroInfo(default_macro, std::move(result));
+    throw NotImplementedException("Not implemented yet.");
+//	Parser parser;
+//	parser.ParseQuery(default_macro.macro);
+//	if (parser.statements.size() != 1 || parser.statements[0]->type != StatementType::SELECT_STATEMENT) {
+//		throw InternalException("Expected a single select statement in CreateTableMacroInfo internal");
+//	}
+//	auto node = std::move(parser.statements[0]->Cast<SelectStatement>().node);
+//
+//	auto result = make_uniq<TableMacroFunction>(std::move(node));
+//	return CreateInternalTableMacroInfo(default_macro, std::move(result));
 }
 
 static unique_ptr<CreateFunctionInfo> GetDefaultTableFunction(const string &input_schema, const string &input_name) {

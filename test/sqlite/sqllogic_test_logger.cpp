@@ -1,5 +1,4 @@
 #include "sqllogic_test_logger.hpp"
-#include "duckdb/parser/parser.hpp"
 #include "termcolor.hpp"
 #include "sqllogic_test_runner.hpp"
 
@@ -71,32 +70,33 @@ void SQLLogicTestLogger::PrintSQL() {
 
 void SQLLogicTestLogger::PrintSQLFormatted() {
 	std::cerr << termcolor::bold << "SQL Query" << termcolor::reset << std::endl;
-	auto tokens = Parser::Tokenize(sql_query);
-	for (idx_t i = 0; i < tokens.size(); i++) {
-		auto &token = tokens[i];
-		idx_t next = i + 1 < tokens.size() ? tokens[i + 1].start : sql_query.size();
-		// adjust the highlighting based on the type
-		switch (token.type) {
-		case SimplifiedTokenType::SIMPLIFIED_TOKEN_IDENTIFIER:
-			break;
-		case SimplifiedTokenType::SIMPLIFIED_TOKEN_NUMERIC_CONSTANT:
-		case SimplifiedTokenType::SIMPLIFIED_TOKEN_STRING_CONSTANT:
-			std::cerr << termcolor::yellow;
-			break;
-		case SimplifiedTokenType::SIMPLIFIED_TOKEN_OPERATOR:
-			break;
-		case SimplifiedTokenType::SIMPLIFIED_TOKEN_KEYWORD:
-			std::cerr << termcolor::green << termcolor::bold;
-			break;
-		case SimplifiedTokenType::SIMPLIFIED_TOKEN_COMMENT:
-			std::cerr << termcolor::grey;
-			break;
-		}
-		// print the current token
-		std::cerr << sql_query.substr(token.start, next - token.start);
-		// reset and move to the next token
-		std::cerr << termcolor::reset;
-	}
+    throw NotImplementedException("Not implemented yet");
+//	auto tokens = Parser::Tokenize(sql_query);
+//	for (idx_t i = 0; i < tokens.size(); i++) {
+//		auto &token = tokens[i];
+//		idx_t next = i + 1 < tokens.size() ? tokens[i + 1].start : sql_query.size();
+//		// adjust the highlighting based on the type
+//		switch (token.type) {
+//		case SimplifiedTokenType::SIMPLIFIED_TOKEN_IDENTIFIER:
+//			break;
+//		case SimplifiedTokenType::SIMPLIFIED_TOKEN_NUMERIC_CONSTANT:
+//		case SimplifiedTokenType::SIMPLIFIED_TOKEN_STRING_CONSTANT:
+//			std::cerr << termcolor::yellow;
+//			break;
+//		case SimplifiedTokenType::SIMPLIFIED_TOKEN_OPERATOR:
+//			break;
+//		case SimplifiedTokenType::SIMPLIFIED_TOKEN_KEYWORD:
+//			std::cerr << termcolor::green << termcolor::bold;
+//			break;
+//		case SimplifiedTokenType::SIMPLIFIED_TOKEN_COMMENT:
+//			std::cerr << termcolor::grey;
+//			break;
+//		}
+//		// print the current token
+//		std::cerr << sql_query.substr(token.start, next - token.start);
+//		// reset and move to the next token
+//		std::cerr << termcolor::reset;
+//	}
 	std::cerr << std::endl;
 }
 

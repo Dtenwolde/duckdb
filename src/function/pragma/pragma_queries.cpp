@@ -7,7 +7,6 @@
 #include "duckdb/main/config.hpp"
 #include "duckdb/main/database_manager.hpp"
 #include "duckdb/main/extension_helper.hpp"
-#include "duckdb/parser/parser.hpp"
 #include "duckdb/parser/qualified_name.hpp"
 #include "duckdb/parser/statement/copy_statement.hpp"
 #include "duckdb/parser/statement/export_statement.hpp"
@@ -156,18 +155,19 @@ string PragmaImportDatabase(ClientContext &context, const FunctionParameters &pa
 		auto query = string(buffer.get(), UnsafeNumericCast<uint32_t>(fsize));
 		// Replace the placeholder with the path provided to IMPORT
 		if (file == "load.sql") {
-			Parser parser;
-			parser.ParseQuery(query);
-			auto copy_statements = std::move(parser.statements);
-			query.clear();
-			for (auto &statement_p : copy_statements) {
-				D_ASSERT(statement_p->type == StatementType::COPY_STATEMENT);
-				auto &statement = statement_p->Cast<CopyStatement>();
-				auto &info = *statement.info;
-				auto file_name = fs.ExtractName(info.file_path);
-				info.file_path = fs.JoinPath(parameters.values[0].ToString(), file_name);
-				query += statement.ToString() + ";";
-			}
+            throw NotImplementedException("Not implemented yet");
+//			Parser parser;
+//			parser.ParseQuery(query);
+//			auto copy_statements = std::move(parser.statements);
+//			query.clear();
+//			for (auto &statement_p : copy_statements) {
+//				D_ASSERT(statement_p->type == StatementType::COPY_STATEMENT);
+//				auto &statement = statement_p->Cast<CopyStatement>();
+//				auto &info = *statement.info;
+//				auto file_name = fs.ExtractName(info.file_path);
+//				info.file_path = fs.JoinPath(parameters.values[0].ToString(), file_name);
+//				query += statement.ToString() + ";";
+//			}
 		}
 		final_query += query;
 	}

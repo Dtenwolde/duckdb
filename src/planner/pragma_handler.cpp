@@ -1,6 +1,5 @@
 #include "duckdb/planner/pragma_handler.hpp"
 #include "duckdb/planner/binder.hpp"
-#include "duckdb/parser/parser.hpp"
 
 #include "duckdb/catalog/catalog.hpp"
 #include "duckdb/catalog/catalog_entry/pragma_function_catalog_entry.hpp"
@@ -35,14 +34,15 @@ void PragmaHandler::HandlePragmaStatementsInternal(vector<unique_ptr<SQLStatemen
 			string new_query;
 			bool expanded = handler.HandlePragma(*statements[i], new_query);
 			if (expanded) {
+                throw NotImplementedException("Not implemented yet");
 				// this PRAGMA statement gets replaced by a new query string
 				// push the new query string through the parser again and add it to the transformer
-				Parser parser(context.GetParserOptions());
-				parser.ParseQuery(new_query);
-				// insert the new statements and remove the old statement
-				for (idx_t j = 0; j < parser.statements.size(); j++) {
-					new_statements.push_back(std::move(parser.statements[j]));
-				}
+//				Parser parser(context.GetParserOptions());
+//				parser.ParseQuery(new_query);
+//				 insert the new statements and remove the old statement
+//				for (idx_t j = 0; j < parser.statements.size(); j++) {
+//					new_statements.push_back(std::move(parser.statements[j]));
+//				}
 				continue;
 			}
 		}

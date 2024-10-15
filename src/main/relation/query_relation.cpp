@@ -4,12 +4,12 @@
 #include "duckdb/parser/expression/star_expression.hpp"
 #include "duckdb/parser/tableref/subqueryref.hpp"
 #include "duckdb/parser/tableref/joinref.hpp"
-#include "duckdb/parser/parser.hpp"
 #include "duckdb/planner/bound_statement.hpp"
 #include "duckdb/planner/binder.hpp"
 #include "duckdb/parser/query_node/select_node.hpp"
 #include "duckdb/planner/query_node/bound_select_node.hpp"
 #include "duckdb/parser/common_table_expression_info.hpp"
+#include "duckdb/parser/peg_parser.hpp"
 
 namespace duckdb {
 
@@ -28,7 +28,7 @@ QueryRelation::~QueryRelation() {
 
 unique_ptr<SelectStatement> QueryRelation::ParseStatement(ClientContext &context, const string &query,
                                                           const string &error) {
-	Parser parser(context.GetParserOptions());
+	PEGParser parser("third_party/peg_parser/sql.gram");
 	parser.ParseQuery(query);
 	if (parser.statements.size() != 1) {
 		throw ParserException(error);

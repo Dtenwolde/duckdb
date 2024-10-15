@@ -28,7 +28,7 @@
 #include "duckdb/parser/expression/constant_expression.hpp"
 #include "duckdb/parser/expression/parameter_expression.hpp"
 #include "duckdb/parser/parsed_data/create_function_info.hpp"
-#include "duckdb/parser/parser.hpp"
+#include "duckdb/parser/peg_parser.hpp"
 #include "duckdb/parser/query_node/select_node.hpp"
 #include "duckdb/parser/statement/drop_statement.hpp"
 #include "duckdb/parser/statement/execute_statement.hpp"
@@ -42,6 +42,7 @@
 #include "duckdb/storage/data_table.hpp"
 #include "duckdb/transaction/meta_transaction.hpp"
 #include "duckdb/transaction/transaction_manager.hpp"
+#include "duckdb/parser/parser_options.hpp"
 
 namespace duckdb {
 
@@ -603,13 +604,15 @@ vector<unique_ptr<SQLStatement>> ClientContext::ParseStatements(const string &qu
 }
 
 vector<unique_ptr<SQLStatement>> ClientContext::ParseStatementsInternal(ClientContextLock &lock, const string &query) {
-	Parser parser(GetParserOptions());
-	parser.ParseQuery(query);
+//	Parser parser(GetParserOptions());
+//	parser.ParseQuery(query);
 
+    PEGParser peg_parser("third_party/peg_parser/sql.gram");
+    peg_parser.ParseQuery(query);
 	PragmaHandler handler(*this);
-	handler.HandlePragmaStatements(lock, parser.statements);
+	handler.HandlePragmaStatements(lock, peg_parser.statements);
 
-	return std::move(parser.statements);
+	return std::move(peg_parser.statements);
 }
 
 void ClientContext::HandlePragmaStatements(vector<unique_ptr<SQLStatement>> &statements) {
@@ -812,7 +815,7 @@ unique_ptr<PendingQueryResult> ClientContext::PendingStatementOrPreparedStatemen
 			}
 			if (reparse_statement) {
 				try {
-					Parser parser(GetParserOptions());
+					PEGParser parser("third_party/peg_parser/sql.gram");
 					ErrorData error;
 					parser.ParseQuery(statement->ToString());
 					statement = std::move(parser.statements[0]);

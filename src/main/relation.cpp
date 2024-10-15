@@ -1,6 +1,5 @@
 #include "duckdb/main/relation.hpp"
 #include "duckdb/common/printer.hpp"
-#include "duckdb/parser/parser.hpp"
 #include "duckdb/main/relation/aggregate_relation.hpp"
 #include "duckdb/main/relation/cross_product_relation.hpp"
 #include "duckdb/main/relation/distinct_relation.hpp"
@@ -38,8 +37,9 @@ shared_ptr<Relation> Relation::Project(const string &expression, const string &a
 }
 
 shared_ptr<Relation> Relation::Project(const string &select_list, const vector<string> &aliases) {
-	auto expressions = Parser::ParseExpressionList(select_list, context.GetContext()->GetParserOptions());
-	return make_shared_ptr<ProjectionRelation>(shared_from_this(), std::move(expressions), aliases);
+//	auto expressions = Parser::ParseExpressionList(select_list, context.GetContext()->GetParserOptions());
+//	return make_shared_ptr<ProjectionRelation>(shared_from_this(), std::move(expressions), aliases);
+    throw NotImplementedException("Not implemented yet");
 }
 
 shared_ptr<Relation> Relation::Project(const vector<string> &expressions) {
@@ -59,11 +59,12 @@ static vector<unique_ptr<ParsedExpression>> StringListToExpressionList(ClientCon
 	}
 	vector<unique_ptr<ParsedExpression>> result_list;
 	for (auto &expr : expressions) {
-		auto expression_list = Parser::ParseExpressionList(expr, context.GetParserOptions());
-		if (expression_list.size() != 1) {
-			throw ParserException("Expected a single expression in the expression list");
-		}
-		result_list.push_back(std::move(expression_list[0]));
+        throw NotImplementedException("Not implemented yet.");
+//		auto expression_list = Parser::ParseExpressionList(expr, context.GetParserOptions());
+//		if (expression_list.size() != 1) {
+//			throw ParserException("Expected a single expression in the expression list");
+//		}
+//		result_list.push_back(std::move(expression_list[0]));
 	}
 	return result_list;
 }
@@ -74,11 +75,13 @@ shared_ptr<Relation> Relation::Project(const vector<string> &expressions, const 
 }
 
 shared_ptr<Relation> Relation::Filter(const string &expression) {
-	auto expression_list = Parser::ParseExpressionList(expression, context.GetContext()->GetParserOptions());
-	if (expression_list.size() != 1) {
-		throw ParserException("Expected a single expression as filter condition");
-	}
-	return Filter(std::move(expression_list[0]));
+    throw NotImplementedException("Not implemented yet.");
+
+//	auto expression_list = Parser::ParseExpressionList(expression, context.GetContext()->GetParserOptions());
+//	if (expression_list.size() != 1) {
+//		throw ParserException("Expected a single expression as filter condition");
+//	}
+//	return Filter(std::move(expression_list[0]));
 }
 
 shared_ptr<Relation> Relation::Filter(unique_ptr<ParsedExpression> expression) {
@@ -103,8 +106,9 @@ shared_ptr<Relation> Relation::Limit(int64_t limit, int64_t offset) {
 }
 
 shared_ptr<Relation> Relation::Order(const string &expression) {
-	auto order_list = Parser::ParseOrderList(expression, context.GetContext()->GetParserOptions());
-	return Order(std::move(order_list));
+//	auto order_list = Parser::ParseOrderList(expression, context.GetContext()->GetParserOptions());
+//	return Order(std::move(order_list));
+    throw NotImplementedException("Not implemented yet.");
 }
 
 shared_ptr<Relation> Relation::Order(vector<OrderByNode> order_list) {
@@ -117,20 +121,22 @@ shared_ptr<Relation> Relation::Order(const vector<string> &expressions) {
 	}
 	vector<OrderByNode> order_list;
 	for (auto &expression : expressions) {
-		auto inner_list = Parser::ParseOrderList(expression, context.GetContext()->GetParserOptions());
-		if (inner_list.size() != 1) {
-			throw ParserException("Expected a single ORDER BY expression in the expression list");
-		}
-		order_list.push_back(std::move(inner_list[0]));
+        throw NotImplementedException("Not implemented yet.");
+//		auto inner_list = Parser::ParseOrderList(expression, context.GetContext()->GetParserOptions());
+//		if (inner_list.size() != 1) {
+//			throw ParserException("Expected a single ORDER BY expression in the expression list");
+//		}
+//		order_list.push_back(std::move(inner_list[0]));
 	}
 	return Order(std::move(order_list));
 }
 
 shared_ptr<Relation> Relation::Join(const shared_ptr<Relation> &other, const string &condition, JoinType type,
                                     JoinRefType ref_type) {
-	auto expression_list = Parser::ParseExpressionList(condition, context.GetContext()->GetParserOptions());
-	D_ASSERT(!expression_list.empty());
-	return Join(other, std::move(expression_list), type, ref_type);
+    throw NotImplementedException("Not implemented yet.");
+//	auto expression_list = Parser::ParseExpressionList(condition, context.GetContext()->GetParserOptions());
+//	D_ASSERT(!expression_list.empty());
+//	return Join(other, std::move(expression_list), type, ref_type);
 }
 
 shared_ptr<Relation> Relation::Join(const shared_ptr<Relation> &other,
@@ -181,8 +187,10 @@ shared_ptr<Relation> Relation::Alias(const string &alias) {
 }
 
 shared_ptr<Relation> Relation::Aggregate(const string &aggregate_list) {
-	auto expression_list = Parser::ParseExpressionList(aggregate_list, context.GetContext()->GetParserOptions());
-	return make_shared_ptr<AggregateRelation>(shared_from_this(), std::move(expression_list));
+    throw NotImplementedException("Not implemented yet.");
+
+//	auto expression_list = Parser::ParseExpressionList(aggregate_list, context.GetContext()->GetParserOptions());
+//	return make_shared_ptr<AggregateRelation>(shared_from_this(), std::move(expression_list));
 }
 
 shared_ptr<Relation> Relation::Aggregate(vector<unique_ptr<ParsedExpression>> expressions) {
@@ -190,9 +198,11 @@ shared_ptr<Relation> Relation::Aggregate(vector<unique_ptr<ParsedExpression>> ex
 }
 
 shared_ptr<Relation> Relation::Aggregate(const string &aggregate_list, const string &group_list) {
-	auto expression_list = Parser::ParseExpressionList(aggregate_list, context.GetContext()->GetParserOptions());
-	auto groups = Parser::ParseGroupByList(group_list, context.GetContext()->GetParserOptions());
-	return make_shared_ptr<AggregateRelation>(shared_from_this(), std::move(expression_list), std::move(groups));
+    throw NotImplementedException("Not implemented yet.");
+
+//	auto expression_list = Parser::ParseExpressionList(aggregate_list, context.GetContext()->GetParserOptions());
+//	auto groups = Parser::ParseGroupByList(group_list, context.GetContext()->GetParserOptions());
+//	return make_shared_ptr<AggregateRelation>(shared_from_this(), std::move(expression_list), std::move(groups));
 }
 
 shared_ptr<Relation> Relation::Aggregate(const vector<string> &aggregates) {
@@ -207,8 +217,10 @@ shared_ptr<Relation> Relation::Aggregate(const vector<string> &aggregates, const
 }
 
 shared_ptr<Relation> Relation::Aggregate(vector<unique_ptr<ParsedExpression>> expressions, const string &group_list) {
-	auto groups = Parser::ParseGroupByList(group_list, context.GetContext()->GetParserOptions());
-	return make_shared_ptr<AggregateRelation>(shared_from_this(), std::move(expressions), std::move(groups));
+    throw NotImplementedException("Not implemented yet.");
+
+//	auto groups = Parser::ParseGroupByList(group_list, context.GetContext()->GetParserOptions());
+//	return make_shared_ptr<AggregateRelation>(shared_from_this(), std::move(expressions), std::move(groups));
 }
 
 string Relation::GetAlias() {
