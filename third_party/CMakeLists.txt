@@ -13,6 +13,7 @@ if(NOT AMALGAMATION_BUILD)
   add_subdirectory(mbedtls)
   add_subdirectory(fsst)
   add_subdirectory(yyjson)
+  add_subdirectory(peg_parser)
 endif()
 
 if(NOT WIN32
