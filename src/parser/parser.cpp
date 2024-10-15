@@ -13,6 +13,7 @@
 #include "duckdb/parser/transformer.hpp"
 #include "parser/parser.hpp"
 #include "postgres_parser.hpp"
+#include "peglib.h"
 
 namespace duckdb {
 
@@ -189,7 +190,6 @@ vector<string> SplitQueryStringIntoStatements(const string &query) {
 
 void Parser::ParseQuery(const string &query) {
 	Transformer transformer(options);
-	string parser_error;
 	optional_idx parser_error_location;
 	{
 		// check if there are any unicode spaces in the string

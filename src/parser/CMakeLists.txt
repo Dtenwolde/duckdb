@@ -1,5 +1,6 @@
 include_directories(../../third_party/libpg_query/include)
 include_directories(../../third_party/libpg_query)
+include_directories(../../third_party/peg_parser)
 
 add_subdirectory(constraints)
 add_subdirectory(expression)
@@ -21,6 +22,7 @@ add_library_unity(
   parsed_expression.cpp
   parsed_expression_iterator.cpp
   parser.cpp
+  peg_parser.cpp
   query_error_context.cpp
   query_node.cpp
   result_modifier.cpp
