@@ -1,9 +1,10 @@
 Statements <- (SingleStatement (';' SingleStatement )* ';'*)
 
-
-
-SingleStatement <- SelectStatement  
+SingleStatement <- SelectStatement / TransactionStatement
 SelectStatement <- SimpleSelect (SetopClause SimpleSelect)*
+
+TransactionStatement <- TransactionType 'TRANSACTION'i
+TransactionType <- 'BEGIN'i / 'COMMIT'i / 'ROLLBACK'i
 
 SetopClause <- ('UNION'i / 'EXCEPT'i / 'INTERSECT'i) 'ALL'i?
 

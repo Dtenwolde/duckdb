@@ -24,8 +24,13 @@ namespace duckdb {
 
         void ParseQuery(const string &query);
 
+        string ToString() {
+            return peg::ast_to_s(ast_);
+        }
+
     public:
         vector<unique_ptr<SQLStatement>> statements;
+        std::shared_ptr<peg::Ast> ast_;
         std::string parser_error_message; // Member to store the error message
 
     private:
