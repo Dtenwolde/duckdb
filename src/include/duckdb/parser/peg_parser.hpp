@@ -26,6 +26,7 @@ namespace duckdb {
 
     public:
         vector<unique_ptr<SQLStatement>> statements;
+        std::string parser_error_message; // Member to store the error message
 
     private:
         unique_ptr<peg::parser> parser_;
