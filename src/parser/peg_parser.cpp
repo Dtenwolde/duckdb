@@ -1,7 +1,6 @@
 #include "duckdb/parser/peg_parser.hpp"
 #include <fstream>
 #include <streambuf>
-#include <stdexcept>
 #include <iostream>
 
 namespace duckdb {
@@ -9,7 +8,7 @@ namespace duckdb {
     std::string FileToString(const string &file_name) {
         std::ifstream str(file_name);
         if (!str.is_open()) {
-            throw std::runtime_error("Cannot open file: " + file_name);
+            throw IOException("Failed to open file " + file_name);
         }
         return std::string((std::istreambuf_iterator<char>(str)),
                            std::istreambuf_iterator<char>());
@@ -24,7 +23,7 @@ namespace duckdb {
         parser_->enable_packrat_parsing();
 
         if (!*parser_) {
-            throw std::runtime_error("Parser construction error");
+            throw FatalException("Parser initialization failed");
         }
 
         // Enable error logging and capture the error message
