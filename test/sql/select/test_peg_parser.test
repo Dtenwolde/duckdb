@@ -6,5 +6,11 @@ statement ok
 select a from foo;
 
 statement ok
+select a from foo f;
+
+statement ok
+select f.a from foo f;
+
+statement ok
 select 1 as a;
 

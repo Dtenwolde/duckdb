@@ -95,13 +95,15 @@ namespace duckdb {
     }
 
     unique_ptr<ParsedExpression> PEGTransformer::TransformColumnReference(std::shared_ptr<peg::Ast> &ast) {
-        auto col_name = TransformIdentifier(ast->nodes[0]);
+        auto name = TransformIdentifier(ast->nodes[0]);
+
+        // Two elements means separated by a dot, therefore table_name is first, col_name is second
         if (ast->nodes.size() == 2) {
-            auto table_name = TransformIdentifier(ast->nodes[1]);
-            auto result = make_uniq<ColumnRefExpression>(col_name, table_name);
+            auto col_name = TransformIdentifier(ast->nodes[1]);
+            auto result = make_uniq<ColumnRefExpression>(col_name, name);
             return result;
         }
-        return make_uniq<ColumnRefExpression>(col_name);
+        return make_uniq<ColumnRefExpression>(name);
     }
 
     unique_ptr<ParsedExpression> PEGTransformer::TransformSingleExpression(std::shared_ptr<peg::Ast> &ast) {
@@ -192,12 +194,16 @@ namespace duckdb {
         if (ast->nodes[0]->name == "Identifier") {
             auto base_table_ref = make_uniq<BaseTableRef>();
             base_table_ref->table_name = TransformIdentifier(ast->nodes[0]);
-            return base_table_ref;
+            if (ast->nodes.size() == 1) {
+                return base_table_ref;
+            }
+            if (ast->nodes[1]->name == "Identifier") {
+                base_table_ref->alias = TransformIdentifier(ast->nodes[1]);
+                return base_table_ref;
+            }
         }
         throw NotImplementedException("Transform for " + ast->name + " not implemented");
     }
-
-
 
     unique_ptr<TableRef> PEGTransformer::TransformFrom(std::shared_ptr<peg::Ast> &ast) {
         auto table_ref = TransformTableReference(ast->nodes[0]);
