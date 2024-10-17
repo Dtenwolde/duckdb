@@ -26,14 +26,14 @@ unique_ptr<SQLStatement> PEGTransformer::TransformSingleStatement(std::shared_pt
 }
 
 TransactionType TransformTransactionType(const std::string_view kind) {
-    if (kind == "BEGIN") {
+    if (kind == "BEGIN TRANSACTION") {
         return TransactionType::BEGIN_TRANSACTION;
     } else if (kind == "COMMIT") {
         return TransactionType::COMMIT;
     } else if (kind == "ROLLBACK") {
         return TransactionType::ROLLBACK;
     } else {
-        throw NotImplementedException("Transaction type not implemented yet.");
+        throw NotImplementedException("Transaction type " + string(kind) + " not implemented yet.");
     }
 }
 

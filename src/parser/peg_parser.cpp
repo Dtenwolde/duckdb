@@ -38,22 +38,11 @@ namespace duckdb {
 // Method to parse a query and throw the actual error message
     void PEGParser::ParseQuery(const string &query) {
         if (parser_->parse(query, ast_)) {
-
-            // If parsing is successful, store the AST nodes
-//            ast_ = parser_->optimize_ast(ast_);
             PEGTransformer::Transform(ast_->nodes[0], statements);
         } else {
             // Throw the stored error message if parsing fails
-            throw ParserException(parser_error_message);
+            throw ParserException("%s: %s", query, parser_error_message);
         }
-
-//        if (parser.parse("...", ast)) {
-//            cout << peg::ast_to_s(ast);
-//
-//            ast = parser.optimize_ast(ast);
-//            cout << peg::ast_to_s(ast);
-//        }
-//        statements = std::move(parser_->ast->nodes);
     }
 
 } // namespace duckdb
