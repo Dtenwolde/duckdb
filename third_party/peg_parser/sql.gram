@@ -1,11 +1,11 @@
 Statements <- (SingleStatement (';' SingleStatement )* ';'*)
 
-SingleStatement <- SelectStatement / TransactionStatement
+SingleStatement <- SelectStatement / TransactionStatement / CreateStatement
 SelectStatement <- SimpleSelect (SetopClause SimpleSelect)*
-
 TransactionStatement <- TransactionType
+CreateStatement <- 'CREATE'i 'TABLE'i Identifier Parens(List(ColumnDefinition))
+ColumnDefinition <- Identifier TypeSpecifier
 TransactionType <- 'BEGIN'i 'TRANSACTION'i / 'COMMIT'i / 'ROLLBACK'i
-
 SetopClause <- ('UNION'i / 'EXCEPT'i / 'INTERSECT'i) 'ALL'i?
 
 SimpleSelect <- WithClause? SelectClause FromClause? WhereClause? GroupByClause? HavingClause? OrderByClause? LimitClause?
@@ -49,7 +49,7 @@ ReservedKeyword <-
 PlainIdentifier <-  !ReservedKeyword <[a-z_]i[a-z0-9_]i*>  # unqoted identifier can't be top-level keyword
 QuotedIdentifier <- '"' [^"]* '"'
 Identifier <- QuotedIdentifier / PlainIdentifier
-NumberLiteral      <- < [+-]?[0-9]*([.][0-9]*)? >
+NumberLiteral <- < [+-]?[0-9]*([.][0-9]*)? >
 StringLiteral <- '\'' [^\']* '\''
 TypeSpecifier <- Identifier (Parens(List(NumberLiteral)))?
 

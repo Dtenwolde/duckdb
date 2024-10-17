@@ -1,6 +1,9 @@
 #include <duckdb/parser/peg_transformer.hpp>
 #include <duckdb/parser/statement/transaction_statement.hpp>
 #include <duckdb/parser/expression/columnref_expression.hpp>
+#include <duckdb/parser/statement/create_statement.hpp>
+#include <duckdb/parser/parsed_data/create_table_info.hpp>
+#include <duckdb/common/enums/catalog_type.hpp>
 
 namespace duckdb {
 
@@ -23,6 +26,8 @@ namespace duckdb {
             return TransformTransaction(ast);
         } else if (ast->name == "SelectStatement") {
             return TransformSelect(ast);
+        } else if (ast->name == "CreateStatement") {
+            return TransformCreateTable(ast);
         } else {
             throw NotImplementedException("Transform for " + ast->name + " not implemented");
         }
@@ -44,6 +49,28 @@ namespace duckdb {
         auto type = TransformTransactionType(ast->nodes[0]->token);
         auto info = make_uniq<TransactionInfo>(type);
         return make_uniq<TransactionStatement>(std::move(info));
+    }
+
+    void PEGTransformer::TransformColumnDefinition(std::shared_ptr<peg::Ast> &ast, ColumnList &column) {
+        throw NotImplementedException("Transform for " + ast->name + " not implemented");
+    }
+
+    unique_ptr<CreateStatement> PEGTransformer::TransformCreateTable(std::shared_ptr<peg::Ast> &ast) {
+        auto result = make_uniq<CreateStatement>();
+        auto table_info = make_uniq<CreateTableInfo>();
+        if (ast->nodes[0]->name == "Identifier") {
+             table_info->table = TransformIdentifier(ast->nodes[0]);
+        } else {
+            throw ParserException("CreateStatement node should have Identifier as first child");
+        }
+        if (ast->nodes[1]->name == "ColumnDefinition") {
+            ColumnList columns;
+            TransformColumnDefinition(ast->nodes[1], columns);
+            table_info->columns = std::move(columns);
+        }
+
+
+        throw NotImplementedException("Transform for " + ast->name + " not implemented");
     }
 
     unique_ptr<ParsedExpression> PEGTransformer::TransformLiteralExpression(std::shared_ptr<peg::Ast> &ast) {

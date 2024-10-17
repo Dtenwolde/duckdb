@@ -1,4 +1,7 @@
 
+statement ok
+create table foo (a bigint);
+
 
 statement ok
-select 1 as a;
+select 1 as a from foo;
