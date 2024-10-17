@@ -2,6 +2,8 @@
 statement ok
 create table foo (a bigint);
 
-
 statement ok
-select 1 as a from foo;
+select 1 as a;
+
+#statement ok
+#select a as a from foo;

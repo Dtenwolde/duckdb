@@ -51,8 +51,18 @@ namespace duckdb {
         return make_uniq<TransactionStatement>(std::move(info));
     }
 
-    void PEGTransformer::TransformColumnDefinition(std::shared_ptr<peg::Ast> &ast, ColumnList &column) {
-        throw NotImplementedException("Transform for " + ast->name + " not implemented");
+    void PEGTransformer::TransformColumnDefinition(std::shared_ptr<peg::Ast> &ast, ColumnList &column_list) {
+        if (ast->nodes.size() != 2) {
+            throw ParserException("ColumnDefinition node should have 2 children");
+        }
+        auto column_name = TransformIdentifier(ast->nodes[0]);
+        if (ast->nodes[1]->name == "TypeSpecifier") {
+            auto type = TransformIdentifier(ast->nodes[1]->nodes[0]);
+            auto column_type = EnumUtil::FromString<LogicalTypeId>(duckdb::StringUtil::Upper(type));
+            column_list.AddColumn(ColumnDefinition(column_name, column_type));
+        } else {
+            throw ParserException("ColumnDefinition node should have TypeSpecifier as second child");
+        }
     }
 
     unique_ptr<CreateStatement> PEGTransformer::TransformCreateTable(std::shared_ptr<peg::Ast> &ast) {
@@ -68,9 +78,8 @@ namespace duckdb {
             TransformColumnDefinition(ast->nodes[1], columns);
             table_info->columns = std::move(columns);
         }
-
-
-        throw NotImplementedException("Transform for " + ast->name + " not implemented");
+        result->info = std::move(table_info);
+        return result;
     }
 
     unique_ptr<ParsedExpression> PEGTransformer::TransformLiteralExpression(std::shared_ptr<peg::Ast> &ast) {
