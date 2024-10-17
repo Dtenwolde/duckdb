@@ -1,4 +1,4 @@
 
 
 statement ok
-select 1 from foo;
+select 1 as a;
