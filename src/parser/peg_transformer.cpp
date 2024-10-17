@@ -70,33 +70,6 @@ namespace duckdb {
                 result->select_statement = TransformSelect(ast->nodes[2]);
             }
         }
-
-
-
-//        if (ast->nodes[1]->name == "ColumnList") {
-//            for (auto &child: ast->nodes[1]->nodes) {
-//                if (child->name == "Identifier") {
-//                    result->columns.push_back(TransformIdentifier(child));
-//                }
-//            }
-//        } else {
-//            throw ParserException("InsertStatement node should have ColumnList as second child");
-//        }
-//        if (ast->nodes[2]->name == "ValuesList") {
-//            for (auto &child: ast->nodes[2]->nodes) {
-//                if (child->name == "ExpressionList") {
-//                    vector<unique_ptr<ParsedExpression>> values;
-//                    for (auto &child2: child->nodes) {
-//                        if (child2->name == "Expression") {
-//                            values.push_back(TransformExpression(child2));
-//                        }
-//                    }
-//                    result->values.push_back(std::move(values));
-//                }
-//            }
-//        } else {
-//            throw ParserException("InsertStatement node should have ValuesList as third child");
-//        }
         return result;
     }
 
@@ -228,13 +201,117 @@ namespace duckdb {
         }
     }
 
-    unique_ptr<ParsedExpression> PEGTransformer::TransformExpression(std::shared_ptr<peg::Ast> &ast) {
-        for (auto &child: ast->nodes) {
-            if (child->name == "SingleExpression") {
-                return TransformSingleExpression(child);
-            }
+    ExpressionType PEGTransformer::TransformOperatorToExpressionType(std::shared_ptr<peg::Ast> &operator_node) {
+        // Extract the operator string (e.g., "+", ">", "AND")
+        auto operator_str = string(operator_node->nodes[0]->token);
+        // Arithmetic operators
+        if (operator_str == "+") {
+            throw NotImplementedException("+ operator not implemented yet.");
+        } else if (operator_str == "-") {
+            throw NotImplementedException("- operator not implemented yet.");
+        } else if (operator_str == "*") {
+            throw NotImplementedException("* operator not implemented yet.");
+        } else if (operator_str == "/") {
+            throw NotImplementedException("/ operator not implemented yet.");
         }
-        throw NotImplementedException("Transform for " + ast->name + " not implemented");
+
+        // Comparison operators
+        if (operator_str == "=") {
+            return ExpressionType::COMPARE_EQUAL;
+        } else if (operator_str == "<=") {
+            return ExpressionType::COMPARE_LESSTHANOREQUALTO;
+        } else if (operator_str == ">=") {
+            return ExpressionType::COMPARE_GREATERTHANOREQUALTO;
+        } else if (operator_str == "<") {
+            return ExpressionType::COMPARE_LESSTHAN;
+        } else if (operator_str == ">") {
+            return ExpressionType::COMPARE_GREATERTHAN;
+        }
+
+        // Boolean operators
+        if (operator_str == "AND") {
+            return ExpressionType::CONJUNCTION_AND;
+        } else if (operator_str == "OR") {
+            return ExpressionType::CONJUNCTION_OR;
+        }
+
+        // Like operator
+        if (operator_str == "LIKE") {
+            throw NotImplementedException("LIKE operator not implemented yet.");
+        } else if (operator_str == "NOT LIKE") {
+            throw NotImplementedException("NOT LIKE operator not implemented yet.");
+        }
+
+        // IN operator
+        if (operator_str == "IN") {
+            return ExpressionType::COMPARE_IN;
+        } else if (operator_str == "NOT IN") {
+            return ExpressionType::COMPARE_NOT_IN;
+        }
+
+        // Between operator
+        if (operator_str == "BETWEEN") {
+            return ExpressionType::COMPARE_BETWEEN;
+        } else if (operator_str == "NOT BETWEEN") {
+            return ExpressionType::COMPARE_NOT_BETWEEN;
+        }
+
+        // Window operator
+        if (operator_str == "OVER") {
+            return ExpressionType::WINDOW_AGGREGATE;
+        }
+
+        throw NotImplementedException("Unsupported operator: " + operator_str);
+    }
+
+    unique_ptr<ParsedExpression> PEGTransformer::TransformExpression(std::shared_ptr<peg::Ast> &ast) {
+        unique_ptr<ParsedExpression> result;
+        unique_ptr<ParsedExpression> left_expr;
+
+        // Transform the first SingleExpression
+        if (!ast->nodes.empty() && ast->nodes[0]->name == "SingleExpression") {
+            left_expr = TransformSingleExpression(ast->nodes[0]);
+        } else {
+            throw NotImplementedException("Expression must start with a SingleExpression");
+        }
+
+        // Now, iterate through the rest to find (Operator, SingleExpression) pairs
+        for (size_t i = 1; i < ast->nodes.size(); i += 2) {
+            auto &operator_node = ast->nodes[i];
+            auto &right_expr_node = ast->nodes[i + 1];
+
+            if (operator_node->name != "Operator" || right_expr_node->name != "SingleExpression") {
+                throw NotImplementedException("Expected Operator followed by SingleExpression");
+            }
+
+            // Transform the operator into an ExpressionType
+            auto operator_type = TransformOperatorToExpressionType(operator_node);
+
+            // Transform the right-hand SingleExpression
+            auto right_expr = TransformSingleExpression(right_expr_node);
+
+            // Use ComparisonExpression for comparison operators
+            if (operator_type == ExpressionType::COMPARE_EQUAL ||
+                operator_type == ExpressionType::COMPARE_LESSTHAN ||
+                operator_type == ExpressionType::COMPARE_GREATERTHAN ||
+                operator_type == ExpressionType::COMPARE_LESSTHANOREQUALTO ||
+                operator_type == ExpressionType::COMPARE_GREATERTHANOREQUALTO ||
+                operator_type == ExpressionType::COMPARE_NOTEQUAL ||
+                operator_type == ExpressionType::COMPARE_IN ||
+                operator_type == ExpressionType::COMPARE_NOT_IN) {
+
+                result = make_uniq<ComparisonExpression>(operator_type, std::move(left_expr), std::move(right_expr));
+            }
+                // Use OperatorExpression for non-comparison operators
+            else {
+                result = make_uniq<OperatorExpression>(operator_type, std::move(left_expr), std::move(right_expr));
+            }
+
+            // Update the left_expr to the result so it can be used for the next iteration
+            left_expr = std::move(result);
+        }
+
+        return left_expr;
     }
 
     string PEGTransformer::TransformIdentifier(std::shared_ptr<peg::Ast> &ast) {

@@ -2,20 +2,20 @@
 statement ok
 create table foo (a bigint);
 
-#statement ok
-#select a from foo;
-#
-#statement ok
-#select a from foo f;
-#
-#statement ok
-#select f.a from foo f;
-#
-#statement ok
-#select 1 as a;
-#
-#statement ok
-#select f.a as a from foo f;
+statement ok
+select a from foo;
+
+statement ok
+select a from foo f;
+
+statement ok
+select f.a from foo f;
+
+statement ok
+select 1 as a;
+
+statement ok
+select f.a as a from foo f;
 
 statement ok
 insert into foo (a) select 1;
@@ -25,3 +25,12 @@ select a from foo;
 ----
 1
 
+query I
+select a from foo where a = 1;
+----
+1
+
+
+query I
+select a from foo where a > 1;
+----
