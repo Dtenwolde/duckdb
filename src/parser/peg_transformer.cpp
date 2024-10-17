@@ -215,7 +215,7 @@ namespace duckdb {
     }
 
     unique_ptr<ParsedExpression> PEGTransformer::TransformWhere(std::shared_ptr<peg::Ast> &ast) {
-        throw NotImplementedException("Transform for " + ast->name + " not implemented");
+        return TransformExpression(ast->nodes[0]);
     }
 
     GroupByNode PEGTransformer::TransformGroupBy(std::shared_ptr<peg::Ast> &ast) {
@@ -234,7 +234,6 @@ namespace duckdb {
                         TransformSelectList(child2, select_list);
                         select_node->select_list = std::move(select_list);
                     } else if (child2->name == "FromClause") {
-//                        select_node->from_table = make_uniq<EmptyTableRef>();
                         select_node->from_table = TransformFrom(child2);
                     } else if (child2->name == "WhereClause") {
                         select_node->where_clause = TransformWhere(child2);

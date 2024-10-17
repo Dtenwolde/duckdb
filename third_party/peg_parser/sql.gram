@@ -91,13 +91,13 @@ ArithmeticOperator <- '+' / '-' / '*' / '/'
 LikeOperator <- 'NOT'i? 'LIKE'i
 InOperator <- 'NOT'i? 'IN'i !'T'i # special handling to not match INTERSECT
 BooleanOperator <- ('OR'i !'D'i) / 'AND'i # special handling to not match ORDER BY
-ComparisionOperator <-  '=' / '<=' / '>=' / '<' / '>'
+ComparisonOperator <-  '=' / '<=' / '>=' / '<' / '>'
 WindowOperator <- 'OVER'i
 BetweenOperator <- 'BETWEEN'i
 
 Operator <-
     ArithmeticOperator /
-    ComparisionOperator /
+    ComparisonOperator /
     BooleanOperator /
     LikeOperator /
     InOperator /
