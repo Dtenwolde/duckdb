@@ -23,6 +23,8 @@ public:
     static GroupByNode TransformGroupBy(std::shared_ptr<peg::Ast> &ast);
     static unique_ptr<CreateStatement> TransformCreateTable(std::shared_ptr<peg::Ast> &ast);
     static void TransformColumnDefinition(std::shared_ptr<peg::Ast> &ast, ColumnList &column_list);
+    static unique_ptr<ParsedExpression> TransformColumnReference(std::shared_ptr<peg::Ast> &ast);
+    static unique_ptr<TableRef> TransformTableReference(std::shared_ptr<peg::Ast> &ast);
 
 private:
     optional_ptr<PEGTransformer> parent;

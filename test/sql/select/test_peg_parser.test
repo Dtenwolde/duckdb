@@ -3,7 +3,8 @@ statement ok
 create table foo (a bigint);
 
 statement ok
+select a from foo;
+
+statement ok
 select 1 as a;
 
-#statement ok
-#select a as a from foo;

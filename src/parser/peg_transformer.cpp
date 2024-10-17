@@ -4,6 +4,7 @@
 #include <duckdb/parser/statement/create_statement.hpp>
 #include <duckdb/parser/parsed_data/create_table_info.hpp>
 #include <duckdb/common/enums/catalog_type.hpp>
+#include <duckdb/parser/tableref/basetableref.hpp>
 
 namespace duckdb {
 
@@ -93,6 +94,16 @@ namespace duckdb {
         }
     }
 
+    unique_ptr<ParsedExpression> PEGTransformer::TransformColumnReference(std::shared_ptr<peg::Ast> &ast) {
+        auto col_name = TransformIdentifier(ast->nodes[0]);
+        if (ast->nodes.size() == 2) {
+            auto table_name = TransformIdentifier(ast->nodes[1]);
+            auto result = make_uniq<ColumnRefExpression>(col_name, table_name);
+            return result;
+        }
+        return make_uniq<ColumnRefExpression>(col_name);
+    }
+
     unique_ptr<ParsedExpression> PEGTransformer::TransformSingleExpression(std::shared_ptr<peg::Ast> &ast) {
         auto expr_child = ast->nodes[0];
         if (expr_child->name == "SubqueryExpression") {
@@ -122,7 +133,7 @@ namespace duckdb {
         } else if (expr_child->name == "FunctionExpression") {
             throw NotImplementedException("FunctionExpression not implemented yet.");
         } else if (expr_child->name == "ColumnReference") {
-            throw NotImplementedException("ColumnReference not implemented yet.");
+            return TransformColumnReference(expr_child);
         } else if (expr_child->name == "LiteralExpression") {
             return TransformLiteralExpression(expr_child);
         } else {
@@ -145,25 +156,26 @@ namespace duckdb {
 
     unique_ptr<ParsedExpression>
     PEGTransformer::TransformAliasedExpression(std::vector<std::shared_ptr<peg::Ast>> &aliased_expr_nodes) {
-        if (aliased_expr_nodes.size() != 2) {
-            throw ParserException("AliasedExpression node should have 2 children");
-        }
         unique_ptr<ParsedExpression> expr;
         string alias;
+
         if (aliased_expr_nodes[0]->name == "Expression") {
             expr = TransformExpression(aliased_expr_nodes[0]);
         } else {
             throw NotImplementedException("Not implemented yet.");
         }
-        if (aliased_expr_nodes[1]->name == "Identifier") {
-            alias = TransformIdentifier(aliased_expr_nodes[1]);
-        } else {
-            throw ParserException("AliasedExpression node should have Identifier as second child");
+        if (aliased_expr_nodes.size() == 2) {
+            if (aliased_expr_nodes[1]->name == "Identifier") {
+                alias = TransformIdentifier(aliased_expr_nodes[1]);
+            } else {
+                throw ParserException("AliasedExpression node should have Identifier as second child");
+            }
+            if (!expr) {
+                throw ParserException("AliasedExpression node should have Expression as first child");
+            }
+            expr->alias = alias;
         }
-        if (!expr) {
-            throw ParserException("AliasedExpression node should have Expression as first child");
-        }
-        expr->alias = alias;
+
         return expr;
     }
 
@@ -176,8 +188,24 @@ namespace duckdb {
         }
     }
 
-    unique_ptr<TableRef> PEGTransformer::TransformFrom(std::shared_ptr<peg::Ast> &ast) {
+    unique_ptr<TableRef> PEGTransformer::TransformTableReference(std::shared_ptr<peg::Ast> &ast) {
+        if (ast->nodes[0]->name == "Identifier") {
+            auto base_table_ref = make_uniq<BaseTableRef>();
+            base_table_ref->table_name = TransformIdentifier(ast->nodes[0]);
+            return base_table_ref;
+        }
         throw NotImplementedException("Transform for " + ast->name + " not implemented");
+    }
+
+
+
+    unique_ptr<TableRef> PEGTransformer::TransformFrom(std::shared_ptr<peg::Ast> &ast) {
+        auto table_ref = TransformTableReference(ast->nodes[0]);
+        if (ast->nodes.size() == 1){
+            return table_ref;
+        }
+        throw NotImplementedException("Transform for " + ast->name + " not implemented");
+
     }
 
     unique_ptr<ParsedExpression> PEGTransformer::TransformWhere(std::shared_ptr<peg::Ast> &ast) {
