@@ -1,9 +1,13 @@
 Statements <- (SingleStatement (';' SingleStatement )* ';'*)
 
-SingleStatement <- SelectStatement / TransactionStatement / CreateStatement
+SingleStatement <- SelectStatement / TransactionStatement / CreateStatement / InsertStatement
 SelectStatement <- SimpleSelect (SetopClause SimpleSelect)*
 TransactionStatement <- TransactionType
 CreateStatement <- 'CREATE'i 'TABLE'i Identifier Parens(List(ColumnDefinition))
+InsertStatement <- 'INSERT'i 'INTO'i Identifier (ColumnList)? (ValuesList / SelectStatement)
+ColumnList <- Parens(List(Identifier))
+ValuesList <- 'VALUES'i Value (',' Value)*
+Value <- Parens(List(Expression))
 ColumnDefinition <- Identifier TypeSpecifier
 TransactionType <- 'BEGIN'i 'TRANSACTION'i / 'COMMIT'i / 'ROLLBACK'i
 SetopClause <- ('UNION'i / 'EXCEPT'i / 'INTERSECT'i) 'ALL'i?

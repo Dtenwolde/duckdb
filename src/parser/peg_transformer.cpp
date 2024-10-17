@@ -5,6 +5,7 @@
 #include <duckdb/parser/parsed_data/create_table_info.hpp>
 #include <duckdb/common/enums/catalog_type.hpp>
 #include <duckdb/parser/tableref/basetableref.hpp>
+#include <duckdb/parser/statement/insert_statement.hpp>
 
 namespace duckdb {
 
@@ -22,13 +23,97 @@ namespace duckdb {
         }
     }
 
+    unique_ptr<SQLStatement> PEGTransformer::TransformInsertStatement(std::shared_ptr<peg::Ast> &ast) {
+        auto result = make_uniq<InsertStatement>();
+        if (ast->nodes[0]->name == "Identifier") {
+            result->table = TransformIdentifier(ast->nodes[0]);
+        } else {
+            throw ParserException("InsertStatement node should have Identifier as first child");
+        }
+        if (ast->nodes.size() == 2) {
+            throw NotImplementedException("InsertStatement with 2 children not implemented yet.");
+        } else if (ast->nodes.size() == 3) {
+            if (ast->nodes[1]->name != "ColumnList") {
+                throw ParserException("Column list is missing in InsertStatement");
+            }
+            for (auto &child: ast->nodes[1]->nodes) {
+                if (child->name == "Identifier") {
+                    result->columns.push_back(TransformIdentifier(child));
+                } else {
+                    throw ParserException("ColumnList node should have Identifier as children");
+                }
+            }
+            if (ast->nodes[2]->name == "ValuesList") {
+                auto expression_list = make_uniq<ExpressionListRef>();
+                auto values_list = ast->nodes[2];
+                for (auto &child: values_list->nodes) {
+                    if (child->name != "Value") {
+                        throw ParserException("ValuesList node should have Value as children");
+                    }
+                    vector<unique_ptr<ParsedExpression>> values;
+                    for (auto &child2: child->nodes) {
+                        if (child2->name == "Expression") {
+                            values.push_back(TransformExpression(child2));
+                        }
+                    }
+                    expression_list->values.push_back(std::move(values));
+                }
+                auto select_statement = make_uniq<SelectStatement>();
+                auto select_node = make_uniq<SelectNode>();
+                select_node->from_table = std::move(expression_list);
+                select_node->select_list.push_back(make_uniq<StarExpression>());
+                select_statement->node = std::move(select_node);
+                result->select_statement = std::move(select_statement);
+
+                return result;
+            } else if (ast->nodes[2]->name == "SelectStatement") {
+                result->select_statement = TransformSelect(ast->nodes[2]);
+            }
+        }
+
+
+
+//        if (ast->nodes[1]->name == "ColumnList") {
+//            for (auto &child: ast->nodes[1]->nodes) {
+//                if (child->name == "Identifier") {
+//                    result->columns.push_back(TransformIdentifier(child));
+//                }
+//            }
+//        } else {
+//            throw ParserException("InsertStatement node should have ColumnList as second child");
+//        }
+//        if (ast->nodes[2]->name == "ValuesList") {
+//            for (auto &child: ast->nodes[2]->nodes) {
+//                if (child->name == "ExpressionList") {
+//                    vector<unique_ptr<ParsedExpression>> values;
+//                    for (auto &child2: child->nodes) {
+//                        if (child2->name == "Expression") {
+//                            values.push_back(TransformExpression(child2));
+//                        }
+//                    }
+//                    result->values.push_back(std::move(values));
+//                }
+//            }
+//        } else {
+//            throw ParserException("InsertStatement node should have ValuesList as third child");
+//        }
+        return result;
+    }
+
     unique_ptr<SQLStatement> PEGTransformer::TransformSingleStatement(std::shared_ptr<peg::Ast> &ast) {
         if (ast->name == "TransactionStatement") {
             return TransformTransaction(ast);
         } else if (ast->name == "SelectStatement") {
             return TransformSelect(ast);
         } else if (ast->name == "CreateStatement") {
+            // TODO should be TransformCreateStatement
             return TransformCreateTable(ast);
+        } else if (ast->name == "InsertStatement") {
+            return TransformInsertStatement(ast);
+        } else if (ast->name == "DeleteStatement") {
+            throw NotImplementedException("DeleteStatement not implemented yet.");
+        } else if (ast->name == "UpdateStatement") {
+            throw NotImplementedException("UpdateStatement not implemented yet.");
         } else {
             throw NotImplementedException("Transform for " + ast->name + " not implemented");
         }
