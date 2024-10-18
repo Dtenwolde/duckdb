@@ -164,6 +164,19 @@ namespace duckdb {
         return make_uniq<ColumnRefExpression>(name);
     }
 
+    unique_ptr<ParsedExpression> PEGTransformer::TransformFunctionExpression(std::shared_ptr<peg::Ast> &ast) {
+        auto function_name = TransformIdentifier(ast->nodes[0]);
+        vector<unique_ptr<ParsedExpression>> function_children;
+        for (idx_t i = 1; i < ast->nodes.size(); i++) {
+            if (ast->nodes[i]->name == "Expression") {
+                function_children.push_back(TransformExpression(ast->nodes[i]));
+            } else {
+                throw ParserException("FunctionExpression node should have Expression as children");
+            }
+        }
+        return make_uniq<FunctionExpression>(function_name, std::move(function_children));
+    }
+
     unique_ptr<ParsedExpression> PEGTransformer::TransformSingleExpression(std::shared_ptr<peg::Ast> &ast) {
         auto expr_child = ast->nodes[0];
         if (expr_child->name == "SubqueryExpression") {
@@ -191,7 +204,7 @@ namespace duckdb {
         } else if (expr_child->name == "WindowExpression") {
             throw NotImplementedException("WindowExpression not implemented yet.");
         } else if (expr_child->name == "FunctionExpression") {
-            throw NotImplementedException("FunctionExpression not implemented yet.");
+            return TransformFunctionExpression(expr_child);
         } else if (expr_child->name == "ColumnReference") {
             return TransformColumnReference(expr_child);
         } else if (expr_child->name == "LiteralExpression") {
@@ -284,28 +297,51 @@ namespace duckdb {
                 throw NotImplementedException("Expected Operator followed by SingleExpression");
             }
 
-            // Transform the operator into an ExpressionType
-            auto operator_type = TransformOperatorToExpressionType(operator_node);
-
             // Transform the right-hand SingleExpression
             auto right_expr = TransformSingleExpression(right_expr_node);
 
-            // Use ComparisonExpression for comparison operators
-            if (operator_type == ExpressionType::COMPARE_EQUAL ||
-                operator_type == ExpressionType::COMPARE_LESSTHAN ||
-                operator_type == ExpressionType::COMPARE_GREATERTHAN ||
-                operator_type == ExpressionType::COMPARE_LESSTHANOREQUALTO ||
-                operator_type == ExpressionType::COMPARE_GREATERTHANOREQUALTO ||
-                operator_type == ExpressionType::COMPARE_NOTEQUAL ||
-                operator_type == ExpressionType::COMPARE_IN ||
-                operator_type == ExpressionType::COMPARE_NOT_IN) {
+            // Transform the operator into an ExpressionType
+            auto operator_type = operator_node->nodes[0];
+            if (operator_type->name == "ArithmeticOperator") {
+                vector<unique_ptr<ParsedExpression>> children;
+                children.push_back(std::move(left_expr));
+                children.push_back(std::move(right_expr));
+                result = make_uniq<FunctionExpression>(string(operator_type->token), std::move(children));
+            } else if (operator_type->name == "ComparisonOperator") {
+                throw NotImplementedException("ComparisonOperator not implemented yet.");
+            } else if (operator_type->name == "BooleanOperator") {
+                throw NotImplementedException("BooleanOperator not implemented yet.");
+            } else if (operator_type->name == "LikeOperator") {
+                throw NotImplementedException("LikeOperator not implemented yet.");
+            } else if (operator_type->name == "InOperator") {
+                throw NotImplementedException("InOperator not implemented yet.");
+            } else if (operator_type->name == "BetweenOperator") {
+                throw NotImplementedException("BetweenOperator not implemented yet.");
+            } else if (operator_type->name == "WindowOperator") {
+                throw NotImplementedException("WindowOperator not implemented yet.");
+            } else {
+                throw NotImplementedException("Operator not implemented yet.");
+            }
+//            auto operator_type = TransformOperatorToExpressionType(operator_node);
 
-                result = make_uniq<ComparisonExpression>(operator_type, std::move(left_expr), std::move(right_expr));
-            }
+
+
+//            // Use ComparisonExpression for comparison operators
+//            if (operator_type == ExpressionType::COMPARE_EQUAL ||
+//                operator_type == ExpressionType::COMPARE_LESSTHAN ||
+//                operator_type == ExpressionType::COMPARE_GREATERTHAN ||
+//                operator_type == ExpressionType::COMPARE_LESSTHANOREQUALTO ||
+//                operator_type == ExpressionType::COMPARE_GREATERTHANOREQUALTO ||
+//                operator_type == ExpressionType::COMPARE_NOTEQUAL ||
+//                operator_type == ExpressionType::COMPARE_IN ||
+//                operator_type == ExpressionType::COMPARE_NOT_IN) {
+//
+//                result = make_uniq<ComparisonExpression>(operator_type, std::move(left_expr), std::move(right_expr));
+//            }
                 // Use OperatorExpression for non-comparison operators
-            else {
-                result = make_uniq<OperatorExpression>(operator_type, std::move(left_expr), std::move(right_expr));
-            }
+//            else {
+//                result = make_uniq<OperatorExpression>(operator_type, std::move(left_expr), std::move(right_expr));
+//            }
 
             // Update the left_expr to the result so it can be used for the next iteration
             left_expr = std::move(result);
