@@ -39,6 +39,9 @@ enum class KeywordCategory : uint8_t {
 struct ParserKeyword {
 	string name;
 	KeywordCategory category;
+
+    ParserKeyword(string keyword_name, KeywordCategory keyword_category)
+            : name(std::move(keyword_name)), category(keyword_category) {}
 };
 
 } // namespace duckdb

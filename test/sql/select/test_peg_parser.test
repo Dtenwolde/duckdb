@@ -2,6 +2,14 @@
 statement ok
 create table foo (a bigint);
 
+
+# reserved keyword group
+statement error
+create table group (a bigint);
+----
+Parser Error: create table group (a bigint);: Error on line 1:20 -> syntax error, unexpected '(', expecting <PlainIdentifier>.
+
+
 statement ok
 select a from foo;
 

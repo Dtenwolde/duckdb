@@ -10,9 +10,9 @@
 
 #include <string>
 #include <memory>
-//#include "peglib.h"  // Assuming you are using peglib
 #include "../../../../third_party/peg_parser/peglib.h"
 #include "sql_statement.hpp"
+#include "simplified_token.hpp"
 
 namespace duckdb {
 
@@ -27,8 +27,13 @@ namespace duckdb {
         string ToString() {
             return peg::ast_to_s(ast_);
         }
+        static string PruneKeyword(const string &keyword);
+        static vector<string> ReadKeywordsFromFile(const string &file_path);
+        static vector<ParserKeyword> KeywordList();
+        static KeywordCategory IsKeyword(const string &text);
 
     public:
+        vector<ParserKeyword> keywords; // List of keywords
         vector<unique_ptr<SQLStatement>> statements;
         std::shared_ptr<peg::Ast> ast_;
         std::string parser_error_message; // Member to store the error message

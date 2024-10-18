@@ -37,19 +37,6 @@ OrderByClause <- 'ORDER'i 'BY'i List(OrderByExpression)
 
 LimitClause <- 'LIMIT'i NumberLiteral
 
-ReservedKeyword <-
-    'SELECT'i      /
-    'FROM'i        /
-    'WHERE'i       /
-    'GROUP'i 'BY'i /
-    'HAVING'i      /
-    'UNION'i       /
-    'ORDER'i 'BY'i /
-    'WHEN'i        /
-    'JOIN'i        /
-    'ON'i /
-    'INTERSECT'i # TODO expand on this
-
 PlainIdentifier <-  !ReservedKeyword <[a-z_]i[a-z0-9_]i*>  # unqoted identifier can't be top-level keyword
 QuotedIdentifier <- '"' [^"]* '"'
 Identifier <- QuotedIdentifier / PlainIdentifier

@@ -2,6 +2,7 @@
 
 #include "duckdb/common/exception.hpp"
 #include "duckdb/main/client_context.hpp"
+#include "duckdb/parser/peg_parser.hpp"
 
 namespace duckdb {
 
@@ -26,9 +27,8 @@ static unique_ptr<FunctionData> DuckDBKeywordsBind(ClientContext &context, Table
 
 unique_ptr<GlobalTableFunctionState> DuckDBKeywordsInit(ClientContext &context, TableFunctionInitInput &input) {
 	auto result = make_uniq<DuckDBKeywordsData>();
-    throw NotImplementedException("Not implmented yet");
-//	result->entries = Parser::KeywordList();
-//	return std::move(result);
+	result->entries = PEGParser::KeywordList();
+	return std::move(result);
 }
 
 void DuckDBKeywordsFunction(ClientContext &context, TableFunctionInput &data_p, DataChunk &output) {

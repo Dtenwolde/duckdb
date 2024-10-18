@@ -45,4 +45,74 @@ namespace duckdb {
         }
     }
 
+    vector<string> PEGParser::ReadKeywordsFromFile(const string &file_path) {
+        vector<string> keywords;
+        std::ifstream file(file_path);
+        if (!file.is_open()) {
+            throw IOException("Failed to open file " + file_path);
+        }
+
+        string line;
+        while (getline(file, line)) {
+            if (!line.empty()) {
+                keywords.push_back(line);
+            }
+        }
+        file.close();
+        return keywords;
+    }
+
+    string PEGParser::PruneKeyword(const string &keyword) {
+        // If the keyword ends with _P, remove the _P suffix
+        if (keyword.size() > 2 && keyword.substr(keyword.size() - 2) == "_P") {
+            return keyword.substr(0, keyword.size() - 2);
+        }
+        return keyword;
+    }
+
+
+    vector<ParserKeyword> PEGParser::KeywordList() {
+        vector<ParserKeyword> entries;
+        // Read keywords from the files
+        auto reserved_keywords = ReadKeywordsFromFile("third_party/peg_parser/keywords/reserved_keywords.list");
+        auto unreserved_keywords = ReadKeywordsFromFile("third_party/peg_parser/keywords/unreserved_keywords.list");
+
+        // Process reserved keywords
+        for (auto &keyword : reserved_keywords) {
+            string pruned_keyword = PruneKeyword(keyword);
+            entries.emplace_back(pruned_keyword, KeywordCategory::KEYWORD_RESERVED);
+        }
+
+        // Process unreserved keywords
+        for (auto &keyword : unreserved_keywords) {
+            string pruned_keyword = PruneKeyword(keyword);
+            entries.emplace_back(pruned_keyword, KeywordCategory::KEYWORD_UNRESERVED);
+        }
+
+        return entries;
+    }
+
+    KeywordCategory PEGParser::IsKeyword(const string &text) {
+        auto reserved_keywords = ReadKeywordsFromFile("third_party/peg_parser/keywords/reserved_keywords.list");
+        auto unreserved_keywords = ReadKeywordsFromFile("third_party/peg_parser/keywords/unreserved_keywords.list");
+
+        // Process reserved keywords
+        for (auto &keyword : reserved_keywords) {
+            string pruned_keyword = PruneKeyword(keyword);
+            if (pruned_keyword == text) {
+                return KeywordCategory::KEYWORD_RESERVED;
+            }
+        }
+
+        // Process unreserved keywords
+        for (auto &keyword : unreserved_keywords) {
+            string pruned_keyword = PruneKeyword(keyword);
+            if (pruned_keyword == text) {
+                return KeywordCategory::KEYWORD_UNRESERVED;
+            }
+        }
+
+        return KeywordCategory::KEYWORD_NONE;
+
+    }
 } // namespace duckdb
