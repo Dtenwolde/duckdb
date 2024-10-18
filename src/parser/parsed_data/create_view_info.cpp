@@ -4,6 +4,7 @@
 #include "duckdb/planner/binder.hpp"
 #include "duckdb/parser/statement/select_statement.hpp"
 #include "duckdb/parser/statement/create_statement.hpp"
+#include "duckdb/parser/peg_parser.hpp"
 
 namespace duckdb {
 
@@ -56,16 +57,15 @@ unique_ptr<CreateInfo> CreateViewInfo::Copy() const {
 }
 
 unique_ptr<SelectStatement> CreateViewInfo::ParseSelect(const string &sql) {
-    throw NotImplementedException("Not implemented yet");
-//	Parser parser;
-//	parser.ParseQuery(sql);
-//	if (parser.statements.size() != 1 || parser.statements[0]->type != StatementType::SELECT_STATEMENT) {
-//		throw BinderException(
-//		    "Failed to create view from SQL string - \"%s\" - statement did not contain a single SELECT statement",
-//		    sql);
-//	}
-//	D_ASSERT(parser.statements.size() == 1 && parser.statements[0]->type == StatementType::SELECT_STATEMENT);
-//	return unique_ptr_cast<SQLStatement, SelectStatement>(std::move(parser.statements[0]));
+	PEGParser parser("third_party/peg_parser/sql.gram");
+	parser.ParseQuery(sql);
+	if (parser.statements.size() != 1 || parser.statements[0]->type != StatementType::SELECT_STATEMENT) {
+		throw BinderException(
+		    "Failed to create view from SQL string - \"%s\" - statement did not contain a single SELECT statement",
+		    sql);
+	}
+	D_ASSERT(parser.statements.size() == 1 && parser.statements[0]->type == StatementType::SELECT_STATEMENT);
+	return unique_ptr_cast<SQLStatement, SelectStatement>(std::move(parser.statements[0]));
 }
 
 unique_ptr<CreateViewInfo> CreateViewInfo::FromSelect(ClientContext &context, unique_ptr<CreateViewInfo> info) {
