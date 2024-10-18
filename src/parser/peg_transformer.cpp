@@ -177,12 +177,17 @@ namespace duckdb {
         return make_uniq<FunctionExpression>(function_name, std::move(function_children));
     }
 
+    unique_ptr<ParsedExpression> PEGTransformer::TransformCountStarExpression(std::shared_ptr<peg::Ast> &ast) {
+        return make_uniq<FunctionExpression>("COUNT", vector<unique_ptr<ParsedExpression>>());
+    }
+
     unique_ptr<ParsedExpression> PEGTransformer::TransformSingleExpression(std::shared_ptr<peg::Ast> &ast) {
         auto expr_child = ast->nodes[0];
         if (expr_child->name == "SubqueryExpression") {
             throw NotImplementedException("SubqueryExpression not implemented yet.");
         } else if (expr_child->name == "LiteralListExpression") {
-            throw NotImplementedException("LiteralListExpression not implemented yet.");
+            // TODO Figure out how to deal with list of expressions
+            return TransformExpression(expr_child->nodes[0]);
         } else if (expr_child->name == "ParenthesisExpression") {
             throw NotImplementedException("ParenthesisExpression not implemented yet.");
         } else if (expr_child->name == "DateExpression") {
@@ -196,7 +201,7 @@ namespace duckdb {
         } else if (expr_child->name == "CaseExpression") {
             throw NotImplementedException("CaseExpression not implemented yet.");
         } else if (expr_child->name == "CountStarExpression") {
-            throw NotImplementedException("CountStarExpression not implemented yet.");
+            return TransformCountStarExpression(expr_child);
         } else if (expr_child->name == "CastExpression") {
             throw NotImplementedException("CastExpression not implemented yet.");
         } else if (expr_child->name == "ExtractExpression") {
@@ -217,16 +222,6 @@ namespace duckdb {
     ExpressionType PEGTransformer::TransformOperatorToExpressionType(std::shared_ptr<peg::Ast> &operator_node) {
         // Extract the operator string (e.g., "+", ">", "AND")
         auto operator_str = string(operator_node->nodes[0]->token);
-        // Arithmetic operators
-        if (operator_str == "+") {
-            throw NotImplementedException("+ operator not implemented yet.");
-        } else if (operator_str == "-") {
-            throw NotImplementedException("- operator not implemented yet.");
-        } else if (operator_str == "*") {
-            throw NotImplementedException("* operator not implemented yet.");
-        } else if (operator_str == "/") {
-            throw NotImplementedException("/ operator not implemented yet.");
-        }
 
         // Comparison operators
         if (operator_str == "=") {
