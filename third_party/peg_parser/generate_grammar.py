@@ -32,6 +32,10 @@ def generate_grammar(input_peg, output_gram, reserved_keywords, unreserved_keywo
         # Copy the original content of sql.peg
         for line in infile:
             outfile.write(line)
+        outfile.write("\n\n")
+        outfile.write("#"*40 + "\n")
+        outfile.write("#Generated code from this point onwards#\n")
+        outfile.write("#"*40 + "\n\n")
 
         # Add ReservedKeyword rule
         outfile.write("\n\nReservedKeyword <-\n")
