@@ -312,6 +312,9 @@ namespace duckdb {
         size_t single_expr_index = not_modifier ? 1 : 0;
         if (ast->nodes.size() > single_expr_index && ast->nodes[single_expr_index]->name == "SingleExpression") {
             left_expr = TransformSingleExpression(ast->nodes[single_expr_index]);
+            if (not_modifier) {
+                left_expr = make_uniq<OperatorExpression>(ExpressionType::OPERATOR_NOT, std::move(left_expr));
+            }
         } else {
             throw NotImplementedException("Expression must start with a SingleExpression");
         }
