@@ -54,7 +54,7 @@ def generate_grammar(input_peg, output_gram, reserved_keywords, unreserved_keywo
             outfile.write(line)
 
         # Add ReservedKeyword rule
-        outfile.write("\nReservedKeyword <-\n")
+        outfile.write("\n\nReservedKeyword <-\n")
         reserved_rules = [f"    '{kw.upper()}'i" for kw in reserved_keywords]
         outfile.write("    " + " /\n    ".join(reserved_rules) + "\n")
 
