@@ -20,8 +20,10 @@ SelectClause <- 'SELECT'i ('*' / List(AliasedExpression))
 ColumnAliases <- Parens(List(Identifier))
 
 TableReference <-
+    (FunctionExpression ('AS'i Identifier)?) /
     (SubqueryReference 'AS'i? Identifier ColumnAliases?) /
-    (Identifier ('AS'i? Identifier)?)
+    (Identifier ('AS'i? Identifier)?) /
+
 
 ExplicitJoin <- ('LEFT'i / 'FULL'i)? 'OUTER'i? 'JOIN'i TableReference 'ON'i Expression
 
