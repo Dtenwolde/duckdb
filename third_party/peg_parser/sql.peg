@@ -81,6 +81,7 @@ SingleExpression <-
     LiteralExpression
 
 ArithmeticOperator <- '+' / '-' / '*' / '/'
+NotOperator <- 'NOT'i
 LikeOperator <- 'NOT'i? 'LIKE'i
 InOperator <- 'NOT'i? 'IN'i !'T'i # special handling to not match INTERSECT
 BooleanOperator <- ('OR'i !'D'i) / 'AND'i # special handling to not match ORDER BY
@@ -89,6 +90,7 @@ WindowOperator <- 'OVER'i
 BetweenOperator <- 'BETWEEN'i
 
 Operator <-
+    NotOperator /
     ArithmeticOperator /
     ComparisonOperator /
     BooleanOperator /
@@ -102,5 +104,6 @@ AliasedExpression <- Expression ('AS'i? Identifier)?
 
 # internal definitions
 %whitespace <- [ \t\n\r]*
+%word        <-  [a-zA-Z]+
 List(D) <- D (',' D)*
 Parens(D) <- '(' D ')'
