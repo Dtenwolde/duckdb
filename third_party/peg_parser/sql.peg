@@ -99,11 +99,11 @@ Operator <-
     WindowOperator /
     BetweenOperator
 
-Expression <- SingleExpression (Operator SingleExpression)*
+Expression <- Operator? SingleExpression (Operator SingleExpression)*
 AliasedExpression <- Expression ('AS'i? Identifier)?
 
 # internal definitions
 %whitespace <- [ \t\n\r]*
-%word        <-  [a-zA-Z]+
+%word <- [a-zA-Z_-]
 List(D) <- D (',' D)*
 Parens(D) <- '(' D ')'
