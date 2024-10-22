@@ -4,13 +4,13 @@
 #include <duckdb/parser/statement/create_statement.hpp>
 #include <duckdb/parser/parsed_data/create_table_info.hpp>
 #include <duckdb/common/enums/catalog_type.hpp>
+#include <duckdb/parser/expression/function_expression.hpp>
 #include <duckdb/parser/tableref/basetableref.hpp>
 #include <duckdb/parser/statement/insert_statement.hpp>
 
 namespace duckdb {
-
     PEGTransformer::PEGTransformer(ParserOptions &options)
-            : parent(nullptr), options(options), stack_depth(DConstants::INVALID_INDEX) {
+        : parent(nullptr), options(options), stack_depth(DConstants::INVALID_INDEX) {
     }
 
     void PEGTransformer::Transform(std::shared_ptr<peg::Ast> &ast, vector<unique_ptr<SQLStatement>> &statements) {
@@ -76,32 +76,37 @@ namespace duckdb {
     unique_ptr<SQLStatement> PEGTransformer::TransformSingleStatement(std::shared_ptr<peg::Ast> &ast) {
         if (ast->name == "TransactionStatement") {
             return TransformTransaction(ast);
-        } else if (ast->name == "SelectStatement") {
+        }
+        if (ast->name == "SelectStatement") {
             return TransformSelect(ast);
-        } else if (ast->name == "CreateStatement") {
+        }
+        if (ast->name == "CreateStatement") {
             // TODO should be TransformCreateStatement
             return TransformCreateTable(ast);
-        } else if (ast->name == "InsertStatement") {
-            return TransformInsertStatement(ast);
-        } else if (ast->name == "DeleteStatement") {
-            throw NotImplementedException("DeleteStatement not implemented yet.");
-        } else if (ast->name == "UpdateStatement") {
-            throw NotImplementedException("UpdateStatement not implemented yet.");
-        } else {
-            throw NotImplementedException("Transform for " + ast->name + " not implemented");
         }
+        if (ast->name == "InsertStatement") {
+            return TransformInsertStatement(ast);
+        }
+        if (ast->name == "DeleteStatement") {
+            throw NotImplementedException("DeleteStatement not implemented yet.");
+        }
+         if (ast->name == "UpdateStatement") {
+            throw NotImplementedException("UpdateStatement not implemented yet.");
+        }
+        throw NotImplementedException("Transform for " + ast->name + " not implemented");
     }
 
     TransactionType TransformTransactionType(const std::string_view kind) {
         if (kind == "BEGIN TRANSACTION") {
             return TransactionType::BEGIN_TRANSACTION;
-        } else if (kind == "COMMIT") {
-            return TransactionType::COMMIT;
-        } else if (kind == "ROLLBACK") {
-            return TransactionType::ROLLBACK;
-        } else {
-            throw NotImplementedException("Transaction type " + string(kind) + " not implemented yet.");
         }
+        if (kind == "COMMIT") {
+            return TransactionType::COMMIT;
+        }
+        if (kind == "ROLLBACK") {
+            return TransactionType::ROLLBACK;
+        }
+        throw NotImplementedException("Transaction type " + string(kind) + " not implemented yet.");
     }
 
     unique_ptr<TransactionStatement> PEGTransformer::TransformTransaction(std::shared_ptr<peg::Ast> &ast) {
@@ -128,7 +133,7 @@ namespace duckdb {
         auto result = make_uniq<CreateStatement>();
         auto table_info = make_uniq<CreateTableInfo>();
         if (ast->nodes[0]->name == "Identifier") {
-             table_info->table = TransformIdentifier(ast->nodes[0]);
+            table_info->table = TransformIdentifier(ast->nodes[0]);
         } else {
             throw ParserException("CreateStatement node should have Identifier as first child");
         }
@@ -185,38 +190,50 @@ namespace duckdb {
         auto expr_child = ast->nodes[0];
         if (expr_child->name == "SubqueryExpression") {
             throw NotImplementedException("SubqueryExpression not implemented yet.");
-        } else if (expr_child->name == "LiteralListExpression") {
+        }
+        if (expr_child->name == "LiteralListExpression") {
             // TODO Figure out how to deal with list of expressions
             return TransformExpression(expr_child->nodes[0]);
-        } else if (expr_child->name == "ParenthesisExpression") {
-            throw NotImplementedException("ParenthesisExpression not implemented yet.");
-        } else if (expr_child->name == "DateExpression") {
-            throw NotImplementedException("DateExpression not implemented yet.");
-        } else if (expr_child->name == "DistinctExpression") {
-            throw NotImplementedException("DistinctExpression not implemented yet.");
-        } else if (expr_child->name == "SubstringExpression") {
-            throw NotImplementedException("SubstringExpression not implemented yet.");
-        } else if (expr_child->name == "IsNullExpression") {
-            throw NotImplementedException("IsNullExpression not implemented yet.");
-        } else if (expr_child->name == "CaseExpression") {
-            throw NotImplementedException("CaseExpression not implemented yet.");
-        } else if (expr_child->name == "CountStarExpression") {
-            return TransformCountStarExpression(expr_child);
-        } else if (expr_child->name == "CastExpression") {
-            throw NotImplementedException("CastExpression not implemented yet.");
-        } else if (expr_child->name == "ExtractExpression") {
-            throw NotImplementedException("ExtractExpression not implemented yet.");
-        } else if (expr_child->name == "WindowExpression") {
-            throw NotImplementedException("WindowExpression not implemented yet.");
-        } else if (expr_child->name == "FunctionExpression") {
-            return TransformFunctionExpression(expr_child);
-        } else if (expr_child->name == "ColumnReference") {
-            return TransformColumnReference(expr_child);
-        } else if (expr_child->name == "LiteralExpression") {
-            return TransformLiteralExpression(expr_child);
-        } else {
-            throw NotImplementedException("Transform for " + ast->name + " not implemented");
         }
+        if (expr_child->name == "ParenthesisExpression") {
+            throw NotImplementedException("ParenthesisExpression not implemented yet.");
+        }
+        if (expr_child->name == "DateExpression") {
+            throw NotImplementedException("DateExpression not implemented yet.");
+        }
+        if (expr_child->name == "DistinctExpression") {
+            throw NotImplementedException("DistinctExpression not implemented yet.");
+        }
+        if (expr_child->name == "SubstringExpression") {
+            throw NotImplementedException("SubstringExpression not implemented yet.");
+        }
+        if (expr_child->name == "IsNullExpression") {
+            throw NotImplementedException("IsNullExpression not implemented yet.");
+        }
+        if (expr_child->name == "CaseExpression") {
+            throw NotImplementedException("CaseExpression not implemented yet.");
+        }
+        if (expr_child->name == "CountStarExpression") {
+            return TransformCountStarExpression(expr_child);
+        }
+        if (expr_child->name == "CastExpression") {
+            throw NotImplementedException("CastExpression not implemented yet.");
+        }
+        if (expr_child->name == "ExtractExpression") {
+            throw NotImplementedException("ExtractExpression not implemented yet.");
+        }
+        if (expr_child->name == "WindowExpression") {
+            throw NotImplementedException("WindowExpression not implemented yet.");
+        }
+        if (expr_child->name == "FunctionExpression") {
+            return TransformFunctionExpression(expr_child);
+        }
+        if (expr_child->name == "ColumnReference") {
+            return TransformColumnReference(expr_child);
+        } if (expr_child->name == "LiteralExpression") {
+            return TransformLiteralExpression(expr_child);
+        }
+        throw NotImplementedException("Transform for " + ast->name + " not implemented");
     }
 
     ExpressionType PEGTransformer::TransformOperatorToExpressionType(std::shared_ptr<peg::Ast> &operator_node) {
@@ -226,41 +243,49 @@ namespace duckdb {
         // Comparison operators
         if (operator_str == "=") {
             return ExpressionType::COMPARE_EQUAL;
-        } else if (operator_str == "<=") {
+        }
+        if (operator_str == "<=") {
             return ExpressionType::COMPARE_LESSTHANOREQUALTO;
-        } else if (operator_str == ">=") {
+        }
+        if (operator_str == ">=") {
             return ExpressionType::COMPARE_GREATERTHANOREQUALTO;
-        } else if (operator_str == "<") {
+        }
+        if (operator_str == "<") {
             return ExpressionType::COMPARE_LESSTHAN;
-        } else if (operator_str == ">") {
+        }
+        if (operator_str == ">") {
             return ExpressionType::COMPARE_GREATERTHAN;
         }
 
         // Boolean operators
         if (operator_str == "AND") {
             return ExpressionType::CONJUNCTION_AND;
-        } else if (operator_str == "OR") {
+        }
+        if (operator_str == "OR") {
             return ExpressionType::CONJUNCTION_OR;
         }
 
         // Like operator
         if (operator_str == "LIKE") {
             throw NotImplementedException("LIKE operator not implemented yet.");
-        } else if (operator_str == "NOT LIKE") {
+        }
+        if (operator_str == "NOT LIKE") {
             throw NotImplementedException("NOT LIKE operator not implemented yet.");
         }
 
         // IN operator
         if (operator_str == "IN") {
             return ExpressionType::COMPARE_IN;
-        } else if (operator_str == "NOT IN") {
+        }
+        if (operator_str == "NOT IN") {
             return ExpressionType::COMPARE_NOT_IN;
         }
 
         // Between operator
         if (operator_str == "BETWEEN") {
             return ExpressionType::COMPARE_BETWEEN;
-        } else if (operator_str == "NOT BETWEEN") {
+        }
+        if (operator_str == "NOT BETWEEN") {
             return ExpressionType::COMPARE_NOT_BETWEEN;
         }
 
@@ -298,7 +323,7 @@ namespace duckdb {
             // Transform the operator into an ExpressionType
             auto operator_type = operator_node->nodes[0];
             if (operator_type->name == "ArithmeticOperator") {
-                vector<unique_ptr<ParsedExpression>> children;
+                vector<unique_ptr<ParsedExpression> > children;
                 children.push_back(std::move(left_expr));
                 children.push_back(std::move(right_expr));
                 result = make_uniq<FunctionExpression>(string(operator_type->token), std::move(children));
@@ -317,27 +342,6 @@ namespace duckdb {
             } else {
                 throw NotImplementedException("Operator not implemented yet.");
             }
-//            auto operator_type = TransformOperatorToExpressionType(operator_node);
-
-
-
-//            // Use ComparisonExpression for comparison operators
-//            if (operator_type == ExpressionType::COMPARE_EQUAL ||
-//                operator_type == ExpressionType::COMPARE_LESSTHAN ||
-//                operator_type == ExpressionType::COMPARE_GREATERTHAN ||
-//                operator_type == ExpressionType::COMPARE_LESSTHANOREQUALTO ||
-//                operator_type == ExpressionType::COMPARE_GREATERTHANOREQUALTO ||
-//                operator_type == ExpressionType::COMPARE_NOTEQUAL ||
-//                operator_type == ExpressionType::COMPARE_IN ||
-//                operator_type == ExpressionType::COMPARE_NOT_IN) {
-//
-//                result = make_uniq<ComparisonExpression>(operator_type, std::move(left_expr), std::move(right_expr));
-//            }
-                // Use OperatorExpression for non-comparison operators
-//            else {
-//                result = make_uniq<OperatorExpression>(operator_type, std::move(left_expr), std::move(right_expr));
-//            }
-
             // Update the left_expr to the result so it can be used for the next iteration
             left_expr = std::move(result);
         }
@@ -350,7 +354,7 @@ namespace duckdb {
     }
 
     unique_ptr<ParsedExpression>
-    PEGTransformer::TransformAliasedExpression(std::vector<std::shared_ptr<peg::Ast>> &aliased_expr_nodes) {
+    PEGTransformer::TransformAliasedExpression(std::vector<std::shared_ptr<peg::Ast> > &aliased_expr_nodes) {
         unique_ptr<ParsedExpression> expr;
         string alias;
 
@@ -375,7 +379,7 @@ namespace duckdb {
     }
 
     void PEGTransformer::TransformSelectList(std::shared_ptr<peg::Ast> &ast,
-                                             vector<unique_ptr<ParsedExpression>> &select_list) {
+                                             vector<unique_ptr<ParsedExpression> > &select_list) {
         for (auto &child: ast->nodes) {
             if (child->name == "AliasedExpression") {
                 select_list.push_back(TransformAliasedExpression(child->nodes));
@@ -400,11 +404,10 @@ namespace duckdb {
 
     unique_ptr<TableRef> PEGTransformer::TransformFrom(std::shared_ptr<peg::Ast> &ast) {
         auto table_ref = TransformTableReference(ast->nodes[0]);
-        if (ast->nodes.size() == 1){
+        if (ast->nodes.size() == 1) {
             return table_ref;
         }
         throw NotImplementedException("Transform for " + ast->name + " not implemented");
-
     }
 
     unique_ptr<ParsedExpression> PEGTransformer::TransformWhere(std::shared_ptr<peg::Ast> &ast) {
@@ -423,7 +426,7 @@ namespace duckdb {
                 select_node->from_table = make_uniq<EmptyTableRef>();
                 for (auto &child2: child->nodes) {
                     if (child2->name == "SelectClause") {
-                        vector<unique_ptr<ParsedExpression>> select_list;
+                        vector<unique_ptr<ParsedExpression> > select_list;
                         TransformSelectList(child2, select_list);
                         select_node->select_list = std::move(select_list);
                     } else if (child2->name == "FromClause") {
@@ -440,6 +443,4 @@ namespace duckdb {
         }
         throw NotImplementedException("Transform for " + ast->name + " not implemented");
     }
-
-
 } // namespace duckdb

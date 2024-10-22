@@ -28,6 +28,8 @@ public:
     static unique_ptr<SQLStatement> TransformInsertStatement(std::shared_ptr<peg::Ast> &ast);
     static unique_ptr<ParsedExpression> TransformFunctionExpression(std::shared_ptr<peg::Ast> &ast);
     static unique_ptr<ParsedExpression> TransformCountStarExpression(std::shared_ptr<peg::Ast> &ast);
+    static ExpressionType TransformOperatorToExpressionType(std::shared_ptr<peg::Ast> &operator_node);
+
 
 private:
     optional_ptr<PEGTransformer> parent;
