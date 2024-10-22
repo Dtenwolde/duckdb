@@ -55,12 +55,14 @@ def generate_grammar(input_peg, output_gram, reserved_keywords, unreserved_keywo
 
         # Add ReservedKeyword rule
         outfile.write("\n\nReservedKeyword <-\n")
-        reserved_rules = [f"    '{kw.upper()}'i" for kw in reserved_keywords]
+        # Sort the reserved keywords in alphabetical order
+        reserved_rules = [f"    '{kw.upper()}'i" for kw in sorted(reserved_keywords)]
         outfile.write("    " + " /\n    ".join(reserved_rules) + "\n")
 
         # Add UnreservedKeyword rule
         outfile.write("\nUnreservedKeyword <-\n")
-        unreserved_rules = [f"    '{kw.upper()}'i" for kw in unreserved_keywords]
+        # Sort the unreserved keywords in alphabetical order
+        unreserved_rules = [f"    '{kw.upper()}'i" for kw in sorted(unreserved_keywords)]
         outfile.write("    " + " /\n    ".join(unreserved_rules) + "\n")
 def compile_peglint(peglint_source, output_executable):
     """Compile peglint.cc to create an executable."""

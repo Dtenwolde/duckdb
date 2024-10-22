@@ -300,10 +300,18 @@ namespace duckdb {
     unique_ptr<ParsedExpression> PEGTransformer::TransformExpression(std::shared_ptr<peg::Ast> &ast) {
         unique_ptr<ParsedExpression> result;
         unique_ptr<ParsedExpression> left_expr;
+        // Initialize the not_modifier flag
+        bool not_modifier = false;
 
-        // Transform the first SingleExpression
-        if (!ast->nodes.empty() && ast->nodes[0]->name == "SingleExpression") {
-            left_expr = TransformSingleExpression(ast->nodes[0]);
+        // Check if the first node is a "NotModifier"
+        if (!ast->nodes.empty() && ast->nodes[0]->name == "NotModifier") {
+            not_modifier = true;
+        }
+
+        // Check if the last node is a "SingleExpression"
+        size_t single_expr_index = not_modifier ? 1 : 0;
+        if (ast->nodes.size() > single_expr_index && ast->nodes[single_expr_index]->name == "SingleExpression") {
+            left_expr = TransformSingleExpression(ast->nodes[single_expr_index]);
         } else {
             throw NotImplementedException("Expression must start with a SingleExpression");
         }
@@ -345,6 +353,7 @@ namespace duckdb {
             // Update the left_expr to the result so it can be used for the next iteration
             left_expr = std::move(result);
         }
+
 
         return left_expr;
     }
@@ -409,8 +418,13 @@ namespace duckdb {
         } else {
             throw NotImplementedException("Transform for " + ast->nodes[0]->name + " not implemented");
         }
+        if (ast->nodes.size() == 1) {
+            return result;
+        }
         if (ast->nodes[1]->name == "Identifier") {
             result->alias = TransformIdentifier(ast->nodes[1]);
+        } else {
+            throw ParserException("Expected Identifier");
         }
         return result;
     }

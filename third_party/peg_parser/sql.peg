@@ -96,7 +96,6 @@ Operator <-
     ComparisonOperator /
     BooleanOperator /
     LikeOperator /
-    NotModifier /
     InOperator /
     WindowOperator /
     BetweenOperator
