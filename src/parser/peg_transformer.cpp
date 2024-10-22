@@ -388,18 +388,31 @@ namespace duckdb {
     }
 
     unique_ptr<TableRef> PEGTransformer::TransformTableReference(std::shared_ptr<peg::Ast> &ast) {
+        unique_ptr<TableRef> result;
         if (ast->nodes[0]->name == "Identifier") {
             auto base_table_ref = make_uniq<BaseTableRef>();
             base_table_ref->table_name = TransformIdentifier(ast->nodes[0]);
             if (ast->nodes.size() == 1) {
                 return base_table_ref;
             }
-            if (ast->nodes[1]->name == "Identifier") {
-                base_table_ref->alias = TransformIdentifier(ast->nodes[1]);
-                return base_table_ref;
+            result = std::move(base_table_ref);
+        } else if (ast->nodes[0]->name == "FunctionExpression") {
+            auto table_function_ref = make_uniq<TableFunctionRef>();
+            auto function_name = TransformIdentifier(ast->nodes[0]->nodes[0]);
+            vector<unique_ptr<ParsedExpression>> function_children;
+            for (idx_t i = 1; i < ast->nodes[0]->nodes.size(); i++) {
+                function_children.push_back(TransformExpression(ast->nodes[0]->nodes[i]));
             }
+            // TODO handle subquery as a tablefunctionref
+            table_function_ref->function = make_uniq<FunctionExpression>(function_name, std::move(function_children));
+            result = std::move(table_function_ref);
+        } else {
+            throw NotImplementedException("Transform for " + ast->nodes[0]->name + " not implemented");
         }
-        throw NotImplementedException("Transform for " + ast->name + " not implemented");
+        if (ast->nodes[1]->name == "Identifier") {
+            result->alias = TransformIdentifier(ast->nodes[1]);
+        }
+        return result;
     }
 
     unique_ptr<TableRef> PEGTransformer::TransformFrom(std::shared_ptr<peg::Ast> &ast) {

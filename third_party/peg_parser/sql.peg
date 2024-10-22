@@ -47,7 +47,7 @@ StringLiteral <- '\'' [^\']* '\''
 TypeSpecifier <- Identifier (Parens(List(NumberLiteral)))?
 
 ColumnReference <- (Identifier '.')?Identifier
-FunctionExpression <- Identifier Parens(List(Expression))
+FunctionExpression <- Identifier Parens((List(Expression)?))
 ParenthesisExpression <- Parens(Expression)
 LiteralExpression <- StringLiteral / NumberLiteral
 CastExpression <- 'CAST'i Parens(Expression 'AS'i TypeSpecifier)
@@ -61,7 +61,8 @@ SubstringExpression <- 'SUBSTRING'i Parens(Expression 'FROM'i NumberLiteral 'FOR
 LiteralListExpression <- Parens(List(Expression))
 FrameClause <- 'ROWS'i 'BETWEEN'i (('UNBOUNDED'i 'PRECEDING'i)) 'AND' (('CURRENT'i 'ROW'i))
 WindowExpression <- Parens(('PARTITION'i 'BY'i List(Expression))? OrderByClause? FrameClause?)
-IsNullExpression <- ColumnReference 'IS'i NotModifier? 'NULL'i # TODO
+IsNullExpression <- ColumnReference 'IS'i NotModifier? 'NULL'i
+NullExpression <- 'NULL'i
 
 SingleExpression <-
     SubqueryExpression /
@@ -78,7 +79,8 @@ SingleExpression <-
     WindowExpression /
     FunctionExpression /
     ColumnReference /
-    LiteralExpression
+    LiteralExpression /
+    NullExpression
 
 ArithmeticOperator <- '+' / '-' / '*' / '/'
 NotModifier <- 'NOT'i
