@@ -63,6 +63,7 @@ FrameClause <- 'ROWS'i 'BETWEEN'i (('UNBOUNDED'i 'PRECEDING'i)) 'AND' (('CURRENT
 WindowExpression <- Parens(('PARTITION'i 'BY'i List(Expression))? OrderByClause? FrameClause?)
 IsNullExpression <- ColumnReference 'IS'i NotModifier? 'NULL'i
 NullExpression <- 'NULL'i
+TrueFalseExpression <- 'TRUE'i / 'FALSE'i
 
 SingleExpression <-
     SubqueryExpression /
@@ -80,7 +81,8 @@ SingleExpression <-
     FunctionExpression /
     ColumnReference /
     LiteralExpression /
-    NullExpression
+    NullExpression /
+    TrueFalseExpression
 
 ArithmeticOperator <- '+' / '-' / '*' / '/'
 NotModifier <- 'NOT'i
