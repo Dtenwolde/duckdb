@@ -84,7 +84,7 @@ SingleExpression <-
 
 ArithmeticOperator <- '+' / '-' / '*' / '/'
 NotModifier <- 'NOT'i
-LikeOperator <- NotModifier? 'LIKE'i
+LikeOperator <- NotModifier? ('LIKE'i / 'ILIKE'i)
 InOperator <- NotModifier? 'IN'i
 BooleanOperator <- 'OR'i / 'AND'i
 ComparisonOperator <-  '=' / '<=' / '>=' / '<' / '>'

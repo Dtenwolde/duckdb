@@ -232,8 +232,10 @@ namespace duckdb {
             return TransformColumnReference(expr_child);
         } if (expr_child->name == "LiteralExpression") {
             return TransformLiteralExpression(expr_child);
+        } if (expr_child->name == "NullExpression") {
+            return make_uniq<ConstantExpression>(Value("NULL"));
         }
-        throw NotImplementedException("Transform for " + ast->name + " not implemented");
+        throw NotImplementedException("Transform for " + expr_child->name + " not implemented");
     }
 
     ExpressionType PEGTransformer::TransformOperatorToExpressionType(std::shared_ptr<peg::Ast> &operator_node) {
@@ -320,7 +322,7 @@ namespace duckdb {
         }
 
         // Now, iterate through the rest to find (Operator, SingleExpression) pairs
-        for (size_t i = 1; i < ast->nodes.size(); i += 2) {
+        for (size_t i = single_expr_index + 1; i < ast->nodes.size(); i += 2) {
             auto &operator_node = ast->nodes[i];
             auto &right_expr_node = ast->nodes[i + 1];
 
