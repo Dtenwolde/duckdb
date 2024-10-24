@@ -2,6 +2,9 @@
 #include <duckdb/parser/peg_transformer.hpp>
 #include "sql_grammar.hpp"
 #include <fstream>
+#include <chrono>
+#include <iostream>
+
 
 namespace duckdb {
     std::string FileToString(const string &file_name) {
@@ -15,6 +18,9 @@ namespace duckdb {
 
     // Constructor: Initialize the parser using the embedded grammar
     PEGParser::PEGParser() {
+        // Start the timer
+        auto start_time = std::chrono::high_resolution_clock::now();
+
         // Use the grammar defined in sql_grammar.hpp
         parser_ = make_uniq<peg::parser>(sql_grammar);
         parser_->enable_ast();
@@ -30,12 +36,20 @@ namespace duckdb {
             oss << "Error on line " << line << ":" << col << " -> " << msg;
             parser_error_message = oss.str(); // Store the error message
         });
-    }
 
+        // Stop the timer
+        auto end_time = std::chrono::high_resolution_clock::now();
+
+        // Calculate the duration
+        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
+
+        // Print or log the duration
+        std::cout << "PEGParser initialization took " << duration << " milliseconds." << std::endl;
+    }
 
     // Method to parse a query and throw the actual error message
     void PEGParser::ParseQuery(const string &query) {
-        std::cout << query << std::endl;
+        // std::cout << query << std::endl;
         if (parser_->parse(query, ast_)) {
             PEGTransformer::Transform(ast_, statements);
         }
