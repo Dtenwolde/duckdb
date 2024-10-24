@@ -440,7 +440,13 @@ namespace duckdb {
             } else if (operator_type->name == "ComparisonOperator") {
                 throw NotImplementedException("ComparisonOperator not implemented yet.");
             } else if (operator_type->name == "BooleanOperator") {
-                throw NotImplementedException("BooleanOperator not implemented yet.");
+                if (operator_type->token == "and") {
+                    result = make_uniq<ConjunctionExpression>(ExpressionType::CONJUNCTION_AND, std::move(left_expr), std::move(right_expr));
+                } else if (operator_type->token == "or") {
+                    result = make_uniq<ConjunctionExpression>(ExpressionType::CONJUNCTION_OR, std::move(left_expr), std::move(right_expr));
+                } else {
+                    throw NotImplementedException("Operator type " + string(operator_type->token) + " not implemented yet.");
+                }
             } else if (operator_type->name == "LikeOperator") {
                 throw NotImplementedException("LikeOperator not implemented yet.");
             } else if (operator_type->name == "InOperator") {
