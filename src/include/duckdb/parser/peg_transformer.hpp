@@ -29,6 +29,7 @@ public:
     static unique_ptr<ParsedExpression> TransformFunctionExpression(std::shared_ptr<peg::Ast> &ast);
     static unique_ptr<ParsedExpression> TransformCountStarExpression(std::shared_ptr<peg::Ast> &ast);
     static ExpressionType TransformOperatorToExpressionType(std::shared_ptr<peg::Ast> &operator_node);
+    static unique_ptr<ParsedExpression> TransformCaseExpression(std::shared_ptr<peg::Ast> &ast);
 
 
 private:

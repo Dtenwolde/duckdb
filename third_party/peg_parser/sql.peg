@@ -54,7 +54,8 @@ CastExpression <- 'CAST'i Parens(Expression 'AS'i TypeSpecifier)
 ExtractExpression <- 'EXTRACT'i Parens(ColumnReference 'FROM'i Expression)
 CountStarExpression <- 'COUNT'i Parens('*')
 SubqueryExpression <- NotModifier? 'EXISTS'i? SubqueryReference
-CaseExpression <- 'CASE'i ColumnReference? 'WHEN'i Expression 'THEN'i Expression ('ELSE'i Expression)? 'END'i # TODO strict
+WhenThen <- 'WHEN'i Expression 'THEN'i Expression
+CaseExpression <- 'CASE'i Expression? (WhenThen)+ ('ELSE'i Expression)? 'END'i # TODO strict
 DateExpression <- 'DATE'i Expression
 DistinctExpression <- 'DISTINCT'i Expression
 SubstringExpression <- 'SUBSTRING'i Parens(Expression 'FROM'i NumberLiteral 'FOR'i NumberLiteral)

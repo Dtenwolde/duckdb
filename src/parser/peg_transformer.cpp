@@ -186,6 +186,53 @@ namespace duckdb {
         return make_uniq<FunctionExpression>("COUNT", vector<unique_ptr<ParsedExpression>>());
     }
 
+    unique_ptr<ParsedExpression> PEGTransformer::TransformCaseExpression(std::shared_ptr<peg::Ast> &ast) {
+        // Create a CaseExpression to hold the transformed result
+        auto result = make_uniq<CaseExpression>();
+        unique_ptr<ParsedExpression> possible_expression;
+        bool start_expression = false;
+
+        // Check if the first node is an "Expression" (special case)
+        if (!ast->nodes.empty() && ast->nodes[0]->name == "Expression") {
+            start_expression = true;
+            possible_expression = TransformExpression(ast->nodes[0]);
+        }
+
+        // Determine where to start processing "WhenThen" nodes
+        size_t case_whenthen_index = start_expression ? 1 : 0;
+
+        // Iterate over the nodes starting from the determined index
+        for (idx_t i = case_whenthen_index; i < ast->nodes.size(); ++i) {
+            auto &current_node = ast->nodes[i];
+
+            // Handle the last "else" expression
+            if (i == ast->nodes.size() - 1 && current_node->name == "Expression") {
+                result->else_expr = TransformExpression(current_node);
+                continue;
+            }
+
+            // Process "WhenThen" nodes
+            if (current_node->name == "WhenThen") {
+                auto &whenthen = current_node;
+                auto when_expression = TransformExpression(whenthen->nodes[0]);
+                auto then_expression = TransformExpression(whenthen->nodes[1]);
+
+                // Add a comparison with the possible expression, if present
+                if (possible_expression) {
+                    when_expression = make_uniq<OperatorExpression>(
+                        ExpressionType::COMPARE_EQUAL, possible_expression->Copy(), std::move(when_expression));
+                }
+
+                // Add the CaseCheck to the list using an initializer list
+                result->case_checks.push_back(CaseCheck{std::move(when_expression), std::move(then_expression)});
+            } else {
+                throw ParserException("Unexpected type encountered in CASE expression: " + string(current_node->name));
+            }
+        }
+
+        return result;
+    }
+
     unique_ptr<ParsedExpression> PEGTransformer::TransformSingleExpression(std::shared_ptr<peg::Ast> &ast) {
         auto expr_child = ast->nodes[0];
         if (expr_child->name == "SubqueryExpression") {
@@ -211,7 +258,7 @@ namespace duckdb {
             throw NotImplementedException("IsNullExpression not implemented yet.");
         }
         if (expr_child->name == "CaseExpression") {
-            throw NotImplementedException("CaseExpression not implemented yet.");
+            return TransformCaseExpression(expr_child);
         }
         if (expr_child->name == "CountStarExpression") {
             return TransformCountStarExpression(expr_child);
@@ -234,6 +281,11 @@ namespace duckdb {
             return TransformLiteralExpression(expr_child);
         } if (expr_child->name == "NullExpression") {
             return make_uniq<ConstantExpression>(Value("NULL"));
+        } if (expr_child->name == "TrueFalseExpression") {
+            if (expr_child->token == "true") {
+                return make_uniq<ConstantExpression>(Value("true"));
+            }
+            return make_uniq<ConstantExpression>(Value("false"));
         }
         throw NotImplementedException("Transform for " + expr_child->name + " not implemented");
     }
