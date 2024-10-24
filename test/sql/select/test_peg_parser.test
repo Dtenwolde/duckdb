@@ -61,4 +61,4 @@ select
         avg(l_discount) as avg_disc,
         count(*) as count_order
 from
-        lineitem
+        lineitem;

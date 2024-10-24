@@ -33,7 +33,9 @@ public:
     static unique_ptr<SQLStatement> TransformPragmaStatement(std::shared_ptr<peg::Ast> &ast);
     static unique_ptr<SQLStatement> TransformDescribeStatement(std::shared_ptr<peg::Ast> &ast);
     static unique_ptr<QueryNode> TransformSelectNode(std::shared_ptr<peg::Ast> &ast);
-
+    static unique_ptr<ParsedExpression> TransformIsNullExpression(std::shared_ptr<peg::Ast> &ast);
+    static unique_ptr<ParsedExpression> TransformCastExpression(std::shared_ptr<peg::Ast> &ast);
+    static LogicalType TransformTypeIdentifier(std::shared_ptr<peg::Ast> &ast);
 
 private:
     optional_ptr<PEGTransformer> parent;

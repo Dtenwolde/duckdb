@@ -95,7 +95,8 @@ SingleExpression <-
 
 ArithmeticOperator <- '+' / '-' / '*' / '/'
 NotModifier <- 'NOT'i
-LikeOperator <- NotModifier? ('LIKE'i / 'ILIKE'i)
+LikeOrIlike <- 'LIKE'i / 'ILIKE'i
+LikeOperator <- NotModifier? LikeOrIlike
 InOperator <- NotModifier? 'IN'i
 BooleanOperator <- 'OR'i / 'AND'i
 ComparisonOperator <-  '=' / '<=' / '>=' / '<' / '>'

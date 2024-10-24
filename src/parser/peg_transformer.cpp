@@ -160,14 +160,18 @@ namespace duckdb {
         return make_uniq<TransactionStatement>(std::move(info));
     }
 
+    LogicalType PEGTransformer::TransformTypeIdentifier(std::shared_ptr<peg::Ast> &ast) {
+        auto type = TransformIdentifier(ast->nodes[0]);
+        return EnumUtil::FromString<LogicalTypeId>(duckdb::StringUtil::Upper(type));
+    }
+
     void PEGTransformer::TransformColumnDefinition(std::shared_ptr<peg::Ast> &ast, ColumnList &column_list) {
         if (ast->nodes.size() != 2) {
             throw ParserException("ColumnDefinition node should have 2 children");
         }
         auto column_name = TransformIdentifier(ast->nodes[0]);
         if (ast->nodes[1]->name == "TypeSpecifier") {
-            auto type = TransformIdentifier(ast->nodes[1]->nodes[0]);
-            auto column_type = EnumUtil::FromString<LogicalTypeId>(duckdb::StringUtil::Upper(type));
+            auto column_type = TransformTypeIdentifier(ast->nodes[1]);
             column_list.AddColumn(ColumnDefinition(column_name, column_type));
         } else {
             throw ParserException("ColumnDefinition node should have TypeSpecifier as second child");
@@ -278,6 +282,26 @@ namespace duckdb {
         return result;
     }
 
+    unique_ptr<ParsedExpression> PEGTransformer::TransformIsNullExpression(std::shared_ptr<peg::Ast> &ast) {
+        unique_ptr<ParsedExpression> result;
+        auto col_ref = TransformColumnReference(ast->nodes[0]);
+        if (ast->nodes.size() == 2) {
+            if (ast->nodes[1]->name == "NotModifier") {
+                return make_uniq<OperatorExpression>(ExpressionType::OPERATOR_IS_NOT_NULL, std::move(col_ref));
+            }
+            throw ParserException("Unexpected type: " + string(ast->nodes[1]->name));
+        }
+        return make_uniq<OperatorExpression>(ExpressionType::OPERATOR_IS_NULL, std::move(col_ref));
+    }
+
+    unique_ptr<ParsedExpression> PEGTransformer::TransformCastExpression(std::shared_ptr<peg::Ast> &ast) {
+        auto expr_child = TransformExpression(ast->nodes[0]);
+        auto cast_type = TransformTypeIdentifier(ast->nodes[1]);
+        auto result = make_uniq<CastExpression>(cast_type, std::move(expr_child));
+        return result;
+    }
+
+
     unique_ptr<ParsedExpression> PEGTransformer::TransformSingleExpression(std::shared_ptr<peg::Ast> &ast) {
         auto expr_child = ast->nodes[0];
         if (expr_child->name == "SubqueryExpression") {
@@ -300,7 +324,7 @@ namespace duckdb {
             throw NotImplementedException("SubstringExpression not implemented yet.");
         }
         if (expr_child->name == "IsNullExpression") {
-            throw NotImplementedException("IsNullExpression not implemented yet.");
+            return TransformIsNullExpression(expr_child);
         }
         if (expr_child->name == "CaseExpression") {
             return TransformCaseExpression(expr_child);
@@ -309,7 +333,7 @@ namespace duckdb {
             return TransformCountStarExpression(expr_child);
         }
         if (expr_child->name == "CastExpression") {
-            throw NotImplementedException("CastExpression not implemented yet.");
+            return TransformCastExpression(expr_child);
         }
         if (expr_child->name == "ExtractExpression") {
             throw NotImplementedException("ExtractExpression not implemented yet.");
@@ -448,7 +472,21 @@ namespace duckdb {
                     throw NotImplementedException("Operator type " + string(operator_type->token) + " not implemented yet.");
                 }
             } else if (operator_type->name == "LikeOperator") {
-                throw NotImplementedException("LikeOperator not implemented yet.");
+                bool not_like_modifier = false;
+                if (operator_type->nodes[0]->name == "NotModifier") {
+                    not_like_modifier = true;
+                }
+                string function_name = not_like_modifier ? "!" : "";
+                idx_t expr_idx = not_like_modifier ? 1 : 0;
+                vector<unique_ptr<ParsedExpression> > children;
+                children.push_back(std::move(left_expr));
+                children.push_back(std::move(right_expr));
+                if (operator_type->nodes[expr_idx]->token == "ilike") {
+                    function_name += "~~*";
+                } else if (operator_type->nodes[expr_idx]->token == "like") {
+                    function_name += not_like_modifier ? "~~" : "~~~";
+                }
+                result = make_uniq<FunctionExpression>(function_name, std::move(children));
             } else if (operator_type->name == "InOperator") {
                 throw NotImplementedException("InOperator not implemented yet.");
             } else if (operator_type->name == "BetweenOperator") {
