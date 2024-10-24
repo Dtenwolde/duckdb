@@ -515,7 +515,7 @@ TEST_CASE("Test connection API", "[api]") {
 }
 
 TEST_CASE("Test parser tokenize", "[api]") {
-	PEGParser parser("third_party/peg_parser/sql.gram");
+	PEGParser parser;
 //	REQUIRE_NOTHROW(parser.Tokenize("SELECT * FROM table WHERE i+1=3 AND j='hello'; --tokenize example query"));
 }
 

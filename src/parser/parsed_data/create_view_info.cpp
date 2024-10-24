@@ -57,7 +57,7 @@ unique_ptr<CreateInfo> CreateViewInfo::Copy() const {
 }
 
 unique_ptr<SelectStatement> CreateViewInfo::ParseSelect(const string &sql) {
-	PEGParser parser("third_party/peg_parser/sql.gram");
+	PEGParser parser;
 	parser.ParseQuery(sql);
 	if (parser.statements.size() != 1 || parser.statements[0]->type != StatementType::SELECT_STATEMENT) {
 		throw BinderException(

@@ -607,7 +607,7 @@ vector<unique_ptr<SQLStatement>> ClientContext::ParseStatementsInternal(ClientCo
 //	Parser parser(GetParserOptions());
 //	parser.ParseQuery(query);
 
-    PEGParser peg_parser("third_party/peg_parser/sql.gram");
+    PEGParser peg_parser;
     peg_parser.ParseQuery(query);
 	PragmaHandler handler(*this);
 	handler.HandlePragmaStatements(lock, peg_parser.statements);
@@ -815,7 +815,7 @@ unique_ptr<PendingQueryResult> ClientContext::PendingStatementOrPreparedStatemen
 			}
 			if (reparse_statement) {
 				try {
-					PEGParser parser("third_party/peg_parser/sql.gram");
+					PEGParser parser;
 					ErrorData error;
 					parser.ParseQuery(statement->ToString());
 					statement = std::move(parser.statements[0]);

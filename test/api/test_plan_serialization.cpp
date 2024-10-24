@@ -20,7 +20,7 @@ static void test_helper(string sql, duckdb::vector<string> fixtures = duckdb::ve
 		con.SendQuery(fixture);
 	}
 
-	PEGParser p("third_party/peg_parser/sql.gram");
+	PEGParser p;
 	p.ParseQuery(sql);
 
 	for (auto &statement : p.statements) {
@@ -52,7 +52,7 @@ static void test_helper_multi_db(string sql, duckdb::vector<string> fixtures = d
 		con.SendQuery(fixture);
 	}
 
-	PEGParser p("third_party/peg_parser/sql.gram");
+	PEGParser p;
 	p.ParseQuery(sql);
 
 	for (auto &statement : p.statements) {

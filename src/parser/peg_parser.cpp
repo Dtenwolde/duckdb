@@ -1,11 +1,9 @@
 #include <duckdb/parser/peg_parser.hpp>
 #include <duckdb/parser/peg_transformer.hpp>
+#include "sql_grammar.hpp"
 #include <fstream>
-#include <streambuf>
-#include <iostream>
 
 namespace duckdb {
-
     std::string FileToString(const string &file_name) {
         std::ifstream str(file_name);
         if (!str.is_open()) {
@@ -15,11 +13,10 @@ namespace duckdb {
                            std::istreambuf_iterator<char>());
     }
 
-// Constructor
-    PEGParser::PEGParser(const string &grammar_file) {
-        auto base_grammar = FileToString(grammar_file);
-
-        parser_ = make_uniq<peg::parser>(base_grammar);
+    // Constructor: Initialize the parser using the embedded grammar
+    PEGParser::PEGParser() {
+        // Use the grammar defined in sql_grammar.hpp
+        parser_ = make_uniq<peg::parser>(sql_grammar);
         parser_->enable_ast();
         parser_->enable_packrat_parsing();
 
@@ -31,18 +28,128 @@ namespace duckdb {
         parser_->set_logger([this](size_t line, size_t col, const std::string &msg) {
             std::ostringstream oss;
             oss << "Error on line " << line << ":" << col << " -> " << msg;
-            parser_error_message = oss.str();  // Store the error message
+            parser_error_message = oss.str(); // Store the error message
         });
     }
 
-// Method to parse a query and throw the actual error message
+
+    // Method to parse a query and throw the actual error message
     void PEGParser::ParseQuery(const string &query) {
         if (parser_->parse(query, ast_)) {
             PEGTransformer::Transform(ast_->nodes[0], statements);
-        } else {
-            // Throw the stored error message if parsing fails
-            throw ParserException("%s: %s", query, parser_error_message);
         }
+        // else {
+        //     // Throw the stored error message if parsing fails
+        //     throw ParserException("%s: %s", query, parser_error_message);
+        // }
+    }
+
+    vector<unique_ptr<ParsedExpression> > PEGParser::ParseExpressionList(const string &select_list) {
+        // construct a mock query prefixed with SELECT
+        string mock_query = "SELECT " + select_list;
+        // parse the query
+        PEGParser parser;
+        parser.ParseQuery(mock_query);
+        // check the statements
+        if (parser.statements.size() != 1 || parser.statements[0]->type != StatementType::SELECT_STATEMENT) {
+            throw ParserException("Expected a single SELECT statement");
+        }
+        auto &select = parser.statements[0]->Cast<SelectStatement>();
+        if (select.node->type != QueryNodeType::SELECT_NODE) {
+            throw ParserException("Expected a single SELECT node");
+        }
+        auto &select_node = select.node->Cast<SelectNode>();
+        return std::move(select_node.select_list);
+    }
+
+    GroupByNode PEGParser::ParseGroupByList(const string &group_by) {
+        // construct a mock SELECT query with our group_by expressions
+        string mock_query = StringUtil::Format("SELECT 42 GROUP BY %s", group_by);
+        // parse the query
+        PEGParser parser;
+        parser.ParseQuery(mock_query);
+        // check the result
+        if (parser.statements.size() != 1 || parser.statements[0]->type != StatementType::SELECT_STATEMENT) {
+            throw ParserException("Expected a single SELECT statement");
+        }
+        auto &select = parser.statements[0]->Cast<SelectStatement>();
+        D_ASSERT(select.node->type == QueryNodeType::SELECT_NODE);
+        auto &select_node = select.node->Cast<SelectNode>();
+        return std::move(select_node.groups);
+    }
+
+    vector<SimplifiedToken> PEGParser::Tokenize(const string &query) {
+
+
+        // Create a parser object using the loaded grammar
+        static peg::parser parser(sql_grammar);
+        if (!parser) {
+            throw InternalException("Failed to create PEG parser from the grammar.");
+        }
+
+        // Vector to store the resulting tokens
+        vector<SimplifiedToken> result;
+
+        // Utility function to add tokens
+        auto add_token = [&](const peg::SemanticValues &sv, SimplifiedTokenType type) {
+            SimplifiedToken token;
+            token.type = type;
+            token.start = sv.sv().data() - query.data(); // Calculate the start position
+            result.push_back(token);
+        };
+
+        // Set up the actions for the different token types defined in the grammar
+        parser["Identifier"] = [&](const peg::SemanticValues &sv) {
+            add_token(sv, SimplifiedTokenType::SIMPLIFIED_TOKEN_IDENTIFIER);
+        };
+
+        parser["NumberLiteral"] = [&](const peg::SemanticValues &sv) {
+            add_token(sv, SimplifiedTokenType::SIMPLIFIED_TOKEN_NUMERIC_CONSTANT);
+        };
+
+        parser["StringLiteral"] = [&](const peg::SemanticValues &sv) {
+            add_token(sv, SimplifiedTokenType::SIMPLIFIED_TOKEN_STRING_CONSTANT);
+        };
+
+        parser["Operator"] = [&](const peg::SemanticValues &sv) {
+            add_token(sv, SimplifiedTokenType::SIMPLIFIED_TOKEN_OPERATOR);
+        };
+
+        parser["ReservedKeyword"] = [&](const peg::SemanticValues &sv) {
+            add_token(sv, SimplifiedTokenType::SIMPLIFIED_TOKEN_KEYWORD);
+        };
+
+        parser["Comment"] = [&](const peg::SemanticValues &sv) {
+            add_token(sv, SimplifiedTokenType::SIMPLIFIED_TOKEN_COMMENT);
+        };
+
+        // Parse the input query using the grammar
+        if (!parser.parse(query.c_str())) {
+            return {};
+        }
+
+        return result;
+    }
+
+    vector<OrderByNode> PEGParser::ParseOrderList(const string &select_list) {
+        // construct a mock query
+        string mock_query = "SELECT * FROM tbl ORDER BY " + select_list;
+        // parse the query
+        PEGParser parser;
+        parser.ParseQuery(mock_query);
+        // check the statements
+        if (parser.statements.size() != 1 || parser.statements[0]->type != StatementType::SELECT_STATEMENT) {
+            throw ParserException("Expected a single SELECT statement");
+        }
+        auto &select = parser.statements[0]->Cast<SelectStatement>();
+        D_ASSERT(select.node->type == QueryNodeType::SELECT_NODE);
+        auto &select_node = select.node->Cast<SelectNode>();
+        if (select_node.modifiers.empty() || select_node.modifiers[0]->type != ResultModifierType::ORDER_MODIFIER ||
+            select_node.modifiers.size() != 1) {
+            throw ParserException("Expected a single ORDER clause");
+        }
+        auto &order = select_node.modifiers[0]->Cast<OrderModifier>();
+        return std::move(order.orders);
     }
 
     vector<string> PEGParser::ReadKeywordsFromFile(const string &file_path) {
@@ -78,13 +185,13 @@ namespace duckdb {
         auto unreserved_keywords = ReadKeywordsFromFile("third_party/peg_parser/keywords/unreserved_keywords.list");
 
         // Process reserved keywords
-        for (auto &keyword : reserved_keywords) {
+        for (auto &keyword: reserved_keywords) {
             string pruned_keyword = PruneKeyword(keyword);
             entries.emplace_back(pruned_keyword, KeywordCategory::KEYWORD_RESERVED);
         }
 
         // Process unreserved keywords
-        for (auto &keyword : unreserved_keywords) {
+        for (auto &keyword: unreserved_keywords) {
             string pruned_keyword = PruneKeyword(keyword);
             entries.emplace_back(pruned_keyword, KeywordCategory::KEYWORD_UNRESERVED);
         }
@@ -97,7 +204,7 @@ namespace duckdb {
         auto unreserved_keywords = ReadKeywordsFromFile("third_party/peg_parser/keywords/unreserved_keywords.list");
 
         // Process reserved keywords
-        for (auto &keyword : reserved_keywords) {
+        for (auto &keyword: reserved_keywords) {
             string pruned_keyword = PruneKeyword(keyword);
             if (pruned_keyword == text) {
                 return KeywordCategory::KEYWORD_RESERVED;
@@ -105,7 +212,7 @@ namespace duckdb {
         }
 
         // Process unreserved keywords
-        for (auto &keyword : unreserved_keywords) {
+        for (auto &keyword: unreserved_keywords) {
             string pruned_keyword = PruneKeyword(keyword);
             if (pruned_keyword == text) {
                 return KeywordCategory::KEYWORD_UNRESERVED;
@@ -113,6 +220,5 @@ namespace duckdb {
         }
 
         return KeywordCategory::KEYWORD_NONE;
-
     }
 } // namespace duckdb

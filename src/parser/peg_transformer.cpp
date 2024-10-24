@@ -3,10 +3,11 @@
 #include <duckdb/parser/expression/columnref_expression.hpp>
 #include <duckdb/parser/statement/create_statement.hpp>
 #include <duckdb/parser/parsed_data/create_table_info.hpp>
-#include <duckdb/common/enums/catalog_type.hpp>
+#include <duckdb/parser/parsed_data/pragma_info.hpp>
 #include <duckdb/parser/expression/function_expression.hpp>
 #include <duckdb/parser/tableref/basetableref.hpp>
 #include <duckdb/parser/statement/insert_statement.hpp>
+#include <duckdb/parser/statement/pragma_statement.hpp>
 
 namespace duckdb {
     PEGTransformer::PEGTransformer(ParserOptions &options)
@@ -66,10 +67,22 @@ namespace duckdb {
                 result->select_statement = std::move(select_statement);
 
                 return result;
-            } else if (ast->nodes[2]->name == "SelectStatement") {
+            }
+            if (ast->nodes[2]->name == "SelectStatement") {
                 result->select_statement = TransformSelect(ast->nodes[2]);
             }
         }
+        return result;
+    }
+
+    unique_ptr<SQLStatement> PEGTransformer::TransformPragmaStatement(std::shared_ptr<peg::Ast> &ast) {
+        auto result = make_uniq<PragmaStatement>();
+        auto pragma_info = make_uniq<PragmaInfo>();
+        pragma_info->name = TransformIdentifier(ast->nodes[0]);
+        for (idx_t i = 1; i < ast->nodes.size(); i++) {
+            pragma_info->parameters.push_back(TransformExpression(ast->nodes[i]));
+        }
+        result->info = std::move(pragma_info);
         return result;
     }
 
@@ -90,8 +103,11 @@ namespace duckdb {
         if (ast->name == "DeleteStatement") {
             throw NotImplementedException("DeleteStatement not implemented yet.");
         }
-         if (ast->name == "UpdateStatement") {
+        if (ast->name == "UpdateStatement") {
             throw NotImplementedException("UpdateStatement not implemented yet.");
+        }
+        if (ast->name == "PragmaStatement") {
+            return TransformPragmaStatement(ast);
         }
         throw NotImplementedException("Transform for " + ast->name + " not implemented");
     }
@@ -427,7 +443,7 @@ namespace duckdb {
         if (aliased_expr_nodes[0]->name == "Expression") {
             expr = TransformExpression(aliased_expr_nodes[0]);
         } else {
-            throw NotImplementedException("Not implemented yet.");
+            throw NotImplementedException("Not implemented yet for Aliased Expression.");
         }
         if (aliased_expr_nodes.size() == 2) {
             if (aliased_expr_nodes[1]->name == "Identifier") {

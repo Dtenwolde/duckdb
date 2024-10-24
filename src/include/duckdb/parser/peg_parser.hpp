@@ -10,9 +10,12 @@
 
 #include <string>
 #include <memory>
-#include "../../../../third_party/peg_parser/peglib.h"
+#include "peglib.h"
 #include "sql_statement.hpp"
 #include "simplified_token.hpp"
+#include <duckdb/parser/group_by_node.hpp>
+#include <duckdb/parser/result_modifier.hpp>
+
 
 namespace duckdb {
 
@@ -20,7 +23,7 @@ namespace duckdb {
 
     class PEGParser {
     public:
-        PEGParser(const string& grammar_file);
+        PEGParser();
 
         void ParseQuery(const string &query);
 
@@ -31,6 +34,10 @@ namespace duckdb {
         static vector<string> ReadKeywordsFromFile(const string &file_path);
         static vector<ParserKeyword> KeywordList();
         static KeywordCategory IsKeyword(const string &text);
+        static vector<unique_ptr<ParsedExpression>> ParseExpressionList(const string &select_list);
+        static vector<OrderByNode> ParseOrderList(const string &select_list);
+        static GroupByNode ParseGroupByList(const string &group_by);
+        static vector<SimplifiedToken> Tokenize(const string &query);
 
     public:
         vector<ParserKeyword> keywords; // List of keywords
