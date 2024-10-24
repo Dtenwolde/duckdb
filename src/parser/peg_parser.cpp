@@ -49,7 +49,6 @@ namespace duckdb {
 
     // Method to parse a query and throw the actual error message
     void PEGParser::ParseQuery(const string &query) {
-        // std::cout << query << std::endl;
         if (parser_->parse(query, ast_)) {
             PEGTransformer::Transform(ast_, statements);
         }
