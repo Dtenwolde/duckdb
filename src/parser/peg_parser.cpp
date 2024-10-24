@@ -49,6 +49,7 @@ namespace duckdb {
 
     // Method to parse a query and throw the actual error message
     void PEGParser::ParseQuery(const string &query) {
+        std::cout << query << std::endl;
         if (parser_->parse(query, ast_)) {
             PEGTransformer::Transform(ast_, statements);
         }
@@ -93,8 +94,6 @@ namespace duckdb {
     }
 
     vector<SimplifiedToken> PEGParser::Tokenize(const string &query) {
-
-
         // Create a parser object using the loaded grammar
         static peg::parser parser(sql_grammar);
         if (!parser) {
@@ -194,10 +193,6 @@ namespace duckdb {
 
     vector<ParserKeyword> PEGParser::KeywordList() {
         vector<ParserKeyword> entries;
-        // Read keywords from the files
-        auto reserved_keywords = ReadKeywordsFromFile("third_party/peg_parser/keywords/reserved_keywords.list");
-        auto unreserved_keywords = ReadKeywordsFromFile("third_party/peg_parser/keywords/unreserved_keywords.list");
-
         // Process reserved keywords
         for (auto &keyword: reserved_keywords) {
             string pruned_keyword = PruneKeyword(keyword);
@@ -214,9 +209,6 @@ namespace duckdb {
     }
 
     KeywordCategory PEGParser::IsKeyword(const string &text) {
-        auto reserved_keywords = ReadKeywordsFromFile("third_party/peg_parser/keywords/reserved_keywords.list");
-        auto unreserved_keywords = ReadKeywordsFromFile("third_party/peg_parser/keywords/unreserved_keywords.list");
-
         // Process reserved keywords
         for (auto &keyword: reserved_keywords) {
             string pruned_keyword = PruneKeyword(keyword);

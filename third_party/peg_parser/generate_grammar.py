@@ -72,6 +72,17 @@ def generate_grammar_header(input_peg, output_header, reserved_keywords, unreser
         # End the grammar string
         outfile.write("\n)grammar\";\n\n")
 
+        # Add the reserved and unreserved keywords as vectors
+        outfile.write("const std::vector<std::string> reserved_keywords = {\n")
+        for kw in sorted(reserved_keywords):
+            outfile.write(f'    "{kw}",\n')
+        outfile.write("};\n\n")
+
+        outfile.write("const std::vector<std::string> unreserved_keywords = {\n")
+        for kw in sorted(unreserved_keywords):
+            outfile.write(f'    "{kw}",\n')
+        outfile.write("};\n")
+
 def compile_peglint(peglint_source, output_executable):
     """Compile peglint.cc to create an executable."""
     compile_command = ['g++', '-std=c++17', peglint_source, '-o', output_executable, '-I.']

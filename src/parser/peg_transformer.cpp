@@ -161,8 +161,11 @@ namespace duckdb {
     }
 
     LogicalType PEGTransformer::TransformTypeIdentifier(std::shared_ptr<peg::Ast> &ast) {
-        auto type = TransformIdentifier(ast->nodes[0]);
-        return EnumUtil::FromString<LogicalTypeId>(duckdb::StringUtil::Upper(type));
+        auto type = StringUtil::Upper(TransformIdentifier(ast->nodes[0]));
+        if (type == "REAL") {
+            type = "FLOAT";
+        }
+        return EnumUtil::FromString<LogicalTypeId>(type);
     }
 
     void PEGTransformer::TransformColumnDefinition(std::shared_ptr<peg::Ast> &ast, ColumnList &column_list) {
