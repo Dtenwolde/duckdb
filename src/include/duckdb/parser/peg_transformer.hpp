@@ -31,6 +31,8 @@ public:
     static ExpressionType TransformOperatorToExpressionType(std::shared_ptr<peg::Ast> &operator_node);
     static unique_ptr<ParsedExpression> TransformCaseExpression(std::shared_ptr<peg::Ast> &ast);
     static unique_ptr<SQLStatement> TransformPragmaStatement(std::shared_ptr<peg::Ast> &ast);
+    static unique_ptr<SQLStatement> TransformDescribeStatement(std::shared_ptr<peg::Ast> &ast);
+    static unique_ptr<QueryNode> TransformSelectNode(std::shared_ptr<peg::Ast> &ast);
 
 
 private:

@@ -91,6 +91,27 @@ namespace duckdb {
         return result;
     }
 
+    unique_ptr<SQLStatement> PEGTransformer::TransformDescribeStatement(std::shared_ptr<peg::Ast> &ast) {
+        auto result = make_uniq<SelectStatement>();
+        auto select_node = make_uniq<SelectNode>();
+        select_node->select_list.push_back(make_uniq<StarExpression>());
+        auto showref = make_uniq<ShowRef>();
+        showref->show_type = ShowType::DESCRIBE;
+        if (ast->nodes[0]->name == "Identifier") {
+            // TODO implement SUMMARIZE
+            showref->table_name = TransformIdentifier(ast->nodes[0]);
+        } else if (ast->nodes[0]->name == "SimpleSelect") {
+            showref->query = TransformSelectNode(ast->nodes[0]);
+        } else {
+            throw ParserException("Unexpected node type: " + ast->nodes[0]->name);
+        }
+
+        select_node->from_table = std::move(showref);
+        result->node = std::move(select_node);
+
+        return result;
+    }
+
     unique_ptr<SQLStatement> PEGTransformer::TransformSingleStatement(std::shared_ptr<peg::Ast> &ast) {
         if (ast->name == "TransactionStatement") {
             return TransformTransaction(ast);
@@ -113,6 +134,9 @@ namespace duckdb {
         }
         if (ast->name == "PragmaStatement") {
             return TransformPragmaStatement(ast);
+        }
+        if (ast->name == "DescribeStatement") {
+            return TransformDescribeStatement(ast);
         }
         throw NotImplementedException("Transform for " + ast->name + " not implemented");
     }
@@ -523,26 +547,31 @@ namespace duckdb {
         throw NotImplementedException("Transform for " + ast->name + " not implemented");
     }
 
+    unique_ptr<QueryNode> PEGTransformer::TransformSelectNode(std::shared_ptr<peg::Ast> &ast) {
+        auto select_node = make_uniq<SelectNode>();
+        select_node->from_table = make_uniq<EmptyTableRef>();
+        for (auto &child2: ast->nodes) {
+            if (child2->name == "SelectClause") {
+                vector<unique_ptr<ParsedExpression> > select_list;
+                TransformSelectList(child2, select_list);
+                select_node->select_list = std::move(select_list);
+            } else if (child2->name == "FromClause") {
+                select_node->from_table = TransformFrom(child2);
+            } else if (child2->name == "WhereClause") {
+                select_node->where_clause = TransformWhere(child2);
+            } else if (child2->name == "GroupByClause") {
+                select_node->groups = TransformGroupBy(child2);
+            }
+        }
+
+        return select_node;
+    }
+
     unique_ptr<SelectStatement> PEGTransformer::TransformSelect(std::shared_ptr<peg::Ast> &ast) {
         for (auto &child: ast->nodes) {
             if (child->name == "SimpleSelect") {
                 auto result = make_uniq<SelectStatement>();
-                auto select_node = make_uniq<SelectNode>();
-                select_node->from_table = make_uniq<EmptyTableRef>();
-                for (auto &child2: child->nodes) {
-                    if (child2->name == "SelectClause") {
-                        vector<unique_ptr<ParsedExpression> > select_list;
-                        TransformSelectList(child2, select_list);
-                        select_node->select_list = std::move(select_list);
-                    } else if (child2->name == "FromClause") {
-                        select_node->from_table = TransformFrom(child2);
-                    } else if (child2->name == "WhereClause") {
-                        select_node->where_clause = TransformWhere(child2);
-                    } else if (child2->name == "GroupByClause") {
-                        select_node->groups = TransformGroupBy(child2);
-                    }
-                }
-                result->node = std::move(select_node);
+                result->node = TransformSelectNode(child);
                 return result;
             }
         }

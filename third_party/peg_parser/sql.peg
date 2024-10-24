@@ -1,6 +1,13 @@
 Statements <- (SingleStatement (';' SingleStatement )* ';'*)
 
-SingleStatement <- SelectStatement / TransactionStatement / CreateStatement / InsertStatement / PragmaStatement
+SingleStatement <-  SelectStatement /
+                    TransactionStatement /
+                    CreateStatement /
+                    InsertStatement /
+                    PragmaStatement /
+                    DescribeStatement
+
+DescribeStatement <- 'DESCRIBE'i (Identifier / SimpleSelect)
 PragmaStatement <- 'PRAGMA'i Identifier (Parens(List(Expression)))?
 SelectStatement <- SimpleSelect (SetopClause SimpleSelect)*
 TransactionStatement <- TransactionType
