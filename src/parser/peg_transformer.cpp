@@ -15,12 +15,20 @@ namespace duckdb {
     }
 
     void PEGTransformer::Transform(std::shared_ptr<peg::Ast> &ast, vector<unique_ptr<SQLStatement>> &statements) {
-        if (ast->name == "SingleStatement") {
-            for (auto &child: ast->nodes) {
-                statements.push_back(TransformSingleStatement(child));
+        for (auto &statement : ast->nodes) {
+            if (statement->name == "SingleStatement") {
+                for (auto &child: statement->nodes) {
+                    auto result = TransformSingleStatement(child);
+                    result->stmt_location = child->position;
+                    result->stmt_length = child->length;
+                    std::cout << child->name << std::endl;
+                    std::cout << "Location: " << child->position << std::endl;
+                    std::cout << "Length: " << child->length << std::endl;
+                    statements.push_back(std::move(result));
+                }
+            } else {
+                throw NotImplementedException("Transform for " + statement->name + " not implemented");
             }
-        } else {
-            throw NotImplementedException("Transform for " + ast->name + " not implemented");
         }
     }
 
