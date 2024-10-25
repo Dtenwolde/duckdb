@@ -487,9 +487,9 @@ namespace duckdb {
             } else if (operator_type->name == "ComparisonOperator") {
                 result = make_uniq<ComparisonExpression>(OperatorToExpressionType(string(operator_type->token)), std::move(left_expr), std::move(right_expr));
             } else if (operator_type->name == "BooleanOperator") {
-                if (operator_type->token == "and") {
+                if (StringUtil::Upper(string(operator_type->token)) == "AND") {
                     result = make_uniq<ConjunctionExpression>(ExpressionType::CONJUNCTION_AND, std::move(left_expr), std::move(right_expr));
-                } else if (operator_type->token == "or") {
+                } else if (StringUtil::Upper(string(operator_type->token)) == "OR") {
                     result = make_uniq<ConjunctionExpression>(ExpressionType::CONJUNCTION_OR, std::move(left_expr), std::move(right_expr));
                 } else {
                     throw NotImplementedException("Operator type " + string(operator_type->token) + " not implemented yet.");
