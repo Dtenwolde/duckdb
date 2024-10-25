@@ -485,7 +485,7 @@ namespace duckdb {
                 children.push_back(std::move(right_expr));
                 result = make_uniq<FunctionExpression>(string(operator_type->token), std::move(children));
             } else if (operator_type->name == "ComparisonOperator") {
-                throw NotImplementedException("ComparisonOperator not implemented yet.");
+                result = make_uniq<ComparisonExpression>(OperatorToExpressionType(string(operator_type->token)), std::move(left_expr), std::move(right_expr));
             } else if (operator_type->name == "BooleanOperator") {
                 if (operator_type->token == "and") {
                     result = make_uniq<ConjunctionExpression>(ExpressionType::CONJUNCTION_AND, std::move(left_expr), std::move(right_expr));

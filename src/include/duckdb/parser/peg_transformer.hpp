@@ -38,7 +38,6 @@ public:
     static LogicalType TransformTypeIdentifier(std::shared_ptr<peg::Ast> &ast);
 
     // Helper functions
-
     static string trimAndRemoveQuotes(std::string_view input);
 
 private:
