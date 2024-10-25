@@ -324,11 +324,20 @@ namespace duckdb {
         return result;
     }
 
+    unique_ptr<ParsedExpression> PEGTransformer::TransformSubqueryExpression(std::shared_ptr<peg::Ast> &ast) {
+        auto result = make_uniq<SubqueryExpression>();
+        bool not_modifier = ast->nodes[0]->name == "NotModifier";
+        idx_t subquery_index = not_modifier ? 1 : 0;
+        result->subquery = TransformSelect(ast->nodes[subquery_index]);
+        result->subquery_type = not_modifier ? SubqueryType::NOT_EXISTS : SubqueryType::EXISTS;
+        return result;
+    }
+
 
     unique_ptr<ParsedExpression> PEGTransformer::TransformSingleExpression(std::shared_ptr<peg::Ast> &ast) {
         auto expr_child = ast->nodes[0];
         if (expr_child->name == "SubqueryExpression") {
-            throw NotImplementedException("SubqueryExpression not implemented yet.");
+            return TransformSubqueryExpression(expr_child);
         }
         if (expr_child->name == "LiteralListExpression") {
             // TODO Figure out how to deal with list of expressions
