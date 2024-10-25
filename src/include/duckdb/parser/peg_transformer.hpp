@@ -36,6 +36,7 @@ public:
     static unique_ptr<ParsedExpression> TransformIsNullExpression(std::shared_ptr<peg::Ast> &ast);
     static unique_ptr<ParsedExpression> TransformCastExpression(std::shared_ptr<peg::Ast> &ast);
     static LogicalType TransformTypeIdentifier(std::shared_ptr<peg::Ast> &ast);
+    static unique_ptr<OrderModifier> TransformOrderByClause(std::shared_ptr<peg::Ast> &ast);
 
     // Helper functions
     static string trimAndRemoveQuotes(std::string_view input);

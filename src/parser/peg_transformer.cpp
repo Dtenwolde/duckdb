@@ -611,7 +611,25 @@ namespace duckdb {
     }
 
     GroupByNode PEGTransformer::TransformGroupBy(std::shared_ptr<peg::Ast> &ast) {
-        throw NotImplementedException("Transform for " + ast->name + " not implemented");
+        GroupByNode result;
+        for (auto &child: ast->nodes) {
+            result.group_expressions.push_back(TransformExpression(child));
+        }
+        return result;
+    }
+
+    unique_ptr<OrderModifier> PEGTransformer::TransformOrderByClause(std::shared_ptr<peg::Ast> &ast) {
+        vector<OrderByNode> order_by_nodes;
+        for (auto &orderby_expr: ast->nodes) {
+            // TODO expand to support sorting order and nulls handling
+            auto expr = TransformExpression(orderby_expr->nodes[0]);
+            order_by_nodes.push_back(OrderByNode(OrderType::ORDER_DEFAULT,
+                OrderByNullType::ORDER_DEFAULT, std::move(expr)));
+        }
+
+        auto result = make_uniq<OrderModifier>();
+        result->orders = std::move(order_by_nodes);
+        return result;
     }
 
     unique_ptr<QueryNode> PEGTransformer::TransformSelectNode(std::shared_ptr<peg::Ast> &ast) {
@@ -628,6 +646,8 @@ namespace duckdb {
                 select_node->where_clause = TransformWhere(child2);
             } else if (child2->name == "GroupByClause") {
                 select_node->groups = TransformGroupBy(child2);
+            } else if (child2->name == "OrderByClause") {
+                select_node->modifiers.push_back(TransformOrderByClause(child2));
             }
         }
 
