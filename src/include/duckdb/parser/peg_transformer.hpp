@@ -37,6 +37,10 @@ public:
     static unique_ptr<ParsedExpression> TransformCastExpression(std::shared_ptr<peg::Ast> &ast);
     static LogicalType TransformTypeIdentifier(std::shared_ptr<peg::Ast> &ast);
 
+    // Helper functions
+
+    static string trimAndRemoveQuotes(std::string_view input);
+
 private:
     optional_ptr<PEGTransformer> parent;
     //! Parser options

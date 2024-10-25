@@ -198,15 +198,35 @@ namespace duckdb {
         return result;
     }
 
+    string PEGTransformer::trimAndRemoveQuotes(std::string_view input) {
+        // Trim leading and trailing whitespace
+        auto start = input.find_first_not_of(' ');
+        auto end = input.find_last_not_of(' ');
+        if (start == std::string_view::npos || end == std::string_view::npos) {
+            return ""; // The input is all spaces
+        }
+        input = input.substr(start, end - start + 1);
+
+        // Check if the string starts and ends with a single quote
+        if (input.size() >= 2 && input.front() == '\'' && input.back() == '\'') {
+            // Remove the surrounding single quotes
+            input = input.substr(1, input.size() - 2);
+        }
+
+        // Convert the result to a std::string
+        return string(input);
+    }
+
     unique_ptr<ParsedExpression> PEGTransformer::TransformLiteralExpression(std::shared_ptr<peg::Ast> &ast) {
         auto expr_child = ast->nodes[0];
         if (expr_child->name == "StringLiteral") {
-            return make_uniq<ConstantExpression>(Value(string(expr_child->token)));
-        } else if (expr_child->name == "NumberLiteral") {
-            return make_uniq<ConstantExpression>(Value(stoi(string(expr_child->token))));
-        } else {
-            throw NotImplementedException("Transform for " + expr_child->name + " not implemented");
+            auto string_expr = trimAndRemoveQuotes(expr_child->token);
+            return make_uniq<ConstantExpression>(Value(string_expr));
         }
+        if (expr_child->name == "NumberLiteral") {
+            return make_uniq<ConstantExpression>(Value(stoi(string(expr_child->token))));
+        }
+        throw NotImplementedException("Transform for " + expr_child->name + " not implemented");
     }
 
     unique_ptr<ParsedExpression> PEGTransformer::TransformColumnReference(std::shared_ptr<peg::Ast> &ast) {
