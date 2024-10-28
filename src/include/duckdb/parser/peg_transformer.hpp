@@ -38,6 +38,7 @@ public:
     static LogicalType TransformTypeIdentifier(std::shared_ptr<peg::Ast> &ast);
     static unique_ptr<OrderModifier> TransformOrderByClause(std::shared_ptr<peg::Ast> &ast);
     static unique_ptr<ParsedExpression> TransformSubqueryExpression(std::shared_ptr<peg::Ast> &ast);
+    static unique_ptr<LimitModifier> TransformLimitClause(std::shared_ptr<peg::Ast> &ast);
 
     // Helper functions
     static string trimAndRemoveQuotes(std::string_view input);

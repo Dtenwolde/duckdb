@@ -24,8 +24,9 @@ SimpleSelect <- WithClause? SelectClause FromClause? WhereClause? GroupByClause?
 
 WithStatement <- Identifier 'AS'i SubqueryReference
 WithClause <- 'WITH'i List(WithStatement)
-SelectClause <- 'SELECT'i ('*' / List(AliasedExpression))
+SelectClause <- 'SELECT'i (StarToken / List(AliasedExpression))
 ColumnAliases <- Parens(List(Identifier))
+StarToken <- '*'
 
 TableReference <-
     (FunctionExpression ('AS'i Identifier)?) /
@@ -60,7 +61,7 @@ ParenthesisExpression <- Parens(Expression)
 LiteralExpression <- StringLiteral / NumberLiteral
 CastExpression <- 'CAST'i Parens(Expression 'AS'i TypeSpecifier)
 ExtractExpression <- 'EXTRACT'i Parens(ColumnReference 'FROM'i Expression)
-CountStarExpression <- 'COUNT'i Parens('*')
+CountStarExpression <- 'COUNT'i Parens(StarToken)
 SubqueryExpression <- NotModifier? 'EXISTS'i? SubqueryReference
 WhenThen <- 'WHEN'i Expression 'THEN'i Expression
 CaseExpression <- 'CASE'i Expression? (WhenThen)+ ('ELSE'i Expression)? 'END'i # TODO strict

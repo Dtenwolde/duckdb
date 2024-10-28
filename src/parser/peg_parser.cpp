@@ -52,6 +52,7 @@ namespace duckdb {
         std::cout << query << std::endl;
         if (parser_->parse(query, ast_)) {
             PEGTransformer::Transform(ast_, statements);
+            std::cout << "Transform finished" << std::endl;
         }
         else {
             // Throw the stored error message if parsing fails

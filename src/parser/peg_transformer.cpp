@@ -328,7 +328,7 @@ namespace duckdb {
         auto result = make_uniq<SubqueryExpression>();
         bool not_modifier = ast->nodes[0]->name == "NotModifier";
         idx_t subquery_index = not_modifier ? 1 : 0;
-        result->subquery = TransformSelect(ast->nodes[subquery_index]);
+        result->subquery = TransformSelect(ast->nodes[subquery_index]->nodes[0]);
         result->subquery_type = not_modifier ? SubqueryType::NOT_EXISTS : SubqueryType::EXISTS;
         return result;
     }
@@ -513,9 +513,9 @@ namespace duckdb {
                 vector<unique_ptr<ParsedExpression> > children;
                 children.push_back(std::move(left_expr));
                 children.push_back(std::move(right_expr));
-                if (operator_type->nodes[expr_idx]->token == "ilike") {
+                if (StringUtil::Upper(string(operator_type->nodes[expr_idx]->token)) == "ILIKE") {
                     function_name += "~~*";
-                } else if (operator_type->nodes[expr_idx]->token == "like") {
+                } else if (StringUtil::Upper(string(operator_type->nodes[expr_idx]->token)) == "LIKE") {
                     function_name += not_like_modifier ? "~~" : "~~~";
                 }
                 result = make_uniq<FunctionExpression>(function_name, std::move(children));
@@ -570,6 +570,8 @@ namespace duckdb {
         for (auto &child: ast->nodes) {
             if (child->name == "AliasedExpression") {
                 select_list.push_back(TransformAliasedExpression(child->nodes));
+            } else if (child->name == "StarToken") {
+                select_list.push_back(make_uniq<StarExpression>());
             }
         }
     }
@@ -608,11 +610,22 @@ namespace duckdb {
     }
 
     unique_ptr<TableRef> PEGTransformer::TransformFrom(std::shared_ptr<peg::Ast> &ast) {
-        auto table_ref = TransformTableReference(ast->nodes[0]);
+        unique_ptr<TableRef> result =  TransformTableReference(ast->nodes[0]);
         if (ast->nodes.size() == 1) {
-            return table_ref;
+            return result;
         }
-        throw NotImplementedException("Transform for " + ast->name + " not implemented");
+
+        for (idx_t i = 1; i < ast->nodes.size(); i++) {
+            if (ast->nodes[i]->name == "TableReference") {
+                auto joinref = make_uniq<JoinRef>(JoinRefType::CROSS);
+                joinref->left = std::move(result);
+                joinref->right = TransformTableReference(ast->nodes[i]);
+                result = std::move(joinref);
+            } else if (ast->nodes[i]->name == "ExplicitJoin") {
+                throw NotImplementedException("Explicit Join not implemented yet.");
+            }
+        }
+        return result;
     }
 
     unique_ptr<ParsedExpression> PEGTransformer::TransformWhere(std::shared_ptr<peg::Ast> &ast) {
@@ -641,6 +654,13 @@ namespace duckdb {
         return result;
     }
 
+    unique_ptr<LimitModifier> PEGTransformer::TransformLimitClause(std::shared_ptr<peg::Ast> &ast) {
+        auto result = make_uniq<LimitModifier>();
+        result->limit = TransformExpression(ast->nodes[0]);
+        // TODO support OFFSET
+        return result;
+    }
+
     unique_ptr<QueryNode> PEGTransformer::TransformSelectNode(std::shared_ptr<peg::Ast> &ast) {
         auto select_node = make_uniq<SelectNode>();
         select_node->from_table = make_uniq<EmptyTableRef>();
@@ -657,6 +677,8 @@ namespace duckdb {
                 select_node->groups = TransformGroupBy(child2);
             } else if (child2->name == "OrderByClause") {
                 select_node->modifiers.push_back(TransformOrderByClause(child2));
+            } else if (child2->name == "LimitClause") {
+                select_node->modifiers.push_back(TransformLimitClause(child2));
             }
         }
 
