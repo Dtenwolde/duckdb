@@ -675,6 +675,9 @@ static duckdb::unique_ptr<FunctionData> CheckPEGParserBind(ClientContext &contex
 			    state.token_index, tokens[state.token_index].text, token_list);
 		}
 	}
+
+
+
 	return nullptr;
 }
 
