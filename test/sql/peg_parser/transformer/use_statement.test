@@ -1,0 +1,8 @@
+# name: test/sql/peg_parser/struct_identifier.test
+# description: Test lambda syntax in peg parser
+# group: [transformer]
+
+require autocomplete
+
+statement ok
+CALL check_peg_transformer($TEST_PEG_TRANSFORMER$USE foo$TEST_PEG_TRANSFORMER$);

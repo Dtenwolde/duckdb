@@ -16,13 +16,14 @@ public:
 	// Register a rule
 	void AddRule(const string &rule_name, TransformFunction function);
 
+	static unique_ptr<PEGTransformer> RootTransformer();
+
 	// Apply a rule
 	unique_ptr<ParseResult> Transform(const string &rule_name, ParseResult &input);
 
-	unique_ptr<ParseResult> TransformStatement(ParseResult &input);
-	unique_ptr<ParseResult> TransformUseStatement(ParseResult &input);
+	static unique_ptr<ParseResult> TransformStatement(ParseResult &input);
+	static unique_ptr<ParseResult> TransformUseStatement(ParseResult &input);
 
-	void Initialize(const char* grammar, const char* root_rule);
 
 	// Create a new result
 	template <class T, class... Args>
@@ -36,7 +37,12 @@ public:
 
 private:
 	case_insensitive_map_t<TransformFunction> rules;
-	ArenaAllocator<reference<ParseResult>> allocated;
+	vector<reference<ParseResult>> allocated;
+};
+
+class PEGTransformerFactory {
+public:
+	static unique_ptr<PEGTransformer> Create(const char *grammar, const char *root_rule);
 };
 
 } // namespace duckdb

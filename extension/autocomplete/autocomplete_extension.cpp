@@ -18,6 +18,7 @@
 #include "duckdb/catalog/catalog_entry/pragma_function_catalog_entry.hpp"
 #include "duckdb/catalog/catalog_entry/scalar_function_catalog_entry.hpp"
 #include "duckdb/catalog/catalog_entry/table_function_catalog_entry.hpp"
+#include "transformer/peg_transformer.hpp"
 
 namespace duckdb {
 
@@ -697,7 +698,6 @@ static duckdb::unique_ptr<FunctionData> CheckPEGTransformerBind(ClientContext &c
 	auto allow_complete = tokenizer.TokenizeInput();
 	if (!allow_complete) {
 		throw BinderException("Failed to tokenize input");
-		return nullptr;
 	}
 	tokenizer.statements.push_back(std::move(root_tokens));
 
@@ -705,13 +705,11 @@ static duckdb::unique_ptr<FunctionData> CheckPEGTransformerBind(ClientContext &c
 		if (tokens.empty()) {
 			continue;
 		}
-		vector<MatcherSuggestion> suggestions;
-		MatchState state(tokens, suggestions);
 
-		MatcherAllocator allocator;
-		auto &matcher = Matcher::RootMatcher(allocator);
-		auto match_result = matcher.Match(state);
-		if (match_result != MatchResultType::SUCCESS || state.token_index < tokens.size()) {
+		auto transformer = PEGTransformer::RootTransformer();
+		ParseResult parse_result;
+		auto transform_result = transformer->Transform("Statement", parse_result);
+		if (true) {
 			string token_list;
 			for (idx_t i = 0; i < tokens.size(); i++) {
 				if (!token_list.empty()) {
@@ -723,8 +721,7 @@ static duckdb::unique_ptr<FunctionData> CheckPEGTransformerBind(ClientContext &c
 				token_list += to_string(i) + ":" + tokens[i].text;
 			}
 			throw BinderException(
-				"Failed to parse query \"%s\" - did not consume all tokens (got to token %d - %s)\nTokens:\n%s", sql,
-				state.token_index, tokens[state.token_index].text, token_list);
+				"Failed to parse query \"%s\" \nTokens:\n%s", sql, token_list);
 		}
 	}
 
