@@ -11,7 +11,7 @@ namespace duckdb {
 enum class ParseResultType : uint8_t { LIST, OPTIONAL, CHOICE, EXPRESSION, IDENTIFIER, KEYWORD, EXTENSION };
 
 struct ParseResult {
-	virtual ~ParseResult() = default;
+	virtual ~ParseResult();
 
 	ParseResultType type;
 
@@ -26,7 +26,7 @@ struct ParseResult {
 	template <class TARGET>
 	const TARGET &Cast() const {
 		if (type != TARGET::TYPE) {
-			throw InternalException("Failed to cast ParseResult %s");
+			throw InternalException("Failed to cast ParseResult");
 		}
 		return reinterpret_cast<const TARGET &>(*this);
 	}
@@ -34,13 +34,12 @@ struct ParseResult {
 	virtual string ToString();
 };
 
-
 struct ExpressionParseResult : ParseResult {
 	static constexpr ParseResultType TYPE = ParseResultType::EXPRESSION;
 	unique_ptr<Expression> expression;
 
 	string ToString() override {
-		return "";
+		return "ExpressionParseResult";
 	}
 };
 
@@ -49,7 +48,7 @@ struct IdentifierParseResult : ParseResult {
 	string identifier;
 
 	string ToString() override {
-		return "";
+		return "IdentifierParseResult: " + identifier;
 	}
 };
 
@@ -58,7 +57,7 @@ struct KeywordParseResult : ParseResult {
 	string keyword;
 
 	string ToString() override {
-		return "";
+		return "KeywordParseResult: " + keyword;
 	}
 };
 
@@ -68,8 +67,8 @@ struct ListParseResult : ParseResult {
 
 	template <class T>
 	T &GetChild(idx_t index) {
-		auto &child_ref = parse_result[index]; // reference_wrapper<ParseResult>
-		auto &child = child_ref.get();             // ParseResult&
+		auto &child_ref = parse_result[index];
+		auto &child = child_ref.get();
 		if (child.type != T::TYPE) {
 			throw InternalException("Expected child of type %s", ToString());
 		}
@@ -77,7 +76,7 @@ struct ListParseResult : ParseResult {
 	}
 
 	string ToString() override {
-		return "";
+		return "ListParseResult";
 	}
 };
 
@@ -86,7 +85,7 @@ struct OptionalParseResult : ParseResult {
 	optional_ptr<ParseResult> optional_result;
 
 	string ToString() override {
-		return "";
+		return "OptionalParseResult";
 	}
 };
 
@@ -96,16 +95,18 @@ struct ChoiceParseResult : ParseResult {
 	idx_t selected_idx;
 
 	string ToString() override {
-		return "";
+		return "ChoiceParseResult";
 	}
 };
 
-// TODO ExtensionParseResult
+// Future extension point
 // struct ExtensionParseResult : ParseResult {
-	// static constexpr ParseResultType TYPE = ParseResultType::EXTENSION;
-	// std::unique_ptr<ExtraData> extra_data;
+// 	static constexpr ParseResultType TYPE = ParseResultType::EXTENSION;
+// 	std::unique_ptr<ExtraData> extra_data;
+//
+// 	string ToString() override {
+// 		return "ExtensionParseResult";
+// 	}
 // };
 
-
-
-}
+} // namespace duckdb

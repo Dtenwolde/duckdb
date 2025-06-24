@@ -1,6 +1,7 @@
 add_library_unity(
         duckdb_peg_transformer
         OBJECT
+        parse_result.cpp
         peg_transformer.cpp
         transform_statement.cpp
         transform_use.cpp)
