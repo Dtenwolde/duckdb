@@ -1,6 +1,8 @@
 #pragma once
 
 #include "parse_result.hpp"
+#include "duckdb/common/case_insensitive_map.hpp"
+
 #include <functional>
 #include <unordered_map>
 
@@ -20,6 +22,8 @@ public:
 	unique_ptr<ParseResult> TransformStatement(ParseResult &input);
 	unique_ptr<ParseResult> TransformUseStatement(ParseResult &input);
 
+	void Initialize(const char* grammar, const char* root_rule);
+
 	// Create a new result
 	template <class T, class... Args>
 	T &Make(Args &&...args) {
@@ -31,8 +35,8 @@ public:
 
 
 private:
-	unordered_map<string, TransformFunction> rules;
-	vector<unique_ptr<ParseResult>> allocated;
+	case_insensitive_map_t<TransformFunction> rules;
+	ArenaAllocator<reference<ParseResult>> allocated;
 };
 
 } // namespace duckdb
