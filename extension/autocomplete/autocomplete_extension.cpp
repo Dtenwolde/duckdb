@@ -706,9 +706,8 @@ static duckdb::unique_ptr<FunctionData> CheckPEGTransformerBind(ClientContext &c
 			continue;
 		}
 
-		auto transformer = PEGTransformer::RootTransformer();
-		ParseResult parse_result;
-		auto transform_result = transformer->Transform("Statement", parse_result);
+		PEGTransformerState state(tokens);
+		auto transform_state = PEGTransformer::RootTransformer(state, Allocator::Get(context));
 		if (true) {
 			string token_list;
 			for (idx_t i = 0; i < tokens.size(); i++) {
