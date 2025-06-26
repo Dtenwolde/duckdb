@@ -5,8 +5,4 @@ namespace duckdb {
 ParseResult::~ParseResult() {
 }
 
-string ParseResult::ToString() {
-	return "ParseResult";
-}
-
 } // namespace duckdb
