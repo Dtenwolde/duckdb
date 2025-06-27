@@ -413,7 +413,7 @@ void ExtensionHelper::LoadAllExtensions(DuckDB &db) {
 	// TODO: rewrite package_build.py to allow also loading out-of-tree extensions in non-cmake builds, after that
 	//		 these can be removed
 	vector<string> extensions {"parquet", "icu",  "tpch",     "tpcds",        "httpfs",        "json",
-	                           "excel",   "inet", "jemalloc", "autocomplete", "core_functions"};
+	                           "excel",   "inet", "jemalloc", "autocomplete", "core_functions", "peg_parser"};
 	for (auto &ext : extensions) {
 		LoadExtensionInternal(db, ext, true);
 	}

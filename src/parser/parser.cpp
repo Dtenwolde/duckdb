@@ -207,6 +207,7 @@ void Parser::ParseQuery(const string &query) {
 		// Creating a new scope to prevent multiple PostgresParser destructors being called
 		// which led to some memory issues
 		{
+
 			PostgresParser parser;
 			parser.Parse(query);
 			if (parser.success) {

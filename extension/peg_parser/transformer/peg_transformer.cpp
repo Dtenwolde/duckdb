@@ -22,8 +22,6 @@ unique_ptr<SetStatement> PEGTransformerFactory::TransformUseStatement(PEGTransfo
 	ParseResult &use_target_result = use_target.result.get();
 
 	if (use_target_result.type == ParseResultType::LIST) {
-		// Matched (CatalogName '.' SchemaName)
-		// TODO Implement me
 		throw NotImplementedException("Haven't implemented this yet.");
 	}
 	if (use_target_result.type == ParseResultType::IDENTIFIER) {

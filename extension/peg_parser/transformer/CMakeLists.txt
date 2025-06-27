@@ -5,6 +5,6 @@ add_library_unity(
         peg_transformer.cpp
         transform_statement.cpp
         transform_use.cpp)
-set(AUTOCOMPLETE_EXTENSION_FILES
-        ${AUTOCOMPLETE_EXTENSION_FILES} $<TARGET_OBJECTS:duckdb_peg_transformer>
+set(PEG_PARSER_EXTENSION_FILES
+        ${PEG_PARSER_EXTENSION_FILES} $<TARGET_OBJECTS:duckdb_peg_transformer>
         PARENT_SCOPE)
