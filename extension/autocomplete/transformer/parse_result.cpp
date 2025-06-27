@@ -2,7 +2,7 @@
 
 namespace duckdb {
 
-ParseResult::~ParseResult() {
-}
+// ParseResult::~ParseResult() {
+// }
 
 } // namespace duckdb
