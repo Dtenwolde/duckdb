@@ -2,7 +2,7 @@
 # description: Test lambda syntax in peg parser
 # group: [transformer]
 
-require autocomplete
+require peg_parser
 
 statement ok
-CALL check_peg_transformer($TEST_PEG_TRANSFORMER$USE foo$TEST_PEG_TRANSFORMER$);
+use foo;
