@@ -18,18 +18,27 @@ unique_ptr<SQLStatement> PEGTransformerFactory::TransformRoot(PEGTransformer &tr
 	return transformer.Transform(child_pr->name, *child_pr);
 }
 
-unique_ptr<SetStatement> PEGTransformerFactory::TransformUseStatement(PEGTransformer &, IdentifierParseResult &identifier_pr) {
-	auto value_expr = make_uniq<ConstantExpression>(Value(identifier_pr.identifier));
+unique_ptr<SetStatement> PEGTransformerFactory::TransformUseStatement(PEGTransformer &, ChoiceParseResult &use_target) {
+	ParseResult &use_target_result = use_target.result.get();
 
-	auto set_variable_statement = make_uniq<SetVariableStatement>("schema", std::move(value_expr), SetScope::AUTOMATIC);
-	return std::move(set_variable_statement);
+	if (use_target_result.type == ParseResultType::LIST) {
+		// Matched (CatalogName '.' SchemaName)
+		// TODO Implement me
+		throw NotImplementedException("Haven't implemented this yet.");
+	}
+	if (use_target_result.type == ParseResultType::IDENTIFIER) {
+		// Matched CatalogName or SchemaName
+		auto &identifier = use_target_result.Cast<IdentifierParseResult>();
+		return make_uniq<SetVariableStatement>("schema", make_uniq<ConstantExpression>(Value(identifier.identifier)), SetScope::AUTOMATIC);
+	}
+	throw ParserException("Unknown parse result encountered in UseStatement");
+
 }
-
 
 // --- Your PEGTransformerFactory constructor ---
 PEGTransformerFactory::PEGTransformerFactory(const char *grammar) : parser(grammar) {
 	// The registration now needs to account for the new function signatures
-	Register<IdentifierParseResult, 1>("UseStatement", &TransformUseStatement);
+	Register<ChoiceParseResult, 1>("UseStatement", &TransformUseStatement);
 	Register("Root", &TransformRoot); // Note index is 0
 }
 ParseResult *PEGTransformer::MatchRule(const PEGExpression &expression) {
@@ -109,7 +118,6 @@ ParseResult *PEGTransformer::MatchRule(const string_t &rule_name) {
 	if (it == grammar_rules.end()) {
 		throw InternalException("PEG Grammar rule '%s' not found.", rule_name.GetString());
 	}
-	Printer::PrintF("Matching rule: %s", rule_name.GetString());
 	return MatchRule(*it->second.expression);
 }
 
@@ -118,6 +126,7 @@ unique_ptr<SQLStatement> PEGTransformer::Transform(const string_t &rule_name, Pa
 	if (it == transform_functions.end()) {
 		throw InternalException("No SQL transformer dispatch function found for rule '%s'", rule_name.GetString());
 	}
+	Printer::PrintF("Matching rule: %s", rule_name.GetString());
 	return it->second(*this, matched_parse_result);
 }
 
