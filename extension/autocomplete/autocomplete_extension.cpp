@@ -704,7 +704,10 @@ static duckdb::unique_ptr<FunctionData> CheckPEGTransformerBind(ClientContext &c
 
    const char grammar[] = {
         "Root <- UseStatement / PlaceHolderStatement \n"
-        "UseStatement <- 'USE' Identifier\n"
+   		"UseStatement <- 'USE'i UseTarget\n"
+   		"UseTarget <- (CatalogName '.' SchemaName) / SchemaName / CatalogName\n"
+   		"SchemaName <- Identifier\n"
+   		"CatalogName <- Identifier\n"
         "Identifier <- [a-z_A-Z]\n"
     };
 
