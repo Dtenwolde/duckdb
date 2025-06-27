@@ -7,8 +7,6 @@
 
 namespace duckdb {
 
-// A simple, dependency-free pattern matcher for this specific use case.
-// It handles patterns like `[...][...]*` or `[...]`.
 bool IsIdentifier(const string &pattern, const string &text) {
 	return true;
 }
@@ -17,7 +15,6 @@ bool IsIdentifier(const string &pattern, const string &text) {
 unique_ptr<SQLStatement> PEGTransformerFactory::TransformRoot(PEGTransformer &transformer, ParseResult &parse_result) {
 	auto &list_pr = parse_result.Cast<ChoiceParseResult>();
 	ParseResult* child_pr = &list_pr.result.get();
-	// `child_pr->name` will now be correctly set to "UseStatement" by the fixed MatchRule logic.
 	return transformer.Transform(child_pr->name, *child_pr);
 }
 
