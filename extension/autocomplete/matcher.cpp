@@ -18,7 +18,7 @@
 #endif
 
 namespace duckdb {
-struct PEGParser;
+// struct PEGParser;
 
 SuggestionType Matcher::AddSuggestion(MatchState &state) const {
 	auto entry = state.added_suggestions.find(*this);
@@ -793,118 +793,118 @@ Matcher &MatcherFactory::CreateMatcher(PEGParser &parser, string_t rule_name, ve
 	MatcherList list(parser, *this);
 	list.AddRootMatcher(matcher);
 	// fill the matcher from the given set of rules
-	auto &rule = entry->second;
-	if (rule.parameters.size() > 1) {
-		throw InternalException("Only functions with a single parameter are supported");
-	}
-	if (parameters.size() != rule.parameters.size()) {
-		throw InternalException("Parameter count mismatch (rule %s expected %d parameters but got %d)",
-		                        rule_name.GetString(), rule.parameters.size(), parameters.size());
-	}
-	for (idx_t token_idx = 0; token_idx < rule.tokens.size(); token_idx++) {
-		auto &token = rule.tokens[token_idx];
-		switch (token.type) {
-		case PEGTokenType::LITERAL:
-			// literal - push the keyword
-			list.AddMatcher(Keyword(token.text.GetString()));
-			break;
-		case PEGTokenType::REFERENCE: {
-			// check if we are referring to a keyword
-			auto param_entry = rule.parameters.find(token.text);
-			if (param_entry != rule.parameters.end()) {
-				// refers to a parameter - refer to it directly
-				list.AddMatcher(parameters[param_entry->second].get());
-			} else {
-				// refers to a different rule - create the matcher for that rule
-				list.AddMatcher(CreateMatcher(parser, token.text));
-			}
-			break;
-		}
-		case PEGTokenType::FUNCTION_CALL: {
-			// function call - get the name of the function
-			list.BeginFunction(token.text);
-			break;
-		}
-		case PEGTokenType::OPERATOR: {
-			// tokens need to be one byte
-			auto op_type = token.text.GetData()[0];
-			switch (op_type) {
-			case '?':
-			case '*': {
-				// optional/repeat - make the last rule optional/repeat
-				auto &last_matcher = list.GetLastRootMatcher().matcher;
-				if (last_matcher.Type() != MatcherType::LIST) {
-					throw InternalException("Optional/Repeat expected a list matcher");
-				}
-				auto &list_matcher = last_matcher.Cast<ListMatcher>();
-				if (list_matcher.matchers.empty()) {
-					throw InternalException("Optional/Repeat rule found as first token");
-				}
-				auto &final_matcher = list_matcher.matchers.back();
-				if (op_type == '*') {
-					// * is Optional(Repeat(CHILD))
-					final_matcher = Repeat(final_matcher.get());
-				}
-				auto &replaced_matcher = Optional(final_matcher);
-				list_matcher.matchers.pop_back();
-				list_matcher.matchers.push_back(replaced_matcher);
-				break;
-			}
-			case '/': {
-				// OR operator - this signifies a choice between the last rule and the next rule
-				auto &last_matcher = list.GetLastRootMatcher().matcher;
-				if (last_matcher.Type() != MatcherType::LIST) {
-					throw InternalException("OR expected a list matcher");
-				}
-				auto &list_matcher = last_matcher.Cast<ListMatcher>();
-				if (list_matcher.matchers.empty()) {
-					throw InternalException("OR rule found as first token");
-				}
-				auto &final_matcher = list_matcher.matchers.back();
-				vector<reference<Matcher>> choice_matchers;
-				choice_matchers.push_back(final_matcher);
-				auto &choice_matcher = Choice(choice_matchers);
-
-				// the choice matcher gets added to the list matcher (instead of the previous matcher)
-				list_matcher.matchers.pop_back();
-				list_matcher.matchers.push_back(choice_matcher);
-				// then it gets pushed onto the stack of matchers
-				// the next rule will then get pushed onto the choice matcher
-				list.AddRootMatcher(choice_matcher);
-				break;
-			}
-			case '(': {
-				// bracket open - push a new list matcher onto the stack
-				auto &bracket_matcher = List();
-				list.AddRootMatcher(bracket_matcher);
-				break;
-			}
-			case ')': {
-				list.CloseBracket();
-				break;
-			}
-			case '!': {
-				// throw InternalException("NOT operator not supported in PEG grammar (found in rule %s)",
-				// rule_name.GetString());
-				// FIXME: we just ignore NOT operators here
-				break;
-			}
-			default:
-				throw InternalException("unrecognized peg operator type");
-			}
-			break;
-		}
-		case PEGTokenType::REGEX:
-			throw InternalException("REGEX operator not supported in PEG grammar (found in rule %s)",
-			                        rule_name.GetString());
-		default:
-			throw InternalException("unrecognized peg token type");
-		}
-	}
-	if (list.GetRootMatcherCount() != 1) {
-		throw InternalException("PEG matcher create error - unclosed bracket found");
-	}
-	matcher.SetName(rule_name.GetString());
+	// auto &rule = entry->second;
+	// if (rule.parameters.size() > 1) {
+	// 	throw InternalException("Only functions with a single parameter are supported");
+	// }
+	// if (parameters.size() != rule.parameters.size()) {
+	// 	throw InternalException("Parameter count mismatch (rule %s expected %d parameters but got %d)",
+	// 	                        rule_name.GetString(), rule.parameters.size(), parameters.size());
+	// }
+	// for (idx_t token_idx = 0; token_idx < rule.tokens.size(); token_idx++) {
+	// 	auto &token = rule.tokens[token_idx];
+	// 	switch (token.type) {
+	// 	case PEGTokenType::LITERAL:
+	// 		// literal - push the keyword
+	// 		list.AddMatcher(Keyword(token.text.GetString()));
+	// 		break;
+	// 	case PEGTokenType::REFERENCE: {
+	// 		// check if we are referring to a keyword
+	// 		auto param_entry = rule.parameters.find(token.text);
+	// 		if (param_entry != rule.parameters.end()) {
+	// 			// refers to a parameter - refer to it directly
+	// 			list.AddMatcher(parameters[param_entry->second].get());
+	// 		} else {
+	// 			// refers to a different rule - create the matcher for that rule
+	// 			list.AddMatcher(CreateMatcher(parser, token.text));
+	// 		}
+	// 		break;
+	// 	}
+	// 	case PEGTokenType::FUNCTION_CALL: {
+	// 		// function call - get the name of the function
+	// 		list.BeginFunction(token.text);
+	// 		break;
+	// 	}
+	// 	case PEGTokenType::OPERATOR: {
+	// 		// tokens need to be one byte
+	// 		auto op_type = token.text.GetData()[0];
+	// 		switch (op_type) {
+	// 		case '?':
+	// 		case '*': {
+	// 			// optional/repeat - make the last rule optional/repeat
+	// 			auto &last_matcher = list.GetLastRootMatcher().matcher;
+	// 			if (last_matcher.Type() != MatcherType::LIST) {
+	// 				throw InternalException("Optional/Repeat expected a list matcher");
+	// 			}
+	// 			auto &list_matcher = last_matcher.Cast<ListMatcher>();
+	// 			if (list_matcher.matchers.empty()) {
+	// 				throw InternalException("Optional/Repeat rule found as first token");
+	// 			}
+	// 			auto &final_matcher = list_matcher.matchers.back();
+	// 			if (op_type == '*') {
+	// 				// * is Optional(Repeat(CHILD))
+	// 				final_matcher = Repeat(final_matcher.get());
+	// 			}
+	// 			auto &replaced_matcher = Optional(final_matcher);
+	// 			list_matcher.matchers.pop_back();
+	// 			list_matcher.matchers.push_back(replaced_matcher);
+	// 			break;
+	// 		}
+	// 		case '/': {
+	// 			// OR operator - this signifies a choice between the last rule and the next rule
+	// 			auto &last_matcher = list.GetLastRootMatcher().matcher;
+	// 			if (last_matcher.Type() != MatcherType::LIST) {
+	// 				throw InternalException("OR expected a list matcher");
+	// 			}
+	// 			auto &list_matcher = last_matcher.Cast<ListMatcher>();
+	// 			if (list_matcher.matchers.empty()) {
+	// 				throw InternalException("OR rule found as first token");
+	// 			}
+	// 			auto &final_matcher = list_matcher.matchers.back();
+	// 			vector<reference<Matcher>> choice_matchers;
+	// 			choice_matchers.push_back(final_matcher);
+	// 			auto &choice_matcher = Choice(choice_matchers);
+	//
+	// 			// the choice matcher gets added to the list matcher (instead of the previous matcher)
+	// 			list_matcher.matchers.pop_back();
+	// 			list_matcher.matchers.push_back(choice_matcher);
+	// 			// then it gets pushed onto the stack of matchers
+	// 			// the next rule will then get pushed onto the choice matcher
+	// 			list.AddRootMatcher(choice_matcher);
+	// 			break;
+	// 		}
+	// 		case '(': {
+	// 			// bracket open - push a new list matcher onto the stack
+	// 			auto &bracket_matcher = List();
+	// 			list.AddRootMatcher(bracket_matcher);
+	// 			break;
+	// 		}
+	// 		case ')': {
+	// 			list.CloseBracket();
+	// 			break;
+	// 		}
+	// 		case '!': {
+	// 			// throw InternalException("NOT operator not supported in PEG grammar (found in rule %s)",
+	// 			// rule_name.GetString());
+	// 			// FIXME: we just ignore NOT operators here
+	// 			break;
+	// 		}
+	// 		default:
+	// 			throw InternalException("unrecognized peg operator type");
+	// 		}
+	// 		break;
+	// 	}
+	// 	case PEGTokenType::REGEX:
+	// 		throw InternalException("REGEX operator not supported in PEG grammar (found in rule %s)",
+	// 		                        rule_name.GetString());
+	// 	default:
+	// 		throw InternalException("unrecognized peg token type");
+	// 	}
+	// }
+	// if (list.GetRootMatcherCount() != 1) {
+	// 	throw InternalException("PEG matcher create error - unclosed bracket found");
+	// }
+	// matcher.SetName(rule_name.GetString());
 	return matcher;
 }
 

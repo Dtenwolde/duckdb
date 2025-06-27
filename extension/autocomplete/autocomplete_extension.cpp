@@ -681,50 +681,60 @@ static duckdb::unique_ptr<FunctionData> CheckPEGParserBind(ClientContext &contex
 }
 
 static duckdb::unique_ptr<FunctionData> CheckPEGTransformerBind(ClientContext &context, TableFunctionBindInput &input,
-														   vector<LogicalType> &return_types, vector<string> &names) {
-	if (input.inputs[0].IsNull()) {
-		throw BinderException("sql_auto_complete first parameter cannot be NULL");
-	}
-	names.emplace_back("success");
-	return_types.emplace_back(LogicalType::BOOLEAN);
+                                              vector<LogicalType> &return_types, vector<string> &names) {
+    if (input.inputs[0].IsNull()) {
+       throw BinderException("sql_auto_complete first parameter cannot be NULL");
+    }
+    names.emplace_back("success");
+    return_types.emplace_back(LogicalType::BOOLEAN);
 
-	const auto sql = StringValue::Get(input.inputs[0]);
+    const auto sql = StringValue::Get(input.inputs[0]);
 
-	vector<MatcherToken> root_tokens;
-	string clean_sql;
-	const string &sql_ref = StripUnicodeSpaces(sql, clean_sql) ? clean_sql : sql;
-	ParserTokenizer tokenizer(sql_ref, root_tokens);
+    // Tokenize the input SQL string
+    vector<MatcherToken> root_tokens;
+    string clean_sql;
+    const string &sql_ref = StripUnicodeSpaces(sql, clean_sql) ? clean_sql : sql;
+    ParserTokenizer tokenizer(sql_ref, root_tokens);
 
-	auto allow_complete = tokenizer.TokenizeInput();
-	if (!allow_complete) {
-		throw BinderException("Failed to tokenize input");
-	}
-	tokenizer.statements.push_back(std::move(root_tokens));
+    auto allow_complete = tokenizer.TokenizeInput();
+    if (!allow_complete) {
+       throw BinderException("Failed to tokenize input");
+    }
+    tokenizer.statements.push_back(std::move(root_tokens));
 
-	for (auto &tokens : tokenizer.statements) {
-		if (tokens.empty()) {
-			continue;
-		}
+   const char grammar[] = {
+        "Root <- UseStatement / PlaceHolderStatement \n"
+        "UseStatement <- 'USE' Identifier\n"
+        "Identifier <- [a-z_A-Z]\n"
+    };
 
-		PEGTransformerState state(tokens);
-		auto transform_state = PEGTransformer::RootTransformer(state, Allocator::Get(context));
-		if (true) {
-			string token_list;
-			for (idx_t i = 0; i < tokens.size(); i++) {
-				if (!token_list.empty()) {
-					token_list += "\n";
-				}
-				if (i < 10) {
-					token_list += " ";
-				}
-				token_list += to_string(i) + ":" + tokens[i].text;
-			}
-			throw BinderException(
-				"Failed to parse query \"%s\" \nTokens:\n%s", sql, token_list);
-		}
-	}
+    PEGTransformerFactory factory(grammar);
 
-	return nullptr;
+    for (auto &tokens : tokenizer.statements) {
+       if (tokens.empty()) {
+          continue;
+       }
+
+        try {
+            unique_ptr<SQLStatement> result = factory.Transform(tokens, "Root");
+        	Printer::PrintF("%s", result->ToString());
+        } catch (const std::exception &e) {
+            // If parsing or transforming fails, it will throw an exception.
+            // You can catch it to provide a more detailed error message.
+            string token_list;
+            for (idx_t i = 0; i < tokens.size(); i++) {
+                if (!token_list.empty()) {
+                    token_list += "\n";
+                }
+                token_list += to_string(i) + ": " + tokens[i].text;
+            }
+            throw BinderException(
+                "Failed to parse query \"%s\" with error: %s\n\nTokens:\n%s", sql, e.what(), token_list);
+        }
+    }
+
+    // Since this is just a test function, we return nullptr as before.
+    return nullptr;
 }
 
 void CheckPEGParserFunction(ClientContext &context, TableFunctionInput &data_p, DataChunk &output) {

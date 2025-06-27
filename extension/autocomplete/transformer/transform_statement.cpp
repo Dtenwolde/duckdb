@@ -4,8 +4,8 @@
 
 namespace duckdb {
 
-reference<SQLStatement> PEGTransformer::TransformStatement(PEGTransformer &self) {
-	throw NotImplementedException("TransformStatement");
+// reference<SQLStatement> PEGTransformer::TransformStatement(PEGTransformer &self) {
+	// throw NotImplementedException("TransformStatement");
 	// auto &choice = self.parse_results<ChoiceParseResult>();
 	// switch (choice.selected_idx) {
 	// case 0:
@@ -13,5 +13,5 @@ reference<SQLStatement> PEGTransformer::TransformStatement(PEGTransformer &self)
 	// default:
 	// 	throw NotImplementedException("TransformStatement has not been implemented yet.");
 	// }
-}
+// }
 } // namespace duckdb
