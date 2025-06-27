@@ -32,6 +32,7 @@
 #include "duckdb/optimizer/optimizer_extension.hpp"
 #include "duckdb/parser/parsed_data/create_info.hpp"
 #include "duckdb/parser/parser_extension.hpp"
+#include "duckdb/parser/parser_override.hpp"
 #include "duckdb/planner/operator_extension.hpp"
 #include "duckdb/storage/compression/bitpacking.hpp"
 #include "duckdb/function/encoding_function.hpp"
@@ -249,6 +250,8 @@ public:
 	DBConfigOptions options;
 	//! Extensions made to the parser
 	vector<ParserExtension> parser_extensions;
+	//! Override of the parser
+	unique_ptr<ParserOverride> parser_override;
 	//! Extensions made to the optimizer
 	vector<OptimizerExtension> optimizer_extensions;
 	//! Error manager
