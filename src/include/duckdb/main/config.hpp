@@ -250,7 +250,7 @@ public:
 	DBConfigOptions options;
 	//! Extensions made to the parser
 	vector<ParserExtension> parser_extensions;
-	//! Override of the parser
+	//! Override of the parser, returns transformed statements
 	unique_ptr<ParserOverride> parser_override;
 	//! Extensions made to the optimizer
 	vector<OptimizerExtension> optimizer_extensions;
