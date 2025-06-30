@@ -2,7 +2,7 @@
 # description: Test lambda syntax in peg parser
 # group: [transformer]
 
-require peg_parser
+require autocomplete
 
 statement ok
 use foo;

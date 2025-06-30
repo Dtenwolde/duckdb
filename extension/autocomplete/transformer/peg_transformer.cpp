@@ -137,6 +137,7 @@ unique_ptr<SQLStatement> PEGTransformerFactory::Transform(vector<MatcherToken> &
 	if (!root_parse_result) {
 		throw ParserException("Failed to parse string: No match found for root rule '%s'.", root_rule);
 	}
+	Printer::Print("Successfully parsed string");
 	if (state.token_index < tokens.size()) {
 		throw ParserException("Failed to parse string: Unconsumed tokens remaining.");
 	}

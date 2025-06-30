@@ -173,15 +173,16 @@ void PEGParser::ParseRules(const char *grammar) {
                 idx_t regex_start = c;
                 char closer = (current_char == '[') ? ']' : '>';
                 c++;
-                while (grammar[c] && grammar[c] != closer) {
-	                if (grammar[c] == '\\') {
-	                	c += 2;
-	                }
-                }
-                if (grammar[c] == closer) {
-	                c++;
-                }
-                current_tokens.push_back({PEGTokenType::IDENTIFIER, string("Identifier")});
+				while (grammar[c] && grammar[c] != closer) {
+					if (grammar[c] == '\\') {
+						c++;
+					}
+					c++;
+				}
+				if (grammar[c] == closer) {
+					c++;
+				}
+				current_tokens.push_back({PEGTokenType::IDENTIFIER, string("Identifier")});
             } else if (strchr("/?*+()!&%", current_char)) {
                 current_tokens.push_back({PEGTokenType::OPERATOR, string(1, current_char)});
                 c++;

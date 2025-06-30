@@ -1,4 +1,4 @@
-#include "peg_parser_override.hpp"
+#include "../autocomplete/include/peg_parser_override.hpp"
 #include "duckdb.hpp"
 #include "include/peg_parser_extension.hpp"
 
