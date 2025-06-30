@@ -90,7 +90,9 @@ void PEGParser::ParseRules(const char *grammar) {
             c++;
         }
         if (grammar[c] == '#') {
-            while (grammar[c] && !StringUtil::CharacterIsNewline(grammar[c])) { c++; }
+            while (grammar[c] && !StringUtil::CharacterIsNewline(grammar[c])) {
+	            c++;
+            }
             continue;
         }
 
@@ -124,18 +126,23 @@ void PEGParser::ParseRules(const char *grammar) {
             }
         }
 
-        // Main state machine logic
         if (parse_state == ParserState::RULE_NAME) {
             idx_t name_start = c;
-            while(grammar[c] && (StringUtil::CharacterIsAlphaNumeric(grammar[c]) || grammar[c] == '_')) { c++; }
+            while(grammar[c] && (StringUtil::CharacterIsAlphaNumeric(grammar[c]) || grammar[c] == '_')) {
+	            c++;
+            }
             current_rule_name = string(grammar + name_start, c - name_start);
-            if (current_rule_name.empty()) { throw InternalException("Failed to parse grammar: expected rule name"); }
+            if (current_rule_name.empty()) {
+	            throw InternalException("Failed to parse grammar: expected rule name");
+            }
             parse_state = ParserState::RULE_SEPARATOR;
             continue; // Go to next iteration to skip whitespace before arrow
         }
 
         if (parse_state == ParserState::RULE_SEPARATOR) {
-             if (grammar[c] != '<' || grammar[c + 1] != '-') { throw InternalException("Expected '<-' after rule name '%s'", current_rule_name); }
+        	if (grammar[c] != '<' || grammar[c + 1] != '-') {
+	             throw InternalException("Expected '<-' after rule name '%s'", current_rule_name);
+        	}
             c += 2;
             parse_state = ParserState::RULE_DEFINITION;
             continue; // Go to next iteration to start parsing rule definition
@@ -146,20 +153,34 @@ void PEGParser::ParseRules(const char *grammar) {
             if (current_char == '\'') {
                 c++;
                 idx_t literal_start = c;
-                while (grammar[c] && grammar[c] != '\'') { c++; }
+                while (grammar[c] && grammar[c] != '\'') {
+	                c++;
+                }
                 current_tokens.push_back({PEGTokenType::LITERAL, string(grammar + literal_start, c - literal_start)});
-                if (grammar[c] == '\'') c++;
-                if (grammar[c] == 'i') c++;
+                if (grammar[c] == '\'') {
+	                c++;
+                }
+                if (grammar[c] == 'i') {
+	                c++;
+                }
             } else if (StringUtil::CharacterIsAlpha(current_char)) {
                 idx_t rule_start = c;
-                while (StringUtil::CharacterIsAlphaNumeric(grammar[c]) || grammar[c] == '_') { c++; }
+                while (StringUtil::CharacterIsAlphaNumeric(grammar[c]) || grammar[c] == '_') {
+	                c++;
+                }
                 current_tokens.push_back({PEGTokenType::REFERENCE, string(grammar + rule_start, c - rule_start)});
             } else if (current_char == '[' || current_char == '<') {
                 idx_t regex_start = c;
                 char closer = (current_char == '[') ? ']' : '>';
                 c++;
-                while(grammar[c] && grammar[c] != closer) { if (grammar[c] == '\\') c++; c++; }
-                if(grammar[c] == closer) c++;
+                while (grammar[c] && grammar[c] != closer) {
+	                if (grammar[c] == '\\') {
+	                	c += 2;
+	                }
+                }
+                if (grammar[c] == closer) {
+	                c++;
+                }
                 current_tokens.push_back({PEGTokenType::IDENTIFIER, string("Identifier")});
             } else if (strchr("/?*+()!&%", current_char)) {
                 current_tokens.push_back({PEGTokenType::OPERATOR, string(1, current_char)});

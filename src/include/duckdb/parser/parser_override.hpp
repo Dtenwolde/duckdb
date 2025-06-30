@@ -17,7 +17,7 @@ public:
 	//! If it fails to parse because the syntax is not supported by this override,
 	//! it should return an empty vector, allowing the system to fall back to the default parser.
 	//! If it encounters a syntax error within a structure it *does* recognize, it should throw an exception.
-	virtual vector<unique_ptr<SQLStatement>> Parse(ClientContext &context, const string &query) = 0;
+	virtual vector<unique_ptr<SQLStatement>> Parse(const string &query) = 0;
 };
 
 } // namespace duckdb

@@ -20,7 +20,6 @@ enum class PEGExpressionType {
 	IDENTIFIER
 };
 
-// Base class renamed to PEGExpression
 struct PEGExpression {
     explicit PEGExpression(PEGExpressionType type) : type(type) {}
     virtual ~PEGExpression() = default;
@@ -34,7 +33,6 @@ struct PEGExpression {
     PEGExpressionType type;
 };
 
-// All derived classes also renamed
 struct PEGKeywordExpression : PEGExpression {
     explicit PEGKeywordExpression(string keyword_p)
         : PEGExpression(PEGExpressionType::KEYWORD), keyword(std::move(keyword_p)) {}
@@ -60,9 +58,9 @@ struct PEGChoiceExpression : PEGExpression {
 };
 
 struct PEGOptionalExpression : PEGExpression {
-    explicit PEGOptionalExpression(unique_ptr<PEGExpression> child_p)
+    explicit PEGOptionalExpression(optional_ptr<PEGExpression> child_p)
         : PEGExpression(PEGExpressionType::OPTIONAL), expression(std::move(child_p)) {}
-    unique_ptr<PEGExpression> expression;
+    optional_ptr<PEGExpression> expression;
 };
 
 struct PEGZeroOrMoreExpression : PEGExpression {
@@ -89,11 +87,10 @@ struct PEGNotPredicateExpression : PEGExpression {
 	unique_ptr<PEGExpression> expression;
 };
 
-// NEW: Struct to hold a regex pattern
 struct PEGIdentifierExpression : PEGExpression {
 	explicit PEGIdentifierExpression(string pattern_p)
-		: PEGExpression(PEGExpressionType::IDENTIFIER), pattern(std::move(pattern_p)) {}
-	string pattern;
+		: PEGExpression(PEGExpressionType::IDENTIFIER), identifier(std::move(pattern_p)) {}
+	string identifier;
 };
 
 
