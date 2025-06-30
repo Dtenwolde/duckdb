@@ -779,7 +779,7 @@ Matcher &MatcherFactory::CreateMatcher(PEGParser &parser, string_t rule_name, ve
 		}
 	}
 	// look up the rule
-	auto entry = parser.rules.find(rule_name);
+	auto entry = parser.rules.find(rule_name.GetString());
 	if (entry == parser.rules.end()) {
 		throw InternalException("Failed to create matcher for rule %s - rule is missing", rule_name.GetString());
 	}

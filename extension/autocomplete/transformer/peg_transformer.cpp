@@ -17,23 +17,36 @@ unique_ptr<SQLStatement> PEGTransformerFactory::TransformRoot(PEGTransformer &tr
 	ParseResult *child_pr = &list_pr.result.get();
 	return transformer.Transform(child_pr->name, *child_pr);
 }
-unique_ptr<QualifiedName> PEGTransformerFactory::TransformQualifiedName(reference<ListParseResult> root) {
+unique_ptr<QualifiedName> PEGTransformerFactory::TransformQualifiedName(vector<string> &root) {
 	auto result = make_uniq<QualifiedName>();
-	auto children_size = root.get().children.size();
+	auto children_size = root.size();
 	if (children_size == 1) {
 		result->catalog = INVALID_CATALOG;
 		result->schema = INVALID_SCHEMA;
-		result->name = root.get().Child<IdentifierParseResult>(0).identifier;
-	} else if (children_size == 3) {
+		result->name = root[0];
+	} else if (children_size == 2) {
 		result->catalog = INVALID_CATALOG;
-		result->schema = root.get().Child<IdentifierParseResult>(0).identifier;
-		result->name = root.get().Child<IdentifierParseResult>(2).identifier;
-	} else if (children_size == 5) {
-		result->catalog = root.get().Child<IdentifierParseResult>(0).identifier;
-		result->schema = root.get().Child<IdentifierParseResult>(2).identifier;
-		result->name = root.get().Child<IdentifierParseResult>(4).identifier;
+		result->schema = root[0];
+		result->name = root[1];
+	} else if (children_size == 3) {
+		result->catalog = root[0];
+		result->schema = root[1];
+		result->name = root[2];
 	} else {
 		throw ParserException("Unexpected number of children %d, expected 3 at most.", children_size);
+	}
+	return result;
+}
+
+vector<string> TransformDottedIdentifier(reference<ListParseResult> root) {
+	vector<string> result;
+	auto first_element = root.get().Child<IdentifierParseResult>(0).identifier;
+	result.push_back(root.get().Child<IdentifierParseResult>(0).identifier);
+	auto sub_elements = root.get().Child<ListParseResult>(1);
+	for (const auto &sub_element : sub_elements.children) {
+		auto sub_list = sub_element.get().Cast<ListParseResult>();
+		auto identifier = sub_list.Child<IdentifierParseResult>(1).identifier;
+		result.push_back(identifier);
 	}
 	return result;
 }
@@ -43,12 +56,13 @@ unique_ptr<SetStatement> PEGTransformerFactory::TransformUseStatement(PEGTransfo
 
 	if (use_target_result.type == ParseResultType::LIST) {
 		auto list_pr = use_target_result.Cast<ListParseResult>();
-		auto qualified_name = TransformQualifiedName(list_pr);
-		if (IsInvalidCatalog(qualified_name->catalog) && IsInvalidSchema(qualified_name->schema)) {
+		auto dotted_identifier = TransformDottedIdentifier(list_pr);
+		auto qualified_name = TransformQualifiedName(dotted_identifier);
+		if (!IsInvalidCatalog(qualified_name->catalog)) {
 			throw ParserException("Expected \"USE database\" or \"USE database.schema\"");
 		}
 		string name;
-		if (IsInvalidSchema(qualified_name->name)) {
+		if (IsInvalidSchema(qualified_name->schema)) {
 			name = KeywordHelper::WriteOptionallyQuoted(qualified_name->name, '"');
 		} else {
 			name = KeywordHelper::WriteOptionallyQuoted(qualified_name->schema, '"') + "." +
@@ -73,7 +87,7 @@ PEGTransformerFactory::PEGTransformerFactory(const char *grammar) : parser(gramm
 
 ParseResult *PEGTransformer::MatchRule(const PEGExpression &expression) {
 	idx_t initial_token_index = state.token_index;
-
+	Printer::PrintF("Matching rule type: %d", expression.type);
 	switch (expression.type) {
 	case PEGExpressionType::KEYWORD: {
 		auto &keyword_expr = expression.Cast<PEGKeywordExpression>();
@@ -139,17 +153,34 @@ ParseResult *PEGTransformer::MatchRule(const PEGExpression &expression) {
 		}
 		return nullptr;
 	}
+	case PEGExpressionType::ZERO_OR_MORE: {
+		auto &zero_or_more_expr = expression.Cast<PEGZeroOrMoreExpression>();
+		vector<reference<ParseResult>> children_results;
+		while (true) {
+			// Try to match the child expression.
+			ParseResult *child_res = MatchRule(*zero_or_more_expr.expression);
+			if (!child_res) {
+				// If the child doesn't match, we are done repeating. Break the loop.
+				break;
+			}
+			// If it matched, add the result to our list and continue.
+			children_results.emplace_back(*child_res);
+		}
+		// The ZERO_OR_MORE rule always succeeds, even with zero matches.
+		// We return a ListParseResult containing all the successful matches.
+		return Make<ListParseResult>(std::move(children_results));
+	}
 	default:
 		throw InternalException("Unimplemented PEG expression type for matching.");
 	}
 }
 
 ParseResult *PEGTransformer::MatchRule(const string_t &rule_name) {
+	Printer::PrintF("Matching grammar rule: %s", rule_name.GetString());
 	auto it = grammar_rules.find(rule_name.GetString());
 	if (it == grammar_rules.end()) {
 		throw InternalException("PEG Grammar rule '%s' not found.", rule_name.GetString());
 	}
-	Printer::PrintF("Matching grammar rule: %s", rule_name.GetString());
 	return MatchRule(*it->second.expression);
 }
 
