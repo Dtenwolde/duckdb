@@ -5,6 +5,11 @@
 require autocomplete
 
 statement error
+use bar.foo.bar
+----
+Parser Error: Expected "USE database" or "USE database.schema"
+
+statement error
 use bar.foo;
 ----
 Catalog Error: SET schema: No catalog + schema named "bar.foo" found.

@@ -1,9 +1,10 @@
 #include "parser/peg_parser.hpp"
+
+#include "duckdb/common/printer.hpp"
 #include "duckdb/common/string_util.hpp"
 
 namespace duckdb {
 
-// The RuleParser class remains the same as it correctly processes a token stream.
 class RuleParser {
 public:
     explicit RuleParser(const vector<PEGToken>& tokens_p) : tokens(tokens_p), pos(0) {}
@@ -20,23 +21,37 @@ private:
 	}
     unique_ptr<PEGExpression> ParseSuffix() {
         auto expr = ParsePrimary();
-        if (Match("?")) { return make_uniq<PEGOptionalExpression>(std::move(expr)); }
-        if (Match("*")) { return make_uniq<PEGZeroOrMoreExpression>(std::move(expr)); }
-        if (Match("+")) { return make_uniq<PEGOneOrMoreExpression>(std::move(expr)); }
+        if (Match("?")) {
+	        return make_uniq<PEGOptionalExpression>(std::move(expr));
+        }
+        if (Match("*")) {
+	        return make_uniq<PEGZeroOrMoreExpression>(std::move(expr));
+        }
+        if (Match("+")) {
+	        return make_uniq<PEGOneOrMoreExpression>(std::move(expr));
+        }
         return expr;
     }
     unique_ptr<PEGExpression> ParseSequence() {
         vector<unique_ptr<PEGExpression>> children;
         children.push_back(ParseSuffix());
-        while (pos < tokens.size() && tokens[pos].text != "/" && tokens[pos].text != ")") { children.push_back(ParseSuffix()); }
-        if (children.size() == 1) { return std::move(children[0]); }
+        while (pos < tokens.size() && tokens[pos].text != "/" && tokens[pos].text != ")") {
+	        children.push_back(ParseSuffix());
+        }
+        if (children.size() == 1) {
+	        return std::move(children[0]);
+        }
         return make_uniq<PEGSequenceExpression>(std::move(children));
     }
     unique_ptr<PEGExpression> ParseChoice() {
         vector<unique_ptr<PEGExpression>> children;
         children.push_back(ParseSequence());
-        while (Match("/")) { children.push_back(ParseSequence()); }
-        if (children.size() == 1) { return std::move(children[0]); }
+        while (Match("/")) {
+	        children.push_back(ParseSequence());
+        }
+        if (children.size() == 1) {
+	        return std::move(children[0]);
+        }
         return make_uniq<PEGChoiceExpression>(std::move(children));
     }
     unique_ptr<PEGExpression> ParsePrimary() {
@@ -70,7 +85,6 @@ private:
     }
 };
 
-// FIX: Rewritten ParseRules to use a state machine as you described.
 void PEGParser::ParseRules(const char *grammar) {
     enum class ParserState {
         RULE_NAME,
@@ -117,7 +131,10 @@ void PEGParser::ParseRules(const char *grammar) {
                     RuleParser rule_parser(current_tokens);
                     PEGRule new_rule;
                     new_rule.expression = rule_parser.Parse();
-                    if (rules.find(current_rule_name) != rules.end()) { throw InternalException("Duplicate rule name: %s", current_rule_name); }
+                    if (rules.find(current_rule_name) != rules.end()) {
+	                    throw InternalException("Duplicate rule name: %s", current_rule_name);
+                    }
+                	Printer::PrintF("Adding rule %s", current_rule_name.c_str());
                     rules[current_rule_name] = std::move(new_rule);
                 }
                 // Reset for the new rule.
@@ -197,7 +214,10 @@ void PEGParser::ParseRules(const char *grammar) {
         RuleParser rule_parser(current_tokens);
         PEGRule new_rule;
         new_rule.expression = rule_parser.Parse();
-        if (rules.find(current_rule_name) != rules.end()) { throw InternalException("Duplicate rule name: %s", current_rule_name); }
+        if (rules.find(current_rule_name) != rules.end()) {
+	        throw InternalException("Duplicate rule name: %s", current_rule_name);
+        }
+    	Printer::PrintF("adding rule %s", current_rule_name.c_str());
         rules[current_rule_name] = std::move(new_rule);
     }
 }

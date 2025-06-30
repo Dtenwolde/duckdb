@@ -27,8 +27,8 @@ public:
     using TransformDispatchFunction = std::function<unique_ptr<SQLStatement>(PEGTransformer&, ParseResult&)>;
 
     PEGTransformer(ArenaAllocator &allocator, PEGTransformerState &state,
-                   const string_map_t<TransformDispatchFunction> &transform_functions,
-                   const string_map_t<PEGRule> &grammar_rules)
+                   const case_insensitive_map_t<TransformDispatchFunction> &transform_functions,
+                   const case_insensitive_map_t<PEGRule> &grammar_rules)
         : allocator(allocator), state(state), transform_functions(transform_functions), grammar_rules(grammar_rules) {
     }
 
@@ -51,8 +51,8 @@ public:
     PEGTransformerState &state;
 
 private:
-    const string_map_t<TransformDispatchFunction> &transform_functions;
-    const string_map_t<PEGRule> &grammar_rules;
+    const case_insensitive_map_t<TransformDispatchFunction> &transform_functions;
+    const case_insensitive_map_t<PEGRule> &grammar_rules;
 };
 
 // PEGTransformerFactory is now a real class that holds the transformation state.
@@ -97,12 +97,12 @@ private:
     static unique_ptr<SetStatement> TransformUseStatement(PEGTransformer&, ChoiceParseResult &identifier_pr);
 	static unique_ptr<SQLStatement> TransformRoot(PEGTransformer&, ParseResult &list);
 
-	static unique_ptr<QualifiedName> TransformQualifiedName(reference<ListParseResult> root);
+	static unique_ptr<QualifiedName> TransformQualifiedName(vector<string> &root);
 
 private:
     // Each factory instance owns its parsed grammar and transform function map.
     PEGParser parser;
-    string_map_t<PEGTransformer::TransformDispatchFunction> sql_transform_functions;
+	case_insensitive_map_t<PEGTransformer::TransformDispatchFunction> sql_transform_functions;
 };
 
 // Helper struct for qualified names.

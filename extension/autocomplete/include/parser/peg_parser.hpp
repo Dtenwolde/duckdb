@@ -2,6 +2,7 @@
 
 #include "duckdb/common/string_map_set.hpp"
 #include "duckdb/common/types/string_type.hpp"
+#include "duckdb/common/case_insensitive_map.hpp"
 #include "duckdb/common/unique_ptr.hpp"
 #include "duckdb/common/vector.hpp"
 
@@ -114,7 +115,7 @@ public:
         ParseRules(grammar);
     }
     void ParseRules(const char *grammar);
-    string_map_t<PEGRule> rules;
+    case_insensitive_map_t<PEGRule> rules;
 };
 
 } // namespace duckdb
