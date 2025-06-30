@@ -97,6 +97,8 @@ private:
     static unique_ptr<SetStatement> TransformUseStatement(PEGTransformer&, ChoiceParseResult &identifier_pr);
 	static unique_ptr<SQLStatement> TransformRoot(PEGTransformer&, ParseResult &list);
 
+	static unique_ptr<QualifiedName> TransformQualifiedName(reference<ListParseResult> root);
+
 private:
     // Each factory instance owns its parsed grammar and transform function map.
     PEGParser parser;

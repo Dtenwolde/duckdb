@@ -4,5 +4,12 @@
 
 require autocomplete
 
-statement ok
+statement error
+use bar.foo;
+----
+Catalog Error: SET schema: No catalog + schema named "bar.foo" found.
+
+statement error
 use foo;
+----
+Catalog Error: SET schema: No catalog + schema named "foo" found.

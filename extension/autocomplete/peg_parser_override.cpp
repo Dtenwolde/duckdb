@@ -33,7 +33,6 @@ vector<unique_ptr<SQLStatement>> PEGParserOverride::Parse(const string &query) {
 				continue;
 			}
 			auto statement = factory->Transform(tokenizer.statements[0], "Root");
-			Printer::PrintF("Successfully transformed statement: %s", statement->ToString());
 			result.push_back(std::move(statement));
 		}
 		return result;

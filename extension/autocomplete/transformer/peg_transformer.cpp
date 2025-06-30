@@ -14,31 +14,63 @@ bool IsIdentifier(const string &pattern, const string &text) {
 // This function correctly dispatches to the appropriate sub-transformer.
 unique_ptr<SQLStatement> PEGTransformerFactory::TransformRoot(PEGTransformer &transformer, ParseResult &parse_result) {
 	auto &list_pr = parse_result.Cast<ChoiceParseResult>();
-	ParseResult* child_pr = &list_pr.result.get();
+	ParseResult *child_pr = &list_pr.result.get();
 	return transformer.Transform(child_pr->name, *child_pr);
+}
+unique_ptr<QualifiedName> PEGTransformerFactory::TransformQualifiedName(reference<ListParseResult> root) {
+	auto result = make_uniq<QualifiedName>();
+	auto children_size = root.get().children.size();
+	if (children_size == 1) {
+		result->catalog = INVALID_CATALOG;
+		result->schema = INVALID_SCHEMA;
+		result->name = root.get().Child<IdentifierParseResult>(0).identifier;
+	} else if (children_size == 3) {
+		result->catalog = INVALID_CATALOG;
+		result->schema = root.get().Child<IdentifierParseResult>(0).identifier;
+		result->name = root.get().Child<IdentifierParseResult>(2).identifier;
+	} else if (children_size == 5) {
+		result->catalog = root.get().Child<IdentifierParseResult>(0).identifier;
+		result->schema = root.get().Child<IdentifierParseResult>(2).identifier;
+		result->name = root.get().Child<IdentifierParseResult>(4).identifier;
+	} else {
+		throw ParserException("Unexpected number of children %d, expected 3 at most.", children_size);
+	}
+	return result;
 }
 
 unique_ptr<SetStatement> PEGTransformerFactory::TransformUseStatement(PEGTransformer &, ChoiceParseResult &use_target) {
 	ParseResult &use_target_result = use_target.result.get();
 
 	if (use_target_result.type == ParseResultType::LIST) {
-		throw NotImplementedException("Haven't implemented this yet.");
+		auto list_pr = use_target_result.Cast<ListParseResult>();
+		auto qualified_name = TransformQualifiedName(list_pr);
+		if (IsInvalidCatalog(qualified_name->catalog) && IsInvalidSchema(qualified_name->schema)) {
+			throw ParserException("Expected \"USE database\" or \"USE database.schema\"");
+		}
+		string name;
+		if (IsInvalidSchema(qualified_name->name)) {
+			name = KeywordHelper::WriteOptionallyQuoted(qualified_name->name, '"');
+		} else {
+			name = KeywordHelper::WriteOptionallyQuoted(qualified_name->schema, '"') + "." +
+				   KeywordHelper::WriteOptionallyQuoted(qualified_name->name, '"');
+		}
+		auto name_expr = make_uniq<ConstantExpression>(Value(name));
+		return make_uniq<SetVariableStatement>("schema", std::move(name_expr), SetScope::AUTOMATIC);
 	}
 	if (use_target_result.type == ParseResultType::IDENTIFIER) {
-		// Matched CatalogName or SchemaName
+		// Matched SchemaName
 		auto &identifier = use_target_result.Cast<IdentifierParseResult>();
-		return make_uniq<SetVariableStatement>("schema", make_uniq<ConstantExpression>(Value(identifier.identifier)), SetScope::AUTOMATIC);
+		auto schema = identifier.identifier;
+		return make_uniq<SetVariableStatement>("schema", make_uniq<ConstantExpression>(Value(schema)), SetScope::AUTOMATIC);
 	}
 	throw ParserException("Unknown parse result encountered in UseStatement");
-
 }
 
-// --- Your PEGTransformerFactory constructor ---
 PEGTransformerFactory::PEGTransformerFactory(const char *grammar) : parser(grammar) {
-	// The registration now needs to account for the new function signatures
 	Register<ChoiceParseResult, 1>("UseStatement", &TransformUseStatement);
 	Register("Root", &TransformRoot); // Note index is 0
 }
+
 ParseResult *PEGTransformer::MatchRule(const PEGExpression &expression) {
 	idx_t initial_token_index = state.token_index;
 
@@ -102,6 +134,7 @@ ParseResult *PEGTransformer::MatchRule(const PEGExpression &expression) {
 		auto &token = state.tokens[state.token_index];
 		if (token.type == TokenType::WORD && IsIdentifier(regex_expr.identifier, token.text)) {
 			state.token_index++;
+			Printer::PrintF("Found an identifier expression");
 			return Make<IdentifierParseResult>(token.text);
 		}
 		return nullptr;
@@ -132,6 +165,9 @@ unique_ptr<SQLStatement> PEGTransformer::Transform(const string_t &rule_name, Pa
 unique_ptr<SQLStatement> PEGTransformerFactory::Transform(vector<MatcherToken> &tokens, const char *root_rule) {
 	ArenaAllocator allocator(Allocator::DefaultAllocator());
 	PEGTransformerState state(tokens);
+	for (auto &token : tokens) {
+		Printer::PrintF("%s", token.text);
+	}
 	PEGTransformer transformer(allocator, state, sql_transform_functions, parser.rules);
 	ParseResult *root_parse_result = transformer.MatchRule(root_rule);
 	if (!root_parse_result) {
