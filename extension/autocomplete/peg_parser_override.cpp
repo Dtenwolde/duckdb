@@ -7,13 +7,25 @@ struct MatcherToken;
 
 PEGParserOverride::PEGParserOverride() {
 	const char grammar[] = {
-		"Root <- UseStatement / DeleteStatement\n"
+		"Root <- UseStatement / DeleteStatement / SetStatement\n"
 		"UseStatement <- 'USE'i UseTarget\n"
 		"DeleteStatement <- 'DELETE'i Identifier\n"
-		"UseTarget <- DottedIdentifier / SchemaName / CatalogName\n"
+		"UseTarget <- DottedIdentifier\n"
+
+		"SetStatement <- 'SET'i (StandardAssignment / SetTimeZone)\n"
+		"StandardAssignment <- (SetVariable / SetSetting) SetAssignment\n"
+		"SetTimeZone <- 'TIME'i 'ZONE'i Expression\n"
+		"SetSetting <- SettingScope? SettingName\n"
+		"SetVariable <- 'VARIABLE'i Identifier\n"
+		"SettingScope <- 'LOCAL'i / 'SESSION'i / 'GLOBAL'i\n"
+		"SetAssignment <- VariableAssign VariableList\n"
+		"VariableAssign <- '=' / 'TO'\n"
+		"VariableList <- List(Expression)\n"
+
+		"ResetStatement <- 'RESET'i (SetVariable / SetSetting)\n"
+
+
 		"DottedIdentifier <- Identifier ('.' Identifier)*\n"
-		"CatalogName <- Identifier\n"
-		"SchemaName <- Identifier\n"
 		"Identifier <- [a-z_A-Z]\n"
 	};
 	factory = make_uniq<PEGTransformerFactory>(grammar);

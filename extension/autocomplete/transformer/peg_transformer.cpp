@@ -51,11 +51,9 @@ vector<string> TransformDottedIdentifier(reference<ListParseResult> root) {
 	return result;
 }
 
-unique_ptr<SetStatement> PEGTransformerFactory::TransformUseStatement(PEGTransformer &, ChoiceParseResult &use_target) {
-	ParseResult &use_target_result = use_target.result.get();
-
-	if (use_target_result.type == ParseResultType::LIST) {
-		auto list_pr = use_target_result.Cast<ListParseResult>();
+unique_ptr<SetStatement> PEGTransformerFactory::TransformUseStatement(PEGTransformer &, ListParseResult &use_target) {
+	if (use_target.type == ParseResultType::LIST) {
+		auto list_pr = use_target.Cast<ListParseResult>();
 		auto dotted_identifier = TransformDottedIdentifier(list_pr);
 		auto qualified_name = TransformQualifiedName(dotted_identifier);
 		if (!IsInvalidCatalog(qualified_name->catalog)) {
@@ -71,9 +69,9 @@ unique_ptr<SetStatement> PEGTransformerFactory::TransformUseStatement(PEGTransfo
 		auto name_expr = make_uniq<ConstantExpression>(Value(name));
 		return make_uniq<SetVariableStatement>("schema", std::move(name_expr), SetScope::AUTOMATIC);
 	}
-	if (use_target_result.type == ParseResultType::IDENTIFIER) {
+	if (use_target.type == ParseResultType::IDENTIFIER) {
 		// Matched SchemaName
-		auto &identifier = use_target_result.Cast<IdentifierParseResult>();
+		auto &identifier = use_target.Cast<IdentifierParseResult>();
 		auto schema = identifier.identifier;
 		return make_uniq<SetVariableStatement>("schema", make_uniq<ConstantExpression>(Value(schema)), SetScope::AUTOMATIC);
 	}
@@ -81,7 +79,7 @@ unique_ptr<SetStatement> PEGTransformerFactory::TransformUseStatement(PEGTransfo
 }
 
 PEGTransformerFactory::PEGTransformerFactory(const char *grammar) : parser(grammar) {
-	Register<ChoiceParseResult, 1>("UseStatement", &TransformUseStatement);
+	Register<ListParseResult, 1>("UseStatement", &TransformUseStatement);
 	Register("Root", &TransformRoot); // Note index is 0
 }
 
