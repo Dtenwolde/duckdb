@@ -12,6 +12,7 @@
 #include "duckdb/main/extension/extension_loader.hpp"
 #include "duckdb/parser/keyword_helper.hpp"
 #include "matcher.hpp"
+#include "include/peg_parser_override.hpp"
 #include "duckdb/catalog/default/builtin_types/types.hpp"
 #include "duckdb/main/attached_database.hpp"
 #include "tokenizer.hpp"
@@ -611,24 +612,6 @@ void SQLAutoCompleteFunction(ClientContext &context, TableFunctionInput &data_p,
 	output.SetCardinality(count);
 }
 
-class ParserTokenizer : public BaseTokenizer {
-public:
-	ParserTokenizer(const string &sql, vector<MatcherToken> &tokens) : BaseTokenizer(sql, tokens) {
-	}
-	void OnStatementEnd(idx_t pos) override {
-		statements.push_back(std::move(tokens));
-		tokens.clear();
-	}
-	void OnLastToken(TokenizeState state, string last_word, idx_t) override {
-		if (last_word.empty()) {
-			return;
-		}
-		tokens.push_back(std::move(last_word));
-	}
-
-	vector<vector<MatcherToken>> statements;
-};
-
 static duckdb::unique_ptr<FunctionData> CheckPEGParserBind(ClientContext &context, TableFunctionBindInput &input,
                                                            vector<LogicalType> &return_types, vector<string> &names) {
 	if (input.inputs[0].IsNull()) {
@@ -758,6 +741,13 @@ static void LoadInternal(ExtensionLoader &loader) {
 	TableFunction check_peg_transformer_fun("check_peg_transformer", {LogicalType::VARCHAR}, CheckPEGTransformerFunction,
 									   CheckPEGTransformerBind, nullptr);
 	loader.RegisterFunction(check_peg_transformer_fun);
+
+	auto &config = DBConfig::GetConfig(loader.GetDatabaseInstance());
+
+	// Install the parser override
+	if (!config.parser_override) { // Only install if no other override is present
+		config.parser_override = make_uniq<PEGParserOverride>();
+	}
 }
 
 void AutocompleteExtension::Load(ExtensionLoader &loader) {

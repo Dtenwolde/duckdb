@@ -1,5 +1,5 @@
-#include "peg_parser_override.hpp"
-#include "tokenizer.hpp"
+#include "include/peg_parser_override.hpp"
+#include "include/tokenizer.hpp"
 #include "duckdb/common/exception/binder_exception.hpp"
 
 namespace duckdb {
@@ -33,6 +33,7 @@ vector<unique_ptr<SQLStatement>> PEGParserOverride::Parse(const string &query) {
 				continue;
 			}
 			auto statement = factory->Transform(tokenizer.statements[0], "Root");
+			Printer::PrintF("Successfully transformed statement: %s", statement->ToString());
 			result.push_back(std::move(statement));
 		}
 		return result;
