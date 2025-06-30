@@ -643,7 +643,7 @@ vector<unique_ptr<SQLStatement>> ClientContext::ParseStatementsInternal(ClientCo
 	auto &config = DBConfig::GetConfig(*db);
 	if (config.parser_override) {
 		try {
-			auto statements = config.parser_override->Parse(*this, query);
+			auto statements = config.parser_override->Parse(query);
 			if (!statements.empty()) {
 				PragmaHandler handler(*this);
 				handler.HandlePragmaStatements(lock, statements);
@@ -1388,7 +1388,7 @@ ParserOptions ClientContext::GetParserOptions() const {
 	options.integer_division = client_config.integer_division;
 	options.max_expression_depth = client_config.max_expression_depth;
 	options.extensions = &DBConfig::GetConfig(*this).parser_extensions;
-	options.parser_override = &DBConfig::GetConfig(*this).parser_override;
+	options.parser_override = DBConfig::GetConfig(*this).parser_override.get();
 	return options;
 }
 

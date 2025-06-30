@@ -100,7 +100,7 @@ ParseResult *PEGTransformer::MatchRule(const PEGExpression &expression) {
 			return nullptr;
 		}
 		auto &token = state.tokens[state.token_index];
-		if (token.type == TokenType::WORD && IsIdentifier(regex_expr.pattern, token.text)) {
+		if (token.type == TokenType::WORD && IsIdentifier(regex_expr.identifier, token.text)) {
 			state.token_index++;
 			return Make<IdentifierParseResult>(token.text);
 		}
@@ -116,6 +116,7 @@ ParseResult *PEGTransformer::MatchRule(const string_t &rule_name) {
 	if (it == grammar_rules.end()) {
 		throw InternalException("PEG Grammar rule '%s' not found.", rule_name.GetString());
 	}
+	Printer::PrintF("Matching grammar rule: %s", rule_name.GetString());
 	return MatchRule(*it->second.expression);
 }
 
@@ -134,10 +135,10 @@ unique_ptr<SQLStatement> PEGTransformerFactory::Transform(vector<MatcherToken> &
 	PEGTransformer transformer(allocator, state, sql_transform_functions, parser.rules);
 	ParseResult *root_parse_result = transformer.MatchRule(root_rule);
 	if (!root_parse_result) {
-		throw BinderException("Failed to parse string: No match found for root rule '%s'.", root_rule);
+		throw ParserException("Failed to parse string: No match found for root rule '%s'.", root_rule);
 	}
 	if (state.token_index < tokens.size()) {
-		throw BinderException("Failed to parse string: Unconsumed tokens remaining.");
+		throw ParserException("Failed to parse string: Unconsumed tokens remaining.");
 	}
 	return transformer.Transform(root_rule, *root_parse_result);
 }

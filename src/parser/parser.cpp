@@ -12,6 +12,7 @@
 #include "duckdb/parser/statement/update_statement.hpp"
 #include "duckdb/parser/tableref/expressionlistref.hpp"
 #include "duckdb/parser/transformer.hpp"
+#include "duckdb/parser/parser_override.hpp"
 #include "parser/parser.hpp"
 #include "postgres_parser.hpp"
 
@@ -201,7 +202,9 @@ void Parser::ParseQuery(const string &query) {
 			return;
 		}
 	}
-	{
+	if (options.parser_override) {
+		statements = options.parser_override->Parse(query);
+	} else {
 		PostgresParser::SetPreserveIdentifierCase(options.preserve_identifier_case);
 		bool parsing_succeed = false;
 		// Creating a new scope to prevent multiple PostgresParser destructors being called
