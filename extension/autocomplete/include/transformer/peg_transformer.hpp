@@ -93,14 +93,17 @@ private:
     }
     // ... Add more overloads for 3, 4, etc., arguments as needed.
 
-    // --- SPECIFIC TRANSFORM FUNCTIONS (static and decoupled) ---
-    static unique_ptr<SetStatement> TransformUseStatement(PEGTransformer&, ListParseResult &identifier_pr);
 	static unique_ptr<SQLStatement> TransformRoot(PEGTransformer&, ParseResult &list);
+
+    static unique_ptr<SetStatement> TransformUseStatement(PEGTransformer&, ListParseResult &identifier_pr);
+	static unique_ptr<SetStatement> TransformSetStatement(PEGTransformer&, ChoiceParseResult &choice_pr);
+	static unique_ptr<SetStatement> TransformResetStatement(PEGTransformer &, ChoiceParseResult &choice_pr);
 
 	static unique_ptr<QualifiedName> TransformQualifiedName(vector<string> &root);
 
+	static vector<string> TransformDottedIdentifier(reference<ListParseResult> root);
+
 private:
-    // Each factory instance owns its parsed grammar and transform function map.
     PEGParser parser;
 	case_insensitive_map_t<PEGTransformer::TransformDispatchFunction> sql_transform_functions;
 };

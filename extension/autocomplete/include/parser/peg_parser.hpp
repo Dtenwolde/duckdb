@@ -59,9 +59,9 @@ struct PEGChoiceExpression : PEGExpression {
 };
 
 struct PEGOptionalExpression : PEGExpression {
-    explicit PEGOptionalExpression(optional_ptr<PEGExpression> child_p)
+    explicit PEGOptionalExpression(unique_ptr<PEGExpression> child_p)
         : PEGExpression(PEGExpressionType::OPTIONAL), expression(std::move(child_p)) {}
-    optional_ptr<PEGExpression> expression;
+    unique_ptr<PEGExpression> expression;
 };
 
 struct PEGZeroOrMoreExpression : PEGExpression {
@@ -105,6 +105,7 @@ struct PEGToken {
 };
 
 struct PEGRule {
+	string_map_t<idx_t> parameters;
     unique_ptr<PEGExpression> expression;
 };
 

@@ -18,3 +18,18 @@ statement error
 use foo;
 ----
 Catalog Error: SET schema: No catalog + schema named "foo" found.
+
+statement ok
+SET threads=1;
+
+statement ok
+set variable dataset_size = 122880;
+
+statement error
+SET GLOBAL enable_progress_bar=true;
+----
+Catalog Error: option "enable_progress_bar" cannot be set globally
+
+statement ok
+RESET threads;
+
