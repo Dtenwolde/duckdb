@@ -38,7 +38,7 @@ unique_ptr<QualifiedName> PEGTransformerFactory::TransformQualifiedName(vector<s
 	return result;
 }
 
-vector<string> TransformDottedIdentifier(reference<ListParseResult> root) {
+vector<string> PEGTransformerFactory::TransformDottedIdentifier(reference<ListParseResult> root) {
 	vector<string> result;
 	auto first_element = root.get().Child<IdentifierParseResult>(0).identifier;
 	result.push_back(root.get().Child<IdentifierParseResult>(0).identifier);
@@ -52,34 +52,103 @@ vector<string> TransformDottedIdentifier(reference<ListParseResult> root) {
 }
 
 unique_ptr<SetStatement> PEGTransformerFactory::TransformUseStatement(PEGTransformer &, ListParseResult &use_target) {
-	if (use_target.type == ParseResultType::LIST) {
-		auto list_pr = use_target.Cast<ListParseResult>();
-		auto dotted_identifier = TransformDottedIdentifier(list_pr);
-		auto qualified_name = TransformQualifiedName(dotted_identifier);
-		if (!IsInvalidCatalog(qualified_name->catalog)) {
-			throw ParserException("Expected \"USE database\" or \"USE database.schema\"");
-		}
-		string name;
-		if (IsInvalidSchema(qualified_name->schema)) {
-			name = KeywordHelper::WriteOptionallyQuoted(qualified_name->name, '"');
-		} else {
-			name = KeywordHelper::WriteOptionallyQuoted(qualified_name->schema, '"') + "." +
-				   KeywordHelper::WriteOptionallyQuoted(qualified_name->name, '"');
-		}
-		auto name_expr = make_uniq<ConstantExpression>(Value(name));
-		return make_uniq<SetVariableStatement>("schema", std::move(name_expr), SetScope::AUTOMATIC);
+	if (use_target.type != ParseResultType::LIST) {
+		throw ParserException("Unknown parse result encountered in UseStatement");
 	}
-	if (use_target.type == ParseResultType::IDENTIFIER) {
-		// Matched SchemaName
-		auto &identifier = use_target.Cast<IdentifierParseResult>();
-		auto schema = identifier.identifier;
-		return make_uniq<SetVariableStatement>("schema", make_uniq<ConstantExpression>(Value(schema)), SetScope::AUTOMATIC);
+	auto list_pr = use_target.Cast<ListParseResult>();
+	auto dotted_identifier = TransformDottedIdentifier(list_pr);
+	auto qualified_name = TransformQualifiedName(dotted_identifier);
+	if (!IsInvalidCatalog(qualified_name->catalog)) {
+		throw ParserException("Expected \"USE database\" or \"USE database.schema\"");
 	}
-	throw ParserException("Unknown parse result encountered in UseStatement");
+	string name;
+	if (IsInvalidSchema(qualified_name->schema)) {
+		name = KeywordHelper::WriteOptionallyQuoted(qualified_name->name, '"');
+	} else {
+		name = KeywordHelper::WriteOptionallyQuoted(qualified_name->schema, '"') + "." +
+			   KeywordHelper::WriteOptionallyQuoted(qualified_name->name, '"');
+	}
+	auto name_expr = make_uniq<ConstantExpression>(Value(name));
+	return make_uniq<SetVariableStatement>("schema", std::move(name_expr), SetScope::AUTOMATIC);
+}
+
+SetScope GetSettingScope(optional_ptr<ParseResult> &parse_result) {
+	auto choice_pr = parse_result->Cast<ChoiceParseResult>();
+	if (choice_pr.selected_idx == 0) {
+		return SetScope::LOCAL;
+	}
+	if (choice_pr.selected_idx == 1) {
+		return SetScope::SESSION;
+	}
+	if (choice_pr.selected_idx == 2) {
+		return SetScope::GLOBAL;
+	}
+	throw ParserException("Unexpected choice selected");
+}
+
+void TransformSettingOrVariable(ChoiceParseResult &variable_or_setting, string &setting_name, SetScope &scope) {
+	if (variable_or_setting.selected_idx == 0) {
+		// Case: SetVariable <- 'VARIABLE'i Identifier
+		auto &set_variable = variable_or_setting.result.get().Cast<ListParseResult>();
+		setting_name = set_variable.Child<IdentifierParseResult>(1).identifier;
+		scope = SetScope::VARIABLE;
+	} else if (variable_or_setting.selected_idx == 1) {
+		// Case: SetSetting <- Scope? Identifier
+		auto &set_setting = variable_or_setting.result.get().Cast<ListParseResult>();
+		auto &setting_scope_pr = set_setting.Child<OptionalParseResult>(0);
+
+		if (setting_scope_pr.optional_result) {
+			scope = GetSettingScope(setting_scope_pr.optional_result);
+		}
+		setting_name = set_setting.Child<IdentifierParseResult>(1).identifier;
+	} else {
+		throw ParserException("Unexpected choice in SetVariableStatement");
+	}
+}
+
+unique_ptr<SetStatement> PEGTransformerFactory::TransformSetStatement(PEGTransformer &, ChoiceParseResult &choice_pr) {
+    string setting_name;
+    unique_ptr<ParsedExpression> value_expr;
+    SetScope scope = SetScope::AUTOMATIC; // Default scope
+
+    if (choice_pr.selected_idx == 0) {
+        // This block corresponds to: StandardAssignment <- (SetVariable / SetSetting) SetAssignment
+        auto &standard_assignment = choice_pr.result.get().Cast<ListParseResult>();
+        auto &set_assignment = standard_assignment.Child<ListParseResult>(1);
+        auto &variable_or_setting = standard_assignment.Child<ChoiceParseResult>(0);
+		TransformSettingOrVariable(variable_or_setting, setting_name, scope);
+        // The SetAssignment rule is: SetAssignment <- ('=' / 'TO') Expression
+        // We need to transform the expression at index 1.
+        // TODO: This should call a generic expression transformer.
+        // For now, we'll assume it's an identifier and create a constant.
+        auto &value_identifier = set_assignment.Child<IdentifierParseResult>(1);
+        value_expr = make_uniq<ConstantExpression>(Value(value_identifier.identifier));
+
+    } else if (choice_pr.selected_idx == 1) {
+        // Case: SetTimeZone <- 'TIME'i 'ZONE'i Expression
+        throw NotImplementedException("SET TIME ZONE is not yet implemented.");
+    } else {
+        throw ParserException("Unexpected index selected in TransformSetStatement");
+    }
+
+    if (setting_name.empty() || !value_expr) {
+        throw ParserException("Failed to parse all required parts of the SET statement.");
+    }
+
+    return make_uniq<SetVariableStatement>(setting_name, std::move(value_expr), scope);
+}
+
+unique_ptr<SetStatement> PEGTransformerFactory::TransformResetStatement(PEGTransformer &, ChoiceParseResult &choice_pr) {
+	string setting_name;
+	SetScope scope = SetScope::AUTOMATIC;
+	TransformSettingOrVariable(choice_pr, setting_name, scope);
+	return make_uniq<ResetVariableStatement>(setting_name, scope);
 }
 
 PEGTransformerFactory::PEGTransformerFactory(const char *grammar) : parser(grammar) {
 	Register<ListParseResult, 1>("UseStatement", &TransformUseStatement);
+	Register<ChoiceParseResult, 1>("SetStatement", &TransformSetStatement);
+	Register<ChoiceParseResult, 1>("ResetStatement", &TransformResetStatement);
 	Register("Root", &TransformRoot); // Note index is 0
 }
 
@@ -161,7 +230,6 @@ ParseResult *PEGTransformer::MatchRule(const PEGExpression &expression) {
 				// If the child doesn't match, we are done repeating. Break the loop.
 				break;
 			}
-			// If it matched, add the result to our list and continue.
 			children_results.emplace_back(*child_res);
 		}
 		// The ZERO_OR_MORE rule always succeeds, even with zero matches.
