@@ -105,8 +105,10 @@ struct PEGToken {
 };
 
 struct PEGRule {
-	string_map_t<idx_t> parameters;
+	vector<string> parameters;
     unique_ptr<PEGExpression> expression;
+
+	vector<PEGToken> raw_tokens;
 };
 
 class PEGParser {

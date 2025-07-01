@@ -6,7 +6,9 @@ namespace duckdb {
 struct MatcherToken;
 
 PEGParserOverride::PEGParserOverride() {
+
 	const char grammar[] = {
+		"List(D) <- D (',' D)* ','?\n"
 		"Root <- UseStatement / DeleteStatement / SetStatement / ResetStatement\n"
 		"UseStatement <- 'USE'i UseTarget\n"
 		"DeleteStatement <- 'DELETE'i Identifier\n"
@@ -16,6 +18,7 @@ PEGParserOverride::PEGParserOverride() {
 		"SetTimeZone <- 'TIME'i 'ZONE'i Expression\n"
 		"SetSetting <- SettingScope? SettingName\n"
 		"SetVariable <- 'VARIABLE'i SettingName\n"
+		"SettingName <- Identifier\n"
 		"SettingScope <- 'LOCAL'i / 'SESSION'i / 'GLOBAL'i\n"
 		"SetAssignment <- VariableAssign VariableList\n"
 		"VariableAssign <- '=' / 'TO'\n"
@@ -23,8 +26,15 @@ PEGParserOverride::PEGParserOverride() {
 		"ResetStatement <- 'RESET'i (SetVariable / SetSetting)\n"
 		"DottedIdentifier <- Identifier ('.' Identifier)*\n"
 		"Identifier <- [a-z_A-Z]\n"
-		"List(D) <- D (',' D)* ','?\n"
 	};
+	/*
+	const char grammar[] = {
+		"List(D) <- D (',' D)* ','?\n"
+		"Identifier <- [a-z_A-Z]\n"
+		"IdentList <- List(Identifier)\n"
+		"DottedIdentifier <- Identifier ('.' Identifier)*\n"
+	};
+	*/
 	factory = make_uniq<PEGTransformerFactory>(grammar);
 }
 
