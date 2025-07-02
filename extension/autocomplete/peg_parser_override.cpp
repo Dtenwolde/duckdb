@@ -23,6 +23,7 @@ PEGParserOverride::PEGParserOverride() {
 		"SetAssignment <- VariableAssign VariableList\n"
 		"VariableAssign <- '=' / 'TO'\n"
 		"VariableList <- List(Expression)\n"
+		"Expression <- Identifier\n"
 		"ResetStatement <- 'RESET'i (SetVariable / SetSetting)\n"
 		"DottedIdentifier <- Identifier ('.' Identifier)*\n"
 		"Identifier <- [a-z_A-Z]\n"

@@ -35,6 +35,7 @@ public:
 public:
     // The main entry point to transform a matched rule. Returns ownership of the statement.
     unique_ptr<SQLStatement> Transform(const string_t &rule_name, ParseResult &matched_parse_result);
+	const PEGExpression *FindSubstitution(const string_t &name);
 
     // Core PEG Parser function. Returns a raw pointer owned by the ArenaAllocator.
     ParseResult *MatchRule(const string_t &rule_name);
@@ -54,7 +55,7 @@ private:
     const case_insensitive_map_t<TransformDispatchFunction> &transform_functions;
     const case_insensitive_map_t<PEGRule> &grammar_rules;
 	// The substitution stack for handling nested parameterized rule calls.
-	vector<unordered_map<string, const PEGExpression *>> substitution_stack;
+	vector<unordered_map<string_t, const PEGExpression *>> substitution_stack;
 };
 
 // PEGTransformerFactory is now a real class that holds the transformation state.
