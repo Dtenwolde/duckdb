@@ -53,6 +53,8 @@ public:
 private:
     const case_insensitive_map_t<TransformDispatchFunction> &transform_functions;
     const case_insensitive_map_t<PEGRule> &grammar_rules;
+	// The substitution stack for handling nested parameterized rule calls.
+	vector<unordered_map<string, const PEGExpression *>> substitution_stack;
 };
 
 // PEGTransformerFactory is now a real class that holds the transformation state.

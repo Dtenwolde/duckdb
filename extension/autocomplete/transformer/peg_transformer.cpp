@@ -236,6 +236,32 @@ ParseResult *PEGTransformer::MatchRule(const PEGExpression &expression) {
 		// We return a ListParseResult containing all the successful matches.
 		return Make<ListParseResult>(std::move(children_results));
 	}
+	case PEGExpressionType::PARAMETERIZED_RULE: {
+		auto &param_expr = expression.Cast<PEGParameterizedRuleExpression>();
+
+		auto it = grammar_rules.find(param_expr.rule_name);
+		if (it == grammar_rules.end() || it->second.parameters.empty()) {
+			throw InternalException("Call to undefined or non-parameterized rule '%s'", param_expr.rule_name);
+		}
+		auto &template_rule = it->second;
+
+		if (template_rule.parameters.size() != param_expr.expressions.size()) {
+			throw InternalException("Argument count mismatch for rule '%s': expected %d, got %d",
+									param_expr.rule_name, template_rule.parameters.size(),
+									param_expr.expressions.size());
+		}
+
+		unordered_map<string, const PEGExpression *> substitutions;
+		// for (size_t i = 0; i < template_rule.parameters.size(); ++i) {
+			// substitutions[template_rule.parameters[i]] = param_expr.expressions[i].get();
+		// }
+
+		substitution_stack.push_back(substitutions);
+		ParseResult *result = MatchRule(*template_rule.expression);
+		substitution_stack.pop_back();
+
+		return result;
+	}
 	default:
 		throw InternalException("Unimplemented PEG expression type for matching.");
 	}

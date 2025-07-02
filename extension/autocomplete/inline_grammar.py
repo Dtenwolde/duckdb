@@ -21,6 +21,9 @@ target_file = os.path.join(autocomplete_dir, 'include', 'inlined_grammar.hpp')
 
 contents = ""
 
+with open(os.path.join(statements_dir, 'internal.gram'), 'r') as f:
+    contents += f.read() + "\n"
+
 CATEGORY_MAP = {
     "reserved_keyword.list": "RESERVED_KEYWORD",
     "unreserved_keyword.list": "UNRESERVED_KEYWORD",
@@ -121,6 +124,9 @@ for file in os.listdir(keywords_dir):
 for file in os.listdir(statements_dir):
     if not file.endswith('.gram'):
         raise Exception(f"File {file} does not end with .gram")
+    if file == 'internal.gram':
+        # Added as the first lines already
+        continue
     with open(os.path.join(statements_dir, file), 'r') as f:
         contents += f.read() + "\n"
 
