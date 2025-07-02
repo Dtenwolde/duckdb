@@ -1,0 +1,4 @@
+# internal definitions
+%whitespace <- [ \t\n\r]*
+List(D) <- D (',' D)* ','?
+Parens(D) <- '(' D ')'

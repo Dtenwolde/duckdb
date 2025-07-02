@@ -1,12 +1,12 @@
 #include "include/peg_parser_override.hpp"
 #include "include/tokenizer.hpp"
 #include "duckdb/common/exception/binder_exception.hpp"
+#include "include/inlined_grammar.hpp"
 
 namespace duckdb {
 struct MatcherToken;
 
 PEGParserOverride::PEGParserOverride() {
-
 	const char grammar[] = {
 		"List(D) <- D (',' D)* ','?\n"
 		"Root <- UseStatement / DeleteStatement / SetStatement / ResetStatement\n"
@@ -27,14 +27,21 @@ PEGParserOverride::PEGParserOverride() {
 		"DottedIdentifier <- Identifier ('.' Identifier)*\n"
 		"Identifier <- [a-z_A-Z]\n"
 	};
-	/*
-	const char grammar[] = {
+
+	/*const char grammar[] = {
 		"List(D) <- D (',' D)* ','?\n"
+		"Parens(D) <- '(' D ')'\n"
 		"Identifier <- [a-z_A-Z]\n"
+		"IdentParen <- Parens(Identifier? Identifier)\n"
+		"FilterClause <- Parens('WHERE'i? Identifier)\n"
 		"IdentList <- List(Identifier)\n"
+		"ExcludeList <- 'EXCLUDE'i (Parens(List(ExcludeName)) / ExcludeName)\n"
+		"IdentListParen <- Parens(List(Identifier))\n"
 		"DottedIdentifier <- Identifier ('.' Identifier)*\n"
 	};
 	*/
+
+	// auto grammar = const_char_ptr_cast(INLINED_PEG_GRAMMAR);
 	factory = make_uniq<PEGTransformerFactory>(grammar);
 }
 

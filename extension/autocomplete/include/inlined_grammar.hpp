@@ -4,6 +4,10 @@
 namespace duckdb {
 
 const char INLINED_PEG_GRAMMAR[] = {
+	"# internal definitions\n"
+	"%whitespace <- [ \\t\\n\\r]*\n"
+	"List(D) <- D (',' D)* ','?\n"
+	"Parens(D) <- '(' D ')'\n"
 	"UnreservedKeyword <- 'ABORT'i /\n"
 	"'ABSOLUTE'i /\n"
 	"'ACCESS'i /\n"
@@ -1142,10 +1146,6 @@ const char INLINED_PEG_GRAMMAR[] = {
 	"TimeZone <- WithOrWithout 'TIME'i 'ZONE'i\n"
 	"WithOrWithout <- 'WITH'i / 'WITHOUT'i\n"
 	"RowOrStruct <- 'ROW'i / 'STRUCT'i\n"
-	"# internal definitions\n"
-	"%whitespace <- [ \\t\\n\\r]*\n"
-	"List(D) <- D (',' D)* ','?\n"
-	"Parens(D) <- '(' D ')'\n"
 	"ExplainStatement <- 'EXPLAIN'i 'ANALYZE'i? ExplainOptions? Statement\n"
 	"ExplainOptions <- Parens(GenericCopyOptionList)\n"
 	"AnalyzeStatement <- 'ANALYZE'i 'VERBOSE'i? AnalyzeTarget?\n"

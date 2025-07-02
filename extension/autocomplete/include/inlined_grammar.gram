@@ -1,3 +1,7 @@
+# internal definitions
+%whitespace <- [ \t\n\r]*
+List(D) <- D (',' D)* ','?
+Parens(D) <- '(' D ')'
 UnreservedKeyword <- 'ABORT'i /
 'ABSOLUTE'i /
 'ACCESS'i /
@@ -1291,10 +1295,6 @@ WithOrWithout <- 'WITH'i / 'WITHOUT'i
 
 RowOrStruct <- 'ROW'i / 'STRUCT'i
 
-# internal definitions
-%whitespace <- [ \t\n\r]*
-List(D) <- D (',' D)* ','?
-Parens(D) <- '(' D ')'
 
 ExplainStatement <- 'EXPLAIN'i 'ANALYZE'i? ExplainOptions? Statement
 
