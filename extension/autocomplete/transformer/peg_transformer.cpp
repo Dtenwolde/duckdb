@@ -53,7 +53,7 @@ vector<string> PEGTransformerFactory::TransformDottedIdentifier(reference<ListPa
 
 unique_ptr<SetStatement> PEGTransformerFactory::TransformUseStatement(PEGTransformer &, ListParseResult &use_target) {
 	if (use_target.type != ParseResultType::LIST) {
-		throw ParserException("Unknown parse result encountered in UseStatement");
+		throw InternalException("Unknown parse result encountered in UseStatement");
 	}
 	auto list_pr = use_target.Cast<ListParseResult>();
 	auto dotted_identifier = TransformDottedIdentifier(list_pr);
@@ -152,6 +152,18 @@ PEGTransformerFactory::PEGTransformerFactory(const char *grammar) : parser(gramm
 	Register("Root", &TransformRoot); // Note index is 0
 }
 
+const PEGExpression *PEGTransformer::FindSubstitution(const string_t &name) {
+	// Search from the inside out (most recent call)
+	for (auto it = substitution_stack.rbegin(); it != substitution_stack.rend(); ++it) {
+		auto &map = *it;
+		auto entry = map.find(name);
+		if (entry != map.end()) {
+			return entry->second;
+		}
+	}
+	return nullptr;
+}
+
 ParseResult *PEGTransformer::MatchRule(const PEGExpression &expression) {
 	idx_t initial_token_index = state.token_index;
 	Printer::PrintF("Matching rule type: %d", expression.type);
@@ -167,6 +179,13 @@ ParseResult *PEGTransformer::MatchRule(const PEGExpression &expression) {
 	}
 	case PEGExpressionType::RULE_REFERENCE: {
 		auto &rule_ref_expr = expression.Cast<PEGRuleReferenceExpression>();
+
+		auto substitution = FindSubstitution(rule_ref_expr.rule_name);
+		if (substitution) {
+			// It's a parameter (like 'D' in List(D)). Match the expression that was passed as an argument.
+			return MatchRule(*substitution);
+		}
+
 		auto it = grammar_rules.find(rule_ref_expr.rule_name);
 		if (it == grammar_rules.end()) {
 			throw InternalException("Undefined rule referenced: %s", rule_ref_expr.rule_name);
@@ -251,13 +270,19 @@ ParseResult *PEGTransformer::MatchRule(const PEGExpression &expression) {
 									param_expr.expressions.size());
 		}
 
-		unordered_map<string, const PEGExpression *> substitutions;
-		// for (size_t i = 0; i < template_rule.parameters.size(); ++i) {
-			// substitutions[template_rule.parameters[i]] = param_expr.expressions[i].get();
-		// }
+		unordered_map<string_t, const PEGExpression *> substitutions;
+		for (const auto &param_entry : template_rule.parameters) {
+			auto param_name = param_entry.first;
+			const idx_t param_index = param_entry.second;
+
+			if (param_index >= param_expr.expressions.size()) {
+				throw InternalException("Parameter index out of bounds for rule '%s'", param_expr.rule_name);
+			}
+			substitutions[param_name] = param_expr.expressions[param_index].get();
+		}
 
 		substitution_stack.push_back(substitutions);
-		ParseResult *result = MatchRule(*template_rule.expression);
+		ParseResult *result = MatchRule(*param_expr.expressions[0]);
 		substitution_stack.pop_back();
 
 		return result;

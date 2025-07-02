@@ -149,10 +149,15 @@ void PEGParser::ParseRules(const char *grammar) {
 					c++;
 					bracket_count++;
 					token.type = PEGTokenType::FUNCTION_CALL;
+					rule.tokens.push_back(token);
+					PEGToken bracket_token;
+					bracket_token.text = '(';
+					bracket_token.type = PEGTokenType::OPERATOR;
+					rule.tokens.push_back(bracket_token);
 				} else {
 					token.type = PEGTokenType::REFERENCE;
+					rule.tokens.push_back(token);
 				}
-				rule.tokens.push_back(token);
 			} else if (grammar[c] == '[' || grammar[c] == '<') {
 				// regular expression- [^"] or <...>
 				idx_t rule_start = c;
@@ -169,7 +174,7 @@ void PEGParser::ParseRules(const char *grammar) {
 				c++;
 				PEGToken token;
 				token.text = string(grammar + rule_start, c - rule_start);
-				token.type = PEGTokenType::REGEX;
+				token.type = PEGTokenType::IDENTIFIER;
 				rule.tokens.push_back(token);
 			} else if (IsPEGOperator(grammar[c])) {
 				if (grammar[c] == '(') {
