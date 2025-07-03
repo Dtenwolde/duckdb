@@ -1,0 +1,24 @@
+# Format --> Type : Rule
+# void shouldn't return anything
+SQLStatement : Root
+SetVariableStatement : UseStatement
+SetVariableStatement : SetStatement
+SetVariableStatement : StandardAssignment
+SetVariableStatement : SetVariable
+ResetVariableStatement : ResetStatement
+vector<string> : UseTarget
+Expression : SetTimeZone
+SetVariableStatement : SetSetting
+vector<Expression> : VariableList
+vector<Expression> : SetAssignment
+void : VariableAssign (maybe leave out)
+string : Identifier
+vector<string> : DottedIdentifier
+SetScope : LocalScope
+SetScope : SessionScope
+SetScope : GlobalScope
+SetScope : VariableScope
+
+enum class SetScope {
+    LOCAL, SESSION, GLOBAL, VARIABLE, AUTOMATIC
+}
