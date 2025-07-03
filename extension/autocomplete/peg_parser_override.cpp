@@ -10,7 +10,7 @@ PEGParserOverride::PEGParserOverride() {
 	const char grammar[] = {
 		"List(D) <- D (',' D)* ','?\n"
 		"Root <- UseStatement / DeleteStatement / SetStatement / ResetStatement\n"
-		"UseStatement <- 'USE'i UseTarget\n"
+		"UseStatement <- 'USE'i DottedIdentifier\n"
 		"DeleteStatement <- 'DELETE'i Identifier\n"
 		"UseTarget <- DottedIdentifier\n"
 		"SetStatement <- 'SET'i (StandardAssignment / SetTimeZone)\n"
