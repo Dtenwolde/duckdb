@@ -17,8 +17,9 @@ bool IsIdentifier(const string &pattern, const string &text) {
 unique_ptr<SQLStatement> PEGTransformerFactory::TransformRoot(PEGTransformer &transformer, ParseResult &parse_result) {
 	auto &choice_pr = parse_result.Cast<ChoiceParseResult>();
 	ParseResult *child_pr = &choice_pr.result.get();
-	return transformer.Transform(child_pr->name, *child_pr);
+	return transformer.Transform<unique_ptr<SQLStatement>>(*child_pr);
 }
+
 unique_ptr<QualifiedName> PEGTransformerFactory::TransformQualifiedName(vector<string> &root) {
 	auto result = make_uniq<QualifiedName>();
 	auto children_size = root.size();
@@ -53,7 +54,7 @@ vector<string> PEGTransformerFactory::TransformDottedIdentifier(reference<ListPa
 	return result;
 }
 
-unique_ptr<SetStatement> PEGTransformerFactory::TransformUseStatement(PEGTransformer &, ListParseResult &use_target) {
+unique_ptr<SQLStatement> PEGTransformerFactory::TransformUseStatement(PEGTransformer &, ListParseResult &use_target) {
 	if (use_target.type != ParseResultType::LIST) {
 		throw InternalException("Unknown parse result encountered in UseStatement");
 	}
@@ -110,7 +111,7 @@ SettingInfo TransformSetSetting(PEGTransformer &transformer, ParseResult &parse_
 	return result;
 }
 
-unique_ptr<SetStatement> PEGTransformerFactory::TransformSetStatement(PEGTransformer &transformer, ChoiceParseResult &choice_pr) {
+unique_ptr<SQLStatement> PEGTransformerFactory::TransformSetStatement(PEGTransformer &transformer, ChoiceParseResult &choice_pr) {
     string setting_name;
     unique_ptr<ParsedExpression> value_expr;
     SetScope scope = SetScope::AUTOMATIC; // Default scope
@@ -137,7 +138,7 @@ unique_ptr<SetStatement> PEGTransformerFactory::TransformSetStatement(PEGTransfo
     return make_uniq<SetVariableStatement>(setting_name, std::move(value_expr), scope);
 }
 
-unique_ptr<SetStatement> PEGTransformerFactory::TransformResetStatement(PEGTransformer &transformer, ChoiceParseResult &choice_pr) {
+unique_ptr<SQLStatement> PEGTransformerFactory::TransformResetStatement(PEGTransformer &transformer, ChoiceParseResult &choice_pr) {
 	string setting_name;
 	SetScope scope = SetScope::AUTOMATIC;
 	TransformSettingOrVariable(transformer, choice_pr, setting_name, scope);
@@ -145,9 +146,9 @@ unique_ptr<SetStatement> PEGTransformerFactory::TransformResetStatement(PEGTrans
 }
 
 PEGTransformerFactory::PEGTransformerFactory(const char *grammar) : parser(grammar) {
-	Register<ListParseResult, 1>("UseStatement", &TransformUseStatement);
-	Register<ChoiceParseResult, 1>("SetStatement", &TransformSetStatement);
-	Register<ChoiceParseResult, 1>("ResetStatement", &TransformResetStatement);
+	Register<unique_ptr<SQLStatement>, ListParseResult, 1>("UseStatement", &TransformUseStatement);
+	Register<unique_ptr<SQLStatement>, ChoiceParseResult, 1>("SetStatement", &TransformSetStatement);
+	Register<unique_ptr<SQLStatement>, ChoiceParseResult, 1>("ResetStatement", &TransformResetStatement);
 	Register("Root", &TransformRoot); // Note index is 0
 
 	RegisterEnum<SetScope>("SettingScope", {
@@ -275,7 +276,7 @@ ParseResult *PEGTransformer::MatchRule(const PEGExpression &expression) {
 									param_expr.expressions.size());
 		}
 
-		unordered_map<string_t, const PEGExpression *> substitutions;
+		string_map_t<const PEGExpression *> substitutions;
 		for (const auto &param_entry : template_rule.parameters) {
 			auto param_name = param_entry.first;
 			const idx_t param_index = param_entry.second;
@@ -306,13 +307,31 @@ ParseResult *PEGTransformer::MatchRule(const string_t &rule_name) {
 	return MatchRule(*it->second.expression);
 }
 
-unique_ptr<SQLStatement> PEGTransformer::Transform(const string_t &rule_name, ParseResult &matched_parse_result) {
-	auto it = transform_functions.find(rule_name.GetString());
+template <typename T>
+T PEGTransformer::Transform(ParseResult &parse_result) {
+	// 1. Look up the type-erased function from the map using the rule's name.
+	auto it = transform_functions.find(parse_result.name);
 	if (it == transform_functions.end()) {
-		throw InternalException("No SQL transformer dispatch function found for rule '%s'", rule_name.GetString());
+		throw InternalException("No transformer function found for rule '%s'", parse_result.name);
 	}
-	Printer::PrintF("Matching rule: %s", rule_name.GetString());
-	return it->second(*this, matched_parse_result);
+	auto &func = it->second;
+
+	// 2. Call the function, which returns a unique_ptr to the generic base class wrapper.
+	unique_ptr<TransformResultValue> base_result = func(*this, parse_result);
+	if (!base_result) {
+		throw InternalException("Transformer for rule '%s' returned a nullptr.", parse_result.name);
+	}
+
+	// 3. Use dynamic_cast to safely downcast the generic pointer to the specific
+	//    wrapper type we expect (e.g., TypedTransformResult<SettingInfo>).
+	//    dynamic_cast is the C++11 way to do this safely; it returns nullptr on failure.
+	auto *typed_result_ptr = dynamic_cast<TypedTransformResult<T> *>(base_result.get());
+	if (!typed_result_ptr) {
+		throw InternalException("Transformer for rule '" + parse_result.name + "' returned an unexpected type.");
+	}
+
+	// 4. Move the strongly-typed value out of the wrapper and return it.
+	return std::move(typed_result_ptr->value);
 }
 
 template<typename T>
@@ -333,15 +352,17 @@ T PEGTransformer::TransformEnum(ParseResult &parse_result) {
 	}
 
 	// 4. Cast the found integer back to the strong enum type and return it.
-	return static_cast<>(it->second);
+	return static_cast<T>(it->second);
 }
 
 unique_ptr<SQLStatement> PEGTransformerFactory::Transform(vector<MatcherToken> &tokens, const char *root_rule) {
 	ArenaAllocator allocator(Allocator::DefaultAllocator());
 	PEGTransformerState state(tokens);
+	string token_stream;
 	for (auto &token : tokens) {
-		Printer::PrintF("%s", token.text);
+		token_stream += token.text + " ";
 	}
+	Printer::PrintF("Tokens: %s", token_stream.c_str());
 	PEGTransformer transformer(allocator, state, sql_transform_functions, parser.rules, enum_mappings);
 	ParseResult *root_parse_result = transformer.MatchRule(root_rule);
 	if (!root_parse_result) {
@@ -351,7 +372,8 @@ unique_ptr<SQLStatement> PEGTransformerFactory::Transform(vector<MatcherToken> &
 	if (state.token_index < tokens.size()) {
 		throw ParserException("Failed to parse string: Unconsumed tokens remaining.");
 	}
-	return transformer.Transform(root_rule, *root_parse_result);
+	root_parse_result->name = root_rule;
+	return transformer.Transform<unique_ptr<SQLStatement>>(*root_parse_result);
 }
 
 } // namespace duckdb
