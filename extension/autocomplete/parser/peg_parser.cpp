@@ -1,6 +1,5 @@
 #include "parser/peg_parser.hpp"
 
-#include "duckdb/common/printer.hpp"
 #include "duckdb/common/string_util.hpp"
 
 namespace duckdb {
@@ -174,6 +173,7 @@ void PEGParser::ParseRules(const char *grammar) {
 				c++;
 				PEGToken token;
 				token.text = string(grammar + rule_start, c - rule_start);
+				// Transform to Identifier for now.
 				token.type = PEGTokenType::IDENTIFIER;
 				rule.tokens.push_back(token);
 			} else if (IsPEGOperator(grammar[c])) {
