@@ -23,37 +23,44 @@ struct PEGTransformerState {
 
 class PEGTransformer {
 public:
-    // The core dispatch function type. It now returns a unique_ptr to solve the ownership issue.
-    using TransformDispatchFunction = std::function<unique_ptr<SQLStatement>(PEGTransformer&, ParseResult&)>;
+	// The core dispatch function type. It now returns a unique_ptr to solve the ownership issue.
+	using TransformDispatchFunction = std::function<unique_ptr<SQLStatement>(PEGTransformer &, ParseResult &)>;
 
-    PEGTransformer(ArenaAllocator &allocator, PEGTransformerState &state,
-                   const case_insensitive_map_t<TransformDispatchFunction> &transform_functions,
-                   const case_insensitive_map_t<PEGRule> &grammar_rules)
-        : allocator(allocator), state(state), transform_functions(transform_functions), grammar_rules(grammar_rules) {
-    }
+	PEGTransformer(ArenaAllocator &allocator, PEGTransformerState &state,
+	               const case_insensitive_map_t<TransformDispatchFunction> &transform_functions,
+	               const case_insensitive_map_t<PEGRule> &grammar_rules,
+	               const string_map_t<string_map_t<int16_t>> &enum_mappings)
+	    : allocator(allocator), state(state), transform_functions(transform_functions), grammar_rules(grammar_rules), enum_mappings(enum_mappings) {
+	}
 
 public:
-    // The main entry point to transform a matched rule. Returns ownership of the statement.
-    unique_ptr<SQLStatement> Transform(const string_t &rule_name, ParseResult &matched_parse_result);
+	// The main entry point to transform a matched rule. Returns ownership of the statement.
+	unique_ptr<SQLStatement> Transform(const string_t &rule_name, ParseResult &matched_parse_result);
 	const PEGExpression *FindSubstitution(const string_t &name);
 
-    // Core PEG Parser function. Returns a raw pointer owned by the ArenaAllocator.
-    ParseResult *MatchRule(const string_t &rule_name);
-    ParseResult *MatchRule(const PEGExpression &expression);
+	template <typename T>
+	T TransformEnum(ParseResult &parse_result);
 
-    // Make overloads return raw pointers, as ownership is handled by the ArenaAllocator.
-    template<class T, typename... Args>
-    T* Make(Args&&... args) {
-        return allocator.Make<T>(std::forward<Args>(args)...);
-    }
+	template<typename T>
+	T Transform(ParseResult &parse_result);
+
+	ParseResult *MatchRule(const string_t &rule_name);
+	ParseResult *MatchRule(const PEGExpression &expression);
+
+	// Make overloads return raw pointers, as ownership is handled by the ArenaAllocator.
+	template <class T, typename... Args>
+	T *Make(Args &&...args) {
+		return allocator.Make<T>(std::forward<Args>(args)...);
+	}
 
 public:
-    ArenaAllocator &allocator;
-    PEGTransformerState &state;
+	ArenaAllocator &allocator;
+	PEGTransformerState &state;
+	const string_map_t<string_map_t<int16_t>> &enum_mappings;
 
 private:
-    const case_insensitive_map_t<TransformDispatchFunction> &transform_functions;
-    const case_insensitive_map_t<PEGRule> &grammar_rules;
+	const case_insensitive_map_t<TransformDispatchFunction> &transform_functions;
+	const case_insensitive_map_t<PEGRule> &grammar_rules;
 	// The substitution stack for handling nested parameterized rule calls.
 	vector<unordered_map<string_t, const PEGExpression *>> substitution_stack;
 };
@@ -73,6 +80,14 @@ private:
 	void Register(const string &rule_name, FUNC function) {
 		sql_transform_functions[rule_name] = function;
 	}
+
+	template <typename T>
+	void RegisterEnum(const string_t &rule_name, const string_map_t<T> &mapping) {
+		for (const auto &pair : mapping) {
+			enum_mappings[rule_name][pair.first] = static_cast<int16_t>(pair.second);
+		}
+	}
+
 
     // Register for functions taking one ParseResult child
     template <class A, idx_t INDEX_A, class FUNC>
@@ -101,14 +116,15 @@ private:
     static unique_ptr<SetStatement> TransformUseStatement(PEGTransformer&, ListParseResult &identifier_pr);
 	static unique_ptr<SetStatement> TransformSetStatement(PEGTransformer&, ChoiceParseResult &choice_pr);
 	static unique_ptr<SetStatement> TransformResetStatement(PEGTransformer &, ChoiceParseResult &choice_pr);
-
 	static unique_ptr<QualifiedName> TransformQualifiedName(vector<string> &root);
+	static void TransformSettingOrVariable(PEGTransformer& transformer, ChoiceParseResult &variable_or_setting, string &setting_name, SetScope &scope);
 
 	static vector<string> TransformDottedIdentifier(reference<ListParseResult> root);
 
 private:
     PEGParser parser;
 	case_insensitive_map_t<PEGTransformer::TransformDispatchFunction> sql_transform_functions;
+	string_map_t<string_map_t<int16_t>> enum_mappings;
 };
 
 // Helper struct for qualified names.

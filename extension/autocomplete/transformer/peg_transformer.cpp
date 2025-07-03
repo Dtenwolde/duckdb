@@ -1,4 +1,6 @@
 #include "transformer/peg_transformer.hpp"
+
+#include "ast/set_info.hpp"
 #include "duckdb/parser/statement/set_statement.hpp"
 #include "duckdb/parser/expression/constant_expression.hpp"
 #include "duckdb/common/exception/binder_exception.hpp"
@@ -13,8 +15,8 @@ bool IsIdentifier(const string &pattern, const string &text) {
 
 // This function correctly dispatches to the appropriate sub-transformer.
 unique_ptr<SQLStatement> PEGTransformerFactory::TransformRoot(PEGTransformer &transformer, ParseResult &parse_result) {
-	auto &list_pr = parse_result.Cast<ChoiceParseResult>();
-	ParseResult *child_pr = &list_pr.result.get();
+	auto &choice_pr = parse_result.Cast<ChoiceParseResult>();
+	ParseResult *child_pr = &choice_pr.result.get();
 	return transformer.Transform(child_pr->name, *child_pr);
 }
 unique_ptr<QualifiedName> PEGTransformerFactory::TransformQualifiedName(vector<string> &root) {
@@ -72,21 +74,7 @@ unique_ptr<SetStatement> PEGTransformerFactory::TransformUseStatement(PEGTransfo
 	return make_uniq<SetVariableStatement>("schema", std::move(name_expr), SetScope::AUTOMATIC);
 }
 
-SetScope GetSettingScope(optional_ptr<ParseResult> &parse_result) {
-	auto choice_pr = parse_result->Cast<ChoiceParseResult>();
-	if (choice_pr.selected_idx == 0) {
-		return SetScope::LOCAL;
-	}
-	if (choice_pr.selected_idx == 1) {
-		return SetScope::SESSION;
-	}
-	if (choice_pr.selected_idx == 2) {
-		return SetScope::GLOBAL;
-	}
-	throw ParserException("Unexpected choice selected");
-}
-
-void TransformSettingOrVariable(ChoiceParseResult &variable_or_setting, string &setting_name, SetScope &scope) {
+void PEGTransformerFactory::TransformSettingOrVariable(PEGTransformer& transformer, ChoiceParseResult &variable_or_setting, string &setting_name, SetScope &scope) {
 	if (variable_or_setting.selected_idx == 0) {
 		// Case: SetVariable <- 'VARIABLE'i Identifier
 		auto &set_variable = variable_or_setting.result.get().Cast<ListParseResult>();
@@ -98,7 +86,7 @@ void TransformSettingOrVariable(ChoiceParseResult &variable_or_setting, string &
 		auto &setting_scope_pr = set_setting.Child<OptionalParseResult>(0);
 
 		if (setting_scope_pr.optional_result) {
-			scope = GetSettingScope(setting_scope_pr.optional_result);
+			scope = transformer.TransformEnum<SetScope>(*setting_scope_pr.optional_result);
 		}
 		setting_name = set_setting.Child<IdentifierParseResult>(1).identifier;
 	} else {
@@ -106,7 +94,23 @@ void TransformSettingOrVariable(ChoiceParseResult &variable_or_setting, string &
 	}
 }
 
-unique_ptr<SetStatement> PEGTransformerFactory::TransformSetStatement(PEGTransformer &, ChoiceParseResult &choice_pr) {
+SettingInfo TransformSetSetting(PEGTransformer &transformer, ParseResult &parse_result) {
+	auto &list_pr = parse_result.Cast<ListParseResult>();
+	auto &optional_scope_pr = list_pr.Child<OptionalParseResult>(0);
+	auto &identifier_pr = list_pr.Child<IdentifierParseResult>(1);
+
+	SettingInfo result; // `result.scope` is already AUTOMATIC
+	result.name = identifier_pr.identifier;
+
+	if (optional_scope_pr.optional_result) {
+		// A scope was provided, so we overwrite the default.
+		result.scope = transformer.Transform<SetScope>(*optional_scope_pr.optional_result);
+	}
+
+	return result;
+}
+
+unique_ptr<SetStatement> PEGTransformerFactory::TransformSetStatement(PEGTransformer &transformer, ChoiceParseResult &choice_pr) {
     string setting_name;
     unique_ptr<ParsedExpression> value_expr;
     SetScope scope = SetScope::AUTOMATIC; // Default scope
@@ -116,14 +120,9 @@ unique_ptr<SetStatement> PEGTransformerFactory::TransformSetStatement(PEGTransfo
         auto &standard_assignment = choice_pr.result.get().Cast<ListParseResult>();
         auto &set_assignment = standard_assignment.Child<ListParseResult>(1);
         auto &variable_or_setting = standard_assignment.Child<ChoiceParseResult>(0);
-		TransformSettingOrVariable(variable_or_setting, setting_name, scope);
-        // The SetAssignment rule is: SetAssignment <- ('=' / 'TO') Expression
-        // We need to transform the expression at index 1.
-        // TODO: This should call a generic expression transformer.
-        // For now, we'll assume it's an identifier and create a constant.
+		TransformSettingOrVariable(transformer, variable_or_setting, setting_name, scope);
         auto &value_identifier = set_assignment.Child<IdentifierParseResult>(1);
         value_expr = make_uniq<ConstantExpression>(Value(value_identifier.identifier));
-
     } else if (choice_pr.selected_idx == 1) {
         // Case: SetTimeZone <- 'TIME'i 'ZONE'i Expression
         throw NotImplementedException("SET TIME ZONE is not yet implemented.");
@@ -138,10 +137,10 @@ unique_ptr<SetStatement> PEGTransformerFactory::TransformSetStatement(PEGTransfo
     return make_uniq<SetVariableStatement>(setting_name, std::move(value_expr), scope);
 }
 
-unique_ptr<SetStatement> PEGTransformerFactory::TransformResetStatement(PEGTransformer &, ChoiceParseResult &choice_pr) {
+unique_ptr<SetStatement> PEGTransformerFactory::TransformResetStatement(PEGTransformer &transformer, ChoiceParseResult &choice_pr) {
 	string setting_name;
 	SetScope scope = SetScope::AUTOMATIC;
-	TransformSettingOrVariable(choice_pr, setting_name, scope);
+	TransformSettingOrVariable(transformer, choice_pr, setting_name, scope);
 	return make_uniq<ResetVariableStatement>(setting_name, scope);
 }
 
@@ -150,6 +149,12 @@ PEGTransformerFactory::PEGTransformerFactory(const char *grammar) : parser(gramm
 	Register<ChoiceParseResult, 1>("SetStatement", &TransformSetStatement);
 	Register<ChoiceParseResult, 1>("ResetStatement", &TransformResetStatement);
 	Register("Root", &TransformRoot); // Note index is 0
+
+	RegisterEnum<SetScope>("SettingScope", {
+	{"LocalScope", SetScope::LOCAL},
+	{"SessionScope", SetScope::SESSION},
+	{"GlobalScope", SetScope::GLOBAL},
+	{"VariableScope", SetScope::VARIABLE}});
 }
 
 const PEGExpression *PEGTransformer::FindSubstitution(const string_t &name) {
@@ -310,13 +315,34 @@ unique_ptr<SQLStatement> PEGTransformer::Transform(const string_t &rule_name, Pa
 	return it->second(*this, matched_parse_result);
 }
 
+template<typename T>
+T PEGTransformer::TransformEnum(ParseResult &parse_result) {
+	// 1. The result of a rule like "A / B / C" is a ChoiceParseResult.
+	auto &choice_pr = parse_result.Cast<ChoiceParseResult>();
+
+	// 2. We get the result of the sub-rule that actually matched (e.g., LocalScope).
+	auto &matched_rule_result = choice_pr.result.get();
+	const string& matched_rule_name = matched_rule_result.name;
+
+	// 3. We look up the name of the overall choice rule (e.g., "SettingScope")
+	//    and then the specific sub-rule name ("LocalScope") to find the integer value.
+	auto &rule_mapping = enum_mappings.at(parse_result.name);
+	auto it = rule_mapping.find(matched_rule_name);
+	if (it == rule_mapping.end()) {
+		throw ParserException("Enum transform failed: could not map rule '%s'", matched_rule_name);
+	}
+
+	// 4. Cast the found integer back to the strong enum type and return it.
+	return static_cast<>(it->second);
+}
+
 unique_ptr<SQLStatement> PEGTransformerFactory::Transform(vector<MatcherToken> &tokens, const char *root_rule) {
 	ArenaAllocator allocator(Allocator::DefaultAllocator());
 	PEGTransformerState state(tokens);
 	for (auto &token : tokens) {
 		Printer::PrintF("%s", token.text);
 	}
-	PEGTransformer transformer(allocator, state, sql_transform_functions, parser.rules);
+	PEGTransformer transformer(allocator, state, sql_transform_functions, parser.rules, enum_mappings);
 	ParseResult *root_parse_result = transformer.MatchRule(root_rule);
 	if (!root_parse_result) {
 		throw ParserException("Failed to parse string: No match found for root rule '%s'.", root_rule);
