@@ -3,6 +3,7 @@
 #include "tokenizer.hpp"
 #include "parse_result.hpp"
 #include "transform_result.hpp"
+#include "ast/set_info.hpp"
 #include "duckdb/parser/statement/set_statement.hpp"
 #include "parser/peg_parser.hpp"
 #include "duckdb/storage/arena_allocator.hpp"
@@ -84,12 +85,12 @@ private:
 		}
 	}
 
-
 	template <class FUNC>
 	void Register(const string &rule_name, FUNC function) {
-		sql_transform_functions[rule_name] = [function](PEGTransformer& transformer, ParseResult &parse_result) -> unique_ptr<TransformResultValue> {
-			unique_ptr<SQLStatement> result_value = function(transformer, parse_result);
-			return make_uniq<TypedTransformResult<unique_ptr<SQLStatement>>>(std::move(result_value));
+		sql_transform_functions[rule_name] =
+			[function](PEGTransformer &transformer, ParseResult &parse_result) -> unique_ptr<TransformResultValue> {
+				auto result_value = function(transformer, parse_result);
+				return make_uniq<TypedTransformResult<decltype(result_value)>>(std::move(result_value));
 		};
 	}
 
@@ -119,13 +120,21 @@ private:
 
 	static unique_ptr<SQLStatement> TransformRoot(PEGTransformer&, ParseResult &list);
 
-    static unique_ptr<SQLStatement> TransformUseStatement(PEGTransformer&, ListParseResult &identifier_pr);
-	static unique_ptr<SQLStatement> TransformSetStatement(PEGTransformer&, ChoiceParseResult &choice_pr);
-	static unique_ptr<SQLStatement> TransformResetStatement(PEGTransformer &, ChoiceParseResult &choice_pr);
-	static unique_ptr<QualifiedName> TransformQualifiedName(vector<string> &root);
-	static void TransformSettingOrVariable(PEGTransformer& transformer, ChoiceParseResult &variable_or_setting, string &setting_name, SetScope &scope);
+    static unique_ptr<SQLStatement> TransformUseStatement(PEGTransformer&, ParseResult &identifier_pr);
+	static unique_ptr<SQLStatement> TransformSetStatement(PEGTransformer&, ParseResult &choice_pr);
+	static unique_ptr<SQLStatement> TransformResetStatement(PEGTransformer &, ParseResult &choice_pr);
+	static QualifiedName TransformDottedIdentifier(PEGTransformer &transformer, ParseResult &parse_result);
+	static unique_ptr<SQLStatement> TransformDeleteStatement(PEGTransformer &transformer, ParseResult &parse_result);
 
-	static vector<string> TransformDottedIdentifier(reference<ListParseResult> root);
+	// Intermediate transforms returning semantic values
+	static unique_ptr<SQLStatement> TransformStandardAssignment(PEGTransformer &transformer, ParseResult &parse_result);
+	static SettingInfo TransformSettingOrVariable(PEGTransformer &transformer, ParseResult &parse_result);
+	static SettingInfo TransformSetSetting(PEGTransformer &transformer, ParseResult &parse_result);
+	static SettingInfo TransformSetVariable(PEGTransformer &transformer, ParseResult &parse_result);
+	static unique_ptr<ParsedExpression> TransformSetAssignment(PEGTransformer &transformer, ParseResult &parse_result);
+	static unique_ptr<ParsedExpression> TransformVariableList(PEGTransformer &transformer, ParseResult &parse_result);
+	static unique_ptr<ParsedExpression> TransformExpression(PEGTransformer &transformer, ParseResult &parse_result);
+
 
 private:
     PEGParser parser;
