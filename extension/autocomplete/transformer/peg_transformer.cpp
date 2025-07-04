@@ -109,11 +109,11 @@ unique_ptr<SQLStatement> PEGTransformerFactory::TransformDeleteStatement(PEGTran
 unique_ptr<SQLStatement> PEGTransformerFactory::TransformStandardAssignment(PEGTransformer &transformer, ParseResult &parse_result) {
 	// Composer: (SetVariable / SetSetting) SetAssignment
 	auto &list_pr = parse_result.Cast<ListParseResult>();
-	auto &setting_or_var_pr = list_pr.children[0];
+	auto &setting_or_var_pr = list_pr.children[0].get().Cast<ChoiceParseResult>();
 	auto &set_assignment_pr = list_pr.children[1];
 
 	// Delegate to get the parts
-	SettingInfo setting_info = transformer.Transform<SettingInfo>(setting_or_var_pr);
+	SettingInfo setting_info = transformer.Transform<SettingInfo>(setting_or_var_pr.result);
 	unique_ptr<ParsedExpression> value = transformer.Transform<unique_ptr<ParsedExpression>>(set_assignment_pr);
 
 	// Compose the final result
@@ -201,7 +201,9 @@ PEGTransformerFactory::PEGTransformerFactory(const char *grammar) : parser(gramm
 	RegisterEnum<SetScope>("SettingScope",
 						   {{"LocalScope", SetScope::LOCAL},
 							{"SessionScope", SetScope::SESSION},
-							{"GlobalScope", SetScope::GLOBAL}});
+							{"GlobalScope", SetScope::GLOBAL}
+						   });
+	RegisterEnum<SetScope>("VariableScope", {{"VariableScope", SetScope::VARIABLE}});
 }
 
 
@@ -335,7 +337,7 @@ ParseResult *PEGTransformer::MatchRule(const PEGExpression &expression) {
 		}
 
 		substitution_stack.push_back(substitutions);
-		ParseResult *result = MatchRule(*param_expr.expressions[0]);
+		ParseResult *result = MatchRule(*template_rule.expression);
 		substitution_stack.pop_back();
 
 		return result;
@@ -383,19 +385,24 @@ T PEGTransformer::Transform(ParseResult &parse_result) {
 
 template<typename T>
 T PEGTransformer::TransformEnum(ParseResult &parse_result) {
-	// 1. The result of a rule like "A / B / C" is a ChoiceParseResult.
-	auto &choice_pr = parse_result.Cast<ChoiceParseResult>();
+	string_t result;
+	if (parse_result.type == ParseResultType::CHOICE) {
+		auto &choice_pr = parse_result.Cast<ChoiceParseResult>();
+		auto &matched_rule_result = choice_pr.result.get();
+		result = matched_rule_result.name;
+	} else if (parse_result.type == ParseResultType::KEYWORD) {
+		auto &keyword_pr = parse_result.Cast<KeywordParseResult>();
+		result = keyword_pr.name;
+	}
 
 	// 2. We get the result of the sub-rule that actually matched (e.g., LocalScope).
-	auto &matched_rule_result = choice_pr.result.get();
-	const string& matched_rule_name = matched_rule_result.name;
 
 	// 3. We look up the name of the overall choice rule (e.g., "SettingScope")
 	//    and then the specific sub-rule name ("LocalScope") to find the integer value.
 	auto &rule_mapping = enum_mappings.at(parse_result.name);
-	auto it = rule_mapping.find(matched_rule_name);
+	auto it = rule_mapping.find(result);
 	if (it == rule_mapping.end()) {
-		throw ParserException("Enum transform failed: could not map rule '%s'", matched_rule_name);
+		throw ParserException("Enum transform failed: could not map rule '%s'", result.GetString());
 	}
 
 	// 4. Cast the found integer back to the strong enum type and return it.
