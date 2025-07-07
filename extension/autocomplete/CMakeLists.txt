@@ -9,7 +9,6 @@ set(AUTOCOMPLETE_EXTENSION_FILES
         keyword_helper.cpp
         keyword_map.cpp
         matcher.cpp
-        peg_parser_override.cpp
         tokenizer.cpp
 )
 

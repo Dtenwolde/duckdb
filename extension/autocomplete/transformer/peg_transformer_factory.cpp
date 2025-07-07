@@ -2,7 +2,7 @@
 
 namespace duckdb {
 
-unique_ptr<SQLStatement> PEGTransformerFactory::TransformRoot(PEGTransformer &transformer, ParseResult &parse_result) {
+unique_ptr<SQLStatement> PEGTransformerFactory::TransformStatement(PEGTransformer &transformer, ParseResult &parse_result) {
 	auto &choice_pr = parse_result.Cast<ChoiceParseResult>();
 	return transformer.Transform<unique_ptr<SQLStatement>>(choice_pr.result.get());
 }
@@ -30,7 +30,7 @@ unique_ptr<SQLStatement> PEGTransformerFactory::Transform(vector<MatcherToken> &
 
 PEGTransformerFactory::PEGTransformerFactory(const char *grammar) : parser(grammar) {
 	// Register all transform functions with their expected return types
-	Register("Root", &TransformRoot);
+	Register("Statement", &TransformStatement);
 	Register("UseStatement", &TransformUseStatement);
 	Register("DottedIdentifier", &TransformDottedIdentifier);
 	Register("SetStatement", &TransformSetStatement);

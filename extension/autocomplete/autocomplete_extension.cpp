@@ -702,7 +702,7 @@ static duckdb::unique_ptr<FunctionData> CheckPEGTransformerBind(ClientContext &c
        }
 
         try {
-            unique_ptr<SQLStatement> result = factory.Transform(tokens, "Root");
+            unique_ptr<SQLStatement> result = factory.Transform(tokens, "Statement");
         	Printer::PrintF("%s", result->ToString());
         } catch (const std::exception &e) {
             // If parsing or transforming fails, it will throw an exception.

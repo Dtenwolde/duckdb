@@ -75,7 +75,7 @@ public:
     explicit PEGTransformerFactory(const char *grammar);
 
     // Transforms a sequence of tokens into a SQL statement.
-    unique_ptr<SQLStatement> Transform(vector<MatcherToken> &tokens, const char* root_rule = "Root");
+    unique_ptr<SQLStatement> Transform(vector<MatcherToken> &tokens, const char* root_rule = "Statement");
 
 private:
 	template <typename T>
@@ -118,7 +118,7 @@ private:
     }
     // ... Add more overloads for 3, 4, etc., arguments as needed.
 
-	static unique_ptr<SQLStatement> TransformRoot(PEGTransformer&, ParseResult &list);
+	static unique_ptr<SQLStatement> TransformStatement(PEGTransformer&, ParseResult &list);
 
     static unique_ptr<SQLStatement> TransformUseStatement(PEGTransformer&, ParseResult &identifier_pr);
 	static unique_ptr<SQLStatement> TransformSetStatement(PEGTransformer&, ParseResult &choice_pr);
