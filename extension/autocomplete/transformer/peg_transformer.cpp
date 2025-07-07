@@ -147,6 +147,21 @@ ParseResult *PEGTransformer::MatchRule(const PEGExpression &expression) {
 
 		return result;
 	}
+	case PEGExpressionType::NOT_PREDICATE: {
+		auto &not_expr = expression.Cast<PEGNotPredicateExpression>();
+		// Attempt to match the child expression.
+		ParseResult *child_res = MatchRule(*not_expr.expression);
+		// Crucially, always reset the token index. Predicates do not consume input.
+		state.token_index = initial_token_index;
+		// The NOT predicate succeeds if its child FAILS to match.
+		if (!child_res) {
+			// Return a non-null result to signal success without consuming tokens.
+			// An empty list is perfect for this "successful empty match".
+			return Make<ListParseResult>(vector<reference<ParseResult>>());
+		}
+		// The child matched, so the NOT predicate fails.
+		return nullptr;
+	}
 	default:
 		throw InternalException("Unimplemented PEG expression type for matching.");
 	}

@@ -1,15 +1,16 @@
-#include "include/peg_parser_override.hpp"
-#include "include/tokenizer.hpp"
+#include "../include/peg_parser_override.hpp"
+#include "../include/tokenizer.hpp"
 #include "duckdb/common/exception/binder_exception.hpp"
-#include "include/inlined_grammar.hpp"
+#include "../include/inlined_grammar.hpp"
 
 namespace duckdb {
 struct MatcherToken;
 
 PEGParserOverride::PEGParserOverride() {
+/*
 	const char grammar[] = {
 		"List(D) <- D (',' D)* ','?\n"
-		"Root <- UseStatement / DeleteStatement / SetStatement / ResetStatement\n"
+		"Statement <- UseStatement / DeleteStatement / SetStatement / ResetStatement\n"
 		"UseStatement <- 'USE'i DottedIdentifier\n"
 		"DeleteStatement <- 'DELETE'i Identifier\n"
 		"UseTarget <- DottedIdentifier\n"
@@ -33,6 +34,7 @@ PEGParserOverride::PEGParserOverride() {
 		"Identifier <- [a-z_A-Z]\n"
 	};
 
+	*/
 	/*const char grammar[] = {
 		"List(D) <- D (',' D)* ','?\n"
 		"Parens(D) <- '(' D ')'\n"
@@ -46,7 +48,7 @@ PEGParserOverride::PEGParserOverride() {
 	};
 	*/
 
-	// auto grammar = const_char_ptr_cast(INLINED_PEG_GRAMMAR);
+	auto grammar = const_char_ptr_cast(INLINED_PEG_GRAMMAR);
 	factory = make_uniq<PEGTransformerFactory>(grammar);
 }
 
@@ -64,7 +66,7 @@ vector<unique_ptr<SQLStatement>> PEGParserOverride::Parse(const string &query) {
 			if (tokenized_statement.empty()) {
 				continue;
 			}
-			auto statement = factory->Transform(tokenizer.statements[0], "Root");
+			auto statement = factory->Transform(tokenizer.statements[0], "Statement");
 			result.push_back(std::move(statement));
 		}
 		return result;

@@ -1,4 +1,7 @@
 namespace duckdb {
+
+
+
 QualifiedName PEGTransformerFactory::TransformDottedIdentifier(PEGTransformer &, ParseResult &parse_result) {
 	// Rule: Identifier ('.' Identifier)*
 	auto &list_pr = parse_result.Cast<ListParseResult>();

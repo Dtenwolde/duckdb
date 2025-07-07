@@ -1122,8 +1122,7 @@ const char INLINED_PEG_GRAMMAR[] = {
 	"AttachAlias <- 'AS'i ColId\n"
 	"AttachOptions <- Parens(GenericCopyOptionList)\n"
 	"DetachStatement <- 'DETACH'i Database? IfExists? CatalogName\n"
-	"UseStatement <- 'USE'i UseTarget\n"
-	"UseTarget <- (CatalogName '.' SchemaName) / SchemaName / CatalogName\n"
+	"UseStatement <- 'USE'i DottedIdentifier\n"
 	"CallStatement <- 'CALL'i TableFunctionName TableFunctionArguments\n"
 
 };

@@ -1280,9 +1280,7 @@ AttachOptions <- Parens(GenericCopyOptionList)
 
 DetachStatement <- 'DETACH'i Database? IfExists? CatalogName
 
-UseStatement <- 'USE'i UseTarget
-
-UseTarget <- (CatalogName '.' SchemaName) / SchemaName / CatalogName
+UseStatement <- 'USE'i DottedIdentifier
 
 CallStatement <- 'CALL'i TableFunctionName TableFunctionArguments
 
