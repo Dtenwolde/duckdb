@@ -8,9 +8,6 @@
 
 namespace duckdb {
 
-bool IsIdentifier(const string &pattern, const string &text) {
-	return true;
-}
 
 const PEGExpression *PEGTransformer::FindSubstitution(const string_t &name) {
 	// Search from the inside out (most recent call)

@@ -1,5 +1,8 @@
 namespace duckdb {
 
+bool PEGTransformerFactory::IsIdentifier(const string &pattern, const string &text) {
+	return true;
+}
 
 
 QualifiedName PEGTransformerFactory::TransformDottedIdentifier(PEGTransformer &, ParseResult &parse_result) {
