@@ -93,10 +93,10 @@ unique_ptr<SQLStatement> PEGTransformerFactory::TransformSetStatement(PEGTransfo
 unique_ptr<SQLStatement> PEGTransformerFactory::TransformResetStatement(PEGTransformer &transformer, ParseResult &parse_result) {
 	// Composer: 'RESET' (SetVariable / SetSetting)
 	auto &list_pr = parse_result.Cast<ListParseResult>();
-	auto &child_pr = list_pr.children[1];
+	auto &child_pr = list_pr.children[1].get().Cast<ChoiceParseResult>();
 
 	// Delegate to get the setting info, then create the Reset statement
-	SettingInfo setting_info = transformer.Transform<SettingInfo>(child_pr);
+	SettingInfo setting_info = transformer.Transform<SettingInfo>(child_pr.result);
 	return make_uniq<ResetVariableStatement>(setting_info.name, setting_info.scope);
 }
 
