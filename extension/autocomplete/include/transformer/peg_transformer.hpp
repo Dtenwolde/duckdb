@@ -136,6 +136,8 @@ private:
 	static unique_ptr<ParsedExpression> TransformExpression(PEGTransformer &transformer, ParseResult &parse_result);
 
 
+	static bool IsIdentifier(const string &pattern, const string &text);
+
 private:
     PEGParser parser;
 	case_insensitive_map_t<PEGTransformer::AnyTransformFunction> sql_transform_functions;
