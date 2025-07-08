@@ -21,6 +21,64 @@ const PEGExpression *PEGTransformer::FindSubstitution(const string_t &name) {
 	return nullptr;
 }
 
+
+bool IsValidIdentifier(const string &text) {
+	if (text.empty()) {
+		return false;
+	}
+	if (!StringUtil::CharacterIsAlpha(text[0]) && text[0] != '_') {
+		return false;
+	}
+	for (size_t i = 1; i < text.length(); ++i) {
+		if (!StringUtil::CharacterIsAlphaNumeric(text[i]) && text[i] != '_') {
+			return false;
+		}
+	}
+	return true;
+}
+
+bool IsValidNumber(const string &text) {
+	if (text.empty()) {
+		return false;
+	}
+	for (char c : text) {
+		if (!StringUtil::CharacterIsDigit(c) && c != '.' && c != '+' && c != '-') {
+			return false;
+		}
+	}
+	return true;
+}
+
+bool IsValidOperator(const string &text) {
+	if (text.empty()) {
+		return false;
+	}
+	for (auto &c : text) {
+		switch (c) {
+		case '+':
+		case '-':
+		case '*':
+		case '/':
+		case '%':
+		case '^':
+		case '<':
+		case '>':
+		case '=':
+		case '~':
+		case '!':
+		case '@':
+		case '&':
+		case '|':
+			break;
+		default:
+			return false;
+		}
+	}
+	return true;
+}
+
+
+
 ParseResult *PEGTransformer::MatchRule(const PEGExpression &expression) {
 	idx_t initial_token_index = state.token_index;
 	Printer::PrintF("Matching rule type: %d", expression.type);
@@ -89,9 +147,9 @@ ParseResult *PEGTransformer::MatchRule(const PEGExpression &expression) {
 			return nullptr;
 		}
 		auto &token = state.tokens[state.token_index];
-		if (token.type == TokenType::WORD && IsIdentifier(regex_expr.identifier, token.text)) {
+		if (token.type == TokenType::WORD) {
 			state.token_index++;
-			Printer::PrintF("Found an identifier expression");
+			Printer::PrintF("Found an identifier expression, %s", token.text.c_str());
 			return Make<IdentifierParseResult>(token.text);
 		}
 		return nullptr;
@@ -157,6 +215,17 @@ ParseResult *PEGTransformer::MatchRule(const PEGExpression &expression) {
 			return Make<ListParseResult>(vector<reference<ParseResult>>());
 		}
 		// The child matched, so the NOT predicate fails.
+		return nullptr;
+	}
+	case PEGExpressionType::NUMBER: {
+		if (state.token_index >= state.tokens.size()) {
+			return nullptr;
+		}
+		auto &token = state.tokens[state.token_index];
+		if (token.type == TokenType::WORD && IsValidNumber(token.text)) {
+			state.token_index++;
+			return Make<NumberParseResult>(token.text);
+		}
 		return nullptr;
 	}
 	default:

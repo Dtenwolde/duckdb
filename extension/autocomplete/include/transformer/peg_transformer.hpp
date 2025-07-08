@@ -32,8 +32,8 @@ public:
 				   const case_insensitive_map_t<AnyTransformFunction> &transform_functions,
 				   const case_insensitive_map_t<PEGRule> &grammar_rules,
 				   const string_map_t<string_map_t<int16_t>> &enum_mappings)
-		: allocator(allocator), state(state), grammar_rules(grammar_rules), transform_functions(transform_functions),
-		  enum_mappings(enum_mappings) {
+		: allocator(allocator), state(state), enum_mappings(enum_mappings), grammar_rules(grammar_rules),
+			transform_functions(transform_functions) {
 	}
 
 public:
@@ -62,8 +62,8 @@ public:
 	const string_map_t<string_map_t<int16_t>> &enum_mappings;
 
 private:
-	const case_insensitive_map_t<AnyTransformFunction> &transform_functions;
 	const case_insensitive_map_t<PEGRule> &grammar_rules;
+	const case_insensitive_map_t<AnyTransformFunction> &transform_functions;
 	// The substitution stack for handling nested parameterized rule calls.
 	vector<string_map_t<const PEGExpression *>> substitution_stack;
 };
@@ -134,10 +134,14 @@ private:
 	static unique_ptr<ParsedExpression> TransformSetAssignment(PEGTransformer &transformer, ParseResult &parse_result);
 	static unique_ptr<ParsedExpression> TransformVariableList(PEGTransformer &transformer, ParseResult &parse_result);
 	static unique_ptr<ParsedExpression> TransformExpression(PEGTransformer &transformer, ParseResult &parse_result);
+	static unique_ptr<ParsedExpression> TransformBaseExpression(PEGTransformer &, ParseResult& parse_result);
+	static unique_ptr<ParsedExpression> TransformSingleExpression(PEGTransformer &transformer, ParseResult &parse_result);
+	static unique_ptr<ParsedExpression> TransformLiteralExpression(PEGTransformer &transformer, ParseResult &parse_result);
+	static unique_ptr<ParsedExpression> TransformColumnReference(PEGTransformer &transformer, ParseResult &parse_result);
+	static string TransformOperator(PEGTransformer &transformer, ParseResult &parse_result);
+	static string TransformIdentifierOrKeyword(PEGTransformer &transformer, ParseResult &parse_result);
 
-
-	static bool IsIdentifier(const string &pattern, const string &text);
-
+	static string TransformNumberLiteral(PEGTransformer &transformer, ParseResult &parse_result);
 private:
     PEGParser parser;
 	case_insensitive_map_t<PEGTransformer::AnyTransformFunction> sql_transform_functions;
