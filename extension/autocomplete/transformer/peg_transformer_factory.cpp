@@ -44,11 +44,32 @@ PEGTransformerFactory::PEGTransformerFactory(const char *grammar) : parser(gramm
 	// Dispatchers that return semantic structs/values
 	Register("SettingOrVariable", &TransformSettingOrVariable);
 	Register("VariableList", &TransformVariableList);
+
 	Register("Expression", &TransformExpression);
+	Register("BaseExpression", &TransformBaseExpression);
+	Register("SingleExpression", &TransformSingleExpression);
+
+
+	Register("LiteralExpression", &TransformLiteralExpression);
+	Register("ColumnReference", &TransformColumnReference);
+	Register("NumberLiteral", &TransformNumberLiteral);
 
 	// Leaf transformers that return semantic structs/values
 	Register("SetSetting", &TransformSetSetting);
 	Register("SetVariable", &TransformSetVariable);
+
+	Register("DottedIdentifier", &TransformDottedIdentifier);
+	Register("ColId", &TransformIdentifierOrKeyword);
+	Register("ColLabel", &TransformIdentifierOrKeyword);
+	Register("Identifier", &TransformIdentifierOrKeyword);
+	Register("PlainIdentifier", &TransformIdentifierOrKeyword);
+	Register("QuotedIdentifier", &TransformIdentifierOrKeyword);
+	Register("ReservedKeyword", &TransformIdentifierOrKeyword);
+	Register("UnreservedKeyword", &TransformIdentifierOrKeyword);
+	Register("ColumnNameKeyword", &TransformIdentifierOrKeyword);
+	Register("FuncNameKeyword", &TransformIdentifierOrKeyword);
+	Register("TypeNameKeyword", &TransformIdentifierOrKeyword);
+	Register("SettingName", &TransformIdentifierOrKeyword);
 
 	// Enum registration
 	RegisterEnum<SetScope>("SettingScope",

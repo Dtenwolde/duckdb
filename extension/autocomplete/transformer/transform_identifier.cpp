@@ -1,24 +1,55 @@
 namespace duckdb {
 
-bool PEGTransformerFactory::IsIdentifier(const string &pattern, const string &text) {
-	return true;
+string PEGTransformerFactory::TransformNumberLiteral(PEGTransformer &transformer, ParseResult &parse_result) {
+	throw NotImplementedException("TransformerFactory::TransformNumberLiteral");
 }
 
+string PEGTransformerFactory::TransformIdentifierOrKeyword(PEGTransformer &transformer, ParseResult &parse_result) {
+	if (parse_result.type == ParseResultType::IDENTIFIER) {
+		// Base case: It's a plain or quoted identifier.
+		return parse_result.Cast<IdentifierParseResult>().identifier;
+	}
+	if (parse_result.type == ParseResultType::KEYWORD) {
+		// Base case: It's a keyword that can be used as an identifier.
+		return parse_result.Cast<KeywordParseResult>().keyword;
+	}
+	if (parse_result.type == ParseResultType::CHOICE) {
+		// It's a choice between other rules (e.g., ColId <- UnreservedKeyword / Identifier).
+		// We unwrap the choice and recursively transform the result.
+		auto &choice_pr = parse_result.Cast<ChoiceParseResult>();
+		return transformer.Transform<string>(choice_pr.result.get());
+	}
+	if (parse_result.type == ParseResultType::LIST) {
+		auto &list_pr = parse_result.Cast<ListParseResult>();
+		// Find the meaningful child in the list. Predicates produce empty lists,
+		// so we look for the non-empty result.
+		for (auto &child : list_pr.children) {
+			if (child.get().type == ParseResultType::LIST && child.get().Cast<ListParseResult>().children.empty()) {
+				// This is an empty list from a successful predicate, ignore it.
+				continue;
+			}
+			// This is the actual result (e.g., the IdentifierParseResult).
+			// Recursively transform it to get the final string.
+			return child.get().Cast<IdentifierParseResult>().identifier;
+		}
+	}
+	throw ParserException("Unexpected ParseResult type in identifier transformation.");
+}
 
-QualifiedName PEGTransformerFactory::TransformDottedIdentifier(PEGTransformer &, ParseResult &parse_result) {
-	// Rule: Identifier ('.' Identifier)*
+QualifiedName PEGTransformerFactory::TransformDottedIdentifier(PEGTransformer &transformer, ParseResult &parse_result) {
+	// Rule: ColId ('.' ColLabel)*
 	auto &list_pr = parse_result.Cast<ListParseResult>();
 	vector<string> parts;
 
-	// Add the first identifier
-	parts.push_back(list_pr.Child<IdentifierParseResult>(0).identifier);
+	auto &col_id_pr = list_pr.children[0].get();
+	parts.push_back(transformer.Transform<string>(col_id_pr));
 
-	// Add the rest of the identifiers from the optional repetition
 	auto &repetition_list = list_pr.Child<ListParseResult>(1);
 	for (auto &child_ref : repetition_list.children) {
-		// Each child in the repetition is a ListParseResult from the sequence "'.' Identifier"
+		// Each child is a sequence: "'.' ColLabel"
 		auto &sub_list = child_ref.get().Cast<ListParseResult>();
-		parts.push_back(sub_list.Child<IdentifierParseResult>(1).identifier);
+		auto &col_label_pr = sub_list.children[1].get();
+		parts.push_back(transformer.Transform<string>(col_label_pr));
 	}
 
 	QualifiedName result;
