@@ -22,7 +22,8 @@ enum class PEGExpressionType {
 	NOT_PREDICATE,
 	IDENTIFIER,
 	REGEX,
-	PARAMETERIZED_RULE
+	PARAMETERIZED_RULE,
+	NUMBER
 };
 
 struct PEGExpression {
@@ -40,60 +41,68 @@ struct PEGExpression {
 	PEGExpressionType type;
 };
 
-// ... other expression types are unchanged ...
 struct PEGKeywordExpression : PEGExpression {
 	explicit PEGKeywordExpression(string keyword_p)
 	    : PEGExpression(PEGExpressionType::KEYWORD), keyword(std::move(keyword_p)) {
 	}
 	string keyword;
 };
+
 struct PEGRuleReferenceExpression : PEGExpression {
 	explicit PEGRuleReferenceExpression(string rule_name_p)
 	    : PEGExpression(PEGExpressionType::RULE_REFERENCE), rule_name(std::move(rule_name_p)) {
 	}
 	string rule_name;
 };
+
 struct PEGSequenceExpression : PEGExpression {
 	explicit PEGSequenceExpression(vector<unique_ptr<PEGExpression>> children_p)
 	    : PEGExpression(PEGExpressionType::SEQUENCE), expressions(std::move(children_p)) {
 	}
 	vector<unique_ptr<PEGExpression>> expressions;
 };
+
 struct PEGChoiceExpression : PEGExpression {
 	explicit PEGChoiceExpression(vector<unique_ptr<PEGExpression>> children_p)
 	    : PEGExpression(PEGExpressionType::CHOICE), expressions(std::move(children_p)) {
 	}
 	vector<unique_ptr<PEGExpression>> expressions;
 };
+
 struct PEGOptionalExpression : PEGExpression {
 	explicit PEGOptionalExpression(unique_ptr<PEGExpression> child_p)
 	    : PEGExpression(PEGExpressionType::OPTIONAL), expression(std::move(child_p)) {
 	}
 	unique_ptr<PEGExpression> expression;
 };
+
 struct PEGZeroOrMoreExpression : PEGExpression {
 	explicit PEGZeroOrMoreExpression(unique_ptr<PEGExpression> child_p)
 	    : PEGExpression(PEGExpressionType::ZERO_OR_MORE), expression(std::move(child_p)) {
 	}
 	unique_ptr<PEGExpression> expression;
 };
+
 struct PEGOneOrMoreExpression : PEGExpression {
 	explicit PEGOneOrMoreExpression(unique_ptr<PEGExpression> child_p)
 	    : PEGExpression(PEGExpressionType::ONE_OR_MORE), expression(std::move(child_p)) {
 	}
 	unique_ptr<PEGExpression> expression;
 };
+
 struct PEGAndPredicateExpression : PEGExpression {
 	explicit PEGAndPredicateExpression(unique_ptr<PEGExpression> child_p)
 	    : PEGExpression(PEGExpressionType::AND_PREDICATE), expression(std::move(child_p)) {}
 	unique_ptr<PEGExpression> expression;
 };
+
 struct PEGNotPredicateExpression : PEGExpression {
 	explicit PEGNotPredicateExpression(unique_ptr<PEGExpression> child_p)
 	    : PEGExpression(PEGExpressionType::NOT_PREDICATE), expression(std::move(child_p)) {
 	}
 	unique_ptr<PEGExpression> expression;
 };
+
 struct PEGIdentifierExpression : PEGExpression {
 	explicit PEGIdentifierExpression(string identifier_p)
 	    : PEGExpression(PEGExpressionType::IDENTIFIER), identifier(std::move(identifier_p)) {
@@ -101,11 +110,11 @@ struct PEGIdentifierExpression : PEGExpression {
 	string identifier;
 };
 
-struct PEGRegexExpression : PEGExpression {
-	explicit PEGRegexExpression(string pattern_p)
-		: PEGExpression(PEGExpressionType::REGEX), pattern(std::move(pattern_p)) {
+struct PEGNumberExpression : PEGExpression {
+	explicit PEGNumberExpression()
+		: PEGExpression(PEGExpressionType::NUMBER) {
+
 	}
-	string pattern;
 };
 
 struct PEGParameterizedRuleExpression : PEGExpression {
@@ -119,7 +128,7 @@ struct PEGParameterizedRuleExpression : PEGExpression {
 
 // --- PEG Parser ---
 
-enum class PEGTokenType { LITERAL, REFERENCE, OPERATOR, IDENTIFIER, FUNCTION_CALL, REGEX };
+enum class PEGTokenType { LITERAL, REFERENCE, OPERATOR, IDENTIFIER, FUNCTION_CALL, REGEX, NUMBER_LITERAL };
 
 struct PEGToken {
 	PEGTokenType type;
@@ -187,13 +196,13 @@ private:
 			pos++;
 			return make_uniq<PEGKeywordExpression>(token.text);
 		}
+		if (token.type == PEGTokenType::NUMBER_LITERAL) {
+			pos++;
+			return make_uniq<PEGNumberExpression>();
+		}
 		if (token.type == PEGTokenType::IDENTIFIER) {
 			pos++;
 			return make_uniq<PEGIdentifierExpression>(token.text);
-		}
-		if (token.type == PEGTokenType::REGEX) {
-			pos++;
-			return make_uniq<PEGRegexExpression>(token.text);
 		}
 		if (token.type == PEGTokenType::FUNCTION_CALL) {
 			string rule_name = token.text;
