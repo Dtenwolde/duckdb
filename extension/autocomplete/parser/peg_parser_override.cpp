@@ -1,7 +1,7 @@
-#include "../include/peg_parser_override.hpp"
-#include "../include/tokenizer.hpp"
+#include "parser/peg_parser_override.hpp"
+#include "tokenizer.hpp"
 #include "duckdb/common/exception/binder_exception.hpp"
-#include "../include/inlined_grammar.hpp"
+#include "inlined_grammar.hpp"
 
 namespace duckdb {
 struct MatcherToken;

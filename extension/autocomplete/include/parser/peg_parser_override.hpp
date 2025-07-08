@@ -1,7 +1,7 @@
 #pragma once
 
 #include "duckdb/parser/parser_override.hpp"
-#include "transformer/peg_transformer.hpp" // Assumes this is moved here
+#include "../transformer/peg_transformer.hpp"
 
 namespace duckdb {
 
