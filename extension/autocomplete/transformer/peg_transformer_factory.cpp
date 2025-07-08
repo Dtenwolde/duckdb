@@ -78,6 +78,11 @@ PEGTransformerFactory::PEGTransformerFactory(const char *grammar) : parser(gramm
 							{"GlobalScope", SetScope::GLOBAL}
 						   });
 	RegisterEnum<SetScope>("VariableScope", {{"VariableScope", SetScope::VARIABLE}});
+	RegisterEnum<Value>("ConstantLiteral",
+		{{"NullLiteral", Value()},
+				{"TrueLiteral", Value(true)},
+					{"FalseLiteral", Value(false)}
+		});
 }
 
 }

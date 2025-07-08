@@ -558,7 +558,11 @@ FilterClause <- 'FILTER' Parens('WHERE'i? Expression)
 IgnoreNulls <- ('IGNORE'i 'NULLS'i) / ('RESPECT'i 'NULLS'i)
 
 ParenthesisExpression <- Parens(List(Expression))
-LiteralExpression <- StringLiteral / NumberLiteral / 'NULL'i / 'TRUE'i / 'FALSE'i
+LiteralExpression <- StringLiteral / NumberLiteral / ConstantLiteral
+ConstantLiteral <- NullLiteral / TrueLiteral / FalseLiteral
+NullLiteral <- 'NULL'i
+TrueLiteral <- 'TRUE'i
+FalseLiteral <- 'FALSE'i
 CastExpression <- CastOrTryCast Parens(Expression 'AS'i Type)
 CastOrTryCast <- 'CAST'i / 'TRY_CAST'i
 

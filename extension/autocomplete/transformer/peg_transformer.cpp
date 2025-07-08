@@ -263,27 +263,42 @@ T PEGTransformer::Transform(ParseResult &parse_result) {
 	return std::move(typed_result_ptr->value);
 }
 
-template<typename T>
+template <typename T>
 T PEGTransformer::TransformEnum(ParseResult &parse_result) {
-	string_t result;
+	const string_t &enum_rule_name = parse_result.name;
+	if (enum_rule_name.GetString().empty()) {
+		throw InternalException("TransformEnum called on a ParseResult with no name.");
+	}
+
+	string_t matched_option_name;
+
 	if (parse_result.type == ParseResultType::CHOICE) {
 		auto &choice_pr = parse_result.Cast<ChoiceParseResult>();
-		auto &matched_rule_result = choice_pr.result.get();
-		result = matched_rule_result.name;
-	} else if (parse_result.type == ParseResultType::KEYWORD) {
-		auto &keyword_pr = parse_result.Cast<KeywordParseResult>();
-		result = keyword_pr.name;
+		matched_option_name = choice_pr.result.get().name;
+	} else {
+		matched_option_name = parse_result.name;
 	}
 
-	auto &rule_mapping = enum_mappings.at(parse_result.name);
-	auto it = rule_mapping.find(result);
+	if (matched_option_name.GetString().empty()) {
+		throw ParserException("Enum transform failed: could not determine matched rule name.");
+	}
+
+	// Look up the mapping for this enum rule.
+	auto &rule_mapping = enum_mappings.at(enum_rule_name.GetString());
+	auto it = rule_mapping.find(matched_option_name.GetString());
 	if (it == rule_mapping.end()) {
-		throw ParserException("Enum transform failed: could not map rule '%s'", result.GetString());
+		throw ParserException("Enum transform failed: could not map rule '%s' for enum '%s'",
+								matched_option_name.GetString(), enum_rule_name.GetString());
 	}
 
-	// 4. Cast the found integer back to the strong enum type and return it.
-	return static_cast<T>(it->second);
-}
+	// Use dynamic_cast to safely get the specific typed wrapper.
+	auto *typed_enum_ptr = dynamic_cast<TypedTransformEnumResult<T> *>(it->second.get());
+	if (!typed_enum_ptr) {
+		throw InternalException("Enum mapping for rule '%s' has an unexpected type.", enum_rule_name.GetString());
+	}
 
+	// Return a copy of the value.
+	return typed_enum_ptr->value;
+}
 
 } // namespace duckdb
