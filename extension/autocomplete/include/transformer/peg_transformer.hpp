@@ -2,6 +2,7 @@
 
 #include "tokenizer.hpp"
 #include "parse_result.hpp"
+#include "transform_enum_result.hpp"
 #include "transform_result.hpp"
 #include "ast/set_info.hpp"
 #include "duckdb/parser/statement/set_statement.hpp"
@@ -31,7 +32,7 @@ public:
 	PEGTransformer(ArenaAllocator &allocator, PEGTransformerState &state,
 				   const case_insensitive_map_t<AnyTransformFunction> &transform_functions,
 				   const case_insensitive_map_t<PEGRule> &grammar_rules,
-				   const string_map_t<string_map_t<int16_t>> &enum_mappings)
+				   const case_insensitive_map_t<case_insensitive_map_t<unique_ptr<TransformEnumValue>>> &enum_mappings)
 		: allocator(allocator), state(state), enum_mappings(enum_mappings), grammar_rules(grammar_rules),
 			transform_functions(transform_functions) {
 	}
@@ -59,7 +60,7 @@ private:
 public:
 	ArenaAllocator &allocator;
 	PEGTransformerState &state;
-	const string_map_t<string_map_t<int16_t>> &enum_mappings;
+	const case_insensitive_map_t<case_insensitive_map_t<unique_ptr<TransformEnumValue>>> &enum_mappings;
 
 private:
 	const case_insensitive_map_t<PEGRule> &grammar_rules;
@@ -79,9 +80,9 @@ public:
 
 private:
 	template <typename T>
-	void RegisterEnum(const string_t &rule_name, const string_map_t<T> &mapping) {
+	void RegisterEnum(const string &rule_name, const unordered_map<string, T> &mapping) {
 		for (const auto &pair : mapping) {
-			enum_mappings[rule_name][pair.first] = static_cast<int16_t>(pair.second);
+			enum_mappings[rule_name][pair.first] = make_uniq<TypedTransformEnumResult<T>>(pair.second);
 		}
 	}
 
@@ -142,10 +143,11 @@ private:
 	static string TransformIdentifierOrKeyword(PEGTransformer &transformer, ParseResult &parse_result);
 
 	static string TransformNumberLiteral(PEGTransformer &transformer, ParseResult &parse_result);
+
 private:
     PEGParser parser;
 	case_insensitive_map_t<PEGTransformer::AnyTransformFunction> sql_transform_functions;
-	string_map_t<string_map_t<int16_t>> enum_mappings;
+	case_insensitive_map_t<case_insensitive_map_t<unique_ptr<TransformEnumValue>>> enum_mappings;
 };
 
 // Helper struct for qualified names.

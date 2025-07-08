@@ -85,19 +85,10 @@ unique_ptr<ParsedExpression> PEGTransformerFactory::TransformLiteralExpression(P
 		// todo(dtenwolde): handle decimals, etc.
 		return make_uniq<ConstantExpression>(Value::BIGINT(std::stoll(literal_pr.number)));
 	}
-	if (matched_rule_result.type == ParseResultType::KEYWORD) {
-		auto &keyword_pr = matched_rule_result.Cast<KeywordParseResult>();
-		if (StringUtil::Upper(keyword_pr.keyword) == "NULL") {
-			return make_uniq<ConstantExpression>(Value());
-		}
-		if (StringUtil::Upper(keyword_pr.keyword) == "TRUE") {
-			return make_uniq<ConstantExpression>(Value::BOOLEAN(true));
-		}
-		if (StringUtil::Upper(keyword_pr.keyword) == "FALSE") {
-			return make_uniq<ConstantExpression>(Value::BOOLEAN(false));
-		}
+	if (matched_rule_result.name == "ConstantLiteral") {
+		auto &constant_literal_pr = matched_rule_result.Cast<ChoiceParseResult>();
+		return make_uniq<ConstantExpression>(transformer.TransformEnum<Value>(constant_literal_pr));
 	}
-
 	throw ParserException("Unrecognized literal type in TransformLiteralExpression");
 }
 

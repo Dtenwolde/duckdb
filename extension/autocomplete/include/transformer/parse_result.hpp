@@ -3,6 +3,7 @@
 #include "duckdb/common/exception.hpp"
 #include "duckdb/common/optional_ptr.hpp"
 #include "duckdb/common/string.hpp"
+#include "duckdb/common/types/string_type.hpp"
 #include "duckdb/parser/sql_statement.hpp"
 #include "duckdb/parser/parsed_expression.hpp"
 
