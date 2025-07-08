@@ -12,7 +12,7 @@
 #include "duckdb/main/extension/extension_loader.hpp"
 #include "duckdb/parser/keyword_helper.hpp"
 #include "matcher.hpp"
-#include "include/peg_parser_override.hpp"
+#include "include/parser/peg_parser_override.hpp"
 #include "duckdb/catalog/default/builtin_types/types.hpp"
 #include "duckdb/main/attached_database.hpp"
 #include "tokenizer.hpp"
