@@ -666,6 +666,23 @@ static duckdb::unique_ptr<FunctionData> CheckPEGParserBind(ClientContext &contex
 void CheckPEGParserFunction(ClientContext &context, TableFunctionInput &data_p, DataChunk &output) {
 }
 
+void PEGParserFunction(ClientContext &context, TableFunctionInput &data_p, DataChunk &output) {
+
+	auto &config = DBConfig::GetConfig(context);
+
+	// Install the parser override
+	if (!config.parser_override) { // Only install if no other override is present
+		config.parser_override = make_uniq<PEGParserOverride>();
+	}
+}
+
+static duckdb::unique_ptr<FunctionData> PEGParserBind(ClientContext &context, TableFunctionBindInput &input,
+		vector<LogicalType> &return_types, vector<string> &names) {
+	names.emplace_back("success");
+	return_types.emplace_back(LogicalType::BOOLEAN);
+	return nullptr;
+}
+
 static void LoadInternal(ExtensionLoader &loader) {
 	TableFunction auto_complete_fun("sql_auto_complete", {LogicalType::VARCHAR}, SQLAutoCompleteFunction,
 	                                SQLAutoCompleteBind, SQLAutoCompleteInit);
@@ -675,12 +692,8 @@ static void LoadInternal(ExtensionLoader &loader) {
 	                                   CheckPEGParserBind, nullptr);
 	loader.RegisterFunction(check_peg_parser_fun);
 
-	auto &config = DBConfig::GetConfig(loader.GetDatabaseInstance());
-
-	// Install the parser override
-	if (!config.parser_override) { // Only install if no other override is present
-		config.parser_override = make_uniq<PEGParserOverride>();
-	}
+	TableFunction peg_parser_fun("peg_parser", {}, PEGParserFunction, PEGParserBind, nullptr);
+	loader.RegisterFunction(peg_parser_fun);
 }
 
 void AutocompleteExtension::Load(ExtensionLoader &loader) {
