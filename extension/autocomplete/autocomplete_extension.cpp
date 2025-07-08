@@ -667,7 +667,7 @@ void CheckPEGParserFunction(ClientContext &context, TableFunctionInput &data_p, 
 }
 
 void PEGParserFunction(ClientContext &context, TableFunctionInput &data_p, DataChunk &output) {
-
+	// todo(dtenwolde): Add different options (Error on transform failure, fall back to PostgreSQL parser)
 	auto &config = DBConfig::GetConfig(context);
 
 	// Install the parser override
