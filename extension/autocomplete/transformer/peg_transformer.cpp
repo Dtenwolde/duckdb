@@ -282,7 +282,6 @@ T PEGTransformer::TransformEnum(ParseResult &parse_result) {
 	if (matched_option_name.GetString().empty()) {
 		throw ParserException("Enum transform failed: could not determine matched rule name.");
 	}
-
 	// Look up the mapping for this enum rule.
 	auto &rule_mapping = enum_mappings.at(enum_rule_name.GetString());
 	auto it = rule_mapping.find(matched_option_name.GetString());

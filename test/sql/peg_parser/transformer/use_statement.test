@@ -4,6 +4,9 @@
 
 require autocomplete
 
+statement ok
+call peg_parser();
+
 statement error
 use bar.foo.bar
 ----
