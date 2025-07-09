@@ -141,14 +141,10 @@ ParseResult *PEGTransformer::MatchRule(const PEGExpression &expression) {
 		return Make<OptionalParseResult>(child_res);
 	}
 	case PEGExpressionType::IDENTIFIER: {
-		auto &regex_expr = expression.Cast<PEGIdentifierExpression>();
 		if (state.token_index >= state.tokens.size()) {
 			return nullptr;
 		}
 		auto &token = state.tokens[state.token_index];
-		if (token.type == TokenType::WORD && token.text.size() >= 2 && token.text.front() == '\'' && token.text.back() == '\'') {
-			return nullptr;
-		}
 		if (token.type == TokenType::WORD) {
 			state.token_index++;
 			Printer::PrintF("Found an identifier expression, %s", token.text.c_str());
