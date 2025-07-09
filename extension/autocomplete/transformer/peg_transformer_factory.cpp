@@ -52,7 +52,6 @@ PEGTransformerFactory::PEGTransformerFactory(const char *grammar) : parser(gramm
 
 	Register("LiteralExpression", &TransformLiteralExpression);
 	Register("ColumnReference", &TransformColumnReference);
-	Register("NumberLiteral", &TransformNumberLiteral);
 
 	// Leaf transformers that return semantic structs/values
 	Register("SetSetting", &TransformSetSetting);
