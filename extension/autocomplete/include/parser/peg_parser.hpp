@@ -23,7 +23,8 @@ enum class PEGExpressionType {
 	IDENTIFIER,
 	REGEX,
 	PARAMETERIZED_RULE,
-	NUMBER
+	NUMBER,
+	STRING
 };
 
 struct PEGExpression {
@@ -117,6 +118,12 @@ struct PEGNumberExpression : PEGExpression {
 	}
 };
 
+struct PEGStringExpression : PEGExpression {
+	explicit PEGStringExpression() : PEGExpression(PEGExpressionType::STRING) {
+
+	}
+};
+
 struct PEGParameterizedRuleExpression : PEGExpression {
 	PEGParameterizedRuleExpression(string rule_name_p, vector<unique_ptr<PEGExpression>> children_p)
 	    : PEGExpression(PEGExpressionType::PARAMETERIZED_RULE), rule_name(std::move(rule_name_p)),
@@ -128,7 +135,7 @@ struct PEGParameterizedRuleExpression : PEGExpression {
 
 // --- PEG Parser ---
 
-enum class PEGTokenType { LITERAL, REFERENCE, OPERATOR, IDENTIFIER, FUNCTION_CALL, REGEX, NUMBER_LITERAL };
+enum class PEGTokenType { LITERAL, REFERENCE, OPERATOR, IDENTIFIER, FUNCTION_CALL, REGEX, NUMBER_LITERAL, STRING_LITERAL };
 
 struct PEGToken {
 	PEGTokenType type;
@@ -199,6 +206,10 @@ private:
 		if (token.type == PEGTokenType::NUMBER_LITERAL) {
 			pos++;
 			return make_uniq<PEGNumberExpression>();
+		}
+		if (token.type == PEGTokenType::STRING_LITERAL) {
+			pos++;
+			return make_uniq<PEGStringExpression>();
 		}
 		if (token.type == PEGTokenType::IDENTIFIER) {
 			pos++;
@@ -277,6 +288,15 @@ public:
 	PEGParser() = default;
 	explicit PEGParser(const char *grammar) {
 		ParseRules(grammar);
+
+		AddRuleOverride("NumberLiteral", make_uniq<PEGNumberExpression>());
+		AddRuleOverride("StringLiteral", make_uniq<PEGStringExpression>());
+	}
+
+	void AddRuleOverride(const string &rule_name, unique_ptr<PEGExpression> rule_expression) {
+		PEGRule rule;
+		rule.expression = std::move(rule_expression);
+		rules[rule_name] = std::move(rule);
 	}
 
 	void AddRule(string &rule_name, PEGRule rule) {

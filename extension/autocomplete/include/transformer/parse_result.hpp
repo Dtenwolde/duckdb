@@ -12,7 +12,7 @@ namespace duckdb {
 class PEGTransformer; // Forward declaration
 
 enum class ParseResultType : uint8_t {
-    LIST, OPTIONAL, CHOICE, EXPRESSION, IDENTIFIER, KEYWORD, STATEMENT, EXTENSION, NUMBER, INVALID
+    LIST, OPTIONAL, CHOICE, EXPRESSION, IDENTIFIER, KEYWORD, STATEMENT, EXTENSION, NUMBER, STRING, INVALID
 };
 
 class ParseResult {
@@ -92,6 +92,16 @@ public:
 	}
 	// TODO(dtenwolde): Should probably be stored as a size_t, int32_t or float_t depending on what number is.
 	string number;
+};
+
+class StringParseResult : public ParseResult {
+public:
+	static constexpr ParseResultType TYPE = ParseResultType::STRING;
+
+	explicit StringParseResult(string string_p) : ParseResult(TYPE), result(std::move(string_p)) {
+
+	}
+	string result;
 };
 
 } // namespace duckdb

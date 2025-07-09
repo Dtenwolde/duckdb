@@ -36,3 +36,10 @@ Catalog Error: option "enable_progress_bar" cannot be set globally
 statement ok
 RESET threads;
 
+statement error
+SET TimeZone='UTC';
+----
+Catalog Error: Setting with name "TimeZone" is not in the catalog, but it exists in the icu extension.
+
+
+

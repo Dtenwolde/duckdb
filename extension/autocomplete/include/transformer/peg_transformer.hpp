@@ -33,8 +33,8 @@ public:
 				   const case_insensitive_map_t<AnyTransformFunction> &transform_functions,
 				   const case_insensitive_map_t<PEGRule> &grammar_rules,
 				   const case_insensitive_map_t<case_insensitive_map_t<unique_ptr<TransformEnumValue>>> &enum_mappings)
-		: allocator(allocator), state(state), enum_mappings(enum_mappings), grammar_rules(grammar_rules),
-			transform_functions(transform_functions) {
+		: allocator(allocator), state(state), grammar_rules(grammar_rules), transform_functions(transform_functions),
+		  enum_mappings(enum_mappings) {
 	}
 
 public:
@@ -60,15 +60,12 @@ private:
 public:
 	ArenaAllocator &allocator;
 	PEGTransformerState &state;
-	const case_insensitive_map_t<case_insensitive_map_t<unique_ptr<TransformEnumValue>>> &enum_mappings;
-
-private:
+	// The order of declaration here MATTERS for the constructor initializer list.
 	const case_insensitive_map_t<PEGRule> &grammar_rules;
 	const case_insensitive_map_t<AnyTransformFunction> &transform_functions;
-	// The substitution stack for handling nested parameterized rule calls.
+	const case_insensitive_map_t<case_insensitive_map_t<unique_ptr<TransformEnumValue>>> &enum_mappings;
 	vector<string_map_t<const PEGExpression *>> substitution_stack;
 };
-
 // PEGTransformerFactory is now a real class that holds the transformation state.
 class PEGTransformerFactory {
 public:

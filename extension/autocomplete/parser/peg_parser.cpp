@@ -174,11 +174,7 @@ void PEGParser::ParseRules(const char *grammar) {
 				PEGToken token;
 				token.text = string(grammar + rule_start, c - rule_start);
 				// Transform to Identifier for now.
-				if (rule_name == "NumberLiteral") {
-					token.type = PEGTokenType::NUMBER_LITERAL;
-				} else {
-					token.type = PEGTokenType::IDENTIFIER;
-				}
+				token.type = PEGTokenType::IDENTIFIER;
 				rule.tokens.push_back(token);
 			} else if (IsPEGOperator(grammar[c])) {
 				if (grammar[c] == '(') {

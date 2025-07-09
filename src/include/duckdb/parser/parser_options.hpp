@@ -9,6 +9,7 @@
 #pragma once
 
 #include "duckdb/common/common.hpp"
+#include "duckdb/parser/parser_override.hpp"
 
 namespace duckdb {
 class ParserExtension;

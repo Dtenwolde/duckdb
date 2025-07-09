@@ -1,8 +1,5 @@
 namespace duckdb {
 
-string PEGTransformerFactory::TransformNumberLiteral(PEGTransformer &transformer, ParseResult &parse_result) {
-	throw NotImplementedException("TransformerFactory::TransformNumberLiteral");
-}
 
 string PEGTransformerFactory::TransformIdentifierOrKeyword(PEGTransformer &transformer, ParseResult &parse_result) {
 	if (parse_result.type == ParseResultType::IDENTIFIER) {

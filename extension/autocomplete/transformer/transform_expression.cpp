@@ -4,6 +4,8 @@
 #include "duckdb/parser/expression/comparison_expression.hpp"
 #include "duckdb/parser/expression/function_expression.hpp"
 #include "duckdb/parser/expression/operator_expression.hpp"
+#include "transformer/parse_result.hpp"
+
 namespace duckdb {
 
 unique_ptr<ParsedExpression> CreateBinaryExpression(string op, unique_ptr<ParsedExpression> left,
@@ -70,15 +72,14 @@ unique_ptr<ParsedExpression> PEGTransformerFactory::TransformSingleExpression(PE
     return transformer.Transform<unique_ptr<ParsedExpression>>(matched_child);
 }
 
-// 4. A "Leaf" transformer for a specific expression type
 unique_ptr<ParsedExpression> PEGTransformerFactory::TransformLiteralExpression(PEGTransformer &transformer, ParseResult &parse_result) {
 	// Rule: StringLiteral / NumberLiteral / 'NULL'i / 'TRUE'i / 'FALSE'i
 	auto &choice_pr = parse_result.Cast<ChoiceParseResult>();
 	auto &matched_rule_result = choice_pr.result.get();
 
 	if (matched_rule_result.name == "StringLiteral") {
-		auto &literal_pr = matched_rule_result.Cast<IdentifierParseResult>();
-		return make_uniq<ConstantExpression>(Value(literal_pr.identifier));
+		auto &literal_pr = matched_rule_result.Cast<StringParseResult>();
+		return make_uniq<ConstantExpression>(Value(literal_pr.result));
 	}
 	if (matched_rule_result.name == "NumberLiteral") {
 		auto &literal_pr = matched_rule_result.Cast<NumberParseResult>();
@@ -94,6 +95,7 @@ unique_ptr<ParsedExpression> PEGTransformerFactory::TransformLiteralExpression(P
 
 unique_ptr<ParsedExpression> PEGTransformerFactory::TransformColumnReference(PEGTransformer &transformer, ParseResult &parse_result) {
     // This would transform a DottedIdentifier into a ColumnRefExpression
+	throw NotImplementedException("TransformColumnReference not implemented");
     QualifiedName qn = transformer.Transform<QualifiedName>(parse_result);
     vector<string> column_name_parts;
     if (!qn.catalog.empty()) {

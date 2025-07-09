@@ -81,7 +81,6 @@ bool IsValidOperator(const string &text) {
 
 ParseResult *PEGTransformer::MatchRule(const PEGExpression &expression) {
 	idx_t initial_token_index = state.token_index;
-	Printer::PrintF("Matching rule type: %d", expression.type);
 	switch (expression.type) {
 	case PEGExpressionType::KEYWORD: {
 		auto &keyword_expr = expression.Cast<PEGKeywordExpression>();
@@ -147,6 +146,9 @@ ParseResult *PEGTransformer::MatchRule(const PEGExpression &expression) {
 			return nullptr;
 		}
 		auto &token = state.tokens[state.token_index];
+		if (token.type == TokenType::WORD && token.text.size() >= 2 && token.text.front() == '\'' && token.text.back() == '\'') {
+			return nullptr;
+		}
 		if (token.type == TokenType::WORD) {
 			state.token_index++;
 			Printer::PrintF("Found an identifier expression, %s", token.text.c_str());
@@ -225,6 +227,17 @@ ParseResult *PEGTransformer::MatchRule(const PEGExpression &expression) {
 		if (token.type == TokenType::WORD && IsValidNumber(token.text)) {
 			state.token_index++;
 			return Make<NumberParseResult>(token.text);
+		}
+		return nullptr;
+	}
+	case PEGExpressionType::STRING: {
+		if (state.token_index >= state.tokens.size()) {
+			return nullptr;
+		}
+		auto &token = state.tokens[state.token_index];
+		if (token.type == TokenType::WORD && token.text.size() >= 2 && token.text.front() == '\'' && token.text.back() == '\'') {
+			state.token_index++;
+			return Make<StringParseResult>(token.text);
 		}
 		return nullptr;
 	}
