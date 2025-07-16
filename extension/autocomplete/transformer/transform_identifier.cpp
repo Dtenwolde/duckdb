@@ -2,30 +2,21 @@ namespace duckdb {
 
 string PEGTransformerFactory::TransformIdentifierOrKeyword(PEGTransformer &transformer, ParseResult &parse_result) {
 	if (parse_result.type == ParseResultType::IDENTIFIER) {
-		// Base case: It's a plain or quoted identifier.
 		return parse_result.Cast<IdentifierParseResult>().identifier;
 	}
 	if (parse_result.type == ParseResultType::KEYWORD) {
-		// Base case: It's a keyword that can be used as an identifier.
 		return parse_result.Cast<KeywordParseResult>().keyword;
 	}
 	if (parse_result.type == ParseResultType::CHOICE) {
-		// It's a choice between other rules (e.g., ColId <- UnreservedKeyword / Identifier).
-		// We unwrap the choice and recursively transform the result.
 		auto &choice_pr = parse_result.Cast<ChoiceParseResult>();
 		return transformer.Transform<string>(choice_pr.result.get());
 	}
 	if (parse_result.type == ParseResultType::LIST) {
 		auto &list_pr = parse_result.Cast<ListParseResult>();
-		// Find the meaningful child in the list. Predicates produce empty lists,
-		// so we look for the non-empty result.
 		for (auto &child : list_pr.children) {
 			if (child.get().type == ParseResultType::LIST && child.get().Cast<ListParseResult>().children.empty()) {
-				// This is an empty list from a successful predicate, ignore it.
 				continue;
 			}
-			// This is the actual result (e.g., the IdentifierParseResult).
-			// Recursively transform it to get the final string.
 			return child.get().Cast<IdentifierParseResult>().identifier;
 		}
 	}
