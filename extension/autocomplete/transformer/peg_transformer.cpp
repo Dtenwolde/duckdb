@@ -9,7 +9,6 @@
 namespace duckdb {
 
 const PEGExpression *PEGTransformer::FindSubstitution(const string_t &name) {
-	// Search from the inside out (most recent call)
 	for (auto it = substitution_stack.rbegin(); it != substitution_stack.rend(); ++it) {
 		auto &map = *it;
 		auto entry = map.find(name);
@@ -92,7 +91,6 @@ ParseResult *PEGTransformer::MatchRule(const PEGExpression &expression) {
 
 		auto substitution = FindSubstitution(rule_ref_expr.rule_name);
 		if (substitution) {
-			// It's a parameter (like 'D' in List(D)). Match the expression that was passed as an argument.
 			return MatchRule(*substitution);
 		}
 
@@ -152,16 +150,12 @@ ParseResult *PEGTransformer::MatchRule(const PEGExpression &expression) {
 		auto &zero_or_more_expr = expression.Cast<PEGZeroOrMoreExpression>();
 		vector<reference<ParseResult>> children_results;
 		while (true) {
-			// Try to match the child expression.
 			ParseResult *child_res = MatchRule(*zero_or_more_expr.expression);
 			if (!child_res) {
-				// If the child doesn't match, we are done repeating. Break the loop.
 				break;
 			}
 			children_results.emplace_back(*child_res);
 		}
-		// The ZERO_OR_MORE rule always succeeds, even with zero matches.
-		// We return a ListParseResult containing all the successful matches.
 		return Make<ListParseResult>(std::move(children_results));
 	}
 	case PEGExpressionType::PARAMETERIZED_RULE: {
@@ -197,14 +191,10 @@ ParseResult *PEGTransformer::MatchRule(const PEGExpression &expression) {
 	}
 	case PEGExpressionType::NOT_PREDICATE: {
 		auto &not_expr = expression.Cast<PEGNotPredicateExpression>();
-		// Attempt to match the child expression.
 		ParseResult *child_res = MatchRule(*not_expr.expression);
-		// Crucially, always reset the token index. Predicates do not consume input.
 		state.token_index = initial_token_index;
 		// The NOT predicate succeeds if its child FAILS to match.
 		if (!child_res) {
-			// Return a non-null result to signal success without consuming tokens.
-			// An empty list is perfect for this "successful empty match".
 			return Make<ListParseResult>(vector<reference<ParseResult>>());
 		}
 		// The child matched, so the NOT predicate fails.
@@ -287,7 +277,6 @@ T PEGTransformer::TransformEnum(ParseResult &parse_result) {
 	if (matched_option_name.GetString().empty()) {
 		throw ParserException("Enum transform failed: could not determine matched rule name.");
 	}
-	// Look up the mapping for this enum rule.
 	auto &rule_mapping = enum_mappings.at(enum_rule_name.GetString());
 	auto it = rule_mapping.find(matched_option_name.GetString());
 	if (it == rule_mapping.end()) {
@@ -295,13 +284,11 @@ T PEGTransformer::TransformEnum(ParseResult &parse_result) {
 		                      matched_option_name.GetString(), enum_rule_name.GetString());
 	}
 
-	// Use dynamic_cast to safely get the specific typed wrapper.
 	auto *typed_enum_ptr = dynamic_cast<TypedTransformEnumResult<T> *>(it->second.get());
 	if (!typed_enum_ptr) {
 		throw InternalException("Enum mapping for rule '%s' has an unexpected type.", enum_rule_name.GetString());
 	}
 
-	// Return a copy of the value.
 	return typed_enum_ptr->value;
 }
 

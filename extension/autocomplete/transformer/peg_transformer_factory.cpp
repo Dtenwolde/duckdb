@@ -30,7 +30,6 @@ unique_ptr<SQLStatement> PEGTransformerFactory::Transform(vector<MatcherToken> &
 }
 
 PEGTransformerFactory::PEGTransformerFactory(const char *grammar) : parser(grammar) {
-	// Register all transform functions with their expected return types
 	Register("Statement", &TransformStatement);
 	Register("UseStatement", &TransformUseStatement);
 	Register("DottedIdentifier", &TransformDottedIdentifier);
@@ -38,11 +37,9 @@ PEGTransformerFactory::PEGTransformerFactory(const char *grammar) : parser(gramm
 	Register("ResetStatement", &TransformResetStatement);
 	Register("DeleteStatement", &TransformDeleteStatement);
 
-	// Intermediate composers
 	Register("StandardAssignment", &TransformStandardAssignment);
 	Register("SetAssignment", &TransformSetAssignment);
 
-	// Dispatchers that return semantic structs/values
 	Register("SettingOrVariable", &TransformSettingOrVariable);
 	Register("VariableList", &TransformVariableList);
 
@@ -53,7 +50,6 @@ PEGTransformerFactory::PEGTransformerFactory(const char *grammar) : parser(gramm
 	Register("LiteralExpression", &TransformLiteralExpression);
 	Register("ColumnReference", &TransformColumnReference);
 
-	// Leaf transformers that return semantic structs/values
 	Register("SetSetting", &TransformSetSetting);
 	Register("SetVariable", &TransformSetVariable);
 

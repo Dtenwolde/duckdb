@@ -7,20 +7,16 @@ unique_ptr<SQLStatement> PEGTransformerFactory::TransformUseStatement(PEGTransfo
 	auto &list_pr = parse_result.Cast<ListParseResult>();
 	auto &use_target_pr = list_pr.children[1].get();
 
-	// Delegate the transformation of the DottedIdentifier to its own function
 	QualifiedName qn = transformer.Transform<QualifiedName>(use_target_pr);
 
-	// Build the final SetStatement from the structured QualifiedName
 	if (!qn.catalog.empty()) {
 		throw ParserException("Expected \"USE database\" or \"USE database.schema\"");
 	}
 
 	string value_str;
 	if (qn.schema.empty()) {
-		// Case: USE database
 		value_str = KeywordHelper::WriteOptionallyQuoted(qn.name, '"');
 	} else {
-		// Case: USE database.schema
 		value_str = KeywordHelper::WriteOptionallyQuoted(qn.schema, '"') + "." +
 		            KeywordHelper::WriteOptionallyQuoted(qn.name, '"');
 	}
@@ -31,7 +27,6 @@ unique_ptr<SQLStatement> PEGTransformerFactory::TransformUseStatement(PEGTransfo
 
 unique_ptr<SQLStatement> PEGTransformerFactory::TransformSetStatement(PEGTransformer &transformer,
                                                                       ParseResult &parse_result) {
-	// Dispatcher: 'SET' (StandardAssignment / SetTimeZone)
 	auto &list_pr = parse_result.Cast<ListParseResult>();
 	auto &choice_pr = list_pr.Child<ChoiceParseResult>(1);
 	auto &matched_child = choice_pr.result.get();
@@ -49,7 +44,6 @@ unique_ptr<SQLStatement> PEGTransformerFactory::TransformResetStatement(PEGTrans
 	auto &list_pr = parse_result.Cast<ListParseResult>();
 	auto &child_pr = list_pr.children[1].get().Cast<ChoiceParseResult>();
 
-	// Delegate to get the setting info, then create the Reset statement
 	SettingInfo setting_info = transformer.Transform<SettingInfo>(child_pr.result);
 	return make_uniq<ResetVariableStatement>(setting_info.name, setting_info.scope);
 }
@@ -61,11 +55,9 @@ unique_ptr<SQLStatement> PEGTransformerFactory::TransformStandardAssignment(PEGT
 	auto &setting_or_var_pr = list_pr.children[0].get().Cast<ChoiceParseResult>();
 	auto &set_assignment_pr = list_pr.children[1];
 
-	// Delegate to get the parts
 	SettingInfo setting_info = transformer.Transform<SettingInfo>(setting_or_var_pr.result);
 	unique_ptr<ParsedExpression> value = transformer.Transform<unique_ptr<ParsedExpression>>(set_assignment_pr);
 
-	// Compose the final result
 	return make_uniq<SetVariableStatement>(setting_info.name, std::move(value), setting_info.scope);
 }
 
@@ -102,7 +94,6 @@ SettingInfo PEGTransformerFactory::TransformSetVariable(PEGTransformer &transfor
 
 unique_ptr<ParsedExpression> PEGTransformerFactory::TransformSetAssignment(PEGTransformer &transformer,
                                                                            ParseResult &parse_result) {
-	// Dispatcher: VariableAssign VariableList
 	auto &list_pr = parse_result.Cast<ListParseResult>();
 	auto &variable_list_pr = list_pr.children[1];
 	return transformer.Transform<unique_ptr<ParsedExpression>>(variable_list_pr);
@@ -110,8 +101,6 @@ unique_ptr<ParsedExpression> PEGTransformerFactory::TransformSetAssignment(PEGTr
 
 unique_ptr<ParsedExpression> PEGTransformerFactory::TransformVariableList(PEGTransformer &transformer,
                                                                           ParseResult &parse_result) {
-	// For now, we assume VariableList -> List(Expression) and Expression -> Identifier
-	// This will just transform the first expression in the list.
 	auto &list_pr = parse_result.Cast<ListParseResult>();
 	auto &expression_pr = list_pr.children[0];
 	return transformer.Transform<unique_ptr<ParsedExpression>>(expression_pr);

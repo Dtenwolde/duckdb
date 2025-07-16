@@ -26,46 +26,34 @@ unique_ptr<ParsedExpression> CreateBinaryExpression(string op, unique_ptr<Parsed
 
 unique_ptr<ParsedExpression> PEGTransformerFactory::TransformExpression(PEGTransformer &transformer,
                                                                         ParseResult &parse_result) {
-	// Rule: BaseExpression RecursiveExpression*
 	auto &list_pr = parse_result.Cast<ListParseResult>();
 	auto &base_expr_pr = list_pr.children[0].get();
 	auto &recursion_list_pr = list_pr.Child<ListParseResult>(1);
 
-	// First, transform the base of the expression (e.g., the initial column or literal).
 	unique_ptr<ParsedExpression> current_expr = transformer.Transform<unique_ptr<ParsedExpression>>(base_expr_pr);
 
-	// Now, loop through the recursive parts and wrap the expression.
 	for (auto &recursive_expr_ref : recursion_list_pr.children) {
-		// The recursive_expr_ref is a ParseResult for the rule "RecursiveExpression",
-		// which has the structure: Operator Expression
 		auto &recursive_list = recursive_expr_ref.get().Cast<ListParseResult>();
 		auto &operator_pr = recursive_list.children[0].get();
 		auto &right_expr_pr = recursive_list.children[1].get();
 
-		// Delegate to transform the right-hand side and the operator.
 		unique_ptr<ParsedExpression> right_expr = transformer.Transform<unique_ptr<ParsedExpression>>(right_expr_pr);
 		string op_str = transformer.Transform<string>(operator_pr);
 
-		// Use the helper to compose the new binary expression.
-		// The result becomes the new "left" side for the next iteration.
 		current_expr = CreateBinaryExpression(std::move(op_str), std::move(current_expr), std::move(right_expr));
 	}
 
 	return current_expr;
 }
 
-// 2. The transformer for the base of an expression
 unique_ptr<ParsedExpression> PEGTransformerFactory::TransformBaseExpression(PEGTransformer &transformer,
                                                                             ParseResult &parse_result) {
-	// Rule: SingleExpression Indirection*
-	// For now, we will just transform the SingleExpression and ignore indirections.
 	auto &list_pr = parse_result.Cast<ListParseResult>();
 	auto &single_expr_pr = list_pr.children[0].get();
 
 	return transformer.Transform<unique_ptr<ParsedExpression>>(single_expr_pr);
 }
 
-// 3. The dispatcher for the different types of single expressions
 unique_ptr<ParsedExpression> PEGTransformerFactory::TransformSingleExpression(PEGTransformer &transformer,
                                                                               ParseResult &parse_result) {
 	// This is a choice rule, so we unwrap the ChoiceParseResult and delegate.
@@ -99,7 +87,6 @@ unique_ptr<ParsedExpression> PEGTransformerFactory::TransformLiteralExpression(P
 
 unique_ptr<ParsedExpression> PEGTransformerFactory::TransformColumnReference(PEGTransformer &transformer,
                                                                              ParseResult &parse_result) {
-	// This would transform a DottedIdentifier into a ColumnRefExpression
 	throw NotImplementedException("TransformColumnReference not implemented");
 	QualifiedName qn = transformer.Transform<QualifiedName>(parse_result);
 	vector<string> column_name_parts;
@@ -113,13 +100,10 @@ unique_ptr<ParsedExpression> PEGTransformerFactory::TransformColumnReference(PEG
 	return make_uniq<ColumnRefExpression>(column_name_parts);
 }
 
-// This helper is needed to get the string value of an operator
 string PEGTransformerFactory::TransformOperator(PEGTransformer &transformer, ParseResult &parse_result) {
-	// The operator rule is a choice. We need to unwrap it and get the text.
 	auto &choice_pr = parse_result.Cast<ChoiceParseResult>();
 	auto &matched_child = choice_pr.result.get();
 
-	// The leaf nodes of the operator grammar are KeywordParseResults
 	return matched_child.Cast<KeywordParseResult>().keyword;
 }
 } // namespace duckdb
