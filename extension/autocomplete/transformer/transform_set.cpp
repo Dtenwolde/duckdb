@@ -1,7 +1,8 @@
 
 namespace duckdb {
 
-unique_ptr<SQLStatement> PEGTransformerFactory::TransformUseStatement(PEGTransformer &transformer, ParseResult &parse_result) {
+unique_ptr<SQLStatement> PEGTransformerFactory::TransformUseStatement(PEGTransformer &transformer,
+                                                                      ParseResult &parse_result) {
 	// Rule: 'USE'i UseTarget
 	auto &list_pr = parse_result.Cast<ListParseResult>();
 	auto &use_target_pr = list_pr.children[1].get();
@@ -21,14 +22,15 @@ unique_ptr<SQLStatement> PEGTransformerFactory::TransformUseStatement(PEGTransfo
 	} else {
 		// Case: USE database.schema
 		value_str = KeywordHelper::WriteOptionallyQuoted(qn.schema, '"') + "." +
-					KeywordHelper::WriteOptionallyQuoted(qn.name, '"');
+		            KeywordHelper::WriteOptionallyQuoted(qn.name, '"');
 	}
 
 	auto value_expr = make_uniq<ConstantExpression>(Value(value_str));
 	return make_uniq<SetVariableStatement>("schema", std::move(value_expr), SetScope::AUTOMATIC);
 }
 
-unique_ptr<SQLStatement> PEGTransformerFactory::TransformSetStatement(PEGTransformer &transformer, ParseResult &parse_result) {
+unique_ptr<SQLStatement> PEGTransformerFactory::TransformSetStatement(PEGTransformer &transformer,
+                                                                      ParseResult &parse_result) {
 	// Dispatcher: 'SET' (StandardAssignment / SetTimeZone)
 	auto &list_pr = parse_result.Cast<ListParseResult>();
 	auto &choice_pr = list_pr.Child<ChoiceParseResult>(1);
@@ -41,8 +43,8 @@ unique_ptr<SQLStatement> PEGTransformerFactory::TransformSetStatement(PEGTransfo
 	throw NotImplementedException("SET TIME ZONE is not yet implemented.");
 }
 
-
-unique_ptr<SQLStatement> PEGTransformerFactory::TransformResetStatement(PEGTransformer &transformer, ParseResult &parse_result) {
+unique_ptr<SQLStatement> PEGTransformerFactory::TransformResetStatement(PEGTransformer &transformer,
+                                                                        ParseResult &parse_result) {
 	// Composer: 'RESET' (SetVariable / SetSetting)
 	auto &list_pr = parse_result.Cast<ListParseResult>();
 	auto &child_pr = list_pr.children[1].get().Cast<ChoiceParseResult>();
@@ -52,7 +54,8 @@ unique_ptr<SQLStatement> PEGTransformerFactory::TransformResetStatement(PEGTrans
 	return make_uniq<ResetVariableStatement>(setting_info.name, setting_info.scope);
 }
 
-unique_ptr<SQLStatement> PEGTransformerFactory::TransformStandardAssignment(PEGTransformer &transformer, ParseResult &parse_result) {
+unique_ptr<SQLStatement> PEGTransformerFactory::TransformStandardAssignment(PEGTransformer &transformer,
+                                                                            ParseResult &parse_result) {
 	// Composer: (SetVariable / SetSetting) SetAssignment
 	auto &list_pr = parse_result.Cast<ListParseResult>();
 	auto &setting_or_var_pr = list_pr.children[0].get().Cast<ChoiceParseResult>();
@@ -97,14 +100,16 @@ SettingInfo PEGTransformerFactory::TransformSetVariable(PEGTransformer &transfor
 	return result;
 }
 
-unique_ptr<ParsedExpression> PEGTransformerFactory::TransformSetAssignment(PEGTransformer &transformer, ParseResult &parse_result) {
+unique_ptr<ParsedExpression> PEGTransformerFactory::TransformSetAssignment(PEGTransformer &transformer,
+                                                                           ParseResult &parse_result) {
 	// Dispatcher: VariableAssign VariableList
 	auto &list_pr = parse_result.Cast<ListParseResult>();
 	auto &variable_list_pr = list_pr.children[1];
 	return transformer.Transform<unique_ptr<ParsedExpression>>(variable_list_pr);
 }
 
-unique_ptr<ParsedExpression> PEGTransformerFactory::TransformVariableList(PEGTransformer &transformer, ParseResult &parse_result) {
+unique_ptr<ParsedExpression> PEGTransformerFactory::TransformVariableList(PEGTransformer &transformer,
+                                                                          ParseResult &parse_result) {
 	// For now, we assume VariableList -> List(Expression) and Expression -> Identifier
 	// This will just transform the first expression in the list.
 	auto &list_pr = parse_result.Cast<ListParseResult>();
@@ -112,6 +117,4 @@ unique_ptr<ParsedExpression> PEGTransformerFactory::TransformVariableList(PEGTra
 	return transformer.Transform<unique_ptr<ParsedExpression>>(expression_pr);
 }
 
-
-
-}
+} // namespace duckdb

@@ -317,7 +317,6 @@ bool IsValidDollarQuotedStringTagSubsequentChar(const unsigned char &c) {
 	return IsValidDollarQuotedStringTagFirstChar(c) || (c >= '0' && c <= '9');
 }
 
-
 // This function strips unicode space characters from the query and replaces them with regular spaces
 // It returns true if any unicode space characters were found and stripped
 // See here for a list of unicode space characters - https://jkorpela.fi/chars/spaces.html
@@ -429,7 +428,6 @@ in_comment:
 end:
 	return ReplaceUnicodeSpaces(query_str, new_query, unicode_spaces);
 }
-
 
 static duckdb::unique_ptr<SQLAutoCompleteFunctionData> GenerateSuggestions(ClientContext &context, const string &sql) {
 	// tokenize the input
@@ -613,7 +611,7 @@ void PEGParserFunction(ClientContext &context, TableFunctionInput &data_p, DataC
 }
 
 static duckdb::unique_ptr<FunctionData> PEGParserBind(ClientContext &context, TableFunctionBindInput &input,
-		vector<LogicalType> &return_types, vector<string> &names) {
+                                                      vector<LogicalType> &return_types, vector<string> &names) {
 	names.emplace_back("success");
 	return_types.emplace_back(LogicalType::BOOLEAN);
 	return nullptr;

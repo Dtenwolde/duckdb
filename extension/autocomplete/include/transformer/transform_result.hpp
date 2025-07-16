@@ -6,9 +6,10 @@ struct TransformResultValue {
 	virtual ~TransformResultValue() = default;
 };
 
-template<class T>
+template <class T>
 struct TypedTransformResult : public TransformResultValue {
-	explicit TypedTransformResult(T value_p) : value(std::move(value_p)) {}
+	explicit TypedTransformResult(T value_p) : value(std::move(value_p)) {
+	}
 	T value;
 };
 

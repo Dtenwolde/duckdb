@@ -1,6 +1,5 @@
 namespace duckdb {
 
-
 string PEGTransformerFactory::TransformIdentifierOrKeyword(PEGTransformer &transformer, ParseResult &parse_result) {
 	if (parse_result.type == ParseResultType::IDENTIFIER) {
 		// Base case: It's a plain or quoted identifier.
@@ -65,4 +64,4 @@ QualifiedName PEGTransformerFactory::TransformDottedIdentifier(PEGTransformer &t
 	return result;
 }
 
-}
+} // namespace duckdb

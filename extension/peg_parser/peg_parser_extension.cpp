@@ -26,7 +26,7 @@ std::string PegParserExtension::Version() const {
 } // namespace duckdb
 
 extern "C" {
-	DUCKDB_CPP_EXTENSION_ENTRY(duckdb_sql, loader) {
-		duckdb::LoadInternal(loader);
-	}
+DUCKDB_CPP_EXTENSION_ENTRY(duckdb_sql, loader) {
+	duckdb::LoadInternal(loader);
+}
 }

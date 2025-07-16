@@ -4,14 +4,8 @@ project(AutoCompleteExtension)
 
 include_directories(include)
 
-set(AUTOCOMPLETE_EXTENSION_FILES
-        autocomplete_extension.cpp
-        keyword_helper.cpp
-        keyword_map.cpp
-        matcher.cpp
-        tokenizer.cpp
-)
-
+set(AUTOCOMPLETE_EXTENSION_FILES autocomplete_extension.cpp keyword_helper.cpp
+                                 keyword_map.cpp matcher.cpp tokenizer.cpp)
 
 add_subdirectory(parser)
 add_subdirectory(transformer)

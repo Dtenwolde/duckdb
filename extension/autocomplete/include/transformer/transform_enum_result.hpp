@@ -12,5 +12,4 @@ struct TypedTransformEnumResult : public TransformEnumValue {
 	T value;
 };
 
-
-}
+} // namespace duckdb

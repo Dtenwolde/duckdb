@@ -305,11 +305,9 @@ public:
 		// variable matchers match anything except for reserved keywords
 		auto &token_text = state.tokens[state.token_index].text;
 		auto category = KeywordHelper::Instance().KeywordCategoryType(token_text);
-		if (category == KeywordCategory::KEYWORD_RESERVED ||
-			category == KeywordCategory::KEYWORD_UNRESERVED ||
-			category == KeywordCategory::KEYWORD_COL_NAME ||
-			category == KeywordCategory::KEYWORD_TYPE_FUNC ||
-			category == GetBannedCategory()) {
+		if (category == KeywordCategory::KEYWORD_RESERVED || category == KeywordCategory::KEYWORD_UNRESERVED ||
+		    category == KeywordCategory::KEYWORD_COL_NAME || category == KeywordCategory::KEYWORD_TYPE_FUNC ||
+		    category == GetBannedCategory()) {
 			return MatchResultType::FAIL;
 		}
 		if (!IsIdentifier(token_text)) {
