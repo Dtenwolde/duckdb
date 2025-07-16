@@ -2,7 +2,8 @@
 
 namespace duckdb {
 
-unique_ptr<SQLStatement> PEGTransformerFactory::TransformStatement(PEGTransformer &transformer, ParseResult &parse_result) {
+unique_ptr<SQLStatement> PEGTransformerFactory::TransformStatement(PEGTransformer &transformer,
+                                                                   ParseResult &parse_result) {
 	auto &choice_pr = parse_result.Cast<ChoiceParseResult>();
 	return transformer.Transform<unique_ptr<SQLStatement>>(choice_pr.result.get());
 }
@@ -49,7 +50,6 @@ PEGTransformerFactory::PEGTransformerFactory(const char *grammar) : parser(gramm
 	Register("BaseExpression", &TransformBaseExpression);
 	Register("SingleExpression", &TransformSingleExpression);
 
-
 	Register("LiteralExpression", &TransformLiteralExpression);
 	Register("ColumnReference", &TransformColumnReference);
 
@@ -71,17 +71,12 @@ PEGTransformerFactory::PEGTransformerFactory(const char *grammar) : parser(gramm
 	Register("SettingName", &TransformIdentifierOrKeyword);
 
 	// Enum registration
-	RegisterEnum<SetScope>("SettingScope",
-						   {{"LocalScope", SetScope::LOCAL},
-							{"SessionScope", SetScope::SESSION},
-							{"GlobalScope", SetScope::GLOBAL}
-						   });
+	RegisterEnum<SetScope>(
+	    "SettingScope",
+	    {{"LocalScope", SetScope::LOCAL}, {"SessionScope", SetScope::SESSION}, {"GlobalScope", SetScope::GLOBAL}});
 	RegisterEnum<SetScope>("VariableScope", {{"VariableScope", SetScope::VARIABLE}});
 	RegisterEnum<Value>("ConstantLiteral",
-		{{"NullLiteral", Value()},
-				{"TrueLiteral", Value(true)},
-					{"FalseLiteral", Value(false)}
-		});
+	                    {{"NullLiteral", Value()}, {"TrueLiteral", Value(true)}, {"FalseLiteral", Value(false)}});
 }
 
-}
+} // namespace duckdb

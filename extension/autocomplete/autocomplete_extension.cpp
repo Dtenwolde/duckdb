@@ -677,7 +677,7 @@ void PEGParserFunction(ClientContext &context, TableFunctionInput &data_p, DataC
 }
 
 static duckdb::unique_ptr<FunctionData> PEGParserBind(ClientContext &context, TableFunctionBindInput &input,
-		vector<LogicalType> &return_types, vector<string> &names) {
+                                                      vector<LogicalType> &return_types, vector<string> &names) {
 	names.emplace_back("success");
 	return_types.emplace_back(LogicalType::BOOLEAN);
 	return nullptr;

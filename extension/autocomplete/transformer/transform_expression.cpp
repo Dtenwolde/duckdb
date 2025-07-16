@@ -9,7 +9,7 @@
 namespace duckdb {
 
 unique_ptr<ParsedExpression> CreateBinaryExpression(string op, unique_ptr<ParsedExpression> left,
-													unique_ptr<ParsedExpression> right) {
+                                                    unique_ptr<ParsedExpression> right) {
 	vector<unique_ptr<ParsedExpression>> children;
 	children.push_back(std::move(left));
 	children.push_back(std::move(right));
@@ -24,7 +24,8 @@ unique_ptr<ParsedExpression> CreateBinaryExpression(string op, unique_ptr<Parsed
 	return std::move(result);
 }
 
-unique_ptr<ParsedExpression> PEGTransformerFactory::TransformExpression(PEGTransformer &transformer, ParseResult &parse_result) {
+unique_ptr<ParsedExpression> PEGTransformerFactory::TransformExpression(PEGTransformer &transformer,
+                                                                        ParseResult &parse_result) {
 	// Rule: BaseExpression RecursiveExpression*
 	auto &list_pr = parse_result.Cast<ListParseResult>();
 	auto &base_expr_pr = list_pr.children[0].get();
@@ -54,25 +55,28 @@ unique_ptr<ParsedExpression> PEGTransformerFactory::TransformExpression(PEGTrans
 }
 
 // 2. The transformer for the base of an expression
-unique_ptr<ParsedExpression> PEGTransformerFactory::TransformBaseExpression(PEGTransformer &transformer, ParseResult &parse_result) {
-    // Rule: SingleExpression Indirection*
-    // For now, we will just transform the SingleExpression and ignore indirections.
-    auto &list_pr = parse_result.Cast<ListParseResult>();
-    auto &single_expr_pr = list_pr.children[0].get();
+unique_ptr<ParsedExpression> PEGTransformerFactory::TransformBaseExpression(PEGTransformer &transformer,
+                                                                            ParseResult &parse_result) {
+	// Rule: SingleExpression Indirection*
+	// For now, we will just transform the SingleExpression and ignore indirections.
+	auto &list_pr = parse_result.Cast<ListParseResult>();
+	auto &single_expr_pr = list_pr.children[0].get();
 
-    return transformer.Transform<unique_ptr<ParsedExpression>>(single_expr_pr);
+	return transformer.Transform<unique_ptr<ParsedExpression>>(single_expr_pr);
 }
 
 // 3. The dispatcher for the different types of single expressions
-unique_ptr<ParsedExpression> PEGTransformerFactory::TransformSingleExpression(PEGTransformer &transformer, ParseResult &parse_result) {
-    // This is a choice rule, so we unwrap the ChoiceParseResult and delegate.
-    auto &choice_pr = parse_result.Cast<ChoiceParseResult>();
-    auto &matched_child = choice_pr.result.get();
+unique_ptr<ParsedExpression> PEGTransformerFactory::TransformSingleExpression(PEGTransformer &transformer,
+                                                                              ParseResult &parse_result) {
+	// This is a choice rule, so we unwrap the ChoiceParseResult and delegate.
+	auto &choice_pr = parse_result.Cast<ChoiceParseResult>();
+	auto &matched_child = choice_pr.result.get();
 
-    return transformer.Transform<unique_ptr<ParsedExpression>>(matched_child);
+	return transformer.Transform<unique_ptr<ParsedExpression>>(matched_child);
 }
 
-unique_ptr<ParsedExpression> PEGTransformerFactory::TransformLiteralExpression(PEGTransformer &transformer, ParseResult &parse_result) {
+unique_ptr<ParsedExpression> PEGTransformerFactory::TransformLiteralExpression(PEGTransformer &transformer,
+                                                                               ParseResult &parse_result) {
 	// Rule: StringLiteral / NumberLiteral / 'NULL'i / 'TRUE'i / 'FALSE'i
 	auto &choice_pr = parse_result.Cast<ChoiceParseResult>();
 	auto &matched_rule_result = choice_pr.result.get();
@@ -93,28 +97,29 @@ unique_ptr<ParsedExpression> PEGTransformerFactory::TransformLiteralExpression(P
 	throw ParserException("Unrecognized literal type in TransformLiteralExpression");
 }
 
-unique_ptr<ParsedExpression> PEGTransformerFactory::TransformColumnReference(PEGTransformer &transformer, ParseResult &parse_result) {
-    // This would transform a DottedIdentifier into a ColumnRefExpression
+unique_ptr<ParsedExpression> PEGTransformerFactory::TransformColumnReference(PEGTransformer &transformer,
+                                                                             ParseResult &parse_result) {
+	// This would transform a DottedIdentifier into a ColumnRefExpression
 	throw NotImplementedException("TransformColumnReference not implemented");
-    QualifiedName qn = transformer.Transform<QualifiedName>(parse_result);
-    vector<string> column_name_parts;
-    if (!qn.catalog.empty()) {
-        column_name_parts.push_back(qn.catalog);
-    }
-    if (!qn.schema.empty()) {
-        column_name_parts.push_back(qn.schema);
-    }
-    column_name_parts.push_back(qn.name);
-    return make_uniq<ColumnRefExpression>(column_name_parts);
+	QualifiedName qn = transformer.Transform<QualifiedName>(parse_result);
+	vector<string> column_name_parts;
+	if (!qn.catalog.empty()) {
+		column_name_parts.push_back(qn.catalog);
+	}
+	if (!qn.schema.empty()) {
+		column_name_parts.push_back(qn.schema);
+	}
+	column_name_parts.push_back(qn.name);
+	return make_uniq<ColumnRefExpression>(column_name_parts);
 }
 
 // This helper is needed to get the string value of an operator
 string PEGTransformerFactory::TransformOperator(PEGTransformer &transformer, ParseResult &parse_result) {
-    // The operator rule is a choice. We need to unwrap it and get the text.
-    auto &choice_pr = parse_result.Cast<ChoiceParseResult>();
-    auto &matched_child = choice_pr.result.get();
+	// The operator rule is a choice. We need to unwrap it and get the text.
+	auto &choice_pr = parse_result.Cast<ChoiceParseResult>();
+	auto &matched_child = choice_pr.result.get();
 
-    // The leaf nodes of the operator grammar are KeywordParseResults
-    return matched_child.Cast<KeywordParseResult>().keyword;
+	// The leaf nodes of the operator grammar are KeywordParseResults
+	return matched_child.Cast<KeywordParseResult>().keyword;
 }
-}
+} // namespace duckdb

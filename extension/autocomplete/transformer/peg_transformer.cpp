@@ -8,7 +8,6 @@
 
 namespace duckdb {
 
-
 const PEGExpression *PEGTransformer::FindSubstitution(const string_t &name) {
 	// Search from the inside out (most recent call)
 	for (auto it = substitution_stack.rbegin(); it != substitution_stack.rend(); ++it) {
@@ -20,7 +19,6 @@ const PEGExpression *PEGTransformer::FindSubstitution(const string_t &name) {
 	}
 	return nullptr;
 }
-
 
 bool IsValidIdentifier(const string &text) {
 	if (text.empty()) {
@@ -76,8 +74,6 @@ bool IsValidOperator(const string &text) {
 	}
 	return true;
 }
-
-
 
 ParseResult *PEGTransformer::MatchRule(const PEGExpression &expression) {
 	idx_t initial_token_index = state.token_index;
@@ -178,9 +174,8 @@ ParseResult *PEGTransformer::MatchRule(const PEGExpression &expression) {
 		auto &template_rule = it->second;
 
 		if (template_rule.parameters.size() != param_expr.expressions.size()) {
-			throw InternalException("Argument count mismatch for rule '%s': expected %d, got %d",
-									param_expr.rule_name, template_rule.parameters.size(),
-									param_expr.expressions.size());
+			throw InternalException("Argument count mismatch for rule '%s': expected %d, got %d", param_expr.rule_name,
+			                        template_rule.parameters.size(), param_expr.expressions.size());
 		}
 
 		string_map_t<const PEGExpression *> substitutions;
@@ -231,7 +226,8 @@ ParseResult *PEGTransformer::MatchRule(const PEGExpression &expression) {
 			return nullptr;
 		}
 		auto &token = state.tokens[state.token_index];
-		if (token.type == TokenType::WORD && token.text.size() >= 2 && token.text.front() == '\'' && token.text.back() == '\'') {
+		if (token.type == TokenType::WORD && token.text.size() >= 2 && token.text.front() == '\'' &&
+		    token.text.back() == '\'') {
 			state.token_index++;
 			return Make<StringParseResult>(token.text);
 		}
@@ -296,7 +292,7 @@ T PEGTransformer::TransformEnum(ParseResult &parse_result) {
 	auto it = rule_mapping.find(matched_option_name.GetString());
 	if (it == rule_mapping.end()) {
 		throw ParserException("Enum transform failed: could not map rule '%s' for enum '%s'",
-								matched_option_name.GetString(), enum_rule_name.GetString());
+		                      matched_option_name.GetString(), enum_rule_name.GetString());
 	}
 
 	// Use dynamic_cast to safely get the specific typed wrapper.

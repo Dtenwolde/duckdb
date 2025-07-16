@@ -4,7 +4,6 @@
 
 namespace duckdb {
 
-
 enum class PEGParseState {
 	RULE_NAME,      // Rule name
 	RULE_SEPARATOR, // look for <-

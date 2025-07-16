@@ -304,34 +304,11 @@ public:
 	MatchResultType Match(MatchState &state) const override {
 		// variable matchers match anything except for reserved keywords
 		auto &token_text = state.tokens[state.token_index].text;
-		const auto &keyword_helper = KeywordHelper::Instance();
-		switch (suggestion_type) {
-		case SuggestionState::SUGGEST_TYPE_NAME:
-			if (keyword_helper.KeywordCategoryType(token_text, KeywordCategory::KEYWORD_RESERVED) ||
-			    keyword_helper.KeywordCategoryType(token_text, GetBannedCategory())) {
-				return MatchResultType::FAIL;
-			}
-			break;
-		default: {
-			const auto banned_category = GetBannedCategory();
-			const auto allowed_override_category = banned_category == KeywordCategory::KEYWORD_COL_NAME
-			                                           ? KeywordCategory::KEYWORD_TYPE_FUNC
-			                                           : KeywordCategory::KEYWORD_COL_NAME;
-
-			const bool is_reserved = keyword_helper.KeywordCategoryType(token_text, KeywordCategory::KEYWORD_RESERVED);
-			const bool has_extra_banned_category = keyword_helper.KeywordCategoryType(token_text, banned_category);
-			const bool has_banned_flag = is_reserved || has_extra_banned_category;
-
-			const bool is_unreserved =
-			    keyword_helper.KeywordCategoryType(token_text, KeywordCategory::KEYWORD_UNRESERVED);
-			const bool has_override_flag = keyword_helper.KeywordCategoryType(token_text, allowed_override_category);
-			const bool has_allowed_flag = is_unreserved || has_override_flag;
-
-			if (has_banned_flag && !has_allowed_flag) {
-				return MatchResultType::FAIL;
-			}
-			break;
-		}
+		auto category = KeywordHelper::Instance().KeywordCategoryType(token_text);
+		if (category == KeywordCategory::KEYWORD_RESERVED || category == KeywordCategory::KEYWORD_UNRESERVED ||
+		    category == KeywordCategory::KEYWORD_COL_NAME || category == KeywordCategory::KEYWORD_TYPE_FUNC ||
+		    category == GetBannedCategory()) {
+			return MatchResultType::FAIL;
 		}
 		if (!IsIdentifier(token_text)) {
 			return MatchResultType::FAIL;

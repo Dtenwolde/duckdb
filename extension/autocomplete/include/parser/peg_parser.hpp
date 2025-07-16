@@ -93,7 +93,8 @@ struct PEGOneOrMoreExpression : PEGExpression {
 
 struct PEGAndPredicateExpression : PEGExpression {
 	explicit PEGAndPredicateExpression(unique_ptr<PEGExpression> child_p)
-	    : PEGExpression(PEGExpressionType::AND_PREDICATE), expression(std::move(child_p)) {}
+	    : PEGExpression(PEGExpressionType::AND_PREDICATE), expression(std::move(child_p)) {
+	}
 	unique_ptr<PEGExpression> expression;
 };
 
@@ -112,15 +113,12 @@ struct PEGIdentifierExpression : PEGExpression {
 };
 
 struct PEGNumberExpression : PEGExpression {
-	explicit PEGNumberExpression()
-		: PEGExpression(PEGExpressionType::NUMBER) {
-
+	explicit PEGNumberExpression() : PEGExpression(PEGExpressionType::NUMBER) {
 	}
 };
 
 struct PEGStringExpression : PEGExpression {
 	explicit PEGStringExpression() : PEGExpression(PEGExpressionType::STRING) {
-
 	}
 };
 
@@ -135,7 +133,16 @@ struct PEGParameterizedRuleExpression : PEGExpression {
 
 // --- PEG Parser ---
 
-enum class PEGTokenType { LITERAL, REFERENCE, OPERATOR, IDENTIFIER, FUNCTION_CALL, REGEX, NUMBER_LITERAL, STRING_LITERAL };
+enum class PEGTokenType {
+	LITERAL,
+	REFERENCE,
+	OPERATOR,
+	IDENTIFIER,
+	FUNCTION_CALL,
+	REGEX,
+	NUMBER_LITERAL,
+	STRING_LITERAL
+};
 
 struct PEGToken {
 	PEGTokenType type;
@@ -151,7 +158,6 @@ struct PEGRule {
 		parameters.clear();
 		tokens.clear();
 	}
-
 };
 
 class RuleParser {
@@ -281,7 +287,6 @@ private:
 		return make_uniq<PEGChoiceExpression>(std::move(children));
 	}
 };
-
 
 class PEGParser {
 public:

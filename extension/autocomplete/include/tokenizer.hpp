@@ -51,9 +51,8 @@ protected:
 	vector<MatcherToken> &tokens;
 };
 
-
 class ParserTokenizer : public BaseTokenizer {
-	public:
+public:
 	ParserTokenizer(const string &sql, vector<MatcherToken> &tokens) : BaseTokenizer(sql, tokens) {
 	}
 	void OnStatementEnd(idx_t pos) override {
