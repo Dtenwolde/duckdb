@@ -123,14 +123,18 @@ private:
 	static unique_ptr<SQLStatement> TransformResetStatement(PEGTransformer &, ParseResult &choice_pr);
 	static QualifiedName TransformDottedIdentifier(PEGTransformer &transformer, ParseResult &parse_result);
 	static unique_ptr<SQLStatement> TransformDeleteStatement(PEGTransformer &transformer, ParseResult &parse_result);
+	static unique_ptr<SQLStatement> TransformPragmaStatement(PEGTransformer &transformer, ParseResult &parse_result);
+	static unique_ptr<SQLStatement> TransformPragmaAssign(PEGTransformer &transformer, ParseResult &parse_result);
+	static unique_ptr<SQLStatement> TransformPragmaFunction(PEGTransformer &transformer, ParseResult &parse_result);
+	static vector<unique_ptr<ParsedExpression>> TransformPragmaParameters(PEGTransformer &transformer, ParseResult &parse_result);
 
 	// Intermediate transforms returning semantic values
 	static unique_ptr<SQLStatement> TransformStandardAssignment(PEGTransformer &transformer, ParseResult &parse_result);
 	static SettingInfo TransformSettingOrVariable(PEGTransformer &transformer, ParseResult &parse_result);
 	static SettingInfo TransformSetSetting(PEGTransformer &transformer, ParseResult &parse_result);
 	static SettingInfo TransformSetVariable(PEGTransformer &transformer, ParseResult &parse_result);
-	static unique_ptr<ParsedExpression> TransformSetAssignment(PEGTransformer &transformer, ParseResult &parse_result);
-	static unique_ptr<ParsedExpression> TransformVariableList(PEGTransformer &transformer, ParseResult &parse_result);
+	static vector<unique_ptr<ParsedExpression>> TransformSetAssignment(PEGTransformer &transformer, ParseResult &parse_result);
+	static vector<unique_ptr<ParsedExpression>> TransformVariableList(PEGTransformer &transformer, ParseResult &parse_result);
 	static unique_ptr<ParsedExpression> TransformExpression(PEGTransformer &transformer, ParseResult &parse_result);
 	static unique_ptr<ParsedExpression> TransformBaseExpression(PEGTransformer &, ParseResult &parse_result);
 	static unique_ptr<ParsedExpression> TransformSingleExpression(PEGTransformer &transformer,

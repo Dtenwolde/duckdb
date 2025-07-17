@@ -35,7 +35,7 @@ TableName <- ColIdOrString
 ColumnName <- DottedIdentifier
 IndexName <- ColId ('.' ColId)*
 SettingName <- ColId
-PragmaName <- ColId
+PragmaName <- Identifier
 TableFunctionName <- ColIdOrString / FuncName
 ConstraintName <- ColIdOrString
 SequenceName <- Identifier

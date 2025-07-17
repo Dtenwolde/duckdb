@@ -710,7 +710,7 @@ QualifiedTarget <- QualifiedName OptNameList
 OptNameList <- Parens(List(Name))?
 PragmaStatement <- 'PRAGMA'i (PragmaAssign / PragmaFunction)
 
-PragmaAssign <- SettingName '=' VariableList
+PragmaAssign <- SettingName '=' Expression
 PragmaFunction <- PragmaName PragmaParameters?
 PragmaParameters <- List(Expression)
 
@@ -1167,7 +1167,7 @@ TableName <- ColIdOrString
 ColumnName <- DottedIdentifier
 IndexName <- ColId ('.' ColId)*
 SettingName <- ColId
-PragmaName <- ColId
+PragmaName <- Identifier
 TableFunctionName <- ColIdOrString / FuncName
 ConstraintName <- ColIdOrString
 SequenceName <- Identifier

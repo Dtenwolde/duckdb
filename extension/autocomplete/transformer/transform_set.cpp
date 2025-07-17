@@ -92,18 +92,24 @@ SettingInfo PEGTransformerFactory::TransformSetVariable(PEGTransformer &transfor
 	return result;
 }
 
-unique_ptr<ParsedExpression> PEGTransformerFactory::TransformSetAssignment(PEGTransformer &transformer,
+vector<unique_ptr<ParsedExpression>> PEGTransformerFactory::TransformSetAssignment(PEGTransformer &transformer,
                                                                            ParseResult &parse_result) {
 	auto &list_pr = parse_result.Cast<ListParseResult>();
 	auto &variable_list_pr = list_pr.children[1];
-	return transformer.Transform<unique_ptr<ParsedExpression>>(variable_list_pr);
+	return transformer.Transform<vector<unique_ptr<ParsedExpression>>>(variable_list_pr);
 }
 
-unique_ptr<ParsedExpression> PEGTransformerFactory::TransformVariableList(PEGTransformer &transformer,
+vector<unique_ptr<ParsedExpression>> PEGTransformerFactory::TransformVariableList(PEGTransformer &transformer,
                                                                           ParseResult &parse_result) {
 	auto &list_pr = parse_result.Cast<ListParseResult>();
-	auto &expression_pr = list_pr.children[0];
-	return transformer.Transform<unique_ptr<ParsedExpression>>(expression_pr);
+	vector<unique_ptr<ParsedExpression>> expressions;
+	expressions.push_back(transformer.Transform<unique_ptr<ParsedExpression>>(list_pr.children[0]));
+	idx_t child_idx = 1;
+	while (!list_pr.children[child_idx].get().name.empty() && list_pr.children[child_idx].get().type == ParseResultType::LIST) {
+		expressions.push_back(transformer.Transform<unique_ptr<ParsedExpression>>(list_pr.children[child_idx]));
+		child_idx++;
+	}
+	return expressions;
 }
 
 } // namespace duckdb

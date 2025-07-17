@@ -6,6 +6,7 @@ add_library_unity(
   transform_delete.cpp
   transform_expression.cpp
   transform_identifier.cpp
+  transform_pragma.cpp
   transform_set.cpp)
 set(AUTOCOMPLETE_EXTENSION_FILES
     ${AUTOCOMPLETE_EXTENSION_FILES} $<TARGET_OBJECTS:duckdb_peg_transformer>
