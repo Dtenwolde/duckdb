@@ -36,6 +36,11 @@ PEGTransformerFactory::PEGTransformerFactory(const char *grammar) : parser(gramm
 	Register("SetStatement", &TransformSetStatement);
 	Register("ResetStatement", &TransformResetStatement);
 	Register("DeleteStatement", &TransformDeleteStatement);
+	Register("PragmaStatement", &TransformPragmaStatement);
+	Register("PragmaAssign", &TransformPragmaAssign);
+	Register("PragmaFunction", &TransformPragmaFunction);
+	Register("PragmaParameters", &TransformPragmaParameters);
+	Register("PragmaName", &TransformIdentifierOrKeyword);
 
 	Register("StandardAssignment", &TransformStandardAssignment);
 	Register("SetAssignment", &TransformSetAssignment);

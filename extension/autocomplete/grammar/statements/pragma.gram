@@ -1,5 +1,5 @@
 PragmaStatement <- 'PRAGMA'i (PragmaAssign / PragmaFunction)
 
-PragmaAssign <- SettingName '=' VariableList
+PragmaAssign <- SettingName '=' Expression
 PragmaFunction <- PragmaName PragmaParameters?
 PragmaParameters <- List(Expression)

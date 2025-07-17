@@ -207,6 +207,7 @@ ParseResult *PEGTransformer::MatchRule(const PEGExpression &expression) {
 		auto &token = state.tokens[state.token_index];
 		if (token.type == TokenType::WORD && IsValidNumber(token.text)) {
 			state.token_index++;
+			Printer::PrintF("Found an number expression, %s", token.text.c_str());
 			return Make<NumberParseResult>(token.text);
 		}
 		return nullptr;
@@ -241,7 +242,7 @@ template <typename T>
 T PEGTransformer::Transform(ParseResult &parse_result) {
 	auto it = transform_functions.find(parse_result.name);
 	if (it == transform_functions.end()) {
-		throw InternalException("No transformer function found for rule '%s'", parse_result.name);
+		throw NotImplementedException("No transformer function found for rule '%s'", parse_result.name);
 	}
 	auto &func = it->second;
 

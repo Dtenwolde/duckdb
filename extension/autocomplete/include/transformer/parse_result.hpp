@@ -74,6 +74,7 @@ struct ListParseResult : ParseResult {
 		}
 		return children[index].get().Cast<T>();
 	}
+
 };
 
 struct OptionalParseResult : ParseResult {
