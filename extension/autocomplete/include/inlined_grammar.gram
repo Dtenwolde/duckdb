@@ -536,9 +536,10 @@ ValueOrValues <- 'VALUE' / 'VALUES'
 IncludeExcludeNulls <- ('INCLUDE' / 'EXCLUDE') 'NULLS'
 UnpivotHeader <- ColIdOrString / Parens(List(ColIdOrString))
 
-ColumnReference <- DottedIdentifier / (CatalogQualification? SchemaQualification? TableQualification? ColumnName)
-FunctionExpression <- FunctionIdentifier Parens(DistinctOrAll? List(FunctionArgument)? OrderByClause? IgnoreNulls?) WithinGroupClause? FilterClause? ExportClause? OverClause?
-FunctionIdentifier <- CatalogQualification? SchemaQualification? (FuncName / DottedIdentifier)
+ColumnReference <- CatalogQualification? SchemaQualification? TableQualification? ColumnName
+FunctionExpression <- FunctionIdentifier Parens(DistinctOrAll? List(FunctionArgument)? OrderByClause?) WithinGroupClause? FilterClause? ExportClause? OverClause?
+
+FunctionIdentifier <- CatalogQualification? SchemaQualification? FunctionName
 
 DistinctOrAll <- 'DISTINCT'i / 'ALL'i
 ExportClause <- 'EXPORT_STATE'i
@@ -1168,6 +1169,7 @@ ColumnName <- DottedIdentifier
 IndexName <- ColId ('.' ColId)*
 SettingName <- ColId
 PragmaName <- Identifier
+FunctionName <- Identifier
 TableFunctionName <- ColIdOrString / FuncName
 ConstraintName <- ColIdOrString
 SequenceName <- Identifier
