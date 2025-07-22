@@ -1,5 +1,5 @@
 # name: test/sql/peg_parser/analyze_vacuum.test
-# description: Test lambda syntax in peg parser
+# description: Test analyze and vacuum statements in peg parser
 # group: [peg_parser]
 
 require autocomplete

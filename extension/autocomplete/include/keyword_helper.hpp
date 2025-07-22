@@ -5,29 +5,25 @@
 
 namespace duckdb {
 enum class KeywordCategory : uint8_t {
-	KEYWORD_RESERVED,
+	KEYWORD_NONE,
 	KEYWORD_UNRESERVED,
+	KEYWORD_RESERVED,
 	KEYWORD_TYPE_FUNC,
-	KEYWORD_COL_NAME,
-	KEYWORD_NONE
-};
-
-struct ParserKeyword {
-	string name;
-	KeywordCategory category;
+	KEYWORD_COL_NAME
 };
 
 class KeywordHelper {
 public:
 	static KeywordHelper &Instance();
-	bool IsKeyword(const string &text) const;
-	KeywordCategory KeywordCategoryType(const string &text) const;
-	void InitializeKeywordMap();
-	void InsertKeyword(const string &kw, KeywordCategory cat);
+	bool KeywordCategoryType(const string &text, KeywordCategory type) const;
+	void InitializeKeywordMaps();
 
 private:
 	KeywordHelper();
 	bool initialized;
-	case_insensitive_map_t<KeywordCategory> keyword_map;
+	case_insensitive_set_t reserved_keyword_map;
+	case_insensitive_set_t unreserved_keyword_map;
+	case_insensitive_set_t colname_keyword_map;
+	case_insensitive_set_t typefunc_keyword_map;
 };
 } // namespace duckdb

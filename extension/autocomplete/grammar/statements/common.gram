@@ -27,17 +27,23 @@ Statement <-
 	TruncateStatement /
 	LoadStatement /
 	InstallStatement /
-	AnalyzeStatement
+	AnalyzeStatement /
+	MergeIntoStatement
 
-CatalogName <- ColIdOrString
-SchemaName <- ColIdOrString
-TableName <- ColIdOrString
-ColumnName <- DottedIdentifier
-IndexName <- ColId ('.' ColId)*
-SettingName <- ColId
+CatalogName <- Identifier
+SchemaName <- Identifier
+ReservedSchemaName <- Identifier
+TableName <- Identifier
+ReservedTableName <- Identifier
+ReservedIdentifier <- Identifier
+ColumnName <- Identifier
+ReservedColumnName <- Identifier
+IndexName <- Identifier
+SettingName <- Identifier
 PragmaName <- Identifier
 FunctionName <- Identifier
-TableFunctionName <- ColIdOrString / FuncName
+ReservedFunctionName <- Identifier
+TableFunctionName <- Identifier
 ConstraintName <- ColIdOrString
 SequenceName <- Identifier
 CollationName <- Identifier
@@ -112,7 +118,7 @@ RowType <- RowOrStruct Parens(List(ColIdType))
 UnionType <- 'UNION'i Parens(List(ColIdType))
 MapType <- 'MAP'i Parens(List(Type))
 ColIdType <- ColId Type
-ArrayBounds <- ('[' NumberLiteral? ']') / 'ARRAY'
+ArrayBounds <- ('[' NumberLiteral? ']') / 'ARRAY'i
 TimeType <- TimeOrTimestamp TypeModifiers? TimeZone?
 TimeOrTimestamp <- 'TIME'i / 'TIMESTAMP'i
 TimeZone <- WithOrWithout 'TIME'i 'ZONE'i

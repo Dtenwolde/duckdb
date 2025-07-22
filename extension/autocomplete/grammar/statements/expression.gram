@@ -1,7 +1,12 @@
-ColumnReference <- CatalogQualification? SchemaQualification? TableQualification? ColumnName
-FunctionExpression <- FunctionIdentifier Parens(DistinctOrAll? List(FunctionArgument)? OrderByClause?) WithinGroupClause? FilterClause? ExportClause? OverClause?
+ColumnReference <- CatalogReservedSchemaTableColumnName / SchemaReservedTableColumnName / TableReservedColumnName / ColumnName
+CatalogReservedSchemaTableColumnName <- CatalogQualification ReservedSchemaQualification ReservedTableQualification ReservedColumnName
+SchemaReservedTableColumnName <- SchemaQualification ReservedTableQualification ReservedColumnName
+TableReservedColumnName <- TableQualification ReservedColumnName
+FunctionExpression <- FunctionIdentifier Parens(DistinctOrAll? List(FunctionArgument)? OrderByClause? IgnoreNulls?) WithinGroupClause? FilterClause? ExportClause? OverClause?
 
-FunctionIdentifier <- CatalogQualification? SchemaQualification? FunctionName
+FunctionIdentifier <- CatalogReservedSchemaFunctionName / SchemaReservedFunctionName / FunctionName
+CatalogReservedSchemaFunctionName <- CatalogQualification ReservedSchemaQualification? ReservedFunctionName
+SchemaReservedFunctionName <- SchemaQualification ReservedFunctionName
 
 DistinctOrAll <- 'DISTINCT'i / 'ALL'i
 ExportClause <- 'EXPORT_STATE'i
@@ -47,7 +52,8 @@ BaseWindowName <- Identifier
 WindowPartition <- 'PARTITION'i 'BY'i List(Expression)
 PrefixExpression <- PrefixOperator Expression
 PrefixOperator <- 'NOT'i / '-' / '+' / '~'
-ListExpression <- 'ARRAY'i? (('[' List(Expression)? ']') / SelectStatement)
+ListExpression <- 'ARRAY'i? (BoundedListExpression / SelectStatement)
+BoundedListExpression <- '[' List(Expression)? ']'
 StructExpression <- '{' List(StructField)? '}'
 StructField <- Expression ':'i Expression
 MapExpression <- 'MAP'i StructExpression
