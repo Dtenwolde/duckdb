@@ -305,6 +305,42 @@ public:
 		}
 	}
 
+	unique_ptr<ParseResult> MatchParseResult(MatchState &state) const override {
+		MatchState repeat_state(state);
+		vector<unique_ptr<ParseResult>> results;
+
+		// First, we MUST match the element at least once.
+		auto first_result = element.MatchParseResult(repeat_state);
+		if (!first_result) {
+			// The first match failed, so the whole repeat fails.
+			return nullptr;
+		}
+		results.push_back(std::move(first_result));
+
+		// After the first success, the overall result is a success.
+		// Now, we continue matching the element as many times as possible.
+		while (true) {
+			// Propagate the new state upwards.
+			state.token_index = repeat_state.token_index;
+
+			// Check if there are any tokens left.
+			if (repeat_state.token_index >= state.tokens.size()) {
+				break;
+			}
+
+			// Try to match the element again.
+			auto next_result = element.MatchParseResult(repeat_state);
+			if (!next_result) {
+				// No more matches found, we are done.
+				break;
+			}
+			results.push_back(std::move(next_result));
+		}
+
+		// Return all collected results in a RepeatParseResult.
+		return make_uniq<RepeatParseResult>(std::move(results));
+	}
+
 	SuggestionType AddSuggestionInternal(MatchState &state) const override {
 		element.AddSuggestion(state);
 		return SuggestionType::MANDATORY;

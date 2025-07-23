@@ -14,6 +14,7 @@ class PEGTransformer; // Forward declaration
 enum class ParseResultType : uint8_t {
 	LIST,
 	OPTIONAL,
+	REPEAT,
 	CHOICE,
 	EXPRESSION,
 	IDENTIFIER,
@@ -75,6 +76,23 @@ struct ListParseResult : ParseResult {
 		return children[index].get().Cast<T>();
 	}
 
+};
+
+struct RepeatParseResult : ParseResult {
+	static constexpr ParseResultType TYPE = ParseResultType::REPEAT;
+	vector<reference<ParseResult>> children;
+
+	explicit RepeatParseResult(vector<reference<ParseResult>> results_p)
+		: ParseResult(TYPE), children(std::move(results_p)) {
+	}
+
+	template <class T>
+	T &Child(idx_t index) {
+		if (index >= children.size()) {
+			throw InternalException("Child index out of bounds");
+		}
+		return children[index].get().Cast<T>();
+	}
 };
 
 struct OptionalParseResult : ParseResult {
