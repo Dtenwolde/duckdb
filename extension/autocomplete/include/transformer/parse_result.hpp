@@ -65,8 +65,18 @@ struct ListParseResult : ParseResult {
 	static constexpr ParseResultType TYPE = ParseResultType::LIST;
 	vector<reference<ParseResult>> children;
 
-	explicit ListParseResult(vector<reference<ParseResult>> results_p)
-	    : ParseResult(TYPE), children(std::move(results_p)) {
+private:
+	// This private vector owns the children, keeping them alive.
+	vector<unique_ptr<ParseResult>> owned_children;
+
+public:
+	explicit ListParseResult(vector<unique_ptr<ParseResult>> owned_results_p)
+			: ParseResult(TYPE), owned_children(std::move(owned_results_p)) {
+		// Build the public reference vector from the private owned vector
+		children.reserve(owned_children.size());
+		for (const auto& ptr : owned_children) {
+			children.push_back(*ptr);
+		}
 	}
 
 	template <class T>

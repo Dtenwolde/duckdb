@@ -122,7 +122,7 @@ public:
 
 	//! Match
 	virtual MatchResultType Match(MatchState &state) const = 0;
-	virtual unique_ptr<ParseResult> MatchParseResult(MatchState &state) const = 0;
+	virtual ParseResult &MatchParseResult(MatchState &state) const = 0;
 	virtual SuggestionType AddSuggestion(MatchState &state) const;
 	virtual SuggestionType AddSuggestionInternal(MatchState &state) const = 0;
 	virtual string ToString() const = 0;
@@ -163,9 +163,11 @@ protected:
 class MatcherAllocator {
 public:
 	Matcher &Allocate(unique_ptr<Matcher> matcher);
+	ParseResult &AllocateParseResult(unique_ptr<ParseResult> parse_result);
 
 private:
 	vector<unique_ptr<Matcher>> matchers;
+	vector<unique_ptr<ParseResult>> parse_results;
 };
 
 } // namespace duckdb

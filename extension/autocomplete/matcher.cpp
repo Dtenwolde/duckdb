@@ -138,24 +138,21 @@ public:
 
 	unique_ptr<ParseResult> MatchParseResult(MatchState &state) const override {
 		MatchState list_state(state);
-		vector<reference<ParseResult>> results;
-		results.reserve(matchers.size());
+		vector<unique_ptr<ParseResult>> owned_results;
+		owned_results.reserve(matchers.size());
 
 		for (const auto &child_matcher : matchers) {
-			// We must match all children in the list.
 			auto child_result = child_matcher.get().MatchParseResult(list_state);
 			if (!child_result) {
-				// If any child fails to match, the whole list fails.
 				return nullptr;
 			}
-			results.push_back(*child_result);
+			owned_results.push_back(std::move(child_result));
 		}
 
-		// If all children were matched successfully, propagate the state.
 		state.token_index = list_state.token_index;
-
-		// Return the collected results wrapped in a ListParseResult.
-		return make_uniq<ListParseResult>(std::move(results));
+		auto result = make_uniq<ListParseResult>(std::move(owned_results));
+		result->name = name;
+		return result;
 	}
 
 	SuggestionType AddSuggestionInternal(MatchState &state) const override {
@@ -253,14 +250,14 @@ public:
 		return MatchResultType::FAIL;
 	}
 
-	unique_ptr<ParseResult> MatchParseResult(MatchState &state) const override {
-		for (auto &child_matcher : matchers) {
+	ParseResult &MatchParseResult(MatchState &state) const override {
+		for (idx_t i = 0; i < matchers.size(); i++) {
 			MatchState choice_state(state);
-			auto child_result = child_matcher.get().MatchParseResult(choice_state);
+			auto child_result = matchers[i].get().MatchParseResult(choice_state);
 			if (child_result != nullptr) {
 				// we matched this child - propagate upwards
 				state.token_index = choice_state.token_index;
-				return child_result;
+				return make_uniq<ChoiceParseResult>(child_result, i);
 			}
 		}
 		return nullptr;
@@ -704,6 +701,12 @@ Matcher &MatcherAllocator::Allocate(unique_ptr<Matcher> matcher) {
 	return result;
 }
 
+ParseResult &MatcherAllocator::AllocateParseResult(unique_ptr<ParseResult> parse_result) {
+	auto &result = *parse_result;
+	parse_results.push_back(std::move(parse_result));
+	return result;
+}
+
 //! Class for building matchers
 class MatcherFactory {
 	friend struct MatcherList;
@@ -742,6 +745,8 @@ private:
 	Matcher &ReservedScalarFunctionName() const;
 	Matcher &ReservedVariable() const;
 
+	ParseResult &KeywordPR(const string& keyword) const;
+
 	void AddKeywordOverride(const char *name, uint32_t score, char extra_char = ' ');
 	void AddRuleOverride(const char *name, Matcher &matcher);
 	Matcher &CreateMatcher(PEGParser &parser, string_t rule_name);
@@ -759,6 +764,10 @@ Matcher &MatcherFactory::Keyword(const string &keyword) const {
 		return entry->second.get();
 	}
 	return allocator.Allocate(make_uniq<KeywordMatcher>(keyword, 0, ' '));
+}
+
+ParseResult &MatcherFactory::KeywordPR(const string& keyword) const {
+	return allocator.AllocateParseResult(make_uniq<KeywordParseResult>(keyword));
 }
 
 Matcher &MatcherFactory::List() const {
