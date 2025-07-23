@@ -107,11 +107,11 @@ public:
 	string number;
 };
 
-class StringParseResult : public ParseResult {
+class StringLiteralParseResult : public ParseResult {
 public:
 	static constexpr ParseResultType TYPE = ParseResultType::STRING;
 
-	explicit StringParseResult(string string_p) : ParseResult(TYPE), result(std::move(string_p)) {
+	explicit StringLiteralParseResult(string string_p) : ParseResult(TYPE), result(std::move(string_p)) {
 	}
 	string result;
 };
