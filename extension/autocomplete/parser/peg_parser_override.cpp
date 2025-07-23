@@ -7,8 +7,7 @@ namespace duckdb {
 struct MatcherToken;
 
 PEGParserOverride::PEGParserOverride() {
-	auto grammar = const_char_ptr_cast(INLINED_PEG_GRAMMAR);
-	factory = make_uniq<PEGTransformerFactory>(grammar);
+	factory = make_uniq<PEGTransformerFactory>();
 }
 
 vector<unique_ptr<SQLStatement>> PEGParserOverride::Parse(const string &query) {

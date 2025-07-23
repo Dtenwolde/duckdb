@@ -1,4 +1,5 @@
 #include "transformer/peg_transformer.hpp"
+#include "matcher.hpp"
 
 namespace duckdb {
 
@@ -9,27 +10,36 @@ unique_ptr<SQLStatement> PEGTransformerFactory::TransformStatement(PEGTransforme
 }
 
 unique_ptr<SQLStatement> PEGTransformerFactory::Transform(vector<MatcherToken> &tokens, const char *root_rule) {
-	ArenaAllocator allocator(Allocator::DefaultAllocator());
-	PEGTransformerState state(tokens);
 	string token_stream;
 	for (auto &token : tokens) {
 		token_stream += token.text + " ";
 	}
-	Printer::PrintF("Tokens: %s", token_stream.c_str());
-	PEGTransformer transformer(allocator, state, sql_transform_functions, parser.rules, enum_mappings);
-	auto root_parse_result = transformer.MatchRule(root_rule);
-	if (!root_parse_result) {
-		throw ParserException("Failed to parse string: No match found for root rule '%s'.", root_rule);
+
+	vector<MatcherSuggestion> suggestions;
+	MatchState state(tokens, suggestions);
+	MatcherAllocator allocator;
+	auto &matcher = Matcher::RootMatcher(allocator);
+	auto match_result = matcher.MatchParseResult(state);
+	if (match_result != nullptr) {
+		Printer::Print("Great success");
 	}
-	Printer::Print("Successfully parsed string");
-	if (state.token_index < tokens.size()) {
-		throw ParserException("Failed to parse string: Unconsumed tokens remaining.");
-	}
-	root_parse_result->name = root_rule;
-	return transformer.Transform<unique_ptr<SQLStatement>>(*root_parse_result);
+	throw NotImplementedException("PEGTransformerFactory::Transform");
+
+	// Printer::PrintF("Tokens: %s", token_stream.c_str());
+	// PEGTransformer transformer(allocator, state, sql_transform_functions, parser.rules, enum_mappings);
+	// auto root_parse_result = transformer.MatchRule(root_rule);
+	// if (!root_parse_result) {
+	// 	throw ParserException("Failed to parse string: No match found for root rule '%s'.", root_rule);
+	// }
+	// Printer::Print("Successfully parsed string");
+	// if (state.token_index < tokens.size()) {
+	// 	throw ParserException("Failed to parse string: Unconsumed tokens remaining.");
+	// }
+	// root_parse_result->name = root_rule;
+	// return transformer.Transform<unique_ptr<SQLStatement>>(*root_parse_result);
 }
 
-PEGTransformerFactory::PEGTransformerFactory(const char *grammar) : parser(grammar) {
+PEGTransformerFactory::PEGTransformerFactory() {
 	Register("Statement", &TransformStatement);
 	Register("UseStatement", &TransformUseStatement);
 	Register("DottedIdentifier", &TransformDottedIdentifier);

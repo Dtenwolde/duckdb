@@ -43,17 +43,11 @@ public:
 	template <typename T>
 	T TransformEnum(ParseResult &parse_result);
 
-	ParseResult *MatchRule(const string_t &rule_name);
-	ParseResult *MatchRule(const PEGExpression &expression);
-
 	// Make overloads return raw pointers, as ownership is handled by the ArenaAllocator.
 	template <class T, typename... Args>
 	T *Make(Args &&...args) {
 		return allocator.Make<T>(std::forward<Args>(args)...);
 	}
-
-private:
-	const PEGExpression *FindSubstitution(const string_t &name);
 
 public:
 	ArenaAllocator &allocator;
@@ -62,13 +56,12 @@ public:
 	const case_insensitive_map_t<PEGRule> &grammar_rules;
 	const case_insensitive_map_t<AnyTransformFunction> &transform_functions;
 	const case_insensitive_map_t<case_insensitive_map_t<unique_ptr<TransformEnumValue>>> &enum_mappings;
-	vector<string_map_t<const PEGExpression *>> substitution_stack;
 };
 // PEGTransformerFactory is now a real class that holds the transformation state.
 class PEGTransformerFactory {
 public:
 	// The factory is constructed with a specific grammar.
-	explicit PEGTransformerFactory(const char *grammar);
+	explicit PEGTransformerFactory();
 
 	// Transforms a sequence of tokens into a SQL statement.
 	unique_ptr<SQLStatement> Transform(vector<MatcherToken> &tokens, const char *root_rule = "Statement");
