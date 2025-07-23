@@ -302,42 +302,18 @@ public:
 	}
 
 	MatchResultType Match(MatchState &state) const override {
-		// variable matchers match anything except for reserved keywords
-		auto &token_text = state.tokens[state.token_index].text;
-		const auto &keyword_helper = PEGKeywordHelper::Instance();
-		switch (suggestion_type) {
-		case SuggestionState::SUGGEST_TYPE_NAME:
-			if (keyword_helper.KeywordCategoryType(token_text, KeywordCategory::KEYWORD_RESERVED) ||
-			    keyword_helper.KeywordCategoryType(token_text, GetBannedCategory())) {
-				return MatchResultType::FAIL;
-			}
-			break;
-		default: {
-			const auto banned_category = GetBannedCategory();
-			const auto allowed_override_category = banned_category == KeywordCategory::KEYWORD_COL_NAME
-			                                           ? KeywordCategory::KEYWORD_TYPE_FUNC
-			                                           : KeywordCategory::KEYWORD_COL_NAME;
-
-			const bool is_reserved = keyword_helper.KeywordCategoryType(token_text, KeywordCategory::KEYWORD_RESERVED);
-			const bool has_extra_banned_category = keyword_helper.KeywordCategoryType(token_text, banned_category);
-			const bool has_banned_flag = is_reserved || has_extra_banned_category;
-
-			const bool is_unreserved =
-			    keyword_helper.KeywordCategoryType(token_text, KeywordCategory::KEYWORD_UNRESERVED);
-			const bool has_override_flag = keyword_helper.KeywordCategoryType(token_text, allowed_override_category);
-			const bool has_allowed_flag = is_unreserved || has_override_flag;
-
-			if (has_banned_flag && !has_allowed_flag) {
-				return MatchResultType::FAIL;
-			}
-			break;
-		}
-		}
-		if (!IsIdentifier(token_text)) {
+		if (!MatchIdentifier(state)) {
 			return MatchResultType::FAIL;
 		}
-		state.token_index++;
 		return MatchResultType::SUCCESS;
+	}
+
+	unique_ptr<ParseResult> MatchParseResult(MatchState &state) const override {
+		auto &token_text = state.tokens[state.token_index].text;
+		if (!MatchIdentifier(state)) {
+			return nullptr;
+		}
+		return make_uniq<IdentifierParseResult>(token_text);
 	}
 
 	bool SupportsStringLiteral() const {
@@ -397,6 +373,46 @@ public:
 	}
 
 	SuggestionState suggestion_type;
+
+private:
+	bool MatchIdentifier(MatchState &state) const {
+		// variable matchers match anything except for reserved keywords
+		auto &token_text = state.tokens[state.token_index].text;
+		const auto &keyword_helper = PEGKeywordHelper::Instance();
+		switch (suggestion_type) {
+		case SuggestionState::SUGGEST_TYPE_NAME:
+			if (keyword_helper.KeywordCategoryType(token_text, KeywordCategory::KEYWORD_RESERVED) ||
+				keyword_helper.KeywordCategoryType(token_text, GetBannedCategory())) {
+				return false;
+				}
+			break;
+		default: {
+			const auto banned_category = GetBannedCategory();
+			const auto allowed_override_category = banned_category == KeywordCategory::KEYWORD_COL_NAME
+													   ? KeywordCategory::KEYWORD_TYPE_FUNC
+													   : KeywordCategory::KEYWORD_COL_NAME;
+
+			const bool is_reserved = keyword_helper.KeywordCategoryType(token_text, KeywordCategory::KEYWORD_RESERVED);
+			const bool has_extra_banned_category = keyword_helper.KeywordCategoryType(token_text, banned_category);
+			const bool has_banned_flag = is_reserved || has_extra_banned_category;
+
+			const bool is_unreserved =
+				keyword_helper.KeywordCategoryType(token_text, KeywordCategory::KEYWORD_UNRESERVED);
+			const bool has_override_flag = keyword_helper.KeywordCategoryType(token_text, allowed_override_category);
+			const bool has_allowed_flag = is_unreserved || has_override_flag;
+
+			if (has_banned_flag && !has_allowed_flag) {
+				return false;
+			}
+			break;
+		}
+		}
+		if (!IsIdentifier(token_text)) {
+			return false;
+		}
+		state.token_index++;
+		return true;
+	}
 };
 
 class ReservedIdentifierMatcher : public IdentifierMatcher {
@@ -408,7 +424,7 @@ public:
 	}
 
 	MatchResultType Match(MatchState &state) const override {
-		if (!MatchIdentifier(state)) {
+		if (!MatchReservedIdentifier(state)) {
 			return MatchResultType::FAIL;
 		}
 		return MatchResultType::SUCCESS;
@@ -416,14 +432,14 @@ public:
 
 	unique_ptr<ParseResult> MatchParseResult(MatchState &state) const override {
 		auto &token_text = state.tokens[state.token_index].text;
-		if (!MatchIdentifier(state)) {
+		if (!MatchReservedIdentifier(state)) {
 			return nullptr;
 		}
 		return make_uniq<IdentifierParseResult>(token_text);
 	}
 
 private:
-	bool MatchIdentifier(MatchState &state) const {
+	bool MatchReservedIdentifier(MatchState &state) const {
 		auto &token_text = state.tokens[state.token_index].text;
 		if (!IsIdentifier(token_text)) {
 			return false;
