@@ -20,7 +20,6 @@ UnreservedKeyword <- 'ABORT'i /
 'BACKWARD'i /
 'BEFORE'i /
 'BEGIN'i /
-'BY'i /
 'CACHE'i /
 'CALL'i /
 'CALLED'i /
@@ -82,6 +81,7 @@ UnreservedKeyword <- 'ABORT'i /
 'ENCODING'i /
 'ENCRYPTED'i /
 'ENUM'i /
+'ERROR'i /
 'ESCAPE'i /
 'EVENT'i /
 'EXCLUDE'i /
@@ -151,8 +151,10 @@ UnreservedKeyword <- 'ABORT'i /
 'MACRO'i /
 'MAPPING'i /
 'MATCH'i /
+'MATCHED'i /
 'MATERIALIZED'i /
 'MAXVALUE'i /
+'MERGE'i /
 'METHOD'i /
 'MICROSECOND'i /
 'MICROSECONDS'i /
@@ -264,6 +266,7 @@ UnreservedKeyword <- 'ABORT'i /
 'SKIP'i /
 'SNAPSHOT'i /
 'SORTED'i /
+'SOURCE'i /
 'SQL'i /
 'STABLE'i /
 'STANDALONE'i /
@@ -281,6 +284,7 @@ UnreservedKeyword <- 'ABORT'i /
 'SYSTEM'i /
 'TABLES'i /
 'TABLESPACE'i /
+'TARGET'i /
 'TEMP'i /
 'TEMPLATE'i /
 'TEMPORARY'i /
@@ -490,6 +494,7 @@ TypeNameKeyword <- 'ASOF'i /
 'AT'i /
 'AUTHORIZATION'i /
 'BINARY'i /
+'BY'i /
 'COLLATION'i /
 'COLUMNS'i /
 'CONCURRENTLY'i /
@@ -536,10 +541,15 @@ ValueOrValues <- 'VALUE' / 'VALUES'
 IncludeExcludeNulls <- ('INCLUDE' / 'EXCLUDE') 'NULLS'
 UnpivotHeader <- ColIdOrString / Parens(List(ColIdOrString))
 
-ColumnReference <- CatalogQualification? SchemaQualification? TableQualification? ColumnName
-FunctionExpression <- FunctionIdentifier Parens(DistinctOrAll? List(FunctionArgument)? OrderByClause?) WithinGroupClause? FilterClause? ExportClause? OverClause?
+ColumnReference <- CatalogReservedSchemaTableColumnName / SchemaReservedTableColumnName / TableReservedColumnName / ColumnName
+CatalogReservedSchemaTableColumnName <- CatalogQualification ReservedSchemaQualification ReservedTableQualification ReservedColumnName
+SchemaReservedTableColumnName <- SchemaQualification ReservedTableQualification ReservedColumnName
+TableReservedColumnName <- TableQualification ReservedColumnName
+FunctionExpression <- FunctionIdentifier Parens(DistinctOrAll? List(FunctionArgument)? OrderByClause? IgnoreNulls?) WithinGroupClause? FilterClause? ExportClause? OverClause?
 
-FunctionIdentifier <- CatalogQualification? SchemaQualification? FunctionName
+FunctionIdentifier <- CatalogReservedSchemaFunctionName / SchemaReservedFunctionName / FunctionName
+CatalogReservedSchemaFunctionName <- CatalogQualification ReservedSchemaQualification? ReservedFunctionName
+SchemaReservedFunctionName <- SchemaQualification ReservedFunctionName
 
 DistinctOrAll <- 'DISTINCT'i / 'ALL'i
 ExportClause <- 'EXPORT_STATE'i
@@ -585,7 +595,8 @@ BaseWindowName <- Identifier
 WindowPartition <- 'PARTITION'i 'BY'i List(Expression)
 PrefixExpression <- PrefixOperator Expression
 PrefixOperator <- 'NOT'i / '-' / '+' / '~'
-ListExpression <- 'ARRAY'i? (('[' List(Expression)? ']') / SelectStatement)
+ListExpression <- 'ARRAY'i? (BoundedListExpression / SelectStatement)
+BoundedListExpression <- '[' List(Expression)? ']'
 StructExpression <- '{' List(StructField)? '}'
 StructField <- Expression ':'i Expression
 MapExpression <- 'MAP'i StructExpression
@@ -709,6 +720,28 @@ OptVerbose <- 'VERBOSE'i?
 
 QualifiedTarget <- QualifiedName OptNameList
 OptNameList <- Parens(List(Name))?
+MergeIntoStatement <- WithClause? 'MERGE'i 'INTO'i TargetOptAlias MergeIntoUsingClause MergeMatch* ReturningClause?
+MergeIntoUsingClause <- 'USING'i TableRef JoinQualifier
+MergeMatch <- MatchedClause / NotMatchedClause
+MatchedClause <- 'WHEN'i 'MATCHED'i AndExpression? 'THEN'i MatchedClauseAction
+MatchedClauseAction <- UpdateMatchClause / DeleteMatchClause / InsertMatchClause / DoNothingMatchClause / ErrorMatchClause
+UpdateMatchClause <- 'UPDATE'i (UpdateMatchSetClause / ByNameOrPosition?)
+DeleteMatchClause <- 'DELETE'i
+InsertMatchClause <- 'INSERT'i (InsertValuesList / DefaultValues / InsertByNameOrPosition)?
+InsertByNameOrPosition <- ByNameOrPosition? '*'?
+InsertValuesList <- InsertColumnList? 'VALUES'i Parens(List(Expression))
+DoNothingMatchClause <- 'DO'i 'NOTHING'i
+ErrorMatchClause <- 'ERROR'i Expression?
+UpdateMatchSetClause <- 'SET'i (UpdateSetClause / '*')
+AndExpression <- 'AND'i Expression
+NotMatchedClause <- 'WHEN'i 'NOT'i 'MATCHED'i BySourceOrTarget? AndExpression? 'THEN'i MatchedClauseAction
+BySourceOrTarget <- 'BY'i ('SOURCE'i / 'TARGET'i)
+
+
+
+
+
+
 PragmaStatement <- 'PRAGMA'i (PragmaAssign / PragmaFunction)
 
 PragmaAssign <- SettingName '=' Expression
@@ -732,10 +765,16 @@ WithData <- 'WITH'i 'NO'i? 'DATA'i
 IdentifierList <- Parens(List(Identifier))
 CreateColumnList <- Parens(CreateTableColumnList)
 IfNotExists <- 'IF'i 'NOT'i 'EXISTS'i
-QualifiedName <- DottedIdentifier / (CatalogQualification? SchemaQualification? ColIdOrString)
+QualifiedName <- CatalogReservedSchemaIdentifier / SchemaReservedIdentifierOrStringLiteral / IdentifierOrStringLiteral
+SchemaReservedIdentifierOrStringLiteral <- SchemaQualification ReservedIdentifierOrStringLiteral
+CatalogReservedSchemaIdentifier <- CatalogQualification ReservedSchemaQualification ReservedIdentifierOrStringLiteral
+IdentifierOrStringLiteral <- Identifier / StringLiteral
+ReservedIdentifierOrStringLiteral <- ReservedIdentifier / StringLiteral
 CatalogQualification <- CatalogName '.'
 SchemaQualification <- SchemaName '.'
+ReservedSchemaQualification <- ReservedSchemaName '.'
 TableQualification <- TableName '.'
+ReservedTableQualification <- ReservedTableName '.'
 
 CreateTableColumnList <- List(CreateTableColumnElement)
 CreateTableColumnElement <- ColumnDefinition / TopLevelConstraint
@@ -766,7 +805,7 @@ ColumnIdList <- Parens(List(ColId))
 
 PlainIdentifier <- !ReservedKeyword <[a-z_]i[a-z0-9_]i*>
 QuotedIdentifier <- '"' [^"]* '"'
-DottedIdentifier <- ColId ('.' ColLabel)*
+DottedIdentifier <- Identifier ('.' Identifier)*
 Identifier <- QuotedIdentifier / PlainIdentifier
 
 ColId <- UnreservedKeyword / ColumnNameKeyword / Identifier
@@ -816,7 +855,8 @@ DropTable <- TableOrView IfExists? List(BaseTableName)
 DropTableFunction <- 'MACRO'i 'TABLE'i IfExists? List(TableFunctionName)
 DropFunction <- FunctionType IfExists? List(FunctionIdentifier)
 DropSchema <- 'SCHEMA'i IfExists? List(QualifiedSchemaName)
-DropIndex <- 'INDEX'i IfExists? List(IndexName)
+DropIndex <- 'INDEX'i IfExists? List(QualifiedIndexName)
+QualifiedIndexName <- CatalogQualification? SchemaQualification? IndexName
 DropSequence <- 'SEQUENCE'i IfExists? List(QualifiedSequenceName)
 DropCollation <- 'COLLATION'i IfExists? List(CollationName)
 DropType <- 'TYPE'i IfExists? List(QualifiedTypeName)
@@ -832,10 +872,10 @@ QualifiedSchemaName <- CatalogQualification? SchemaName
 
 DropSecretStorage <- 'FROM'i Identifier
 
-UpdateStatement <- WithClause? 'UPDATE'i UpdateTarget 'SET'i UpdateSetClause FromClause? WhereClause? ReturningClause?
+UpdateStatement <- WithClause? 'UPDATE'i UpdateTarget UpdateSetClause FromClause? WhereClause? ReturningClause?
 
-UpdateTarget <- BaseTableName UpdateAlias?
-UpdateAlias <- 'AS'i? Identifier
+UpdateTarget <- (BaseTableName 'SET'i) / (BaseTableName UpdateAlias? 'SET'i)
+UpdateAlias <- 'AS'i? ColId
 UpdateSetClause <- List(UpdateSetElement) / (Parens(List(ColumnName)) '=' Expression)
 UpdateSetElement <- ColumnName '=' Expression
 
@@ -868,7 +908,6 @@ OnConflictNothing <- 'DO'i 'NOTHING'i
 ReturningClause <- 'RETURNING'i TargetList
 
 CreateSchemaStmt <- 'SCHEMA'i IfNotExists? QualifiedName
-
 SelectStatement <- SelectOrParens (SetopClause SelectStatement)* ResultModifiers
 
 SetopClause <- ('UNION'i / 'EXCEPT'i / 'INTERSECT'i) DistinctOrAll? ByName?
@@ -915,7 +954,9 @@ PivotTargetList <- Identifier / Parens(TargetList)
 
 Lateral <- 'LATERAL'i
 
-BaseTableName <- DottedIdentifier / (CatalogQualification? SchemaQualification? TableName)
+BaseTableName <- CatalogReservedSchemaTable / SchemaReservedTable / TableName
+SchemaReservedTable <- SchemaQualification ReservedTableName
+CatalogReservedSchemaTable <- CatalogQualification ReservedSchemaQualification ReservedTableName
 
 TableFunction <- TableFunctionLateralOpt / TableFunctionAliasColon
 TableFunctionLateralOpt <- Lateral? QualifiedTableFunction TableFunctionArguments TableAlias?
@@ -926,7 +967,7 @@ FunctionArgument <- NamedParameter / Expression
 NamedParameter <- TypeName NamedParameterAssignment Expression
 NamedParameterAssignment <- ':=' / '=>'
 
-TableAlias <- 'AS'i? ColIdOrString ColumnAliases?
+TableAlias <- 'AS'i? (Identifier / StringLiteral) ColumnAliases?
 
 AtClause <- 'AT'i Parens(AtSpecifier)
 AtSpecifier <- AtUnit '=>' Expression
@@ -948,7 +989,7 @@ WhereClause <- 'WHERE'i Expression
 GroupByClause <- 'GROUP'i 'BY'i GroupByExpressions
 HavingClause <- 'HAVING'i Expression
 QualifyClause <- 'QUALIFY'i Expression
-SampleClause <- (UsingSample / TableSample) SampleEntry
+SampleClause <- (TableSample / UsingSample) SampleEntry
 UsingSample <- 'USING'i 'SAMPLE'i
 TableSample <- 'TABLESAMPLE'i
 WindowClause <- 'WINDOW'i List(WindowDefinition)
@@ -959,7 +1000,7 @@ SampleEntryCount <- SampleCount Parens(SampleProperties)?
 SampleEntryFunction <- SampleFunction? Parens(SampleCount) RepeatableSample?
 SampleFunction <- ColId
 SampleProperties <- ColId (',' NumberLiteral)?
-RepeatableSample <- 'REPEATABLE' Parens(NumberLiteral)
+RepeatableSample <- 'REPEATABLE'i Parens(NumberLiteral)
 
 SampleCount <- Expression SampleUnit?
 SampleUnit <- '%' / 'PERCENT'i / 'ROWS'i
@@ -1080,10 +1121,11 @@ AlterTableOptions <- AddColumn / DropColumn / AlterColumn / AddConstraint / Chan
 
 AddConstraint <- 'ADD'i TopLevelConstraint
 AddColumn <- 'ADD'i 'COLUMN'i? IfNotExists? ColumnDefinition
-DropColumn <- 'DROP'i 'COLUMN'i? IfExists? DottedIdentifier DropBehavior?
-AlterColumn <- 'ALTER'i 'COLUMN'i? DottedIdentifier AlterColumnEntry
-RenameColumn <- 'RENAME'i 'COLUMN'i? DottedIdentifier 'TO'i DottedIdentifier
-RenameAlter <- 'RENAME'i 'TO'i DottedIdentifier
+DropColumn <- 'DROP'i 'COLUMN'i? IfExists? NestedColumnName DropBehavior?
+AlterColumn <- 'ALTER'i 'COLUMN'i? NestedColumnName AlterColumnEntry
+RenameColumn <- 'RENAME'i 'COLUMN'i? NestedColumnName 'TO'i Identifier
+NestedColumnName <- (Identifier '.')* ColumnName
+RenameAlter <- 'RENAME'i 'TO'i Identifier
 SetPartitionedBy <- 'SET'i 'PARTITIONED'i 'BY'i Parens(List(Expression))
 ResetPartitionedBy <- 'RESET'i 'PARTITIONED'i 'BY'i
 SetSortedBy <- 'SET'i 'SORTED'i 'BY'i OrderByExpressions
@@ -1160,17 +1202,23 @@ Statement <-
 	TruncateStatement /
 	LoadStatement /
 	InstallStatement /
-	AnalyzeStatement
+	AnalyzeStatement /
+	MergeIntoStatement
 
-CatalogName <- ColIdOrString
-SchemaName <- ColIdOrString
-TableName <- ColIdOrString
-ColumnName <- DottedIdentifier
-IndexName <- ColId ('.' ColId)*
-SettingName <- ColId
+CatalogName <- Identifier
+SchemaName <- Identifier
+ReservedSchemaName <- Identifier
+TableName <- Identifier
+ReservedTableName <- Identifier
+ReservedIdentifier <- Identifier
+ColumnName <- Identifier
+ReservedColumnName <- Identifier
+IndexName <- Identifier
+SettingName <- Identifier
 PragmaName <- Identifier
 FunctionName <- Identifier
-TableFunctionName <- ColIdOrString / FuncName
+ReservedFunctionName <- Identifier
+TableFunctionName <- Identifier
 ConstraintName <- ColIdOrString
 SequenceName <- Identifier
 CollationName <- Identifier
@@ -1245,7 +1293,7 @@ RowType <- RowOrStruct Parens(List(ColIdType))
 UnionType <- 'UNION'i Parens(List(ColIdType))
 MapType <- 'MAP'i Parens(List(Type))
 ColIdType <- ColId Type
-ArrayBounds <- ('[' NumberLiteral? ']') / 'ARRAY'
+ArrayBounds <- ('[' NumberLiteral? ']') / 'ARRAY'i
 TimeType <- TimeOrTimestamp TypeModifiers? TimeZone?
 TimeOrTimestamp <- 'TIME'i / 'TIMESTAMP'i
 TimeZone <- WithOrWithout 'TIME'i 'ZONE'i
@@ -1265,7 +1313,7 @@ CreateMacroStmt <- MacroOrFunction IfNotExists? QualifiedName List(MacroDefiniti
 
 MacroOrFunction <- 'MACRO'i / 'FUNCTION'i
 
-MacroDefinition <- Parens(MacroParameters?) 'AS'i (ScalarMacroDefinition / TableMacroDefinition)
+MacroDefinition <- Parens(MacroParameters?) 'AS'i (TableMacroDefinition / ScalarMacroDefinition)
 
 MacroParameters <- List(MacroParameter)
 MacroParameter <- NamedParameter / TypeFuncName
@@ -1288,7 +1336,9 @@ AttachOptions <- Parens(GenericCopyOptionList)
 
 DetachStatement <- 'DETACH'i Database? IfExists? CatalogName
 
-UseStatement <- 'USE'i DottedIdentifier
+UseStatement <- 'USE'i UseTarget
+
+UseTarget <- (CatalogName '.' ReservedSchemaName) / SchemaName / CatalogName / { error_message Expected "USE database" or "USE database.schema" }
 
 CallStatement <- 'CALL'i TableFunctionName TableFunctionArguments
 
