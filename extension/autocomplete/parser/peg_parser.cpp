@@ -18,6 +18,8 @@ bool IsPEGOperator(char c) {
 	case ')':
 	case '*':
 	case '!':
+	case '{':
+	case '}':
 		return true;
 	default:
 		return false;
@@ -30,6 +32,7 @@ void PEGParser::ParseRules(const char *grammar) {
 	PEGParseState parse_state = PEGParseState::RULE_NAME;
 	idx_t bracket_count = 0;
 	bool in_or_clause = false;
+	bool in_error_clause = false;
 	// look for the rules
 	idx_t c = 0;
 	while (grammar[c]) {
@@ -41,7 +44,7 @@ void PEGParser::ParseRules(const char *grammar) {
 			continue;
 		}
 		if (parse_state == PEGParseState::RULE_DEFINITION && StringUtil::CharacterIsNewline(grammar[c]) &&
-		    bracket_count == 0 && !in_or_clause && !rule.tokens.empty()) {
+		    bracket_count == 0 && !in_error_clause && !in_or_clause && !rule.tokens.empty()) {
 			// if we see a newline while we are parsing a rule definition we can complete the rule
 			AddRule(rule_name, std::move(rule));
 			rule_name = string();
@@ -110,6 +113,7 @@ void PEGParser::ParseRules(const char *grammar) {
 			// (2) a rule reference (Rule)
 			// (3) an operator ( '(' '/' '?' '*' ')')
 			in_or_clause = false;
+			in_error_clause = false;
 			if (grammar[c] == '\'') {
 				// parse literal
 				c++;
@@ -152,6 +156,16 @@ void PEGParser::ParseRules(const char *grammar) {
 					bracket_token.text = '(';
 					bracket_token.type = PEGTokenType::OPERATOR;
 					rule.tokens.push_back(bracket_token);
+				} else if (grammar[c] == '{') {
+					// This is an error message
+					c++;
+					idx_t start_pos = c;
+					while (grammar[c] && grammar[c] != '}') {
+						c++;
+					}
+					token.text = string(grammar + start_pos, c - start_pos);
+					token.type = PEGTokenType::STRING_LITERAL;
+					rule.tokens.push_back(token);
 				} else {
 					token.type = PEGTokenType::REFERENCE;
 					rule.tokens.push_back(token);
@@ -186,6 +200,10 @@ void PEGParser::ParseRules(const char *grammar) {
 					bracket_count--;
 				} else if (grammar[c] == '/') {
 					in_or_clause = true;
+				} else if (grammar[c] == '{') {
+					in_error_clause = true;
+				} else if (grammar[c] == '}') {
+					in_error_clause = false;
 				}
 				// operator - operators are always length 1
 				PEGToken token;

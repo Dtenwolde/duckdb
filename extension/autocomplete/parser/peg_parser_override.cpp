@@ -7,7 +7,16 @@ namespace duckdb {
 struct MatcherToken;
 
 PEGParserOverride::PEGParserOverride() {
-	auto grammar = const_char_ptr_cast(INLINED_PEG_GRAMMAR);
+	const char grammar[] = {
+		"List(D) <- D (',' D)* ','?\n"
+		"UseStatement <- 'USE'i UseTarget\n"
+		"UseTarget <- (CatalogName '.' ReservedSchemaName) / SchemaName / CatalogName / { 'Expected \"USE database\" or \"USE database.schema\"' }\n"
+		"CatalogName <- Identifier\n"
+		"SchemaName <- Identifier\n"
+		"ReservedSchemaName <- Identifier\n"
+		"Identifier <- [a-z_A-Z]\n"
+	};
+	// auto grammar = const_char_ptr_cast(INLINED_PEG_GRAMMAR);
 	factory = make_uniq<PEGTransformerFactory>(grammar);
 }
 

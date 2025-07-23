@@ -5,6 +5,7 @@
 #include "duckdb/common/types/string_type.hpp"
 #include "duckdb/common/unique_ptr.hpp"
 #include "duckdb/common/vector.hpp"
+#include "duckdb/common/printer.hpp"
 
 namespace duckdb {
 
@@ -24,7 +25,8 @@ enum class PEGExpressionType {
 	REGEX,
 	PARAMETERIZED_RULE,
 	NUMBER,
-	STRING
+	STRING,
+	ERROR
 };
 
 struct PEGExpression {
@@ -131,6 +133,14 @@ struct PEGParameterizedRuleExpression : PEGExpression {
 	vector<unique_ptr<PEGExpression>> expressions;
 };
 
+struct PEGErrorExpression : PEGExpression {
+	explicit PEGErrorExpression(unique_ptr<PEGExpression> error_p)
+		: PEGExpression(PEGExpressionType::ERROR), error(std::move(error_p)) {
+
+	}
+	unique_ptr<PEGExpression> error;
+};
+
 // --- PEG Parser ---
 
 enum class PEGTokenType {
@@ -141,7 +151,8 @@ enum class PEGTokenType {
 	FUNCTION_CALL,
 	REGEX,
 	NUMBER_LITERAL,
-	STRING_LITERAL
+	STRING_LITERAL,
+	ERROR_MESSAGE
 };
 
 struct PEGToken {
@@ -186,7 +197,7 @@ private:
 			throw InternalException("Unexpected end of rule definition");
 		}
 		auto &token = tokens[pos];
-
+		Printer::PrintF("%s", token.text);
 		if (token.type == PEGTokenType::OPERATOR) {
 			if (token.text == "(") {
 				pos++;
