@@ -62,9 +62,9 @@ struct KeywordParseResult : ParseResult {
 
 struct ListParseResult : ParseResult {
 	static constexpr ParseResultType TYPE = ParseResultType::LIST;
-	vector<reference<ParseResult>> children;
+	vector<unique_ptr<ParseResult>> children;
 
-	explicit ListParseResult(vector<reference<ParseResult>> results_p)
+	explicit ListParseResult(vector<unique_ptr<ParseResult>> results_p)
 	    : ParseResult(TYPE), children(std::move(results_p)) {
 	}
 
@@ -73,16 +73,16 @@ struct ListParseResult : ParseResult {
 		if (index >= children.size()) {
 			throw InternalException("Child index out of bounds");
 		}
-		return children[index].get().Cast<T>();
+		return children[index]->Cast<T>();
 	}
 
 };
 
 struct RepeatParseResult : ParseResult {
 	static constexpr ParseResultType TYPE = ParseResultType::REPEAT;
-	vector<reference<ParseResult>> children;
+	vector<unique_ptr<ParseResult>> children;
 
-	explicit RepeatParseResult(vector<reference<ParseResult>> results_p)
+	explicit RepeatParseResult(vector<unique_ptr<ParseResult>> results_p)
 		: ParseResult(TYPE), children(std::move(results_p)) {
 	}
 
@@ -91,7 +91,7 @@ struct RepeatParseResult : ParseResult {
 		if (index >= children.size()) {
 			throw InternalException("Child index out of bounds");
 		}
-		return children[index].get().Cast<T>();
+		return children[index]->Cast<T>();
 	}
 };
 
@@ -107,11 +107,11 @@ class ChoiceParseResult : public ParseResult {
 public:
 	static constexpr ParseResultType TYPE = ParseResultType::CHOICE;
 
-	explicit ChoiceParseResult(reference<ParseResult> parse_result_p, idx_t selected_idx_p)
-	    : ParseResult(TYPE), result(parse_result_p), selected_idx(selected_idx_p) {
+	explicit ChoiceParseResult(unique_ptr<ParseResult> parse_result_p, idx_t selected_idx_p)
+	    : ParseResult(TYPE), result(std::move(parse_result_p)), selected_idx(selected_idx_p) {
 	}
 
-	reference<ParseResult> result;
+	unique_ptr<ParseResult> result;
 	idx_t selected_idx;
 };
 
