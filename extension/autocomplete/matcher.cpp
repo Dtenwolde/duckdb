@@ -231,6 +231,19 @@ public:
 		return MatchResultType::FAIL;
 	}
 
+	unique_ptr<ParseResult> MatchParseResult(MatchState &state) const override {
+		for (auto &child_matcher : matchers) {
+			MatchState choice_state(state);
+			auto child_result = child_matcher.get().MatchParseResult(choice_state);
+			if (child_result != nullptr) {
+				// we matched this child - propagate upwards
+				state.token_index = choice_state.token_index;
+				return child_result;
+			}
+		}
+		return nullptr;
+	}
+
 	SuggestionType AddSuggestionInternal(MatchState &state) const override {
 		for (auto &child_matcher : matchers) {
 			child_matcher.get().AddSuggestion(state);
