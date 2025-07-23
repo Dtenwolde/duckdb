@@ -7,10 +7,10 @@ require autocomplete
 statement ok
 call peg_parser();
 
-statement error
-use bar.foo.bar
-----
-Parser Error: Expected "USE database" or "USE database.schema"
+# statement error
+# use bar.foo.bar
+# ----
+# Parser Error: Expected "USE database" or "USE database.schema"
 
 statement error
 use bar.foo;

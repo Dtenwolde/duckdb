@@ -23,20 +23,11 @@ unique_ptr<SQLStatement> PEGTransformerFactory::Transform(vector<MatcherToken> &
 	if (match_result != nullptr) {
 		Printer::Print("Great success");
 	}
-	throw NotImplementedException("PEGTransformerFactory::Transform");
-
-	// Printer::PrintF("Tokens: %s", token_stream.c_str());
-	// PEGTransformer transformer(allocator, state, sql_transform_functions, parser.rules, enum_mappings);
-	// auto root_parse_result = transformer.MatchRule(root_rule);
-	// if (!root_parse_result) {
-	// 	throw ParserException("Failed to parse string: No match found for root rule '%s'.", root_rule);
-	// }
-	// Printer::Print("Successfully parsed string");
-	// if (state.token_index < tokens.size()) {
-	// 	throw ParserException("Failed to parse string: Unconsumed tokens remaining.");
-	// }
-	// root_parse_result->name = root_rule;
-	// return transformer.Transform<unique_ptr<SQLStatement>>(*root_parse_result);
+	// throw NotImplementedException("PEGTransformerFactory::Transform");
+	ArenaAllocator transformer_allocator(Allocator::DefaultAllocator());
+	PEGTransformerState transformer_state(tokens);
+	PEGTransformer transformer(transformer_allocator, transformer_state, sql_transform_functions, parser.rules, enum_mappings);
+	return transformer.Transform<unique_ptr<SQLStatement>>(*match_result);
 }
 
 PEGTransformerFactory::PEGTransformerFactory() {
