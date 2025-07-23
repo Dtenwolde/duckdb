@@ -70,7 +70,7 @@ unique_ptr<ParsedExpression> PEGTransformerFactory::TransformLiteralExpression(P
 	auto &matched_rule_result = choice_pr.result.get();
 
 	if (matched_rule_result.name == "StringLiteral") {
-		auto &literal_pr = matched_rule_result.Cast<StringParseResult>();
+		auto &literal_pr = matched_rule_result.Cast<StringLiteralParseResult>();
 		return make_uniq<ConstantExpression>(Value(literal_pr.result));
 	}
 	if (matched_rule_result.name == "NumberLiteral") {
