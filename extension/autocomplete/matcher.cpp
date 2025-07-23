@@ -214,7 +214,7 @@ public:
 		}
 		// propagate the child state upwards
 		state.token_index = child_state.token_index;
-		return make_uniq<OptionalParseResult>(std::move(child_match));
+		return make_uniq<OptionalParseResult>(child_match.release());
 	}
 
 	SuggestionType AddSuggestionInternal(MatchState &state) const override {
