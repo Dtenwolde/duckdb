@@ -136,6 +136,28 @@ public:
 		return MatchResultType::SUCCESS;
 	}
 
+	unique_ptr<ParseResult> MatchParseResult(MatchState &state) const override {
+		MatchState list_state(state);
+		vector<reference<ParseResult>> results;
+		results.reserve(matchers.size());
+
+		for (const auto &child_matcher : matchers) {
+			// We must match all children in the list.
+			auto child_result = child_matcher.get().MatchParseResult(list_state);
+			if (!child_result) {
+				// If any child fails to match, the whole list fails.
+				return nullptr;
+			}
+			results.push_back(*child_result);
+		}
+
+		// If all children were matched successfully, propagate the state.
+		state.token_index = list_state.token_index;
+
+		// Return the collected results wrapped in a ListParseResult.
+		return make_uniq<ListParseResult>(std::move(results));
+	}
+
 	SuggestionType AddSuggestionInternal(MatchState &state) const override {
 		for (auto &matcher : matchers) {
 			auto suggestion_result = matcher.get().AddSuggestion(state);
