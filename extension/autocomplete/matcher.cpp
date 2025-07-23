@@ -183,6 +183,18 @@ public:
 		return MatchResultType::SUCCESS;
 	}
 
+	unique_ptr<ParseResult> MatchParseResult(MatchState &state) const override {
+		MatchState child_state(state);
+		auto child_match = matcher.MatchParseResult(child_state);
+		if (child_match == nullptr) {
+			// did not succeed in matching - go back up (simply return a nullptr)
+			return nullptr;
+		}
+		// propagate the child state upwards
+		state.token_index = child_state.token_index;
+		return make_uniq<OptionalParseResult>(std::move(child_match));
+	}
+
 	SuggestionType AddSuggestionInternal(MatchState &state) const override {
 		matcher.AddSuggestion(state);
 		return SuggestionType::OPTIONAL;
@@ -525,7 +537,7 @@ public:
 	unique_ptr<ParseResult> MatchParseResult(MatchState &state) const override {
 		// variable matchers match anything except for reserved keywords
 		auto &token_text = state.tokens[state.token_index].text;
-		if (!MatchParseResult) {
+		if (!MatchNumberLiteral(state)) {
 			return nullptr;
 		}
 		return make_uniq<NumberParseResult>(token_text);
