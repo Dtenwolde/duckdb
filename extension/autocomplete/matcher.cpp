@@ -54,14 +54,17 @@ public:
 	}
 
 	MatchResultType Match(MatchState &state) const override {
-		auto &token = state.tokens[state.token_index];
-		if (StringUtil::CIEquals(keyword, token.text)) {
-			// move to the next token
-			state.token_index++;
-			return MatchResultType::SUCCESS;
-		} else {
+		if (!MatchKeyword(state)) {
 			return MatchResultType::FAIL;
 		}
+		return MatchResultType::SUCCESS;
+	}
+
+	unique_ptr<ParseResult> MatchParseResult(MatchState &state) const override {
+		if (!MatchKeyword(state)) {
+			return nullptr;
+		}
+		return make_uniq<KeywordParseResult>(keyword);
 	}
 
 	SuggestionType AddSuggestionInternal(MatchState &state) const override {
@@ -79,6 +82,16 @@ private:
 	string keyword;
 	int32_t score_bonus;
 	char extra_char;
+
+	bool MatchKeyword(MatchState &state) const {
+		auto &token = state.tokens[state.token_index];
+		if (StringUtil::CIEquals(keyword, token.text)) {
+			// move to the next token
+			state.token_index++;
+			return true;
+		}
+		return false;
+	}
 };
 
 class ListMatcher : public Matcher {
