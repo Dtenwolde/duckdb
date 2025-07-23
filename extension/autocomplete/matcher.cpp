@@ -329,7 +329,7 @@ public:
 
 	unique_ptr<ParseResult> MatchParseResult(MatchState &state) const override {
 		MatchState repeat_state(state);
-		vector<unique_ptr<ParseResult>> results;
+		vector<reference<ParseResult>> results;
 
 		// First, we MUST match the element at least once.
 		auto first_result = element.MatchParseResult(repeat_state);
@@ -337,7 +337,7 @@ public:
 			// The first match failed, so the whole repeat fails.
 			return nullptr;
 		}
-		results.push_back(std::move(first_result));
+		results.push_back(*first_result);
 
 		// After the first success, the overall result is a success.
 		// Now, we continue matching the element as many times as possible.
@@ -356,7 +356,7 @@ public:
 				// No more matches found, we are done.
 				break;
 			}
-			results.push_back(std::move(next_result));
+			results.push_back(*next_result);
 		}
 
 		// Return all collected results in a RepeatParseResult.
@@ -608,6 +608,30 @@ public:
 	}
 
 	MatchResultType Match(MatchState &state) const override {
+		if (!MatchOperator(state)) {
+			return MatchResultType::FAIL;
+		}
+		return MatchResultType::SUCCESS;
+	}
+
+	unique_ptr<ParseResult> MatchParseResult(MatchState &state) const override {
+		auto &token_text = state.tokens[state.token_index].text;
+		if (!MatchOperator(state)) {
+			return nullptr;
+		}
+		return make_uniq<OperatorParseResult>(token_text);
+	}
+
+	SuggestionType AddSuggestionInternal(MatchState &state) const override {
+		return SuggestionType::MANDATORY;
+	}
+
+	string ToString() const override {
+		return "OPERATOR";
+	}
+
+private:
+	static bool MatchOperator(MatchState &state) {
 		auto &token_text = state.tokens[state.token_index].text;
 		for (auto &c : token_text) {
 			switch (c) {
@@ -627,19 +651,11 @@ public:
 			case '|':
 				break;
 			default:
-				return MatchResultType::FAIL;
+				return false;
 			}
 		}
 		state.token_index++;
-		return MatchResultType::SUCCESS;
-	}
-
-	SuggestionType AddSuggestionInternal(MatchState &state) const override {
-		return SuggestionType::MANDATORY;
-	}
-
-	string ToString() const override {
-		return "OPERATOR";
+		return true;
 	}
 };
 

@@ -220,7 +220,7 @@ ParseResult *PEGTransformer::MatchRule(const PEGExpression &expression) {
 		if (token.type == TokenType::WORD && token.text.size() >= 2 && token.text.front() == '\'' &&
 		    token.text.back() == '\'') {
 			state.token_index++;
-			return Make<StringParseResult>(token.text);
+			return Make<StringLiteralParseResult>(token.text);
 		}
 		return nullptr;
 	}

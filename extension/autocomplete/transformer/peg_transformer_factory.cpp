@@ -17,7 +17,7 @@ unique_ptr<SQLStatement> PEGTransformerFactory::Transform(vector<MatcherToken> &
 	}
 	Printer::PrintF("Tokens: %s", token_stream.c_str());
 	PEGTransformer transformer(allocator, state, sql_transform_functions, parser.rules, enum_mappings);
-	ParseResult *root_parse_result = transformer.MatchRule(root_rule);
+	auto root_parse_result = transformer.MatchRule(root_rule);
 	if (!root_parse_result) {
 		throw ParserException("Failed to parse string: No match found for root rule '%s'.", root_rule);
 	}

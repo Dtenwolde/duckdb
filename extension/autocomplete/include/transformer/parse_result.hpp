@@ -19,6 +19,7 @@ enum class ParseResultType : uint8_t {
 	EXPRESSION,
 	IDENTIFIER,
 	KEYWORD,
+	OPERATOR,
 	STATEMENT,
 	EXTENSION,
 	NUMBER,
@@ -62,9 +63,9 @@ struct KeywordParseResult : ParseResult {
 
 struct ListParseResult : ParseResult {
 	static constexpr ParseResultType TYPE = ParseResultType::LIST;
-	vector<unique_ptr<ParseResult>> children;
+	vector<reference<ParseResult>> children;
 
-	explicit ListParseResult(vector<unique_ptr<ParseResult>> results_p)
+	explicit ListParseResult(vector<reference<ParseResult>> results_p)
 	    : ParseResult(TYPE), children(std::move(results_p)) {
 	}
 
@@ -73,16 +74,16 @@ struct ListParseResult : ParseResult {
 		if (index >= children.size()) {
 			throw InternalException("Child index out of bounds");
 		}
-		return children[index]->Cast<T>();
+		return children[index].get().Cast<T>();
 	}
 
 };
 
 struct RepeatParseResult : ParseResult {
 	static constexpr ParseResultType TYPE = ParseResultType::REPEAT;
-	vector<unique_ptr<ParseResult>> children;
+	vector<reference<ParseResult>> children;
 
-	explicit RepeatParseResult(vector<unique_ptr<ParseResult>> results_p)
+	explicit RepeatParseResult(vector<reference<ParseResult>> results_p)
 		: ParseResult(TYPE), children(std::move(results_p)) {
 	}
 
@@ -91,7 +92,7 @@ struct RepeatParseResult : ParseResult {
 		if (index >= children.size()) {
 			throw InternalException("Child index out of bounds");
 		}
-		return children[index]->Cast<T>();
+		return children[index].get().Cast<T>();
 	}
 };
 
@@ -107,11 +108,11 @@ class ChoiceParseResult : public ParseResult {
 public:
 	static constexpr ParseResultType TYPE = ParseResultType::CHOICE;
 
-	explicit ChoiceParseResult(unique_ptr<ParseResult> parse_result_p, idx_t selected_idx_p)
-	    : ParseResult(TYPE), result(std::move(parse_result_p)), selected_idx(selected_idx_p) {
+	explicit ChoiceParseResult(reference<ParseResult> parse_result_p, idx_t selected_idx_p)
+	    : ParseResult(TYPE), result(parse_result_p), selected_idx(selected_idx_p) {
 	}
 
-	unique_ptr<ParseResult> result;
+	reference<ParseResult> result;
 	idx_t selected_idx;
 };
 
@@ -134,4 +135,13 @@ public:
 	string result;
 };
 
+
+class OperatorParseResult : public ParseResult {
+public:
+	static constexpr ParseResultType TYPE = ParseResultType::OPERATOR;
+
+	explicit OperatorParseResult(string operator_p) : ParseResult(TYPE), operator_token(std::move(operator_p)) {
+	}
+	string operator_token;
+};
 } // namespace duckdb
