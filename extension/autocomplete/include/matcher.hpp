@@ -11,6 +11,7 @@
 #include "duckdb/common/string_util.hpp"
 #include "duckdb/common/vector.hpp"
 #include "duckdb/common/reference_map.hpp"
+#include "transformer/parse_result.hpp"
 
 namespace duckdb {
 class Matcher;
@@ -121,6 +122,7 @@ public:
 
 	//! Match
 	virtual MatchResultType Match(MatchState &state) const = 0;
+	virtual unique_ptr<ParseResult> MatchParseResult(MatchState &state) const = 0;
 	virtual SuggestionType AddSuggestion(MatchState &state) const;
 	virtual SuggestionType AddSuggestionInternal(MatchState &state) const = 0;
 	virtual string ToString() const = 0;

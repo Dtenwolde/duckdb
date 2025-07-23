@@ -408,14 +408,30 @@ public:
 	}
 
 	MatchResultType Match(MatchState &state) const override {
-		// reserved variable matchers match anything
-		auto &token_text = state.tokens[state.token_index].text;
-		if (!IsIdentifier(token_text)) {
+		if (!MatchIdentifier(state)) {
 			return MatchResultType::FAIL;
 		}
-		state.token_index++;
 		return MatchResultType::SUCCESS;
 	}
+
+	unique_ptr<ParseResult> MatchParseResult(MatchState &state) const override {
+		auto &token_text = state.tokens[state.token_index].text;
+		if (!MatchIdentifier(state)) {
+			return nullptr;
+		}
+		return make_uniq<IdentifierParseResult>(token_text);
+	}
+
+private:
+	bool MatchIdentifier(MatchState &state) const {
+		auto &token_text = state.tokens[state.token_index].text;
+		if (!IsIdentifier(token_text)) {
+			return false;
+		}
+		state.token_index++;
+		return true;
+	}
+
 };
 
 class StringLiteralMatcher : public Matcher {
@@ -428,12 +444,18 @@ public:
 
 	MatchResultType Match(MatchState &state) const override {
 		// variable matchers match anything except for reserved keywords
-		auto &token_text = state.tokens[state.token_index].text;
-		if (token_text.size() >= 2 && token_text.front() == '\'' && token_text.back() == '\'') {
-			state.token_index++;
-			return MatchResultType::SUCCESS;
+		if (!MatchStringLiteral(state)) {
+			return MatchResultType::FAIL;
 		}
-		return MatchResultType::FAIL;
+		return MatchResultType::SUCCESS;
+	}
+
+	unique_ptr<ParseResult> MatchParseResult(MatchState &state) const override {
+		auto &token_text = state.tokens[state.token_index].text;
+		if (!MatchStringLiteral(state)) {
+			return nullptr;
+		}
+		return make_uniq<StringLiteralParseResult>(token_text);
 	}
 
 	SuggestionType AddSuggestionInternal(MatchState &state) const override {
@@ -442,6 +464,16 @@ public:
 
 	string ToString() const override {
 		return "STRING_LITERAL";
+	}
+
+private:
+	static bool MatchStringLiteral(MatchState &state) {
+		auto &token_text = state.tokens[state.token_index].text;
+		if (token_text.size() >= 2 && token_text.front() == '\'' && token_text.back() == '\'') {
+			state.token_index++;
+			return true;
+		}
+		return false;
 	}
 };
 
@@ -455,17 +487,19 @@ public:
 
 	MatchResultType Match(MatchState &state) const override {
 		// variable matchers match anything except for reserved keywords
-		auto &token_text = state.tokens[state.token_index].text;
-		if (!BaseTokenizer::CharacterIsInitialNumber(token_text[0])) {
+		if (!MatchNumberLiteral(state)) {
 			return MatchResultType::FAIL;
 		}
-		for (idx_t i = 1; i < token_text.size(); i++) {
-			if (!BaseTokenizer::CharacterIsNumber(token_text[i])) {
-				return MatchResultType::FAIL;
-			}
-		}
-		state.token_index++;
 		return MatchResultType::SUCCESS;
+	}
+
+	unique_ptr<ParseResult> MatchParseResult(MatchState &state) const override {
+		// variable matchers match anything except for reserved keywords
+		auto &token_text = state.tokens[state.token_index].text;
+		if (!MatchParseResult) {
+			return nullptr;
+		}
+		return make_uniq<NumberParseResult>(token_text);
 	}
 
 	SuggestionType AddSuggestionInternal(MatchState &state) const override {
@@ -474,6 +508,21 @@ public:
 
 	string ToString() const override {
 		return "NUMBER_LITERAL";
+	}
+
+private:
+	static bool MatchNumberLiteral(MatchState &state) {
+		auto &token_text = state.tokens[state.token_index].text;
+		if (!BaseTokenizer::CharacterIsInitialNumber(token_text[0])) {
+			return false;
+		}
+		for (idx_t i = 1; i < token_text.size(); i++) {
+			if (!BaseTokenizer::CharacterIsNumber(token_text[i])) {
+				return false;
+			}
+		}
+		state.token_index++;
+		return true;
 	}
 };
 
