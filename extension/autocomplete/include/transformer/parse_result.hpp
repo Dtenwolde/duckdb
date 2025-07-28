@@ -27,6 +27,39 @@ enum class ParseResultType : uint8_t {
 	INVALID
 };
 
+inline const char* ToString(ParseResultType type) {
+	switch (type) {
+	case ParseResultType::LIST:
+		return "LIST";
+	case ParseResultType::OPTIONAL:
+		return "OPTIONAL";
+	case ParseResultType::REPEAT:
+		return "REPEAT";
+	case ParseResultType::CHOICE:
+		return "CHOICE";
+	case ParseResultType::EXPRESSION:
+		return "EXPRESSION";
+	case ParseResultType::IDENTIFIER:
+		return "IDENTIFIER";
+	case ParseResultType::KEYWORD:
+		return "KEYWORD";
+	case ParseResultType::OPERATOR:
+		return "OPERATOR";
+	case ParseResultType::STATEMENT:
+		return "STATEMENT";
+	case ParseResultType::EXTENSION:
+		return "EXTENSION";
+	case ParseResultType::NUMBER:
+		return "NUMBER";
+	case ParseResultType::STRING:
+		return "STRING";
+	case ParseResultType::INVALID:
+		return "INVALID";
+	}
+	// Default case for robustness in case of invalid enum values
+	return "INVALID";
+}
+
 class ParseResult {
 public:
 	explicit ParseResult(ParseResultType type) : type(type) {
@@ -36,7 +69,7 @@ public:
 	template <class TARGET>
 	TARGET &Cast() {
 		if (TARGET::TYPE != ParseResultType::INVALID && type != TARGET::TYPE) {
-			throw InternalException("Failed to cast parse result to type - mismatch");
+			throw InternalException("Failed to cast parse result of type %s to type %s", ToString(TARGET::TYPE), ToString(type));
 		}
 		return reinterpret_cast<TARGET &>(*this);
 	}
