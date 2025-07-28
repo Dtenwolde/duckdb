@@ -51,13 +51,7 @@ unique_ptr<SQLStatement> PEGTransformerFactory::TransformSetStatement(PEGTransfo
                                                                       optional_ptr<ParseResult> parse_result) {
 	auto &list_pr = parse_result->Cast<ListParseResult>();
 	auto &choice_pr = list_pr.Child<ChoiceParseResult>(1);
-	auto &matched_child = choice_pr.result;
-
-	if (matched_child->name == "StandardAssignment") {
-		return transformer.Transform<unique_ptr<SQLStatement>>(matched_child);
-	}
-	// Handle SetTimeZone
-	throw NotImplementedException("SET TIME ZONE is not yet implemented.");
+	return transformer.Transform<unique_ptr<SQLStatement>>(choice_pr.result);
 }
 
 unique_ptr<SQLStatement> PEGTransformerFactory::TransformResetStatement(PEGTransformer &transformer,
