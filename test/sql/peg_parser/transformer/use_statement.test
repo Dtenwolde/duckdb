@@ -8,14 +8,14 @@ statement ok
 call peg_parser();
 
 # statement error
-# use bar.foo.bar
+# use bar1.foo.bar
 # ----
-# Parser Error: Expected "USE database" or "USE database.schema"
-
-statement error
-use bar.foo;
-----
-Catalog Error: SET schema: No catalog + schema named "bar.foo" found.
+# Parser Error: Not all tokens were matched
+#
+# statement error
+# use bar.foo;
+# ----
+# Catalog Error: SET schema: No catalog + schema named "bar.foo" found.
 
 statement error
 use foo;

@@ -16,6 +16,7 @@
 namespace duckdb {
 class Matcher;
 class MatcherAllocator;
+class ParseResultAllocator;
 
 enum class SuggestionState : uint8_t {
 	SUGGEST_KEYWORD,
@@ -96,18 +97,20 @@ struct MatcherSuggestion {
 	char extra_char = '\0';
 };
 
+// TODO(dtenwolde) make a more generic state and split suggestion state and parseresult state
 struct MatchState {
-	MatchState(vector<MatcherToken> &tokens, vector<MatcherSuggestion> &suggestions)
-	    : tokens(tokens), suggestions(suggestions), token_index(0) {
+	MatchState(vector<MatcherToken> &tokens, vector<MatcherSuggestion> &suggestions, ParseResultAllocator &allocator)
+	    : tokens(tokens), suggestions(suggestions), token_index(0), allocator(allocator) {
 	}
 	MatchState(MatchState &state)
-	    : tokens(state.tokens), suggestions(state.suggestions), token_index(state.token_index) {
+	    : tokens(state.tokens), suggestions(state.suggestions), token_index(state.token_index), allocator(state.allocator) {
 	}
 
 	vector<MatcherToken> &tokens;
 	vector<MatcherSuggestion> &suggestions;
 	reference_set_t<const Matcher> added_suggestions;
 	idx_t token_index;
+	ParseResultAllocator &allocator;
 
 	void AddSuggestion(MatcherSuggestion suggestion);
 };
@@ -122,7 +125,7 @@ public:
 
 	//! Match
 	virtual MatchResultType Match(MatchState &state) const = 0;
-	virtual ParseResult &MatchParseResult(MatchState &state) const = 0;
+	virtual optional_ptr<ParseResult> MatchParseResult(MatchState &state) const = 0;
 	virtual SuggestionType AddSuggestion(MatchState &state) const;
 	virtual SuggestionType AddSuggestionInternal(MatchState &state) const = 0;
 	virtual string ToString() const = 0;
@@ -163,10 +166,16 @@ protected:
 class MatcherAllocator {
 public:
 	Matcher &Allocate(unique_ptr<Matcher> matcher);
-	ParseResult &AllocateParseResult(unique_ptr<ParseResult> parse_result);
 
 private:
 	vector<unique_ptr<Matcher>> matchers;
+};
+
+class ParseResultAllocator {
+public:
+	optional_ptr<ParseResult> Allocate(unique_ptr<ParseResult> parse_result);
+
+private:
 	vector<unique_ptr<ParseResult>> parse_results;
 };
 
