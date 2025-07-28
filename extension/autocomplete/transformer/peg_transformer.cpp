@@ -9,40 +9,40 @@
 namespace duckdb {
 
 template <typename T>
-T PEGTransformer::Transform(ParseResult &parse_result) {
-	auto it = transform_functions.find(parse_result.name);
+T PEGTransformer::Transform(optional_ptr<ParseResult> parse_result) {
+	auto it = transform_functions.find(parse_result->name);
 	if (it == transform_functions.end()) {
-		throw NotImplementedException("No transformer function found for rule '%s'", parse_result.name);
+		throw NotImplementedException("No transformer function found for rule '%s'", parse_result->name);
 	}
 	auto &func = it->second;
 
 	unique_ptr<TransformResultValue> base_result = func(*this, parse_result);
 	if (!base_result) {
-		throw InternalException("Transformer for rule '%s' returned a nullptr.", parse_result.name);
+		throw InternalException("Transformer for rule '%s' returned a nullptr.", parse_result->name);
 	}
 
 	auto *typed_result_ptr = dynamic_cast<TypedTransformResult<T> *>(base_result.get());
 	if (!typed_result_ptr) {
-		throw InternalException("Transformer for rule '" + parse_result.name + "' returned an unexpected type.");
+		throw InternalException("Transformer for rule '" + parse_result->name + "' returned an unexpected type.");
 	}
 
 	return std::move(typed_result_ptr->value);
 }
 
 template <typename T>
-T PEGTransformer::TransformEnum(ParseResult &parse_result) {
-	const string_t &enum_rule_name = parse_result.name;
+T PEGTransformer::TransformEnum(optional_ptr<ParseResult> parse_result) {
+	const string_t &enum_rule_name = parse_result->name;
 	if (enum_rule_name.GetString().empty()) {
 		throw InternalException("TransformEnum called on a ParseResult with no name.");
 	}
 
 	string_t matched_option_name;
 
-	if (parse_result.type == ParseResultType::CHOICE) {
-		auto &choice_pr = parse_result.Cast<ChoiceParseResult>();
-		matched_option_name = choice_pr.result.get().name;
+	if (parse_result->type == ParseResultType::CHOICE) {
+		auto &choice_pr = parse_result->Cast<ChoiceParseResult>();
+		matched_option_name = choice_pr.result->name;
 	} else {
-		matched_option_name = parse_result.name;
+		matched_option_name = parse_result->name;
 	}
 
 	if (matched_option_name.GetString().empty()) {

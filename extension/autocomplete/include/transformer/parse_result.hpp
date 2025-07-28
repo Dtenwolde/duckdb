@@ -63,20 +63,11 @@ struct KeywordParseResult : ParseResult {
 
 struct ListParseResult : ParseResult {
 	static constexpr ParseResultType TYPE = ParseResultType::LIST;
-	vector<reference<ParseResult>> children;
-
-private:
-	// This private vector owns the children, keeping them alive.
-	vector<unique_ptr<ParseResult>> owned_children;
+	vector<optional_ptr<ParseResult> > children;
 
 public:
-	explicit ListParseResult(vector<unique_ptr<ParseResult>> owned_results_p)
-			: ParseResult(TYPE), owned_children(std::move(owned_results_p)) {
-		// Build the public reference vector from the private owned vector
-		children.reserve(owned_children.size());
-		for (const auto& ptr : owned_children) {
-			children.push_back(*ptr);
-		}
+	explicit ListParseResult(vector<optional_ptr<ParseResult>> owned_results_p)
+			: ParseResult(TYPE), children(std::move(owned_results_p)) {
 	}
 
 	template <class T>
@@ -84,16 +75,16 @@ public:
 		if (index >= children.size()) {
 			throw InternalException("Child index out of bounds");
 		}
-		return children[index].get().Cast<T>();
+		return children[index]->Cast<T>();
 	}
 
 };
 
 struct RepeatParseResult : ParseResult {
 	static constexpr ParseResultType TYPE = ParseResultType::REPEAT;
-	vector<reference<ParseResult>> children;
+	vector<optional_ptr<ParseResult>> children;
 
-	explicit RepeatParseResult(vector<reference<ParseResult>> results_p)
+	explicit RepeatParseResult(vector<optional_ptr<ParseResult>> results_p)
 		: ParseResult(TYPE), children(std::move(results_p)) {
 	}
 
@@ -102,7 +93,7 @@ struct RepeatParseResult : ParseResult {
 		if (index >= children.size()) {
 			throw InternalException("Child index out of bounds");
 		}
-		return children[index].get().Cast<T>();
+		return children[index]->Cast<T>();
 	}
 };
 
@@ -110,7 +101,9 @@ struct OptionalParseResult : ParseResult {
 	static constexpr ParseResultType TYPE = ParseResultType::OPTIONAL;
 	optional_ptr<ParseResult> optional_result;
 
-	explicit OptionalParseResult(ParseResult *result_p) : ParseResult(TYPE), optional_result(result_p) {
+	explicit OptionalParseResult() : ParseResult(TYPE), optional_result(nullptr) {
+	}
+	explicit OptionalParseResult(optional_ptr<ParseResult> result_p) : ParseResult(TYPE), optional_result(result_p) {
 	}
 };
 
@@ -118,11 +111,11 @@ class ChoiceParseResult : public ParseResult {
 public:
 	static constexpr ParseResultType TYPE = ParseResultType::CHOICE;
 
-	explicit ChoiceParseResult(reference<ParseResult> parse_result_p, idx_t selected_idx_p)
+	explicit ChoiceParseResult(optional_ptr<ParseResult>  parse_result_p, idx_t selected_idx_p)
 	    : ParseResult(TYPE), result(parse_result_p), selected_idx(selected_idx_p) {
 	}
 
-	reference<ParseResult> result;
+	optional_ptr<ParseResult>  result;
 	idx_t selected_idx;
 };
 
