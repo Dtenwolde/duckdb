@@ -656,6 +656,9 @@ public:
 	}
 
 	optional_ptr<ParseResult> MatchParseResult(MatchState &state) const override {
+		if (state.token_index >= state.tokens.size()) {
+			return nullptr;
+		}
 		auto &token_text = state.tokens[state.token_index].text;
 		if (!MatchOperator(state)) {
 			return nullptr;
