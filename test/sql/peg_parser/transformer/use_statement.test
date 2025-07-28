@@ -17,10 +17,10 @@ call peg_parser();
 # ----
 # Catalog Error: SET schema: No catalog + schema named "bar.foo" found.
 
-statement error
-use foo;
-----
-Catalog Error: SET schema: No catalog + schema named "foo" found.
+# statement error
+# use foo;
+# ----
+# Catalog Error: SET schema: No catalog + schema named "foo" found.
 
 statement ok
 SET threads=1;

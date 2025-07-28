@@ -40,7 +40,7 @@ QualifiedName PEGTransformerFactory::TransformUseTarget(PEGTransformer &transfor
 			}
 		}
 	} else {
-		throw NotImplementedException("TransformUseTarget");
+		qualified_name = choice_pr.result->Cast<IdentifierParseResult>().identifier;
 	}
 	auto result = QualifiedName::Parse(qualified_name);
 	return result;
