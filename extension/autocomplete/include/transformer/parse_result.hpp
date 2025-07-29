@@ -148,7 +148,6 @@ public:
 
 	explicit ChoiceParseResult(optional_ptr<ParseResult> parse_result_p, idx_t selected_idx_p)
 	    : ParseResult(TYPE), result(parse_result_p), selected_idx(selected_idx_p) {
-		Printer::PrintF("ChoiceParseResult name %s", parse_result_p->name);
 		name = parse_result_p->name;
 	}
 
