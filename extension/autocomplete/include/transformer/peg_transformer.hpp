@@ -25,8 +25,7 @@ struct PEGTransformerState {
 
 class PEGTransformer {
 public:
-	// The core dispatch function type. It now returns a unique_ptr to solve the ownership issue.
-	using AnyTransformFunction = std::function<unique_ptr<TransformResultValue>(PEGTransformer &, optional_ptr<ParseResult> )>;
+	using AnyTransformFunction = std::function<unique_ptr<TransformResultValue>(PEGTransformer &, optional_ptr<ParseResult>)>;
 
 	PEGTransformer(ArenaAllocator &allocator, PEGTransformerState &state,
 	               const case_insensitive_map_t<AnyTransformFunction> &transform_functions,
@@ -104,7 +103,6 @@ private:
 		};
 	}
 	// ... Add more overloads for 3, 4, etc., arguments as needed.
-
 	static unique_ptr<SQLStatement> TransformStatement(PEGTransformer &, optional_ptr<ParseResult> list);
 
 	static unique_ptr<SQLStatement> TransformUseStatement(PEGTransformer &, optional_ptr<ParseResult> identifier_pr);

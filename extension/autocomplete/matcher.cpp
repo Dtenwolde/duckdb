@@ -151,12 +151,8 @@ public:
 			results.push_back(std::move(child_result));
 		}
 		state.token_index = list_state.token_index;
-		if (results.size() == 1) {
-			return results[0];
-		}
-		auto result = state.allocator.Allocate(make_uniq<ListParseResult>(std::move(results)));
-		result->name = name;
-		return result;
+		// Empty name implies it's a subrule, e.g. 'SET'i (StandardAssignment / SetTimeZone)
+		return state.allocator.Allocate(make_uniq<ListParseResult>(std::move(results), name));;
 	}
 
 	SuggestionType AddSuggestionInternal(MatchState &state) const override {
