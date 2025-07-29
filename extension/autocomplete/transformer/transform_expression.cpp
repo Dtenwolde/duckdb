@@ -71,8 +71,8 @@ unique_ptr<ParsedExpression> PEGTransformerFactory::TransformLiteralExpression(P
 		return make_uniq<ConstantExpression>(Value::BIGINT(std::stoll(literal_pr.number)));
 	}
 	if (matched_rule_result.name == "ConstantLiteral") {
-		auto &constant_literal_pr = matched_rule_result.result->Cast<ChoiceParseResult>();
-		return make_uniq<ConstantExpression>(transformer.TransformEnum<Value>(&constant_literal_pr));
+		auto &list_pr = matched_rule_result.result->Cast<ListParseResult>();
+		return make_uniq<ConstantExpression>(transformer.TransformEnum<Value>(&list_pr));
 	}
 	throw ParserException("Unrecognized literal type in TransformLiteralExpression");
 }
