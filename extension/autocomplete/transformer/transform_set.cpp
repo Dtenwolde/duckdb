@@ -59,9 +59,10 @@ unique_ptr<SQLStatement> PEGTransformerFactory::TransformResetStatement(PEGTrans
                                                                         optional_ptr<ParseResult> parse_result) {
 	// Composer: 'RESET' (SetVariable / SetSetting)
 	auto &list_pr = parse_result->Cast<ListParseResult>();
-	auto &child_pr = list_pr.children[1]->Cast<ChoiceParseResult>();
+	auto &child_pr = list_pr.Child<ListParseResult>(1);
+	auto &choice_pr = child_pr.Child<ChoiceParseResult>(0);
 
-	SettingInfo setting_info = transformer.Transform<SettingInfo>(child_pr.result);
+	SettingInfo setting_info = transformer.Transform<SettingInfo>(choice_pr.result);
 	return make_uniq<ResetVariableStatement>(setting_info.name, setting_info.scope);
 }
 
