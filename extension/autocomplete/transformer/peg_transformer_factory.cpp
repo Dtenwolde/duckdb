@@ -5,8 +5,7 @@ namespace duckdb {
 
 unique_ptr<SQLStatement> PEGTransformerFactory::TransformStatement(PEGTransformer &transformer,
                                                                    optional_ptr<ParseResult> parse_result) {
-	auto &list_pr = parse_result->Cast<ListParseResult>();
-	auto &choice_pr = list_pr.Child<ChoiceParseResult>(0);
+	auto &choice_pr = parse_result->Cast<ChoiceParseResult>();
 	return transformer.Transform<unique_ptr<SQLStatement>>(choice_pr.result);
 }
 
@@ -26,6 +25,7 @@ unique_ptr<SQLStatement> PEGTransformerFactory::Transform(vector<MatcherToken> &
 		// TODO(dtenwolde) add error handling
 		throw ParserException("Not all tokens were matched");
 	}
+	match_result->name = "Statement";
 	ArenaAllocator transformer_allocator(Allocator::DefaultAllocator());
 	PEGTransformerState transformer_state(tokens);
 	PEGTransformer transformer(transformer_allocator, transformer_state, sql_transform_functions, parser.rules, enum_mappings);

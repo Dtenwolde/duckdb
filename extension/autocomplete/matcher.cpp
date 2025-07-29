@@ -150,8 +150,10 @@ public:
 			}
 			results.push_back(std::move(child_result));
 		}
-
 		state.token_index = list_state.token_index;
+		if (results.size() == 1) {
+			return results[0];
+		}
 		auto result = state.allocator.Allocate(make_uniq<ListParseResult>(std::move(results)));
 		result->name = name;
 		return result;
@@ -260,7 +262,6 @@ public:
 				// we matched this child - propagate upwards
 				state.token_index = choice_state.token_index;
 				auto result = state.allocator.Allocate(make_uniq<ChoiceParseResult>(child_result, i));
-				result->name = child_result->name;
 				return result;
 			}
 		}
@@ -554,6 +555,7 @@ public:
 
 public:
 	explicit StringLiteralMatcher() : Matcher(TYPE) {
+		name = "StringLiteral";
 	}
 
 	MatchResultType Match(MatchState &state) const override {
@@ -597,6 +599,7 @@ public:
 
 public:
 	explicit NumberLiteralMatcher() : Matcher(TYPE) {
+		name = "NumberLiteral";
 	}
 
 	MatchResultType Match(MatchState &state) const override {
@@ -608,12 +611,16 @@ public:
 	}
 
 	optional_ptr<ParseResult> MatchParseResult(MatchState &state) const override {
-		// variable matchers match anything except for reserved keywords
+		if (state.token_index >= state.tokens.size()) {
+			return nullptr;
+		}
 		auto &token_text = state.tokens[state.token_index].text;
 		if (!MatchNumberLiteral(state)) {
 			return nullptr;
 		}
-		return state.allocator.Allocate(make_uniq<NumberParseResult>(token_text));
+		auto result = state.allocator.Allocate(make_uniq<NumberParseResult>(token_text));
+		result->name = name;
+		return result;
 	}
 
 	SuggestionType AddSuggestionInternal(MatchState &state) const override {

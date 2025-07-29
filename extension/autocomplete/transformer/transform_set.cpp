@@ -50,8 +50,8 @@ QualifiedName PEGTransformerFactory::TransformUseTarget(PEGTransformer &transfor
 unique_ptr<SQLStatement> PEGTransformerFactory::TransformSetStatement(PEGTransformer &transformer,
                                                                       optional_ptr<ParseResult> parse_result) {
 	auto &list_pr = parse_result->Cast<ListParseResult>();
-	auto &choice_pr = list_pr.Child<ChoiceParseResult>(1);
-	return transformer.Transform<unique_ptr<SQLStatement>>(choice_pr.result);
+	auto &child_pr = list_pr.Child<ListParseResult>(1);
+	return transformer.Transform<unique_ptr<SQLStatement>>(child_pr.Child<ChoiceParseResult>(0));
 }
 
 unique_ptr<SQLStatement> PEGTransformerFactory::TransformResetStatement(PEGTransformer &transformer,
@@ -67,7 +67,8 @@ unique_ptr<SQLStatement> PEGTransformerFactory::TransformResetStatement(PEGTrans
 unique_ptr<SQLStatement> PEGTransformerFactory::TransformStandardAssignment(PEGTransformer &transformer,
                                                                             optional_ptr<ParseResult> parse_result) {
 	// Composer: (SetVariable / SetSetting) SetAssignment
-	auto &list_pr = parse_result->Cast<ListParseResult>();
+	auto &choice_pr = parse_result->Cast<ChoiceParseResult>();
+	auto &list_pr = choice_pr.result->Cast<ListParseResult>();
 	auto &setting_or_var_pr = list_pr.children[0]->Cast<ChoiceParseResult>();
 	auto &set_assignment_pr = list_pr.children[1];
 
