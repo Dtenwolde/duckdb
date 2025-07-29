@@ -1054,6 +1054,7 @@ CreateType <- ('ENUM'i Parens(SelectStatement)) /
               Type
 
 SetStatement <- 'SET'i (StandardAssignment / SetTimeZone)
+ResetStatement <- 'RESET'i (SetVariable / SetSetting)
 
 StandardAssignment <- (SetVariable / SetSetting) SetAssignment
 SetTimeZone <- 'TIME'i 'ZONE'i Expression
@@ -1068,8 +1069,6 @@ SetAssignment <- VariableAssign VariableList
 
 VariableAssign <- '=' / 'TO'
 VariableList <- List(Expression)
-
-ResetStatement <- 'RESET'i (SetVariable / SetSetting)
 
 ExportStatement <- 'EXPORT'i 'DATABASE'i ExportSource? StringLiteral Parens(GenericCopyOptionList)?
 

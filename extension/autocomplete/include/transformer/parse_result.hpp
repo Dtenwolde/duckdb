@@ -69,7 +69,7 @@ public:
 	template <class TARGET>
 	TARGET &Cast() {
 		if (TARGET::TYPE != ParseResultType::INVALID && type != TARGET::TYPE) {
-			throw InternalException("Failed to cast parse result of type %s to type %s", ToString(TARGET::TYPE), ToString(type));
+			throw InternalException("Failed to cast parse result of type %s to type %s for rule %s", ToString(TARGET::TYPE), ToString(type), name);
 		}
 		return reinterpret_cast<TARGET &>(*this);
 	}
@@ -96,11 +96,12 @@ struct KeywordParseResult : ParseResult {
 
 struct ListParseResult : ParseResult {
 	static constexpr ParseResultType TYPE = ParseResultType::LIST;
-	vector<optional_ptr<ParseResult> > children;
+	vector<optional_ptr<ParseResult>> children;
 
 public:
-	explicit ListParseResult(vector<optional_ptr<ParseResult>> owned_results_p)
-			: ParseResult(TYPE), children(std::move(owned_results_p)) {
+	explicit ListParseResult(vector<optional_ptr<ParseResult>> results_p, string name_p)
+		: ParseResult(TYPE), children(std::move(results_p)) {
+		name = name_p;
 	}
 
 	template <class T>
@@ -137,6 +138,7 @@ struct OptionalParseResult : ParseResult {
 	explicit OptionalParseResult() : ParseResult(TYPE), optional_result(nullptr) {
 	}
 	explicit OptionalParseResult(optional_ptr<ParseResult> result_p) : ParseResult(TYPE), optional_result(result_p) {
+		name = result_p->name;
 	}
 };
 
@@ -144,8 +146,10 @@ class ChoiceParseResult : public ParseResult {
 public:
 	static constexpr ParseResultType TYPE = ParseResultType::CHOICE;
 
-	explicit ChoiceParseResult(optional_ptr<ParseResult>  parse_result_p, idx_t selected_idx_p)
+	explicit ChoiceParseResult(optional_ptr<ParseResult> parse_result_p, idx_t selected_idx_p)
 	    : ParseResult(TYPE), result(parse_result_p), selected_idx(selected_idx_p) {
+		Printer::PrintF("ChoiceParseResult name %s", parse_result_p->name);
+		name = parse_result_p->name;
 	}
 
 	optional_ptr<ParseResult>  result;

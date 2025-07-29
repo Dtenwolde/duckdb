@@ -27,20 +27,11 @@ unique_ptr<ParsedExpression> CreateBinaryExpression(string op, unique_ptr<Parsed
 unique_ptr<ParsedExpression> PEGTransformerFactory::TransformExpression(PEGTransformer &transformer,
                                                                         optional_ptr<ParseResult> parse_result) {
 	auto &list_pr = parse_result->Cast<ListParseResult>();
-	auto &base_expr_pr = list_pr.children[0];
-	auto &recursion_list_pr = list_pr.Child<ListParseResult>(1);
-
+	auto &base_expr_pr = list_pr.Child<ListParseResult>(0);
 	unique_ptr<ParsedExpression> current_expr = transformer.Transform<unique_ptr<ParsedExpression>>(base_expr_pr);
-
-	for (auto &recursive_expr_ref : recursion_list_pr.children) {
-		auto &recursive_list = recursive_expr_ref->Cast<ListParseResult>();
-		auto &operator_pr = recursive_list.children[0];
-		auto &right_expr_pr = recursive_list.children[1];
-
-		unique_ptr<ParsedExpression> right_expr = transformer.Transform<unique_ptr<ParsedExpression>>(right_expr_pr);
-		string op_str = transformer.Transform<string>(operator_pr);
-
-		current_expr = CreateBinaryExpression(std::move(op_str), std::move(current_expr), std::move(right_expr));
+	auto &indirection_pr = list_pr.Child<OptionalParseResult>(1);
+	if (indirection_pr.optional_result) {
+		auto indirection_expr = transformer.Transform<unique_ptr<ParsedExpression>>(indirection_pr.optional_result);
 	}
 
 	return current_expr;
@@ -57,29 +48,30 @@ unique_ptr<ParsedExpression> PEGTransformerFactory::TransformBaseExpression(PEGT
 unique_ptr<ParsedExpression> PEGTransformerFactory::TransformSingleExpression(PEGTransformer &transformer,
                                                                               optional_ptr<ParseResult> parse_result) {
 	// This is a choice rule, so we unwrap the ChoiceParseResult and delegate.
-	auto &choice_pr = parse_result->Cast<ChoiceParseResult>();
-	auto &matched_child = choice_pr.result;
+	auto &choice_pr = parse_result->Cast<ListParseResult>();
+	auto &expression = choice_pr.Child<ChoiceParseResult>(0);
 
-	return transformer.Transform<unique_ptr<ParsedExpression>>(matched_child);
+	return transformer.Transform<unique_ptr<ParsedExpression>>(expression);
 }
 
 unique_ptr<ParsedExpression> PEGTransformerFactory::TransformLiteralExpression(PEGTransformer &transformer,
                                                                                optional_ptr<ParseResult> parse_result) {
 	// Rule: StringLiteral / NumberLiteral / 'NULL'i / 'TRUE'i / 'FALSE'i
 	auto &choice_pr = parse_result->Cast<ChoiceParseResult>();
-	auto &matched_rule_result = choice_pr.result;
+	auto &choice_result = choice_pr.result->Cast<ListParseResult>();
+	auto &matched_rule_result = choice_result.Child<ChoiceParseResult>(0);
 
-	if (matched_rule_result->name == "StringLiteral") {
-		auto &literal_pr = matched_rule_result->Cast<StringLiteralParseResult>();
+	if (matched_rule_result.name == "StringLiteral") {
+		auto &literal_pr = matched_rule_result.result->Cast<StringLiteralParseResult>();
 		return make_uniq<ConstantExpression>(Value(literal_pr.result));
 	}
-	if (matched_rule_result->name == "NumberLiteral") {
-		auto &literal_pr = matched_rule_result->Cast<NumberParseResult>();
+	if (matched_rule_result.name == "NumberLiteral") {
+		auto &literal_pr = matched_rule_result.result->Cast<NumberParseResult>();
 		// todo(dtenwolde): handle decimals, etc.
 		return make_uniq<ConstantExpression>(Value::BIGINT(std::stoll(literal_pr.number)));
 	}
-	if (matched_rule_result->name == "ConstantLiteral") {
-		auto &constant_literal_pr = matched_rule_result->Cast<ChoiceParseResult>();
+	if (matched_rule_result.name == "ConstantLiteral") {
+		auto &constant_literal_pr = matched_rule_result.result->Cast<ChoiceParseResult>();
 		return make_uniq<ConstantExpression>(transformer.TransformEnum<Value>(&constant_literal_pr));
 	}
 	throw ParserException("Unrecognized literal type in TransformLiteralExpression");
