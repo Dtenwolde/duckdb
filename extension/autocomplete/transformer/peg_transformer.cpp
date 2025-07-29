@@ -36,23 +36,26 @@ T PEGTransformer::TransformEnum(optional_ptr<ParseResult> parse_result) {
 		throw InternalException("TransformEnum called on a ParseResult with no name.");
 	}
 
-	string_t matched_option_name;
+	string matched_option_name;
 
 	if (parse_result->type == ParseResultType::CHOICE) {
 		auto &choice_pr = parse_result->Cast<ChoiceParseResult>();
 		matched_option_name = choice_pr.result->name;
+	} else if (parse_result->type == ParseResultType::LIST) {
+		auto &list_pr = parse_result->Cast<ListParseResult>();
+		matched_option_name = list_pr.children[0]->name;
 	} else {
 		matched_option_name = parse_result->name;
 	}
 
-	if (matched_option_name.GetString().empty()) {
+	if (matched_option_name.empty()) {
 		throw ParserException("Enum transform failed: could not determine matched rule name.");
 	}
 	auto &rule_mapping = enum_mappings.at(enum_rule_name.GetString());
-	auto it = rule_mapping.find(matched_option_name.GetString());
+	auto it = rule_mapping.find(matched_option_name);
 	if (it == rule_mapping.end()) {
 		throw ParserException("Enum transform failed: could not map rule '%s' for enum '%s'",
-		                      matched_option_name.GetString(), enum_rule_name.GetString());
+		                      matched_option_name, enum_rule_name.GetString());
 	}
 
 	auto *typed_enum_ptr = dynamic_cast<TypedTransformEnumResult<T> *>(it->second.get());

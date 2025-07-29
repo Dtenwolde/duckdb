@@ -96,7 +96,9 @@ SettingInfo PEGTransformerFactory::TransformSetSetting(PEGTransformer &transform
 	SettingInfo result;
 	result.name = list_pr.Child<IdentifierParseResult>(1).identifier;
 	if (optional_scope_pr.optional_result) {
-		result.scope = transformer.TransformEnum<SetScope>(optional_scope_pr.optional_result);
+		auto setting_scope = optional_scope_pr.optional_result->Cast<ListParseResult>();
+		// auto scope_result = setting_scope.Child<ChoiceParseResult>(0);
+		result.scope = transformer.TransformEnum<SetScope>(setting_scope);
 	}
 	return result;
 }
@@ -104,11 +106,10 @@ SettingInfo PEGTransformerFactory::TransformSetSetting(PEGTransformer &transform
 SettingInfo PEGTransformerFactory::TransformSetVariable(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
 	// Leaf: VariableScope SettingName
 	auto &list_pr = parse_result->Cast<ListParseResult>();
-	auto &scope_pr = list_pr.children[0];
 
 	SettingInfo result;
-	result.name = transformer.Transform<string>(&list_pr.Child<ChoiceParseResult>(1));
-	result.scope = transformer.TransformEnum<SetScope>(scope_pr);
+	result.scope = transformer.TransformEnum<SetScope>(list_pr.Child<ListParseResult>(0));
+	result.name = list_pr.Child<IdentifierParseResult>(1).identifier;
 	return result;
 }
 
