@@ -567,7 +567,9 @@ public:
 		if (!MatchStringLiteral(state)) {
 			return nullptr;
 		}
-		return state.allocator.Allocate(make_uniq<StringLiteralParseResult>(token_text));
+		auto result = state.allocator.Allocate(make_uniq<StringLiteralParseResult>(token_text));
+		result->name = name;
+		return result;
 	}
 
 	SuggestionType AddSuggestionInternal(MatchState &state) const override {

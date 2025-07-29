@@ -77,12 +77,14 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	Register("SettingName", &TransformIdentifierOrKeyword);
 
 	// Enum registration
-	RegisterEnum<SetScope>(
-	    "SettingScope",
-	    {{"LocalScope", SetScope::LOCAL}, {"SessionScope", SetScope::SESSION}, {"GlobalScope", SetScope::GLOBAL}});
-	RegisterEnum<SetScope>("VariableScope", {{"VariableScope", SetScope::VARIABLE}});
-	RegisterEnum<Value>("ConstantLiteral",
-	                    {{"NullLiteral", Value()}, {"TrueLiteral", Value(true)}, {"FalseLiteral", Value(false)}});
+	RegisterEnum<SetScope>("LocalScope", SetScope::LOCAL);
+	RegisterEnum<SetScope>("GlobalScope", SetScope::GLOBAL);
+	RegisterEnum<SetScope>("SessionScope", SetScope::SESSION);
+	RegisterEnum<SetScope>("VariableScope", SetScope::VARIABLE);
+
+	RegisterEnum<Value>("FalseLiteral", Value(false));
+	RegisterEnum<Value>("TrueLiteral", Value(true));
+	RegisterEnum<Value>("NullLiteral", Value());
 }
 
 } // namespace duckdb

@@ -98,8 +98,8 @@ SettingInfo PEGTransformerFactory::TransformSetSetting(PEGTransformer &transform
 	result.name = list_pr.Child<IdentifierParseResult>(1).identifier;
 	if (optional_scope_pr.optional_result) {
 		auto setting_scope = optional_scope_pr.optional_result->Cast<ListParseResult>();
-		// auto scope_result = setting_scope.Child<ChoiceParseResult>(0);
-		result.scope = transformer.TransformEnum<SetScope>(setting_scope);
+		auto scope_value = setting_scope.Child<ChoiceParseResult>(0);
+		result.scope = transformer.TransformEnum<SetScope>(scope_value);
 	}
 	return result;
 }

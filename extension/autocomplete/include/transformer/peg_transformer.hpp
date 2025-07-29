@@ -30,7 +30,7 @@ public:
 	PEGTransformer(ArenaAllocator &allocator, PEGTransformerState &state,
 	               const case_insensitive_map_t<AnyTransformFunction> &transform_functions,
 	               const case_insensitive_map_t<PEGRule> &grammar_rules,
-	               const case_insensitive_map_t<case_insensitive_map_t<unique_ptr<TransformEnumValue>>> &enum_mappings)
+	               const case_insensitive_map_t<unique_ptr<TransformEnumValue>> &enum_mappings)
 	    : allocator(allocator), state(state), grammar_rules(grammar_rules), transform_functions(transform_functions),
 	      enum_mappings(enum_mappings) {
 	}
@@ -53,7 +53,7 @@ public:
 	PEGTransformerState &state;
 	const case_insensitive_map_t<PEGRule> &grammar_rules;
 	const case_insensitive_map_t<AnyTransformFunction> &transform_functions;
-	const case_insensitive_map_t<case_insensitive_map_t<unique_ptr<TransformEnumValue>>> &enum_mappings;
+	const case_insensitive_map_t<unique_ptr<TransformEnumValue>> &enum_mappings;
 };
 
 class PEGTransformerFactory {
@@ -63,10 +63,8 @@ public:
 
 private:
 	template <typename T>
-	void RegisterEnum(const string &rule_name, const unordered_map<string, T> &mapping) {
-		for (const auto &pair : mapping) {
-			enum_mappings[rule_name][pair.first] = make_uniq<TypedTransformEnumResult<T>>(pair.second);
-		}
+	void RegisterEnum(const string &rule_name, T value) {
+		enum_mappings[rule_name] = make_uniq<TypedTransformEnumResult<T>>(value);
 	}
 
 	template <class FUNC>
@@ -137,7 +135,7 @@ private:
 private:
 	PEGParser parser;
 	case_insensitive_map_t<PEGTransformer::AnyTransformFunction> sql_transform_functions;
-	case_insensitive_map_t<case_insensitive_map_t<unique_ptr<TransformEnumValue>>> enum_mappings;
+	case_insensitive_map_t<unique_ptr<TransformEnumValue>> enum_mappings;
 };
 
 // Helper struct for qualified names.

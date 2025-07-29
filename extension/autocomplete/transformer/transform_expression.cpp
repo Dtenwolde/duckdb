@@ -72,7 +72,8 @@ unique_ptr<ParsedExpression> PEGTransformerFactory::TransformLiteralExpression(P
 	}
 	if (matched_rule_result.name == "ConstantLiteral") {
 		auto &list_pr = matched_rule_result.result->Cast<ListParseResult>();
-		return make_uniq<ConstantExpression>(transformer.TransformEnum<Value>(&list_pr));
+		auto &constant_literal = list_pr.Child<ChoiceParseResult>(0);
+		return make_uniq<ConstantExpression>(transformer.TransformEnum<Value>(constant_literal.result));
 	}
 	throw ParserException("Unrecognized literal type in TransformLiteralExpression");
 }

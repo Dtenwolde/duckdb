@@ -31,36 +31,16 @@ T PEGTransformer::Transform(optional_ptr<ParseResult> parse_result) {
 
 template <typename T>
 T PEGTransformer::TransformEnum(optional_ptr<ParseResult> parse_result) {
-	const string_t &enum_rule_name = parse_result->name;
-	if (enum_rule_name.GetString().empty()) {
-		throw InternalException("TransformEnum called on a ParseResult with no name.");
+	auto enum_rule_name = parse_result->name;
+
+	auto rule_value = enum_mappings.find(enum_rule_name);
+	if (rule_value == enum_mappings.end()) {
+		throw ParserException("Enum transform failed: could not find mapping for '%s'", enum_rule_name);
 	}
 
-	string matched_option_name;
-
-	if (parse_result->type == ParseResultType::CHOICE) {
-		auto &choice_pr = parse_result->Cast<ChoiceParseResult>();
-		matched_option_name = choice_pr.result->name;
-	} else if (parse_result->type == ParseResultType::LIST) {
-		auto &list_pr = parse_result->Cast<ListParseResult>();
-		matched_option_name = list_pr.children[0]->name;
-	} else {
-		matched_option_name = parse_result->name;
-	}
-
-	if (matched_option_name.empty()) {
-		throw ParserException("Enum transform failed: could not determine matched rule name.");
-	}
-	auto &rule_mapping = enum_mappings.at(enum_rule_name.GetString());
-	auto it = rule_mapping.find(matched_option_name);
-	if (it == rule_mapping.end()) {
-		throw ParserException("Enum transform failed: could not map rule '%s' for enum '%s'",
-		                      matched_option_name, enum_rule_name.GetString());
-	}
-
-	auto *typed_enum_ptr = dynamic_cast<TypedTransformEnumResult<T> *>(it->second.get());
+	auto *typed_enum_ptr = dynamic_cast<TypedTransformEnumResult<T>*>(rule_value->second.get());
 	if (!typed_enum_ptr) {
-		throw InternalException("Enum mapping for rule '%s' has an unexpected type.", enum_rule_name.GetString());
+		throw InternalException("Enum mapping for rule '%s' has an unexpected type.", enum_rule_name);
 	}
 
 	return typed_enum_ptr->value;
