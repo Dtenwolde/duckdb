@@ -58,8 +58,12 @@ unordered_map<string, Value> PEGTransformerFactory::TransformGenericCopyOptionLi
 	result[copy_option.name] = copy_option.value;
 	auto &extra_elements = list.Child<OptionalParseResult>(1);
 	if (extra_elements.HasResult()) {
-		// TODO(dtenwolde) implement this
-		throw NotImplementedException("Multiple options not implemented yet.");
+		auto &repeat_pr = extra_elements.optional_result->Cast<RepeatParseResult>();
+		for (auto &element : repeat_pr.children) {
+			auto &child = element->Cast<ListParseResult>();
+			GenericCopyOption copy_option = transformer.Transform<GenericCopyOption>(child.Child<ListParseResult>(1));
+			result[copy_option.name] = copy_option.value;
+		}
 	}
 
 	return result;
