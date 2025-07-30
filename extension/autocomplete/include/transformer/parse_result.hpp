@@ -140,6 +140,10 @@ struct OptionalParseResult : ParseResult {
 	explicit OptionalParseResult(optional_ptr<ParseResult> result_p) : ParseResult(TYPE), optional_result(result_p) {
 		name = result_p->name;
 	}
+
+	bool HasResult() const {
+		return optional_result != nullptr;
+	}
 };
 
 class ChoiceParseResult : public ParseResult {

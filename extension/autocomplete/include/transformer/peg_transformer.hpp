@@ -4,6 +4,7 @@
 #include "parse_result.hpp"
 #include "transform_enum_result.hpp"
 #include "transform_result.hpp"
+#include "ast/generic_copy_option.hpp"
 #include "ast/set_info.hpp"
 #include "duckdb/parser/statement/set_statement.hpp"
 #include "parser/peg_parser.hpp"
@@ -113,6 +114,13 @@ private:
 	static unique_ptr<SQLStatement> TransformPragmaAssign(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static unique_ptr<SQLStatement> TransformPragmaFunction(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static vector<unique_ptr<ParsedExpression>> TransformPragmaParameters(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+
+	static unique_ptr<SQLStatement> TransformDetachStatement(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<SQLStatement> TransformAttachStatement(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static string TransformAttachAlias(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unordered_map<string, Value> TransformAttachOptions(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unordered_map<string, Value> TransformGenericCopyOptionList(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static GenericCopyOption TransformGenericCopyOption(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 
 	// Intermediate transforms returning semantic values
 	static unique_ptr<SQLStatement> TransformStandardAssignment(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
