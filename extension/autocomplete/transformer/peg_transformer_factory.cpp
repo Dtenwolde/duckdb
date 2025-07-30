@@ -48,6 +48,8 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	Register("UseTarget", &TransformUseTarget);
 
 	Register("DetachStatement", &TransformDetachStatement);
+	Register("AttachStatement", &TransformAttachStatement);
+	Register("AttachAlias", &TransformAttachAlias);
 
 	Register("StandardAssignment", &TransformStandardAssignment);
 	Register("SetAssignment", &TransformSetAssignment);
