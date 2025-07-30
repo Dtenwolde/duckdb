@@ -8,6 +8,11 @@ statement ok
 call peg_parser();
 
 statement error
+ATTACH 'version_1_2_0.db' (STORAGE_VERSION 'v1.2.0', READONLY 1);
+----
+IO Error: Cannot open database "version_1_2_0.db" in read-only mode: database does not exist
+
+statement error
 DETACH foo
 ----
 Binder Error: Failed to detach database with name "foo": database not found
@@ -22,3 +27,14 @@ statement error
 ATTACH ':memory:' AS db1 (READONLY 1)
 ----
 Cannot launch in-memory database in read-only mode
+
+statement ok
+ATTACH '' AS tmp;
+
+statement error
+ATTACH '__TEST_DIR__/exceeds_maximum.db' (BLOCK_SIZE 2147483648);
+----
+the block size must be lesser or equal than the maximum block size
+
+statement ok
+ATTACH ':memory:' as "my""db";
