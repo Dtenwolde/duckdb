@@ -122,6 +122,8 @@ private:
 	static unordered_map<string, Value> TransformGenericCopyOptionList(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static GenericCopyOption TransformGenericCopyOption(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 
+	static unique_ptr<SQLStatement> TransformCheckpointStatement(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+
 	// Intermediate transforms returning semantic values
 	static unique_ptr<SQLStatement> TransformStandardAssignment(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static SettingInfo TransformSettingOrVariable(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
