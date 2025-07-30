@@ -124,6 +124,10 @@ private:
 
 	static unique_ptr<SQLStatement> TransformCheckpointStatement(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 
+	static unique_ptr<SQLStatement> TransformExportStatement(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<SQLStatement> TransformImportStatement(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static string TransformExportSource(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+
 	// Intermediate transforms returning semantic values
 	static unique_ptr<SQLStatement> TransformStandardAssignment(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static SettingInfo TransformSettingOrVariable(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);

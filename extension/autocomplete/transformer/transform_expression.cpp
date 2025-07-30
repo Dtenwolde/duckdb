@@ -80,23 +80,18 @@ unique_ptr<ParsedExpression> PEGTransformerFactory::TransformLiteralExpression(P
 
 unique_ptr<ParsedExpression> PEGTransformerFactory::TransformColumnReference(PEGTransformer &transformer,
                                                                              optional_ptr<ParseResult> parse_result) {
-	throw NotImplementedException("TransformColumnReference not implemented");
-	QualifiedName qn = transformer.Transform<QualifiedName>(parse_result);
+	// TODO(dtenwolde) figure out how this rule works with all the options
+	auto &choice_pr = parse_result->Cast<ChoiceParseResult>();
+	auto &list_pr = choice_pr.result->Cast<ListParseResult>();
+	auto &col_ref = list_pr.Child<ChoiceParseResult>(0);
 	vector<string> column_name_parts;
-	if (!qn.catalog.empty()) {
-		column_name_parts.push_back(qn.catalog);
-	}
-	if (!qn.schema.empty()) {
-		column_name_parts.push_back(qn.schema);
-	}
-	column_name_parts.push_back(qn.name);
+	column_name_parts.push_back(col_ref.result->Cast<IdentifierParseResult>().identifier);
 	return make_uniq<ColumnRefExpression>(column_name_parts);
 }
 
 string PEGTransformerFactory::TransformOperator(PEGTransformer &, optional_ptr<ParseResult> parse_result) {
 	auto &choice_pr = parse_result->Cast<ChoiceParseResult>();
 	auto &matched_child = choice_pr.result;
-
 	return matched_child->Cast<KeywordParseResult>().keyword;
 }
 } // namespace duckdb

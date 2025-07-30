@@ -56,6 +56,10 @@ PEGTransformerFactory::PEGTransformerFactory() {
 
 	Register("CheckpointStatement", &TransformCheckpointStatement);
 
+	Register("ExportStatement", &TransformExportStatement);
+	Register("ImportStatement", &TransformImportStatement);
+	Register("ExportSource", &TransformExportSource);
+
 	Register("StandardAssignment", &TransformStandardAssignment);
 	Register("SetAssignment", &TransformSetAssignment);
 
