@@ -1,0 +1,19 @@
+# name: test/sql/peg_parser/transformer/use_statement.test
+# description:
+# group: [transformer]
+
+require autocomplete
+
+statement ok
+call peg_parser();
+
+statement error
+DETACH foo
+----
+Binder Error: Failed to detach database with name "foo": database not found
+
+statement ok
+DETACH IF EXISTS foo
+
+statement ok
+ATTACH DATABASE ':memory:' AS foo;
