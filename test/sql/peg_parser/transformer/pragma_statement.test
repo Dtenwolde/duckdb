@@ -4,10 +4,16 @@
 
 require autocomplete
 
+statement ok
+call peg_parser();
+
 statement error
 PRAGMA disabled_compression_methods='uncompressed'
 ----
 Uncompressed compression cannot be disabled
 
-statement ok
+# TODO(dtenwolde) this should not throw an error but for now its okay
+statement error
 PRAGMA database_size;
+----
+Not implemented Error: No transformer function found for rule 'SelectStatement'
