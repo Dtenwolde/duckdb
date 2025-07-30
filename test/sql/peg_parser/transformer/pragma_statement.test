@@ -17,3 +17,15 @@ statement error
 PRAGMA database_size;
 ----
 Not implemented Error: No transformer function found for rule 'SelectStatement'
+
+statement ok
+PRAGMA disabled_compression_methods='dictionary,rle'
+
+statement error
+PRAGMA enable_profiling()
+----
+
+statement error
+PRAGMA platform;
+----
+Not implemented Error: No transformer function found for rule 'SelectStatement'
