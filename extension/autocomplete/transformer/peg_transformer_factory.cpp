@@ -54,6 +54,8 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	Register("GenericCopyOptionList", &TransformGenericCopyOptionList);
 	Register("GenericCopyOption", &TransformGenericCopyOption);
 
+	Register("CheckpointStatement", &TransformCheckpointStatement);
+
 	Register("StandardAssignment", &TransformStandardAssignment);
 	Register("SetAssignment", &TransformSetAssignment);
 
