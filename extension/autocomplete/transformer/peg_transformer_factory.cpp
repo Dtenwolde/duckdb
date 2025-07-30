@@ -47,6 +47,8 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	Register("PragmaName", &TransformIdentifierOrKeyword);
 	Register("UseTarget", &TransformUseTarget);
 
+	Register("DetachStatement", &TransformDetachStatement);
+
 	Register("StandardAssignment", &TransformStandardAssignment);
 	Register("SetAssignment", &TransformSetAssignment);
 

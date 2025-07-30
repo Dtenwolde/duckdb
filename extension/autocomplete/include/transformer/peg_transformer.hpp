@@ -114,6 +114,8 @@ private:
 	static unique_ptr<SQLStatement> TransformPragmaFunction(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static vector<unique_ptr<ParsedExpression>> TransformPragmaParameters(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 
+	static unique_ptr<SQLStatement> TransformDetachStatement(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+
 	// Intermediate transforms returning semantic values
 	static unique_ptr<SQLStatement> TransformStandardAssignment(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static SettingInfo TransformSettingOrVariable(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
