@@ -404,6 +404,9 @@ public:
 	}
 
 	optional_ptr<ParseResult> MatchParseResult(MatchState &state) const override {
+		if (state.token_index >= state.tokens.size()) {
+			return nullptr;
+		}
 		auto &token_text = state.tokens[state.token_index].text;
 		if (!MatchIdentifier(state)) {
 			return nullptr;
@@ -563,11 +566,15 @@ public:
 	}
 
 	optional_ptr<ParseResult> MatchParseResult(MatchState &state) const override {
+		if (state.token_index >= state.tokens.size()) {
+			return nullptr;
+		}
 		auto &token_text = state.tokens[state.token_index].text;
 		if (!MatchStringLiteral(state)) {
 			return nullptr;
 		}
-		auto result = state.allocator.Allocate(make_uniq<StringLiteralParseResult>(token_text));
+		string stripped_string = token_text.substr(1, token_text.length() - 2);;
+		auto result = state.allocator.Allocate(make_uniq<StringLiteralParseResult>(stripped_string));
 		result->name = name;
 		return result;
 	}
