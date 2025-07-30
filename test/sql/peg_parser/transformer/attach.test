@@ -17,3 +17,8 @@ DETACH IF EXISTS foo
 
 statement ok
 ATTACH DATABASE ':memory:' AS foo;
+
+statement error
+ATTACH ':memory:' AS db1 (READONLY 1)
+----
+Cannot launch in-memory database in read-only mode
