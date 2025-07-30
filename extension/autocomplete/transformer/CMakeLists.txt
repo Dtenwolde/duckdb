@@ -7,8 +7,10 @@ add_library_unity(
   transform_checkpoint.cpp
   transform_delete.cpp
   transform_detach.cpp
+  transform_export.cpp
   transform_expression.cpp
   transform_identifier.cpp
+  transform_import.cpp
   transform_pragma.cpp
   transform_set.cpp)
 set(AUTOCOMPLETE_EXTENSION_FILES

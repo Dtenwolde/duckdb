@@ -1,0 +1,11 @@
+# name: test/sql/peg_parser/transformer/use_statement.test
+# description:
+# group: [transformer]
+
+require autocomplete
+
+statement ok
+call peg_parser();
+
+statement ok
+EXPORT DATABASE '__TEST_DIR__/empty_export' (FORMAT PARQUET)
