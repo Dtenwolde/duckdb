@@ -837,7 +837,7 @@ FuncType <- Type / ('SETOF'i? TypeFuncName '%' 'TYPE'i)
 LoadStatement <- 'LOAD'i ColIdOrString
 InstallStatement <- 'FORCE'i? 'INSTALL'i Identifier FromSource? VersionNumber?
 FromSource <- 'FROM'i (Identifier / StringLiteral)
-VersionNumber <- Identifier
+VersionNumber <- 'VERSION'i Identifier
 DropStatement <- 'DROP'i DropEntries DropBehavior?
 
 DropEntries <-
@@ -967,7 +967,7 @@ FunctionArgument <- NamedParameter / Expression
 NamedParameter <- TypeName NamedParameterAssignment Expression
 NamedParameterAssignment <- ':=' / '=>'
 
-TableAlias <- 'AS'i? (Identifier / StringLiteral) ColumnAliases?
+TableAlias <- 'AS'i? IdentifierOrStringLiteral ColumnAliases?
 
 AtClause <- 'AT'i Parens(AtSpecifier)
 AtSpecifier <- AtUnit '=>' Expression

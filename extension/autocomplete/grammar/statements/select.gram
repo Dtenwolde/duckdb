@@ -57,7 +57,7 @@ FunctionArgument <- NamedParameter / Expression
 NamedParameter <- TypeName NamedParameterAssignment Expression
 NamedParameterAssignment <- ':=' / '=>'
 
-TableAlias <- 'AS'i? (Identifier / StringLiteral) ColumnAliases?
+TableAlias <- 'AS'i? IdentifierOrStringLiteral ColumnAliases?
 
 AtClause <- 'AT'i Parens(AtSpecifier)
 AtSpecifier <- AtUnit '=>' Expression

@@ -67,6 +67,11 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	Register("CommitTransaction", &TransformCommitTransaction);
 	Register("ReadOrWrite", &TransformReadOrWrite);
 
+	Register("LoadStatement", &TransformLoadStatement);
+	Register("InstallStatement", &TransformInstallStatement);
+	Register("FromSource", &TransformFromSource);
+	Register("VersionNumber", &TransformVersionNumber);
+
 	Register("StandardAssignment", &TransformStandardAssignment);
 	Register("SetAssignment", &TransformSetAssignment);
 
@@ -80,11 +85,16 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	Register("LiteralExpression", &TransformLiteralExpression);
 	Register("ColumnReference", &TransformColumnReference);
 
+	Register("ColIdOrString", &TransformColIdOrString);
+	Register("IdentifierOrStringLiteral", &TransformIdentifierOrStringLiteral);
+	Register("ColId", &TransformColId);
+	Register("StringLiteral", &TransformStringLiteral);
+	Register("Identifier", &TransformIdentifier);
+
 	Register("SetSetting", &TransformSetSetting);
 	Register("SetVariable", &TransformSetVariable);
 
 	Register("DottedIdentifier", &TransformDottedIdentifier);
-	Register("ColId", &TransformIdentifierOrKeyword);
 	Register("ColLabel", &TransformIdentifierOrKeyword);
 	Register("Identifier", &TransformIdentifierOrKeyword);
 	Register("PlainIdentifier", &TransformIdentifierOrKeyword);
