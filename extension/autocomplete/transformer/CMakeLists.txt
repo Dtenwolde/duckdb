@@ -5,12 +5,15 @@ add_library_unity(
   peg_transformer_factory.cpp
   transform_attach.cpp
   transform_checkpoint.cpp
+  transform_common.cpp
   transform_delete.cpp
   transform_detach.cpp
   transform_export.cpp
   transform_expression.cpp
   transform_identifier.cpp
+  transform_install.cpp
   transform_import.cpp
+  transform_load.cpp
   transform_pragma.cpp
   transform_set.cpp
   transform_transaction.cpp)

@@ -4,6 +4,7 @@
 #include "parse_result.hpp"
 #include "transform_enum_result.hpp"
 #include "transform_result.hpp"
+#include "ast/extension_repository_info.hpp"
 #include "ast/generic_copy_option.hpp"
 #include "ast/set_info.hpp"
 #include "duckdb/parser/parsed_data/transaction_info.hpp"
@@ -134,6 +135,17 @@ private:
 	static unique_ptr<SQLStatement> TransformExportStatement(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static unique_ptr<SQLStatement> TransformImportStatement(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static string TransformExportSource(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+
+	static unique_ptr<SQLStatement> TransformLoadStatement(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<SQLStatement> TransformInstallStatement(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static ExtensionRepositoryInfo TransformFromSource(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static string TransformVersionNumber(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+
+	static string TransformColIdOrString(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static string TransformColId(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static string TransformStringLiteral(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static string TransformIdentifierOrStringLiteral(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static string TransformIdentifier(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 
 	// Intermediate transforms returning semantic values
 	static unique_ptr<SQLStatement> TransformStandardAssignment(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);

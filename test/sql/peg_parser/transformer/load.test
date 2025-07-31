@@ -1,0 +1,31 @@
+# name: test/sql/peg_parser/transformer/use_statement.test
+# description:
+# group: [transformer]
+
+require autocomplete
+
+statement ok
+call peg_parser();
+
+statement ok
+load autocomplete;
+
+statement error
+install tpch from 'foo';
+----
+IO Error
+
+statement error
+install tpch from foo;
+----
+Binder Error: 'foo' is not a known repository name. Are you trying to query from a repository by path? Use single quotes: `FROM 'foo'`
+
+statement error
+LOAD 'asdf';
+----
+<REGEX>:IO Error: Extension.*not found.*
+
+statement error
+LOAD 'Makefile';
+----
+<REGEX>:IO Error: Extension.*not found.*
