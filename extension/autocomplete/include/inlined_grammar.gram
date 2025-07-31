@@ -1039,7 +1039,10 @@ CommitTransaction <- CommitOrEnd Transaction?
 
 StartOrBegin <- 'START'i / 'BEGIN'i
 Transaction <- 'WORK'i / 'TRANSACTION'i
-ReadOrWrite <- 'READ'i ('ONLY'i / 'WRITE'i)
+ReadOrWrite <- 'READ'i ReadOnlyOrReadWrite
+ReadOnlyOrReadWrite <- ReadOnly / ReadWrite
+ReadOnly <- 'ONLY'i
+ReadWrite <- 'WRITE'i
 AbortOrRollback <- 'ABORT'i / 'ROLLBACK'i
 CommitOrEnd <- 'COMMIT'i / 'END'i
 

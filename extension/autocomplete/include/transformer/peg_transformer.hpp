@@ -6,6 +6,7 @@
 #include "transform_result.hpp"
 #include "ast/generic_copy_option.hpp"
 #include "ast/set_info.hpp"
+#include "duckdb/parser/parsed_data/transaction_info.hpp"
 #include "duckdb/parser/statement/set_statement.hpp"
 #include "parser/peg_parser.hpp"
 #include "duckdb/storage/arena_allocator.hpp"
@@ -123,6 +124,12 @@ private:
 	static GenericCopyOption TransformGenericCopyOption(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 
 	static unique_ptr<SQLStatement> TransformCheckpointStatement(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+
+	static unique_ptr<SQLStatement> TransformTransactionStatement(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<SQLStatement> TransformBeginTransaction(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<SQLStatement> TransformRollbackTransaction(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<SQLStatement> TransformCommitTransaction(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static TransactionModifierType TransformReadOrWrite(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 
 	static unique_ptr<SQLStatement> TransformExportStatement(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static unique_ptr<SQLStatement> TransformImportStatement(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);

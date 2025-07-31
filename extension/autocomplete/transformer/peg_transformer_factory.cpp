@@ -1,5 +1,6 @@
 #include "transformer/peg_transformer.hpp"
 #include "matcher.hpp"
+#include "duckdb/parser/parsed_data/transaction_info.hpp"
 
 namespace duckdb {
 
@@ -60,6 +61,12 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	Register("ImportStatement", &TransformImportStatement);
 	Register("ExportSource", &TransformExportSource);
 
+	Register("TransactionStatement", &TransformTransactionStatement);
+	Register("BeginTransaction", &TransformBeginTransaction);
+	Register("RollbackTransaction", &TransformRollbackTransaction);
+	Register("CommitTransaction", &TransformCommitTransaction);
+	Register("ReadOrWrite", &TransformReadOrWrite);
+
 	Register("StandardAssignment", &TransformStandardAssignment);
 	Register("SetAssignment", &TransformSetAssignment);
 
@@ -98,6 +105,9 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	RegisterEnum<Value>("FalseLiteral", Value(false));
 	RegisterEnum<Value>("TrueLiteral", Value(true));
 	RegisterEnum<Value>("NullLiteral", Value());
+
+	RegisterEnum<TransactionModifierType>("ReadOnly", TransactionModifierType::TRANSACTION_READ_ONLY);
+	RegisterEnum<TransactionModifierType>("ReadWrite", TransactionModifierType::TRANSACTION_READ_WRITE);
 }
 
 } // namespace duckdb

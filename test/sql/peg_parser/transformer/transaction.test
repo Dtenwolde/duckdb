@@ -1,0 +1,39 @@
+# name: test/sql/peg_parser/transformer/use_statement.test
+# description:
+# group: [transformer]
+
+require autocomplete
+
+statement ok
+call peg_parser();
+
+statement ok
+start;
+
+statement error
+begin;
+----
+TransactionContext Error: cannot start a transaction within a transaction
+
+statement error
+start transaction read only;
+----
+TransactionContext Error: Current transaction is aborted (please ROLLBACK)
+
+statement error
+start transaction read write;
+----
+TransactionContext Error: Current transaction is aborted (please ROLLBACK)
+
+statement ok
+abort transaction
+
+statement error
+commit
+----
+TransactionContext Error: cannot commit - no transaction is active
+
+statement error
+end
+----
+TransactionContext Error: cannot commit - no transaction is active
