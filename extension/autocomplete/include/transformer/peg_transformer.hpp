@@ -9,6 +9,7 @@
 #include "ast/set_info.hpp"
 #include "duckdb/parser/parsed_data/transaction_info.hpp"
 #include "duckdb/parser/statement/set_statement.hpp"
+#include "duckdb/parser/tableref/basetableref.hpp"
 #include "parser/peg_parser.hpp"
 #include "duckdb/storage/arena_allocator.hpp"
 #include <functional>
@@ -72,6 +73,10 @@ private:
 
 	template <class FUNC>
 	void Register(const string &rule_name, FUNC function) {
+		auto existing_rule = sql_transform_functions.find(rule_name);
+		if (existing_rule != sql_transform_functions.end()) {
+			throw InternalException("Rule %s already exists", rule_name);
+		}
 		sql_transform_functions[rule_name] = [function](PEGTransformer &transformer,
 		                                                optional_ptr<ParseResult> parse_result) -> unique_ptr<TransformResultValue> {
 			auto result_value = function(transformer, parse_result);
@@ -140,6 +145,10 @@ private:
 	static unique_ptr<SQLStatement> TransformInstallStatement(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static ExtensionRepositoryInfo TransformFromSource(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static string TransformVersionNumber(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+
+	static unique_ptr<SQLStatement> TransformTruncateStatement(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+
+	static unique_ptr<BaseTableRef> TransformBaseTableName(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 
 	static string TransformColIdOrString(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static string TransformColId(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
