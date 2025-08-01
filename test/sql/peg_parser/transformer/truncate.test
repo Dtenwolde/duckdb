@@ -1,0 +1,13 @@
+# name: test/sql/peg_parser/transformer/use_statement.test
+# description:
+# group: [transformer]
+
+require autocomplete
+
+statement ok
+call peg_parser();
+
+statement error
+TRUNCATE test
+----
+Catalog Error: Table with name test does not exist!

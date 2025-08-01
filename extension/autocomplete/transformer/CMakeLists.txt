@@ -4,6 +4,7 @@ add_library_unity(
   peg_transformer.cpp
   peg_transformer_factory.cpp
   transform_attach.cpp
+  transform_basetable.cpp
   transform_checkpoint.cpp
   transform_common.cpp
   transform_delete.cpp
@@ -16,7 +17,8 @@ add_library_unity(
   transform_load.cpp
   transform_pragma.cpp
   transform_set.cpp
-  transform_transaction.cpp)
+  transform_transaction.cpp
+  transform_truncate.cpp)
 set(AUTOCOMPLETE_EXTENSION_FILES
     ${AUTOCOMPLETE_EXTENSION_FILES} $<TARGET_OBJECTS:duckdb_peg_transformer>
     PARENT_SCOPE)

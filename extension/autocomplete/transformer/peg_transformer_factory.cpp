@@ -72,6 +72,10 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	Register("FromSource", &TransformFromSource);
 	Register("VersionNumber", &TransformVersionNumber);
 
+	Register("TruncateStatement", &TransformTruncateStatement);
+
+	Register("BaseTableName", &TransformBaseTableName);
+
 	Register("StandardAssignment", &TransformStandardAssignment);
 	Register("SetAssignment", &TransformSetAssignment);
 
@@ -94,9 +98,7 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	Register("SetSetting", &TransformSetSetting);
 	Register("SetVariable", &TransformSetVariable);
 
-	Register("DottedIdentifier", &TransformDottedIdentifier);
 	Register("ColLabel", &TransformIdentifierOrKeyword);
-	Register("Identifier", &TransformIdentifierOrKeyword);
 	Register("PlainIdentifier", &TransformIdentifierOrKeyword);
 	Register("QuotedIdentifier", &TransformIdentifierOrKeyword);
 	Register("ReservedKeyword", &TransformIdentifierOrKeyword);
