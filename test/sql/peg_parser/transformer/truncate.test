@@ -5,9 +5,14 @@
 require autocomplete
 
 statement ok
-call peg_parser();
+call peg_parser('continue_on_error');
 
 statement error
 TRUNCATE test
+----
+Catalog Error: Table with name test does not exist!
+
+statement error
+TRUNCATE foo.test
 ----
 Catalog Error: Table with name test does not exist!

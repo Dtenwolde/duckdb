@@ -650,7 +650,9 @@ vector<unique_ptr<SQLStatement>> ClientContext::ParseStatementsInternal(ClientCo
 				return statements;
 			}
 		} catch (const duckdb::Exception &e) {
-			throw;
+			if (config.parser_override->option == ParserOverrideOptions::THROW_ON_ERROR) {
+				throw;
+			}
 		}
 	}
 
