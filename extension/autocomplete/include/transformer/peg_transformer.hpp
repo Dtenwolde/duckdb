@@ -12,7 +12,6 @@
 #include "duckdb/parser/tableref/basetableref.hpp"
 #include "parser/peg_parser.hpp"
 #include "duckdb/storage/arena_allocator.hpp"
-#include <functional>
 
 namespace duckdb {
 
