@@ -20,6 +20,7 @@
 #include "duckdb/catalog/catalog_entry/scalar_function_catalog_entry.hpp"
 #include "duckdb/catalog/catalog_entry/table_function_catalog_entry.hpp"
 #include "transformer/peg_transformer.hpp"
+#include "duckdb/main/settings.hpp"
 
 namespace duckdb {
 
@@ -712,6 +713,12 @@ static duckdb::unique_ptr<FunctionData> PEGParserBind(ClientContext &context, Ta
 	bool enable_logging = false;
 	if (input.named_parameters.find("enable_logging") != input.named_parameters.end()) {
 		enable_logging = input.named_parameters.at("enable_logging").GetValue<bool>();
+	}
+	if (enable_logging) {
+		auto result = ClientConfig::GetSettingValue<EnableLogging>(context);
+		if (!result.GetValue<bool>()) {
+			throw InvalidInputException("Please execute \"PRAGMA enable_logging\" first.");
+		}
 	}
 
 	auto options = make_uniq<ParserOverrideOptions>(error_option, enable_logging);
