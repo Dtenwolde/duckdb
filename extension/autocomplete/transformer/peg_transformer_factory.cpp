@@ -42,7 +42,7 @@ PEGTransformerFactory::PEGTransformerFactory() {
     // Registering transform functions using the macro for brevity
     REGISTER_TRANSFORM(TransformStatement);
     REGISTER_TRANSFORM(TransformUseStatement);
-    REGISTER_TRANSFORM(TransformDottedIdentifier);
+
     REGISTER_TRANSFORM(TransformSetStatement);
     REGISTER_TRANSFORM(TransformResetStatement);
     REGISTER_TRANSFORM(TransformDeleteStatement);
@@ -51,31 +51,39 @@ PEGTransformerFactory::PEGTransformerFactory() {
     REGISTER_TRANSFORM(TransformPragmaFunction);
     REGISTER_TRANSFORM(TransformPragmaParameters);
     REGISTER_TRANSFORM(TransformUseTarget);
+
     REGISTER_TRANSFORM(TransformDetachStatement);
     REGISTER_TRANSFORM(TransformAttachStatement);
     REGISTER_TRANSFORM(TransformAttachAlias);
     REGISTER_TRANSFORM(TransformAttachOptions);
     REGISTER_TRANSFORM(TransformGenericCopyOptionList);
     REGISTER_TRANSFORM(TransformGenericCopyOption);
+
     REGISTER_TRANSFORM(TransformCheckpointStatement);
     REGISTER_TRANSFORM(TransformExportStatement);
     REGISTER_TRANSFORM(TransformImportStatement);
     REGISTER_TRANSFORM(TransformExportSource);
+
     REGISTER_TRANSFORM(TransformTransactionStatement);
     REGISTER_TRANSFORM(TransformBeginTransaction);
     REGISTER_TRANSFORM(TransformRollbackTransaction);
+
     REGISTER_TRANSFORM(TransformCommitTransaction);
     REGISTER_TRANSFORM(TransformReadOrWrite);
+
     REGISTER_TRANSFORM(TransformLoadStatement);
     REGISTER_TRANSFORM(TransformInstallStatement);
     REGISTER_TRANSFORM(TransformFromSource);
     REGISTER_TRANSFORM(TransformVersionNumber);
+
     REGISTER_TRANSFORM(TransformTruncateStatement);
     REGISTER_TRANSFORM(TransformBaseTableName);
+	REGISTER_TRANSFORM(TransformSchemaReservedTable);
     REGISTER_TRANSFORM(TransformStandardAssignment);
     REGISTER_TRANSFORM(TransformSetAssignment);
     REGISTER_TRANSFORM(TransformSettingOrVariable);
     REGISTER_TRANSFORM(TransformVariableList);
+
     REGISTER_TRANSFORM(TransformExpression);
     REGISTER_TRANSFORM(TransformBaseExpression);
     REGISTER_TRANSFORM(TransformSingleExpression);
@@ -88,6 +96,7 @@ PEGTransformerFactory::PEGTransformerFactory() {
     REGISTER_TRANSFORM(TransformIdentifier);
     REGISTER_TRANSFORM(TransformSetSetting);
     REGISTER_TRANSFORM(TransformSetVariable);
+    REGISTER_TRANSFORM(TransformDottedIdentifier);
 
     // Manual registration for mismatched names or special cases
     Register("PragmaName", &TransformIdentifierOrKeyword);
