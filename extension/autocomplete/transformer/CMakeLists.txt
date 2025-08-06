@@ -5,6 +5,7 @@ add_library_unity(
   peg_transformer_factory.cpp
   transform_attach.cpp
   transform_basetable.cpp
+  transform_call.cpp
   transform_checkpoint.cpp
   transform_common.cpp
   transform_deallocate.cpp

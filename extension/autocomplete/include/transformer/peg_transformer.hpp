@@ -133,6 +133,11 @@ private:
 
 	static unique_ptr<SQLStatement> TransformDeallocateStatement(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 
+	static unique_ptr<SQLStatement> TransformCallStatement(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static vector<unique_ptr<ParsedExpression>> TransformTableFunctionArguments(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<ParsedExpression> TransformFunctionArgument(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<ParsedExpression> TransformNamedParameter(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+
 	static unique_ptr<SQLStatement> TransformTransactionStatement(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static unique_ptr<SQLStatement> TransformBeginTransaction(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static unique_ptr<SQLStatement> TransformRollbackTransaction(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
@@ -180,6 +185,10 @@ private:
 	static string TransformOperator(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static string TransformIdentifierOrKeyword(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 
+
+	//! Helper functions
+	static optional_ptr<ParseResult> ExtractResultFromParens(PEGTransformer &, optional_ptr<ParseResult> parse_result);
+	static vector<optional_ptr<ParseResult>> ExtractParseResultsFromList(PEGTransformer &, optional_ptr<ParseResult> parse_result);
 private:
 	PEGParser parser;
 	case_insensitive_map_t<PEGTransformer::AnyTransformFunction> sql_transform_functions;
