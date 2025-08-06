@@ -1,0 +1,13 @@
+# name: test/sql/peg_parser/transformer/use_statement.test
+# description:
+# group: [transformer]
+
+require autocomplete
+
+require tpch
+
+statement ok
+call peg_parser();
+
+statement ok
+COPY lineitem to 's3://test-bucket/tpch-sf0_01/lineitem.parquet';
