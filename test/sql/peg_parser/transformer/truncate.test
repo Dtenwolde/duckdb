@@ -16,3 +16,8 @@ statement error
 TRUNCATE foo.test
 ----
 Catalog Error: Table with name test does not exist!
+
+statement error
+TRUNCATE bar.foo.test
+----
+Binder Error: Catalog "bar" does not exist!

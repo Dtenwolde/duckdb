@@ -17,6 +17,34 @@ unique_ptr<BaseTableRef> PEGTransformerFactory::TransformBaseTableName(PEGTransf
 
 unique_ptr<BaseTableRef> PEGTransformerFactory::TransformSchemaReservedTable(PEGTransformer &transformer,
 																		 optional_ptr<ParseResult> parse_result) {
-	throw NotImplementedException("PEGTransformerFactory::TransformSchemaReservedTable");
+	// SchemaReservedTable <- SchemaQualification ReservedTableName
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	auto schema = transformer.Transform<string>(list_pr.Child<ListParseResult>(0));
+	auto table_name = list_pr.Child<IdentifierParseResult>(1).identifier;
+
+	const auto description = TableDescription(INVALID_CATALOG, schema, table_name);
+	return make_uniq<BaseTableRef>(description);
 }
+
+unique_ptr<BaseTableRef> PEGTransformerFactory::TransformCatalogReservedSchemaTable(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	// CatalogReservedSchemaTable <- CatalogQualification ReservedSchemaQualification ReservedTableName
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	auto catalog = transformer.Transform<string>(list_pr.Child<ListParseResult>(0));
+	auto schema = transformer.Transform<string>(list_pr.Child<ListParseResult>(1));
+	auto table_name = list_pr.Child<IdentifierParseResult>(2).identifier;
+	const auto description = TableDescription(catalog, catalog, table_name);
+	return make_uniq<BaseTableRef>(description);
+}
+
+string PEGTransformerFactory::TransformSchemaQualification(PEGTransformer &transformer,
+                                                           optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	return list_pr.Child<IdentifierParseResult>(0).identifier;
+}
+
+string PEGTransformerFactory::TransformCatalogQualification(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	return list_pr.Child<IdentifierParseResult>(0).identifier;
+}
+
 } // namespace duckdb
