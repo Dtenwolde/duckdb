@@ -78,6 +78,11 @@ PEGTransformerFactory::PEGTransformerFactory() {
 
 	REGISTER_TRANSFORM(TransformDeallocateStatement);
 
+	REGISTER_TRANSFORM(TransformCallStatement);
+	REGISTER_TRANSFORM(TransformTableFunctionArguments);
+	REGISTER_TRANSFORM(TransformFunctionArgument);
+	REGISTER_TRANSFORM(TransformNamedParameter);
+
     REGISTER_TRANSFORM(TransformTruncateStatement);
     REGISTER_TRANSFORM(TransformBaseTableName);
 	REGISTER_TRANSFORM(TransformSchemaReservedTable);
@@ -106,6 +111,7 @@ PEGTransformerFactory::PEGTransformerFactory() {
 
     // Manual registration for mismatched names or special cases
     Register("PragmaName", &TransformIdentifierOrKeyword);
+	Register("TypeName", &TransformIdentifierOrKeyword);
     Register("ColLabel", &TransformIdentifierOrKeyword);
     Register("PlainIdentifier", &TransformIdentifierOrKeyword);
     Register("QuotedIdentifier", &TransformIdentifierOrKeyword);
@@ -130,6 +136,29 @@ PEGTransformerFactory::PEGTransformerFactory() {
 
     RegisterEnum<TransactionModifierType>("ReadOnly", TransactionModifierType::TRANSACTION_READ_ONLY);
     RegisterEnum<TransactionModifierType>("ReadWrite", TransactionModifierType::TRANSACTION_READ_WRITE);
+}
+
+optional_ptr<ParseResult> PEGTransformerFactory::ExtractResultFromParens(PEGTransformer &, optional_ptr<ParseResult> parse_result) {
+	// Parens(D) <- '(' D ')'
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	return list_pr.children[1];
+}
+
+vector<optional_ptr<ParseResult>> PEGTransformerFactory::ExtractParseResultsFromList(PEGTransformer &, optional_ptr<ParseResult> parse_result) {
+	// List(D) <- D (',' D)* ','?
+	vector<optional_ptr<ParseResult>> result;
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	result.push_back(list_pr.children[0]);
+	auto opt_child = list_pr.Child<OptionalParseResult>(1);
+	if (opt_child.HasResult()) {
+		auto repeat_result = opt_child.optional_result->Cast<RepeatParseResult>();
+		for (auto &child : repeat_result.children) {
+			auto &list_child = child->Cast<ListParseResult>();
+			result.push_back(list_child.children[1]);
+		}
+	}
+
+	return result;
 }
 
 } // namespace duckdb

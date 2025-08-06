@@ -30,7 +30,7 @@ unique_ptr<ParsedExpression> PEGTransformerFactory::TransformExpression(PEGTrans
 	auto &base_expr_pr = list_pr.Child<ListParseResult>(0);
 	unique_ptr<ParsedExpression> current_expr = transformer.Transform<unique_ptr<ParsedExpression>>(base_expr_pr);
 	auto &indirection_pr = list_pr.Child<OptionalParseResult>(1);
-	if (indirection_pr.optional_result) {
+	if (indirection_pr.HasResult()) {
 		auto indirection_expr = transformer.Transform<unique_ptr<ParsedExpression>>(indirection_pr.optional_result);
 	}
 
