@@ -150,6 +150,9 @@ private:
 
 	static unique_ptr<BaseTableRef> TransformBaseTableName(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static unique_ptr<BaseTableRef> TransformSchemaReservedTable(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<BaseTableRef> TransformCatalogReservedSchemaTable(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static string TransformSchemaQualification(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static string TransformCatalogQualification(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 
 	static string TransformColIdOrString(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static string TransformColId(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);

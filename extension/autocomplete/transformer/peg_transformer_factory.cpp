@@ -79,6 +79,10 @@ PEGTransformerFactory::PEGTransformerFactory() {
     REGISTER_TRANSFORM(TransformTruncateStatement);
     REGISTER_TRANSFORM(TransformBaseTableName);
 	REGISTER_TRANSFORM(TransformSchemaReservedTable);
+	REGISTER_TRANSFORM(TransformCatalogReservedSchemaTable);
+	REGISTER_TRANSFORM(TransformSchemaQualification);
+	REGISTER_TRANSFORM(TransformCatalogQualification);
+
     REGISTER_TRANSFORM(TransformStandardAssignment);
     REGISTER_TRANSFORM(TransformSetAssignment);
     REGISTER_TRANSFORM(TransformSettingOrVariable);
@@ -109,6 +113,8 @@ PEGTransformerFactory::PEGTransformerFactory() {
     Register("FuncNameKeyword", &TransformIdentifierOrKeyword);
     Register("TypeNameKeyword", &TransformIdentifierOrKeyword);
     Register("SettingName", &TransformIdentifierOrKeyword);
+
+	Register("ReservedSchemaQualification", &TransformSchemaQualification);
 
     // Enum registration
     RegisterEnum<SetScope>("LocalScope", SetScope::LOCAL);
