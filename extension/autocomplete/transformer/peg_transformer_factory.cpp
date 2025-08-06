@@ -1,6 +1,5 @@
 #include "transformer/peg_transformer.hpp"
 #include "matcher.hpp"
-#include "duckdb/parser/parsed_data/transaction_info.hpp"
 
 namespace duckdb {
 
