@@ -7,6 +7,7 @@ add_library_unity(
   transform_basetable.cpp
   transform_checkpoint.cpp
   transform_common.cpp
+  transform_deallocate.cpp
   transform_delete.cpp
   transform_detach.cpp
   transform_export.cpp

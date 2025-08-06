@@ -76,6 +76,8 @@ PEGTransformerFactory::PEGTransformerFactory() {
     REGISTER_TRANSFORM(TransformFromSource);
     REGISTER_TRANSFORM(TransformVersionNumber);
 
+	REGISTER_TRANSFORM(TransformDeallocateStatement);
+
     REGISTER_TRANSFORM(TransformTruncateStatement);
     REGISTER_TRANSFORM(TransformBaseTableName);
 	REGISTER_TRANSFORM(TransformSchemaReservedTable);

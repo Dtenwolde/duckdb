@@ -131,6 +131,8 @@ private:
 
 	static unique_ptr<SQLStatement> TransformCheckpointStatement(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 
+	static unique_ptr<SQLStatement> TransformDeallocateStatement(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+
 	static unique_ptr<SQLStatement> TransformTransactionStatement(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static unique_ptr<SQLStatement> TransformBeginTransaction(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static unique_ptr<SQLStatement> TransformRollbackTransaction(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
