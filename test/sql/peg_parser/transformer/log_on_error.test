@@ -7,14 +7,23 @@ require autocomplete
 load __TEST_DIR__/test_peg_parser.db
 
 statement ok
+pragma enable_logging;
+
+statement ok
 call peg_parser(on_error='throw', enable_logging=true);
 
 restart
 
 statement ok
+pragma enable_logging;
+
+statement ok
 call peg_parser(on_error='continue', enable_logging=true);
 
 restart
+
+statement ok
+pragma enable_logging;
 
 statement error
 call peg_parser(on_error='doesnotexist', enable_logging=true);
@@ -38,7 +47,10 @@ restart
 PRAGMA enable_logging;
 
 statement ok
-call peg_parser(on_error='throw', enable_logging=true);
+pragma enable_logging;
+
+statement ok
+call peg_parser(on_error='continue', enable_logging=true);
 
 statement ok
 select * from foo;
