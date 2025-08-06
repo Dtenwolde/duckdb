@@ -5,7 +5,7 @@
 require autocomplete
 
 statement ok
-call peg_parser('continue_on_error');
+call peg_parser();
 
 statement error
 TRUNCATE test

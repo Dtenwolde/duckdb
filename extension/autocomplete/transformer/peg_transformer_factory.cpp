@@ -34,92 +34,85 @@ unique_ptr<SQLStatement> PEGTransformerFactory::Transform(vector<MatcherToken> &
 	return transformer.Transform<unique_ptr<SQLStatement>>(match_result);
 }
 
+#define REGISTER_TRANSFORM(FUNCTION) \
+Register(string(#FUNCTION).substr(9), &FUNCTION)
+
+
 PEGTransformerFactory::PEGTransformerFactory() {
-	Register("Statement", &TransformStatement);
-	Register("UseStatement", &TransformUseStatement);
-	Register("DottedIdentifier", &TransformDottedIdentifier);
-	Register("SetStatement", &TransformSetStatement);
-	Register("ResetStatement", &TransformResetStatement);
-	Register("DeleteStatement", &TransformDeleteStatement);
-	Register("PragmaStatement", &TransformPragmaStatement);
-	Register("PragmaAssign", &TransformPragmaAssign);
-	Register("PragmaFunction", &TransformPragmaFunction);
-	Register("PragmaParameters", &TransformPragmaParameters);
-	Register("PragmaName", &TransformIdentifierOrKeyword);
-	Register("UseTarget", &TransformUseTarget);
+    // Registering transform functions using the macro for brevity
+    REGISTER_TRANSFORM(TransformStatement);
+    REGISTER_TRANSFORM(TransformUseStatement);
+    REGISTER_TRANSFORM(TransformDottedIdentifier);
+    REGISTER_TRANSFORM(TransformSetStatement);
+    REGISTER_TRANSFORM(TransformResetStatement);
+    REGISTER_TRANSFORM(TransformDeleteStatement);
+    REGISTER_TRANSFORM(TransformPragmaStatement);
+    REGISTER_TRANSFORM(TransformPragmaAssign);
+    REGISTER_TRANSFORM(TransformPragmaFunction);
+    REGISTER_TRANSFORM(TransformPragmaParameters);
+    REGISTER_TRANSFORM(TransformUseTarget);
+    REGISTER_TRANSFORM(TransformDetachStatement);
+    REGISTER_TRANSFORM(TransformAttachStatement);
+    REGISTER_TRANSFORM(TransformAttachAlias);
+    REGISTER_TRANSFORM(TransformAttachOptions);
+    REGISTER_TRANSFORM(TransformGenericCopyOptionList);
+    REGISTER_TRANSFORM(TransformGenericCopyOption);
+    REGISTER_TRANSFORM(TransformCheckpointStatement);
+    REGISTER_TRANSFORM(TransformExportStatement);
+    REGISTER_TRANSFORM(TransformImportStatement);
+    REGISTER_TRANSFORM(TransformExportSource);
+    REGISTER_TRANSFORM(TransformTransactionStatement);
+    REGISTER_TRANSFORM(TransformBeginTransaction);
+    REGISTER_TRANSFORM(TransformRollbackTransaction);
+    REGISTER_TRANSFORM(TransformCommitTransaction);
+    REGISTER_TRANSFORM(TransformReadOrWrite);
+    REGISTER_TRANSFORM(TransformLoadStatement);
+    REGISTER_TRANSFORM(TransformInstallStatement);
+    REGISTER_TRANSFORM(TransformFromSource);
+    REGISTER_TRANSFORM(TransformVersionNumber);
+    REGISTER_TRANSFORM(TransformTruncateStatement);
+    REGISTER_TRANSFORM(TransformBaseTableName);
+    REGISTER_TRANSFORM(TransformStandardAssignment);
+    REGISTER_TRANSFORM(TransformSetAssignment);
+    REGISTER_TRANSFORM(TransformSettingOrVariable);
+    REGISTER_TRANSFORM(TransformVariableList);
+    REGISTER_TRANSFORM(TransformExpression);
+    REGISTER_TRANSFORM(TransformBaseExpression);
+    REGISTER_TRANSFORM(TransformSingleExpression);
+    REGISTER_TRANSFORM(TransformLiteralExpression);
+    REGISTER_TRANSFORM(TransformColumnReference);
+    REGISTER_TRANSFORM(TransformColIdOrString);
+    REGISTER_TRANSFORM(TransformIdentifierOrStringLiteral);
+    REGISTER_TRANSFORM(TransformColId);
+    REGISTER_TRANSFORM(TransformStringLiteral);
+    REGISTER_TRANSFORM(TransformIdentifier);
+    REGISTER_TRANSFORM(TransformSetSetting);
+    REGISTER_TRANSFORM(TransformSetVariable);
 
-	Register("DetachStatement", &TransformDetachStatement);
-	Register("AttachStatement", &TransformAttachStatement);
-	Register("AttachAlias", &TransformAttachAlias);
-	Register("AttachOptions", &TransformAttachOptions);
-	Register("GenericCopyOptionList", &TransformGenericCopyOptionList);
-	Register("GenericCopyOption", &TransformGenericCopyOption);
+    // Manual registration for mismatched names or special cases
+    Register("PragmaName", &TransformIdentifierOrKeyword);
+    Register("ColLabel", &TransformIdentifierOrKeyword);
+    Register("PlainIdentifier", &TransformIdentifierOrKeyword);
+    Register("QuotedIdentifier", &TransformIdentifierOrKeyword);
+    Register("ReservedKeyword", &TransformIdentifierOrKeyword);
+    Register("UnreservedKeyword", &TransformIdentifierOrKeyword);
+    Register("ColumnNameKeyword", &TransformIdentifierOrKeyword);
+    Register("FuncNameKeyword", &TransformIdentifierOrKeyword);
+    Register("TypeNameKeyword", &TransformIdentifierOrKeyword);
+    Register("SettingName", &TransformIdentifierOrKeyword);
 
-	Register("CheckpointStatement", &TransformCheckpointStatement);
+    // Enum registration
+    RegisterEnum<SetScope>("LocalScope", SetScope::LOCAL);
+    RegisterEnum<SetScope>("GlobalScope", SetScope::GLOBAL);
+    RegisterEnum<SetScope>("SessionScope", SetScope::SESSION);
+    RegisterEnum<SetScope>("VariableScope", SetScope::VARIABLE);
 
-	Register("ExportStatement", &TransformExportStatement);
-	Register("ImportStatement", &TransformImportStatement);
-	Register("ExportSource", &TransformExportSource);
+    RegisterEnum<Value>("FalseLiteral", Value(false));
+    RegisterEnum<Value>("TrueLiteral", Value(true));
+    RegisterEnum<Value>("NullLiteral", Value());
 
-	Register("TransactionStatement", &TransformTransactionStatement);
-	Register("BeginTransaction", &TransformBeginTransaction);
-	Register("RollbackTransaction", &TransformRollbackTransaction);
-	Register("CommitTransaction", &TransformCommitTransaction);
-	Register("ReadOrWrite", &TransformReadOrWrite);
-
-	Register("LoadStatement", &TransformLoadStatement);
-	Register("InstallStatement", &TransformInstallStatement);
-	Register("FromSource", &TransformFromSource);
-	Register("VersionNumber", &TransformVersionNumber);
-
-	Register("TruncateStatement", &TransformTruncateStatement);
-
-	Register("BaseTableName", &TransformBaseTableName);
-
-	Register("StandardAssignment", &TransformStandardAssignment);
-	Register("SetAssignment", &TransformSetAssignment);
-
-	Register("SettingOrVariable", &TransformSettingOrVariable);
-	Register("VariableList", &TransformVariableList);
-
-	Register("Expression", &TransformExpression);
-	Register("BaseExpression", &TransformBaseExpression);
-	Register("SingleExpression", &TransformSingleExpression);
-
-	Register("LiteralExpression", &TransformLiteralExpression);
-	Register("ColumnReference", &TransformColumnReference);
-
-	Register("ColIdOrString", &TransformColIdOrString);
-	Register("IdentifierOrStringLiteral", &TransformIdentifierOrStringLiteral);
-	Register("ColId", &TransformColId);
-	Register("StringLiteral", &TransformStringLiteral);
-	Register("Identifier", &TransformIdentifier);
-
-	Register("SetSetting", &TransformSetSetting);
-	Register("SetVariable", &TransformSetVariable);
-
-	Register("ColLabel", &TransformIdentifierOrKeyword);
-	Register("PlainIdentifier", &TransformIdentifierOrKeyword);
-	Register("QuotedIdentifier", &TransformIdentifierOrKeyword);
-	Register("ReservedKeyword", &TransformIdentifierOrKeyword);
-	Register("UnreservedKeyword", &TransformIdentifierOrKeyword);
-	Register("ColumnNameKeyword", &TransformIdentifierOrKeyword);
-	Register("FuncNameKeyword", &TransformIdentifierOrKeyword);
-	Register("TypeNameKeyword", &TransformIdentifierOrKeyword);
-	Register("SettingName", &TransformIdentifierOrKeyword);
-
-	// Enum registration
-	RegisterEnum<SetScope>("LocalScope", SetScope::LOCAL);
-	RegisterEnum<SetScope>("GlobalScope", SetScope::GLOBAL);
-	RegisterEnum<SetScope>("SessionScope", SetScope::SESSION);
-	RegisterEnum<SetScope>("VariableScope", SetScope::VARIABLE);
-
-	RegisterEnum<Value>("FalseLiteral", Value(false));
-	RegisterEnum<Value>("TrueLiteral", Value(true));
-	RegisterEnum<Value>("NullLiteral", Value());
-
-	RegisterEnum<TransactionModifierType>("ReadOnly", TransactionModifierType::TRANSACTION_READ_ONLY);
-	RegisterEnum<TransactionModifierType>("ReadWrite", TransactionModifierType::TRANSACTION_READ_WRITE);
+    RegisterEnum<TransactionModifierType>("ReadOnly", TransactionModifierType::TRANSACTION_READ_ONLY);
+    RegisterEnum<TransactionModifierType>("ReadWrite", TransactionModifierType::TRANSACTION_READ_WRITE);
 }
 
 } // namespace duckdb
