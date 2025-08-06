@@ -154,6 +154,10 @@ private:
 
 	static unique_ptr<SQLStatement> TransformTruncateStatement(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 
+	static unique_ptr<SQLStatement> TransformCopyStatement(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<SQLStatement> TransformCopyTable(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static bool TransformFromOrTo(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+
 	static unique_ptr<BaseTableRef> TransformBaseTableName(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static unique_ptr<BaseTableRef> TransformSchemaReservedTable(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static unique_ptr<BaseTableRef> TransformCatalogReservedSchemaTable(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);

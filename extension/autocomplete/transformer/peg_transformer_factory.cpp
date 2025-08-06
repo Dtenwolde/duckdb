@@ -51,6 +51,10 @@ PEGTransformerFactory::PEGTransformerFactory() {
     REGISTER_TRANSFORM(TransformPragmaParameters);
     REGISTER_TRANSFORM(TransformUseTarget);
 
+	REGISTER_TRANSFORM(TransformCopyStatement);
+	REGISTER_TRANSFORM(TransformCopyTable);
+	REGISTER_TRANSFORM(TransformFromOrTo);
+
     REGISTER_TRANSFORM(TransformDetachStatement);
     REGISTER_TRANSFORM(TransformAttachStatement);
     REGISTER_TRANSFORM(TransformAttachAlias);
