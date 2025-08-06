@@ -149,6 +149,7 @@ private:
 	static unique_ptr<SQLStatement> TransformTruncateStatement(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 
 	static unique_ptr<BaseTableRef> TransformBaseTableName(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<BaseTableRef> TransformSchemaReservedTable(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 
 	static string TransformColIdOrString(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static string TransformColId(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);

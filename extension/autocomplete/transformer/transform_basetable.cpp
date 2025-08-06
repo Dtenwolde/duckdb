@@ -15,4 +15,8 @@ unique_ptr<BaseTableRef> PEGTransformerFactory::TransformBaseTableName(PEGTransf
 	return transformer.Transform<unique_ptr<BaseTableRef>>(choice_pr.result);
 }
 
+unique_ptr<BaseTableRef> PEGTransformerFactory::TransformSchemaReservedTable(PEGTransformer &transformer,
+																		 optional_ptr<ParseResult> parse_result) {
+	throw NotImplementedException("PEGTransformerFactory::TransformSchemaReservedTable");
+}
 } // namespace duckdb
