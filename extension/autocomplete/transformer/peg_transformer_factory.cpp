@@ -65,6 +65,7 @@ PEGTransformerFactory::PEGTransformerFactory() {
 
 	REGISTER_TRANSFORM(TransformCopyStatement);
 	REGISTER_TRANSFORM(TransformCopyTable);
+	REGISTER_TRANSFORM(TransformCopySelect);
 	REGISTER_TRANSFORM(TransformFromOrTo);
 	REGISTER_TRANSFORM(TransformCopyFileName);
 	REGISTER_TRANSFORM(TransformIdentifierColId);
@@ -118,6 +119,7 @@ PEGTransformerFactory::PEGTransformerFactory() {
 
     REGISTER_TRANSFORM(TransformExpression);
     REGISTER_TRANSFORM(TransformBaseExpression);
+    REGISTER_TRANSFORM(TransformRecursiveExpression);
     REGISTER_TRANSFORM(TransformSingleExpression);
     REGISTER_TRANSFORM(TransformLiteralExpression);
     REGISTER_TRANSFORM(TransformColumnReference);
@@ -129,6 +131,8 @@ PEGTransformerFactory::PEGTransformerFactory() {
     REGISTER_TRANSFORM(TransformSetSetting);
     REGISTER_TRANSFORM(TransformSetVariable);
     REGISTER_TRANSFORM(TransformDottedIdentifier);
+
+	REGISTER_TRANSFORM(TransformOperator);
 
     // Manual registration for mismatched names or special cases
     Register("PragmaName", &TransformIdentifierOrKeyword);

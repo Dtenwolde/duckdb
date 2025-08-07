@@ -158,6 +158,7 @@ private:
 	static unique_ptr<SQLStatement> TransformTruncateStatement(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 
 	static unique_ptr<SQLStatement> TransformCopyStatement(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<SQLStatement> TransformCopySelect(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static unique_ptr<SQLStatement> TransformCopyTable(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static bool TransformFromOrTo(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static string TransformCopyFileName(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
@@ -184,6 +185,7 @@ private:
 	static vector<unique_ptr<ParsedExpression>> TransformSetAssignment(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static vector<unique_ptr<ParsedExpression>> TransformVariableList(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static unique_ptr<ParsedExpression> TransformExpression(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<ParsedExpression> TransformRecursiveExpression(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static unique_ptr<ParsedExpression> TransformBaseExpression(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static unique_ptr<ParsedExpression> TransformSingleExpression(PEGTransformer &transformer,
 	                                                              optional_ptr<ParseResult> parse_result);
@@ -191,9 +193,10 @@ private:
 	                                                               optional_ptr<ParseResult> parse_result);
 	static unique_ptr<ParsedExpression> TransformColumnReference(PEGTransformer &transformer,
 	                                                             optional_ptr<ParseResult> parse_result);
-	static string TransformOperator(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static string TransformIdentifierOrKeyword(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 
+	//! Operator
+	static ExpressionType TransformOperator(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 
 	//! Helper functions
 	static optional_ptr<ParseResult> ExtractResultFromParens(optional_ptr<ParseResult> parse_result);
