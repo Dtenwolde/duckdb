@@ -17,7 +17,14 @@ string PEGTransformerFactory::TransformIdentifierOrKeyword(PEGTransformer &trans
 			if (child->type == ParseResultType::LIST && child->Cast<ListParseResult>().children.empty()) {
 				continue;
 			}
-			return child->Cast<IdentifierParseResult>().identifier;
+			if (child->type == ParseResultType::CHOICE) {
+				auto &choice_pr = child->Cast<ChoiceParseResult>();
+				return choice_pr.result->Cast<KeywordParseResult>().keyword;
+			}
+			if (child->type == ParseResultType::IDENTIFIER) {
+				return child->Cast<IdentifierParseResult>().identifier;
+			}
+			throw InternalException("Unexpected IdentifierOrKeyword type encountered %s.", ToString(child->type));
 		}
 	}
 	throw ParserException("Unexpected ParseResult type in identifier transformation.");
