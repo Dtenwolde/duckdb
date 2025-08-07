@@ -1,5 +1,6 @@
 #include "transformer/peg_transformer.hpp"
 #include "matcher.hpp"
+#include "duckdb/common/to_string.hpp"
 
 namespace duckdb {
 
@@ -24,7 +25,18 @@ unique_ptr<SQLStatement> PEGTransformerFactory::Transform(vector<MatcherToken> &
 	auto match_result = matcher.MatchParseResult(state);
 	if (match_result == nullptr || state.token_index < state.tokens.size()) {
 		// TODO(dtenwolde) add error handling
-		throw ParserException("Not all tokens were matched");
+		string token_list;
+		for (idx_t i = 0; i < tokens.size(); i++) {
+			if (!token_list.empty()) {
+				token_list += "\n";
+			}
+			if (i < 10) {
+				token_list += " ";
+			}
+			token_list += to_string(i) + ":" + tokens[i].text;
+		}
+		throw ParserException("Failed to parse query - did not consume all tokens (got to token %d - %s)\nTokens:\n%s",
+						state.token_index, tokens[state.token_index].text, token_list);
 	}
 	match_result->name = "Statement";
 	ArenaAllocator transformer_allocator(Allocator::DefaultAllocator());
@@ -54,6 +66,9 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	REGISTER_TRANSFORM(TransformCopyStatement);
 	REGISTER_TRANSFORM(TransformCopyTable);
 	REGISTER_TRANSFORM(TransformFromOrTo);
+	REGISTER_TRANSFORM(TransformCopyFileName);
+	REGISTER_TRANSFORM(TransformIdentifierColId);
+	REGISTER_TRANSFORM(TransformCopyOptions);
 
     REGISTER_TRANSFORM(TransformDetachStatement);
     REGISTER_TRANSFORM(TransformAttachStatement);

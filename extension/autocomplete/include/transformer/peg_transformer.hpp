@@ -157,6 +157,9 @@ private:
 	static unique_ptr<SQLStatement> TransformCopyStatement(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static unique_ptr<SQLStatement> TransformCopyTable(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static bool TransformFromOrTo(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static string TransformCopyFileName(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static string TransformIdentifierColId(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static case_insensitive_map_t<vector<Value>> TransformCopyOptions(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 
 	static unique_ptr<BaseTableRef> TransformBaseTableName(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static unique_ptr<BaseTableRef> TransformSchemaReservedTable(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);

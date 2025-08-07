@@ -9,5 +9,12 @@ require tpch
 statement ok
 call peg_parser();
 
-statement ok
+statement error
 COPY lineitem to 's3://test-bucket/tpch-sf0_01/lineitem.parquet';
+----
+Catalog Error: Table with name lineitem does not exist!
+
+statement error
+COPY lineitem TO lineitem.csv;
+----
+Catalog Error: Table with name lineitem does not exist!
