@@ -40,7 +40,10 @@ unique_ptr<SQLStatement> PEGTransformerFactory::TransformAttachStatement(PEGTran
 string PEGTransformerFactory::TransformAttachAlias(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
 	auto &list_pr = parse_result->Cast<ListParseResult>();
 	auto &col_id = list_pr.Child<ListParseResult>(1).Child<ChoiceParseResult>(0);
-	return col_id.result->Cast<IdentifierParseResult>().identifier;
+	if (col_id.result->type == ParseResultType::IDENTIFIER) {
+		return col_id.result->Cast<IdentifierParseResult>().identifier;
+	}
+	return transformer.Transform<string>(col_id.result);
 }
 
 unordered_map<string, Value> PEGTransformerFactory::TransformAttachOptions(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
