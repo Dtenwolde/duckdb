@@ -23,7 +23,7 @@ unique_ptr<SQLStatement> PEGTransformerFactory::TransformCopyTable(PEGTransforme
 	info->catalog = base_table->catalog_name;
 	auto insert_column_list = list_pr.Child<OptionalParseResult>(1);
 	if (insert_column_list.HasResult()) {
-		throw NotImplementedException("Insert columns not implemented");
+		info->select_list = transformer.Transform<vector<string>>(insert_column_list.optional_result);
 	}
 	info->is_from = transformer.Transform<bool>(list_pr.Child<ListParseResult>(2));
 

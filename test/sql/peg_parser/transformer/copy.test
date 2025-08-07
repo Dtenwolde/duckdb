@@ -18,3 +18,8 @@ statement error
 COPY lineitem TO lineitem.csv;
 ----
 Catalog Error: Table with name lineitem does not exist!
+
+statement error
+COPY lineitem (l_orderkey, l_partkey) TO lineitem.csv;
+----
+Catalog Error: Table with name lineitem does not exist!

@@ -77,6 +77,9 @@ PEGTransformerFactory::PEGTransformerFactory() {
     REGISTER_TRANSFORM(TransformGenericCopyOptionList);
     REGISTER_TRANSFORM(TransformGenericCopyOption);
 
+	REGISTER_TRANSFORM(TransformInsertColumnList);
+	REGISTER_TRANSFORM(TransformColumnList);
+
     REGISTER_TRANSFORM(TransformCheckpointStatement);
     REGISTER_TRANSFORM(TransformExportStatement);
     REGISTER_TRANSFORM(TransformImportStatement);
@@ -156,13 +159,13 @@ PEGTransformerFactory::PEGTransformerFactory() {
     RegisterEnum<TransactionModifierType>("ReadWrite", TransactionModifierType::TRANSACTION_READ_WRITE);
 }
 
-optional_ptr<ParseResult> PEGTransformerFactory::ExtractResultFromParens(PEGTransformer &, optional_ptr<ParseResult> parse_result) {
+optional_ptr<ParseResult> PEGTransformerFactory::ExtractResultFromParens(optional_ptr<ParseResult> parse_result) {
 	// Parens(D) <- '(' D ')'
 	auto &list_pr = parse_result->Cast<ListParseResult>();
 	return list_pr.children[1];
 }
 
-vector<optional_ptr<ParseResult>> PEGTransformerFactory::ExtractParseResultsFromList(PEGTransformer &, optional_ptr<ParseResult> parse_result) {
+vector<optional_ptr<ParseResult>> PEGTransformerFactory::ExtractParseResultsFromList(optional_ptr<ParseResult> parse_result) {
 	// List(D) <- D (',' D)* ','?
 	vector<optional_ptr<ParseResult>> result;
 	auto &list_pr = parse_result->Cast<ListParseResult>();

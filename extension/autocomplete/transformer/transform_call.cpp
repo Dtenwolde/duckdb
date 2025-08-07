@@ -20,9 +20,9 @@ vector<unique_ptr<ParsedExpression>> PEGTransformerFactory::TransformTableFuncti
 	// TableFunctionArguments <- Parens(List(FunctionArgument)?)
 	vector<unique_ptr<ParsedExpression>> result;
 	auto &list_pr = parse_result->Cast<ListParseResult>();
-	auto stripped_parens = ExtractResultFromParens(transformer, list_pr.Child<ListParseResult>(0))->Cast<OptionalParseResult>();
+	auto stripped_parens = ExtractResultFromParens(list_pr.Child<ListParseResult>(0))->Cast<OptionalParseResult>();
 	if (stripped_parens.HasResult()) {
-		auto argument_list = ExtractParseResultsFromList(transformer, stripped_parens.optional_result);
+		auto argument_list = ExtractParseResultsFromList(stripped_parens.optional_result);
 		for (auto &argument : argument_list) {
 			result.push_back(transformer.Transform<unique_ptr<ParsedExpression>>(argument));
 		}
