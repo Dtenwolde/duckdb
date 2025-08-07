@@ -18,15 +18,21 @@ unique_ptr<SQLStatement> PEGTransformerFactory::TransformCopyTable(PEGTransforme
 	auto info = make_uniq<CopyInfo>();
 
 	auto base_table = transformer.Transform<unique_ptr<BaseTableRef>>(list_pr.Child<ListParseResult>(0));
+	info->table = base_table->table_name;
+	info->schema = base_table->schema_name;
+	info->catalog = base_table->catalog_name;
 	auto insert_column_list = list_pr.Child<OptionalParseResult>(1);
 	if (insert_column_list.HasResult()) {
 		throw NotImplementedException("Insert columns not implemented");
 	}
 	info->is_from = transformer.Transform<bool>(list_pr.Child<ListParseResult>(2));
 
-	auto copy_file_name = transformer.Transform<QualifiedName>(list_pr.Child<ListParseResult>(3));
+	info->file_path = transformer.Transform<string>(list_pr.Child<ListParseResult>(3));
 
-	auto copy_options = transformer.Transform<unordered_map<string, Value>>(list_pr.Child<ListParseResult>(4));
+	auto &copy_options_pr = list_pr.Child<OptionalParseResult>(4);
+	if (copy_options_pr.HasResult()) {
+		info->options = transformer.Transform<case_insensitive_map_t<vector<Value>>>(copy_options_pr.optional_result);
+	}
 
 	result->info = std::move(info);
 	return result;
@@ -37,6 +43,25 @@ bool PEGTransformerFactory::TransformFromOrTo(PEGTransformer &transformer, optio
 	auto from_or_to = list_pr.Child<ChoiceParseResult>(0).result;
 	auto keyword = from_or_to->Cast<KeywordParseResult>();
 	return StringUtil::Lower(keyword.keyword) == "from";
+}
+
+string PEGTransformerFactory::TransformCopyFileName(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	// TODO(dtenwolde) support stdin and stdout
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	return transformer.Transform<string>(list_pr.Child<ChoiceParseResult>(0).result);
+}
+
+string PEGTransformerFactory::TransformIdentifierColId(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	string result;
+	result += list_pr.Child<IdentifierParseResult>(0).name;
+	result += ".";
+	result += transformer.Transform<string>(list_pr.Child<ListParseResult>(2));
+	return result;
+}
+
+case_insensitive_map_t<vector<Value>> PEGTransformerFactory::TransformCopyOptions(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	throw NotImplementedException("CopyOptions not implemented");
 }
 
 } // namespace duckdb
