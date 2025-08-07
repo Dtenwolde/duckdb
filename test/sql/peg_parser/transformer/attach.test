@@ -7,6 +7,9 @@ require autocomplete
 statement ok
 call peg_parser();
 
+statement ok
+ATTACH 'duckdb_unittest_tempdir/8485/encrypted.duckdb' AS encrypted (ENCRYPTION_KEY 'asdf');
+
 statement error
 ATTACH 'version_1_2_0.db' (STORAGE_VERSION 'v1.2.0', READONLY 1);
 ----
