@@ -10,7 +10,7 @@ call peg_parser();
 statement error
 use bar1.foo.bar
 ----
-Parser Error: Not all tokens were matched
+Parser Error: Failed to parse query - did not consume all tokens (got to token 4 - .)
 
 statement error
 use bar.foo;
