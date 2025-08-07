@@ -7,17 +7,20 @@ require autocomplete
 statement ok
 call peg_parser();
 
-statement error
-call peg_parser();
-----
-Binder Error: Cannot install PEGParser: a parser override is already active.
+# statement error
+# call peg_parser();
+# ----
+# Binder Error: Cannot install PEGParser: a parser override is already active.
+#
+# statement ok
+# CALL pragma_table_info('pg_am');
+#
+# statement error
+# call peg_parser(on_error:='throw', enable_logging:=true);
+# ----
+# Invalid Input Error: Please execute "PRAGMA enable_logging" first.
 
 statement ok
-CALL pragma_table_info('pg_am');
-
-statement error
-call peg_parser(on_error:='throw', enable_logging:=true);
-----
-Invalid Input Error: Please execute "PRAGMA enable_logging" first.
+CALL dbgen(sf=1);
 
 

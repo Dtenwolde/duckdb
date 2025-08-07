@@ -31,10 +31,23 @@ unique_ptr<ParsedExpression> PEGTransformerFactory::TransformExpression(PEGTrans
 	unique_ptr<ParsedExpression> current_expr = transformer.Transform<unique_ptr<ParsedExpression>>(base_expr_pr);
 	auto &indirection_pr = list_pr.Child<OptionalParseResult>(1);
 	if (indirection_pr.HasResult()) {
-		auto indirection_expr = transformer.Transform<unique_ptr<ParsedExpression>>(indirection_pr.optional_result);
+		auto repeat_expression_pr = indirection_pr.optional_result->Cast<RepeatParseResult>();
+		vector<unique_ptr<ParsedExpression>> expr_children;
+		for (auto &child : repeat_expression_pr.children) {
+			auto operator_expr = transformer.Transform<unique_ptr<ParsedExpression>>(child);
+		}
 	}
 
 	return current_expr;
+}
+
+unique_ptr<ParsedExpression> PEGTransformerFactory::TransformRecursiveExpression(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	auto operator_expr = transformer.Transform<ExpressionType>(list_pr.Child<ListParseResult>(0));
+	auto expression = transformer.Transform<unique_ptr<ParsedExpression>>(list_pr.Child<ListParseResult>(1));
+
+	// todo(dtenwolde) return proper something
+	return expression;
 }
 
 unique_ptr<ParsedExpression> PEGTransformerFactory::TransformBaseExpression(PEGTransformer &transformer,
@@ -89,9 +102,4 @@ unique_ptr<ParsedExpression> PEGTransformerFactory::TransformColumnReference(PEG
 	return make_uniq<ColumnRefExpression>(column_name_parts);
 }
 
-string PEGTransformerFactory::TransformOperator(PEGTransformer &, optional_ptr<ParseResult> parse_result) {
-	auto &choice_pr = parse_result->Cast<ChoiceParseResult>();
-	auto &matched_child = choice_pr.result;
-	return matched_child->Cast<KeywordParseResult>().keyword;
-}
 } // namespace duckdb
