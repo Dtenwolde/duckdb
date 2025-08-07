@@ -17,6 +17,7 @@ bool IsPEGOperator(char c) {
 	case '(':
 	case ')':
 	case '*':
+	case '+':
 	case '!':
 		return true;
 	default:
@@ -108,7 +109,7 @@ void PEGParser::ParseRules(const char *grammar) {
 			// we parse either:
 			// (1) a literal ('Keyword'i)
 			// (2) a rule reference (Rule)
-			// (3) an operator ( '(' '/' '?' '*' ')')
+			// (3) an operator ( '(' '/' '?' '*' ')' '+')
 			in_or_clause = false;
 			if (grammar[c] == '\'') {
 				// parse literal
