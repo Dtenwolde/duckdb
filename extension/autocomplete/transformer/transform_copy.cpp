@@ -10,6 +10,10 @@ unique_ptr<SQLStatement> PEGTransformerFactory::TransformCopyStatement(PEGTransf
 	return transformer.Transform<unique_ptr<SQLStatement>>(copy_mode.Child<ChoiceParseResult>(0).result);
 }
 
+unique_ptr<SQLStatement> PEGTransformerFactory::TransformCopySelect(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	throw NotImplementedException("TransformCopySelect");
+}
+
 unique_ptr<SQLStatement> PEGTransformerFactory::TransformCopyTable(PEGTransformer &transformer,
 																		 optional_ptr<ParseResult> parse_result) {
 	auto &list_pr = parse_result->Cast<ListParseResult>();
@@ -31,6 +35,7 @@ unique_ptr<SQLStatement> PEGTransformerFactory::TransformCopyTable(PEGTransforme
 
 	auto &copy_options_pr = list_pr.Child<OptionalParseResult>(4);
 	if (copy_options_pr.HasResult()) {
+		// TODO(dtenwolde) deal with format option here which is a special case.
 		info->options = transformer.Transform<case_insensitive_map_t<vector<Value>>>(copy_options_pr.optional_result);
 	}
 
