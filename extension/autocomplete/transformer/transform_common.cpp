@@ -11,7 +11,7 @@ string PEGTransformerFactory::TransformColIdOrString(PEGTransformer &transformer
 string PEGTransformerFactory::TransformColId(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
 	auto &list_pr = parse_result->Cast<ListParseResult>();
 	auto &choice_pr = list_pr.Child<ChoiceParseResult>(0);
-	return choice_pr.result->Cast<IdentifierParseResult>().identifier;
+	return transformer.Transform<string>(choice_pr.result);
 }
 
 string PEGTransformerFactory::TransformStringLiteral(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
