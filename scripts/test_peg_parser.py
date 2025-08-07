@@ -6,6 +6,8 @@ import subprocess
 import multiprocessing
 import tempfile
 import re
+import requests
+from urllib.parse import urlparse
 
 parser = argparse.ArgumentParser(description="Test serialization")
 parser.add_argument("--shell", type=str, help="Shell binary to run", default=os.path.join('build', 'debug', 'duckdb'))
@@ -28,11 +30,6 @@ args = parser.parse_args()
 def extract_git_urls(script: str):
     pattern = r'GIT_URL\s+(https?://\S+)'
     return re.findall(pattern, script)
-
-
-import os
-import requests
-from urllib.parse import urlparse
 
 
 def download_directory_contents(api_url, local_path, headers):
