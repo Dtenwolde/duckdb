@@ -15,6 +15,7 @@ add_library_unity(
   transform_export.cpp
   transform_expression.cpp
   transform_identifier.cpp
+  transform_insert.cpp
   transform_install.cpp
   transform_import.cpp
   transform_load.cpp

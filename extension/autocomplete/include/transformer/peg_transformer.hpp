@@ -147,6 +147,9 @@ private:
 	static unique_ptr<SQLStatement> TransformImportStatement(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static string TransformExportSource(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 
+	static vector<string> TransformInsertColumnList(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static vector<string> TransformColumnList(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+
 	static unique_ptr<SQLStatement> TransformLoadStatement(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static unique_ptr<SQLStatement> TransformInstallStatement(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static ExtensionRepositoryInfo TransformFromSource(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
@@ -193,8 +196,8 @@ private:
 
 
 	//! Helper functions
-	static optional_ptr<ParseResult> ExtractResultFromParens(PEGTransformer &, optional_ptr<ParseResult> parse_result);
-	static vector<optional_ptr<ParseResult>> ExtractParseResultsFromList(PEGTransformer &, optional_ptr<ParseResult> parse_result);
+	static optional_ptr<ParseResult> ExtractResultFromParens(optional_ptr<ParseResult> parse_result);
+	static vector<optional_ptr<ParseResult>> ExtractParseResultsFromList(optional_ptr<ParseResult> parse_result);
 private:
 	PEGParser parser;
 	case_insensitive_map_t<PEGTransformer::AnyTransformFunction> sql_transform_functions;
