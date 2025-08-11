@@ -23,6 +23,7 @@ unique_ptr<SQLStatement> PEGTransformerFactory::Transform(vector<MatcherToken> &
 	MatcherAllocator allocator;
 	auto &matcher = Matcher::RootMatcher(allocator);
 	auto match_result = matcher.MatchParseResult(state);
+	Printer::Print(match_result->ToString());
 	if (match_result == nullptr || state.token_index < state.tokens.size()) {
 		// TODO(dtenwolde) add error handling
 		string token_list;
@@ -77,6 +78,7 @@ PEGTransformerFactory::PEGTransformerFactory() {
     REGISTER_TRANSFORM(TransformAttachOptions);
     REGISTER_TRANSFORM(TransformGenericCopyOptionList);
     REGISTER_TRANSFORM(TransformGenericCopyOption);
+	REGISTER_TRANSFORM(TransformGenericCopyOptionListParens);
 
 	REGISTER_TRANSFORM(TransformInsertColumnList);
 	REGISTER_TRANSFORM(TransformColumnList);
@@ -121,6 +123,7 @@ PEGTransformerFactory::PEGTransformerFactory() {
     REGISTER_TRANSFORM(TransformBaseExpression);
     REGISTER_TRANSFORM(TransformRecursiveExpression);
     REGISTER_TRANSFORM(TransformSingleExpression);
+	REGISTER_TRANSFORM(TransformParenthesisExpression);
     REGISTER_TRANSFORM(TransformLiteralExpression);
     REGISTER_TRANSFORM(TransformColumnReference);
     REGISTER_TRANSFORM(TransformColIdOrString);
