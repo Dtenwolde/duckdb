@@ -6,22 +6,6 @@
 
 namespace duckdb {
 
-unique_ptr<ParsedExpression> CreateBinaryExpression(string op, unique_ptr<ParsedExpression> left,
-                                                    unique_ptr<ParsedExpression> right) {
-	vector<unique_ptr<ParsedExpression>> children;
-	children.push_back(std::move(left));
-	children.push_back(std::move(right));
-
-	auto op_type = OperatorToExpressionType(op);
-	if (op_type != ExpressionType::INVALID) {
-		return make_uniq<ComparisonExpression>(op_type, std::move(children[0]), std::move(children[1]));
-	}
-
-	auto result = make_uniq<FunctionExpression>(std::move(op), std::move(children));
-	result->is_operator = true;
-	return std::move(result);
-}
-
 unique_ptr<ParsedExpression> PEGTransformerFactory::TransformExpression(PEGTransformer &transformer,
                                                                         optional_ptr<ParseResult> parse_result) {
 	auto &list_pr = parse_result->Cast<ListParseResult>();
@@ -32,7 +16,9 @@ unique_ptr<ParsedExpression> PEGTransformerFactory::TransformExpression(PEGTrans
 		auto repeat_expression_pr = indirection_pr.optional_result->Cast<RepeatParseResult>();
 		vector<unique_ptr<ParsedExpression>> expr_children;
 		for (auto &child : repeat_expression_pr.children) {
-			auto operator_expr = transformer.Transform<unique_ptr<ParsedExpression>>(child);
+			// TODO(Dtenwolde) this requires a lot more work to figure out. Probably need to sit with Mark re. this at some point
+			auto operator_expr = std::move(transformer.Transform<unique_ptr<ParsedExpression>>(child)->Cast<OperatorExpression>());
+			current_expr = make_uniq<OperatorExpression>(operator_expr.type, std::move(current_expr), std::move(operator_expr.children[0]));
 		}
 	}
 
@@ -42,10 +28,9 @@ unique_ptr<ParsedExpression> PEGTransformerFactory::TransformExpression(PEGTrans
 unique_ptr<ParsedExpression> PEGTransformerFactory::TransformRecursiveExpression(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
 	auto &list_pr = parse_result->Cast<ListParseResult>();
 	auto operator_expr = transformer.Transform<ExpressionType>(list_pr.Child<ListParseResult>(0));
-	auto expression = transformer.Transform<unique_ptr<ParsedExpression>>(list_pr.Child<ListParseResult>(1));
-
-	// todo(dtenwolde) return proper something
-	return expression;
+	vector<unique_ptr<ParsedExpression>> expr_children;
+	expr_children.push_back(transformer.Transform<unique_ptr<ParsedExpression>>(list_pr.Child<ListParseResult>(1)));
+	return make_uniq<OperatorExpression>(operator_expr, std::move(expr_children));
 }
 
 unique_ptr<ParsedExpression> PEGTransformerFactory::TransformBaseExpression(PEGTransformer &transformer,
