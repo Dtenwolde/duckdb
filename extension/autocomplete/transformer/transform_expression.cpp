@@ -1,5 +1,3 @@
-
-
 #include "duckdb/parser/expression/columnref_expression.hpp"
 #include "duckdb/parser/expression/comparison_expression.hpp"
 #include "duckdb/parser/expression/function_expression.hpp"
@@ -60,9 +58,8 @@ unique_ptr<ParsedExpression> PEGTransformerFactory::TransformBaseExpression(PEGT
 
 unique_ptr<ParsedExpression> PEGTransformerFactory::TransformSingleExpression(PEGTransformer &transformer,
                                                                               optional_ptr<ParseResult> parse_result) {
-	// This is a choice rule, so we unwrap the ChoiceParseResult and delegate.
-	auto &choice_pr = parse_result->Cast<ListParseResult>();
-	auto &expression = choice_pr.Child<ChoiceParseResult>(0);
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	auto &expression = list_pr.Child<ChoiceParseResult>(0);
 
 	return transformer.Transform<unique_ptr<ParsedExpression>>(expression);
 }
