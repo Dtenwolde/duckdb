@@ -132,14 +132,16 @@ typedef enum DUCKDB_TYPE {
 	DUCKDB_TYPE_TIMESTAMP_TZ = 31,
 	// enum type, only useful as logical type
 	DUCKDB_TYPE_ANY = 34,
-	// duckdb_varint
-	DUCKDB_TYPE_VARINT = 35,
+	// duckdb_bignum
+	DUCKDB_TYPE_BIGNUM = 35,
 	// enum type, only useful as logical type
 	DUCKDB_TYPE_SQLNULL = 36,
 	// enum type, only useful as logical type
 	DUCKDB_TYPE_STRING_LITERAL = 37,
 	// enum type, only useful as logical type
 	DUCKDB_TYPE_INTEGER_LITERAL = 38,
+	// duckdb_time_ns (nanoseconds)
+	DUCKDB_TYPE_TIME_NS = 39,
 } duckdb_type;
 
 //! An enum over the returned state of different functions.
@@ -289,6 +291,11 @@ typedef struct {
 	int8_t sec;
 	int32_t micros;
 } duckdb_time_struct;
+
+//! TIME_NS is stored as nanoseconds since 00:00:00.
+typedef struct {
+	int64_t nanos;
+} duckdb_time_ns;
 
 //! TIME_TZ is stored as 40 bits for the int64_t microseconds, and 24 bits for the int32_t offset.
 //! Use the `duckdb_from_time_tz` function to extract individual information.
@@ -448,14 +455,14 @@ typedef struct {
 	idx_t size;
 } duckdb_bit;
 
-//! VARINTs are composed of a byte pointer, a size, and an `is_negative` bool.
+//! BIGNUMs are composed of a byte pointer, a size, and an `is_negative` bool.
 //! The absolute value of the number is stored in `data` in little endian format.
 //! You must free `data` with `duckdb_free`.
 typedef struct {
 	uint8_t *data;
 	idx_t size;
 	bool is_negative;
-} duckdb_varint;
+} duckdb_bignum;
 
 //! A query result consists of a pointer to its internal data.
 //! Must be freed with 'duckdb_destroy_result'.
@@ -563,6 +570,12 @@ typedef struct _duckdb_profiling_info {
 typedef struct _duckdb_error_data {
 	void *internal_ptr;
 } * duckdb_error_data;
+
+//! Holds a bound expression.
+//! Must be destroyed with `duckdb_destroy_expression`.
+typedef struct _duckdb_expression {
+	void *internal_ptr;
+} * duckdb_expression;
 
 //===--------------------------------------------------------------------===//
 // C API extension information
@@ -2251,12 +2264,12 @@ Creates a value from a uhugeint
 DUCKDB_C_API duckdb_value duckdb_create_uhugeint(duckdb_uhugeint input);
 
 /*!
-Creates a VARINT value from a duckdb_varint
+Creates a BIGNUM value from a duckdb_bignum
 
-* @param input The duckdb_varint value
+* @param input The duckdb_bignum value
 * @return The value. This must be destroyed with `duckdb_destroy_value`.
 */
-DUCKDB_C_API duckdb_value duckdb_create_varint(duckdb_varint input);
+DUCKDB_C_API duckdb_value duckdb_create_bignum(duckdb_bignum input);
 
 /*!
 Creates a DECIMAL value from a duckdb_decimal
@@ -2297,6 +2310,14 @@ Creates a value from a time
 * @return The value. This must be destroyed with `duckdb_destroy_value`.
 */
 DUCKDB_C_API duckdb_value duckdb_create_time(duckdb_time input);
+
+/*!
+Creates a value from a time_ns
+
+* @param input The time value
+* @return The value. This must be destroyed with `duckdb_destroy_value`.
+*/
+DUCKDB_C_API duckdb_value duckdb_create_time_ns(duckdb_time_ns input);
 
 /*!
 Creates a value from a time_tz.
@@ -2469,13 +2490,13 @@ Returns the uhugeint value of the given value.
 DUCKDB_C_API duckdb_uhugeint duckdb_get_uhugeint(duckdb_value val);
 
 /*!
-Returns the duckdb_varint value of the given value.
+Returns the duckdb_bignum value of the given value.
 The `data` field must be destroyed with `duckdb_free`.
 
-* @param val A duckdb_value containing a VARINT
-* @return A duckdb_varint. The `data` field must be destroyed with `duckdb_free`.
+* @param val A duckdb_value containing a BIGNUM
+* @return A duckdb_bignum. The `data` field must be destroyed with `duckdb_free`.
 */
-DUCKDB_C_API duckdb_varint duckdb_get_varint(duckdb_value val);
+DUCKDB_C_API duckdb_bignum duckdb_get_bignum(duckdb_value val);
 
 /*!
 Returns the duckdb_decimal value of the given value.
@@ -2516,6 +2537,14 @@ Returns the time value of the given value.
 * @return A duckdb_time, or MinValue<time> if the value cannot be converted
 */
 DUCKDB_C_API duckdb_time duckdb_get_time(duckdb_value val);
+
+/*!
+Returns the time_ns value of the given value.
+
+* @param val A duckdb_value containing a time_ns
+* @return A duckdb_time_ns, or MinValue<time_ns> if the value cannot be converted
+*/
+DUCKDB_C_API duckdb_time_ns duckdb_get_time_ns(duckdb_value val);
 
 /*!
 Returns the time_tz value of the given value.
@@ -3571,6 +3600,23 @@ If the set is incomplete or a function with this name already exists DuckDBError
 */
 DUCKDB_C_API duckdb_state duckdb_register_scalar_function_set(duckdb_connection con, duckdb_scalar_function_set set);
 
+/*!
+Returns the number of input arguments of the scalar function.
+
+* @param info The bind info.
+* @return The number of input arguments.
+*/
+DUCKDB_C_API idx_t duckdb_scalar_function_bind_get_argument_count(duckdb_bind_info info);
+
+/*!
+Returns the input argument at index of the scalar function.
+
+* @param info The bind info.
+* @param index The argument index.
+* @return The input argument at index. Must be destroyed with `duckdb_destroy_expression`.
+*/
+DUCKDB_C_API duckdb_expression duckdb_scalar_function_bind_get_argument(duckdb_bind_info info, idx_t index);
+
 //===--------------------------------------------------------------------===//
 // Selection Vector Interface
 //===--------------------------------------------------------------------===//
@@ -3885,6 +3931,14 @@ Retrieves the extra info of the function as set in `duckdb_table_function_set_ex
 * @return The extra info
 */
 DUCKDB_C_API void *duckdb_bind_get_extra_info(duckdb_bind_info info);
+
+/*!
+Retrieves the client context of the bind info of a table function.
+
+* @param info The bind info object of the table function.
+* @param out_context The client context of the bind info. Must be destroyed with `duckdb_destroy_client_context`.
+*/
+DUCKDB_C_API void duckdb_table_function_get_client_context(duckdb_bind_info info, duckdb_client_context *out_context);
 
 /*!
 Adds a result column to the output of the table function.
@@ -4994,6 +5048,44 @@ Destroys the cast function object.
 * @param cast_function The cast function object.
 */
 DUCKDB_C_API void duckdb_destroy_cast_function(duckdb_cast_function *cast_function);
+
+//===--------------------------------------------------------------------===//
+// Expression Interface
+//===--------------------------------------------------------------------===//
+
+/*!
+Destroys the expression and de-allocates its memory.
+
+* @param expr A pointer to the expression.
+*/
+DUCKDB_C_API void duckdb_destroy_expression(duckdb_expression *expr);
+
+/*!
+Returns the return type of an expression.
+
+* @param expr The expression.
+* @return The return type. Must be destroyed with `duckdb_destroy_logical_type`.
+*/
+DUCKDB_C_API duckdb_logical_type duckdb_expression_return_type(duckdb_expression expr);
+
+/*!
+Returns whether the expression is foldable into a value or not.
+
+* @param expr The expression.
+* @return True, if the expression is foldable, else false.
+*/
+DUCKDB_C_API bool duckdb_expression_is_foldable(duckdb_expression expr);
+
+/*!
+Folds an expression creating a folded value.
+
+* @param context The client context.
+* @param expr The expression. Must be foldable.
+* @param out_value The folded value, if folding was successful. Must be destroyed with `duckdb_destroy_value`.
+* @return The error data. Must be destroyed with `duckdb_destroy_error_data`.
+*/
+DUCKDB_C_API duckdb_error_data duckdb_expression_fold(duckdb_client_context context, duckdb_expression expr,
+                                                      duckdb_value *out_value);
 
 #endif
 

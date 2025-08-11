@@ -136,7 +136,7 @@ typedef struct {
 	duckdb_value (*duckdb_create_timestamp)(duckdb_timestamp input);
 	duckdb_value (*duckdb_create_interval)(duckdb_interval input);
 	duckdb_value (*duckdb_create_blob)(const uint8_t *data, idx_t length);
-	duckdb_value (*duckdb_create_varint)(duckdb_varint input);
+	duckdb_value (*duckdb_create_bignum)(duckdb_bignum input);
 	duckdb_value (*duckdb_create_decimal)(duckdb_decimal input);
 	duckdb_value (*duckdb_create_bit)(duckdb_bit input);
 	duckdb_value (*duckdb_create_uuid)(duckdb_uhugeint input);
@@ -160,7 +160,7 @@ typedef struct {
 	duckdb_interval (*duckdb_get_interval)(duckdb_value val);
 	duckdb_logical_type (*duckdb_get_value_type)(duckdb_value val);
 	duckdb_blob (*duckdb_get_blob)(duckdb_value val);
-	duckdb_varint (*duckdb_get_varint)(duckdb_value val);
+	duckdb_bignum (*duckdb_get_bignum)(duckdb_value val);
 	duckdb_decimal (*duckdb_get_decimal)(duckdb_value val);
 	duckdb_bit (*duckdb_get_bit)(duckdb_value val);
 	duckdb_uhugeint (*duckdb_get_uuid)(duckdb_value val);
@@ -491,6 +491,13 @@ typedef struct {
 	duckdb_error_type (*duckdb_error_data_error_type)(duckdb_error_data error_data);
 	const char *(*duckdb_error_data_message)(duckdb_error_data error_data);
 	bool (*duckdb_error_data_has_error)(duckdb_error_data error_data);
+	// API to create and manipulate expressions
+
+	void (*duckdb_destroy_expression)(duckdb_expression *expr);
+	duckdb_logical_type (*duckdb_expression_return_type)(duckdb_expression expr);
+	bool (*duckdb_expression_is_foldable)(duckdb_expression expr);
+	duckdb_error_data (*duckdb_expression_fold)(duckdb_client_context context, duckdb_expression expr,
+	                                            duckdb_value *out_value);
 	// New functions around the client context
 
 	idx_t (*duckdb_client_context_get_connection_id)(duckdb_client_context context);
@@ -511,14 +518,21 @@ typedef struct {
 	                                             duckdb_delete_callback_t destroy);
 	void *(*duckdb_scalar_function_get_bind_data)(duckdb_function_info info);
 	void *(*duckdb_scalar_function_bind_get_extra_info)(duckdb_bind_info info);
+	idx_t (*duckdb_scalar_function_bind_get_argument_count)(duckdb_bind_info info);
+	duckdb_expression (*duckdb_scalar_function_bind_get_argument)(duckdb_bind_info info, idx_t index);
 	// New string functions that are added
 
 	char *(*duckdb_value_to_string)(duckdb_value value);
+	// New functions around table function binding
+
+	void (*duckdb_table_function_get_client_context)(duckdb_bind_info info, duckdb_client_context *out_context);
 	// New value functions that are added
 
 	duckdb_value (*duckdb_create_map_value)(duckdb_logical_type map_type, duckdb_value *keys, duckdb_value *values,
 	                                        idx_t entry_count);
 	duckdb_value (*duckdb_create_union_value)(duckdb_logical_type union_type, idx_t tag_index, duckdb_value value);
+	duckdb_value (*duckdb_create_time_ns)(duckdb_time_ns input);
+	duckdb_time_ns (*duckdb_get_time_ns)(duckdb_value val);
 	// API to create and manipulate vector types
 
 	duckdb_vector (*duckdb_create_vector)(duckdb_logical_type type, idx_t capacity);
@@ -652,7 +666,7 @@ inline duckdb_ext_api_v1 CreateAPIv1() {
 	result.duckdb_create_timestamp = duckdb_create_timestamp;
 	result.duckdb_create_interval = duckdb_create_interval;
 	result.duckdb_create_blob = duckdb_create_blob;
-	result.duckdb_create_varint = duckdb_create_varint;
+	result.duckdb_create_bignum = duckdb_create_bignum;
 	result.duckdb_create_decimal = duckdb_create_decimal;
 	result.duckdb_create_bit = duckdb_create_bit;
 	result.duckdb_create_uuid = duckdb_create_uuid;
@@ -676,7 +690,7 @@ inline duckdb_ext_api_v1 CreateAPIv1() {
 	result.duckdb_get_interval = duckdb_get_interval;
 	result.duckdb_get_value_type = duckdb_get_value_type;
 	result.duckdb_get_blob = duckdb_get_blob;
-	result.duckdb_get_varint = duckdb_get_varint;
+	result.duckdb_get_bignum = duckdb_get_bignum;
 	result.duckdb_get_decimal = duckdb_get_decimal;
 	result.duckdb_get_bit = duckdb_get_bit;
 	result.duckdb_get_uuid = duckdb_get_uuid;
@@ -957,6 +971,10 @@ inline duckdb_ext_api_v1 CreateAPIv1() {
 	result.duckdb_error_data_error_type = duckdb_error_data_error_type;
 	result.duckdb_error_data_message = duckdb_error_data_message;
 	result.duckdb_error_data_has_error = duckdb_error_data_has_error;
+	result.duckdb_destroy_expression = duckdb_destroy_expression;
+	result.duckdb_expression_return_type = duckdb_expression_return_type;
+	result.duckdb_expression_is_foldable = duckdb_expression_is_foldable;
+	result.duckdb_expression_fold = duckdb_expression_fold;
 	result.duckdb_client_context_get_connection_id = duckdb_client_context_get_connection_id;
 	result.duckdb_destroy_client_context = duckdb_destroy_client_context;
 	result.duckdb_connection_get_client_context = duckdb_connection_get_client_context;
@@ -970,9 +988,14 @@ inline duckdb_ext_api_v1 CreateAPIv1() {
 	result.duckdb_scalar_function_set_bind_data = duckdb_scalar_function_set_bind_data;
 	result.duckdb_scalar_function_get_bind_data = duckdb_scalar_function_get_bind_data;
 	result.duckdb_scalar_function_bind_get_extra_info = duckdb_scalar_function_bind_get_extra_info;
+	result.duckdb_scalar_function_bind_get_argument_count = duckdb_scalar_function_bind_get_argument_count;
+	result.duckdb_scalar_function_bind_get_argument = duckdb_scalar_function_bind_get_argument;
 	result.duckdb_value_to_string = duckdb_value_to_string;
+	result.duckdb_table_function_get_client_context = duckdb_table_function_get_client_context;
 	result.duckdb_create_map_value = duckdb_create_map_value;
 	result.duckdb_create_union_value = duckdb_create_union_value;
+	result.duckdb_create_time_ns = duckdb_create_time_ns;
+	result.duckdb_get_time_ns = duckdb_get_time_ns;
 	result.duckdb_create_vector = duckdb_create_vector;
 	result.duckdb_destroy_vector = duckdb_destroy_vector;
 	result.duckdb_slice_vector = duckdb_slice_vector;

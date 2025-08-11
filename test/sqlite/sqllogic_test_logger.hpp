@@ -22,6 +22,7 @@ public:
 	SQLLogicTestLogger(ExecuteContext &context, const Command &command);
 	~SQLLogicTestLogger();
 
+	static void Log(const string &str);
 	void PrintExpectedResult(const vector<string> &values, idx_t columns, bool row_wise);
 	static void PrintLineSep();
 	static void PrintHeader(string header);
@@ -56,7 +57,6 @@ public:
 
 	static void AppendFailure(const string &log_message);
 	static void LogFailure(const string &log_message);
-	static void LogFailureAnnotation(const string header);
 
 private:
 	lock_guard<mutex> log_lock;
