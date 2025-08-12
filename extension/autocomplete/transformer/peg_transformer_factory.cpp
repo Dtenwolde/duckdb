@@ -83,6 +83,8 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	REGISTER_TRANSFORM(TransformSingleOption);
 	REGISTER_TRANSFORM(TransformEncodingOption);
 	REGISTER_TRANSFORM(TransformForceQuoteOption);
+	REGISTER_TRANSFORM(TransformCopyFromDatabase);
+	REGISTER_TRANSFORM(TransformCopyDatabaseFlag);
 
 	REGISTER_TRANSFORM(TransformInsertColumnList);
 	REGISTER_TRANSFORM(TransformColumnList);
@@ -174,6 +176,10 @@ PEGTransformerFactory::PEGTransformerFactory() {
 
 	RegisterEnum<TransactionModifierType>("ReadOnly", TransactionModifierType::TRANSACTION_READ_ONLY);
 	RegisterEnum<TransactionModifierType>("ReadWrite", TransactionModifierType::TRANSACTION_READ_WRITE);
+
+	RegisterEnum<CopyDatabaseType>("CopySchema", CopyDatabaseType::COPY_SCHEMA);
+	RegisterEnum<CopyDatabaseType>("CopyData", CopyDatabaseType::COPY_DATA);
+
 }
 
 optional_ptr<ParseResult> PEGTransformerFactory::ExtractResultFromParens(optional_ptr<ParseResult> parse_result) {

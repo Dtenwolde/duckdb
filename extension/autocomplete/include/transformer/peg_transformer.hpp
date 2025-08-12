@@ -8,6 +8,7 @@
 #include "ast/generic_copy_option.hpp"
 #include "ast/set_info.hpp"
 #include "duckdb/parser/parsed_data/transaction_info.hpp"
+#include "duckdb/parser/statement/copy_database_statement.hpp"
 #include "duckdb/parser/statement/set_statement.hpp"
 #include "duckdb/parser/tableref/basetableref.hpp"
 #include "parser/peg_parser.hpp"
@@ -193,6 +194,8 @@ private:
 	                                                       optional_ptr<ParseResult> parse_result);
 	static unique_ptr<SQLStatement> TransformCopySelect(PEGTransformer &transformer,
 	                                                    optional_ptr<ParseResult> parse_result);
+	static unique_ptr<SQLStatement> TransformCopyFromDatabase(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static CopyDatabaseType TransformCopyDatabaseFlag(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static unique_ptr<SQLStatement> TransformCopyTable(PEGTransformer &transformer,
 	                                                   optional_ptr<ParseResult> parse_result);
 	static bool TransformFromOrTo(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
@@ -259,6 +262,8 @@ private:
 	//! Helper functions
 	static optional_ptr<ParseResult> ExtractResultFromParens(optional_ptr<ParseResult> parse_result);
 	static vector<optional_ptr<ParseResult>> ExtractParseResultsFromList(optional_ptr<ParseResult> parse_result);
+
+	static string ExtractFormat(const string &file_path);
 
 private:
 	PEGParser parser;
