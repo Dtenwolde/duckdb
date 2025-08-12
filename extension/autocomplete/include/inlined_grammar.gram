@@ -1095,7 +1095,7 @@ CopyOptions <- 'WITH'i? GenericCopyOptionListParens / SpecializedOptionList
 GenericCopyOptionListParens <- Parens(GenericCopyOptionList)
 SpecializedOptionList <- List(SpecializedOption)
 SpecializedOption <- SingleOption / SpecializedStringOption /
-	EncodingOption / ForceQuoteOption / PartitionByOption / ForceNullOption
+	EncodingOption / QuoteAsOption / ForceQuoteOption / PartitionByOption / ForceNullOption
 
 SingleOption <- BinaryOption / FreezeOption / OidsOption / CsvOption / HeaderOption
 BinaryOption <- 'BINARY'i
@@ -1104,7 +1104,8 @@ OidsOption <- 'OIDS'i
 CsvOption <- 'CSV'i
 HeaderOption <- 'HEADER'i
 EncodingOption <- 'ENCODING'i StringLiteral
-ForceQuoteOption <- 'FORCE'i 'QUOTE'i StarOrColumnList
+QuoteAsOption <- 'QUOTE'i 'AS'i? StringLiteral
+ForceQuoteOption <- 'FORCE'i? 'QUOTE'i StarOrColumnList
 PartitionByOption <- 'PARTITION'i 'BY'i StarOrColumnList
 ForceNullOption <- 'FORCE'i 'NOT'i? 'NULL'i ColumnList
 
@@ -1119,7 +1120,9 @@ GenericCopyOption <- CopyOptionName Expression?
 CopyFromDatabase <- 'FROM'i 'DATABASE'i ColId 'TO'i ColId CopyDatabaseFlag?
 
 CopyDatabaseFlag <- Parens(SchemaOrData)
-SchemaOrData <- 'SCHEMA'i / 'DATA'i
+SchemaOrData <- CopySchema / CopyData
+CopySchema <- 'SCHEMA'i
+CopyData <- 'DATA'i
 
 AlterStatement <- 'ALTER'i AlterOptions
 

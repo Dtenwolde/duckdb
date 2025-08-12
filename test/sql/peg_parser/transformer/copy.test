@@ -10,6 +10,22 @@ statement ok
 call peg_parser();
 
 statement error
+COPY FROM DATABASE encrypted_v2 TO unencrypted_v_1_2_0;
+----
+Binder Error: Catalog "encrypted_v2" does not exist!
+
+statement error
+COPY FROM DATABASE encrypted_v2 TO unencrypted_v_1_2_0 (DATA);
+----
+Binder Error: Catalog "encrypted_v2" does not exist!
+
+statement error
+COPY FROM DATABASE encrypted_v2 TO unencrypted_v_1_2_0 (SCHEMA);
+----
+Binder Error: Catalog "encrypted_v2" does not exist!
+
+
+statement error
 copy 'bla' to 'bla' binary;
 ----
 Catalog Error: Copy Function with name binary does not exist!

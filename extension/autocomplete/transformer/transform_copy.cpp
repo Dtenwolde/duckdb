@@ -1,6 +1,8 @@
 #include "duckdb/common/enums/file_compression_type.hpp"
 #include "duckdb/parser/parser.hpp"
+#include "duckdb/parser/statement/copy_database_statement.hpp"
 #include "duckdb/parser/statement/copy_statement.hpp"
+#include "duckdb/parser/statement/pragma_statement.hpp"
 #include "transformer/peg_transformer.hpp"
 
 namespace duckdb {
@@ -17,7 +19,33 @@ unique_ptr<SQLStatement> PEGTransformerFactory::TransformCopySelect(PEGTransform
 	throw NotImplementedException("TransformCopySelect");
 }
 
-string ExtractFormat(const string &file_path) {
+unique_ptr<SQLStatement> PEGTransformerFactory::TransformCopyFromDatabase(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+
+	auto from_database = transformer.Transform<string>(list_pr.Child<ListParseResult>(2));
+	auto to_database = transformer.Transform<string>(list_pr.Child<ListParseResult>(4));
+
+	auto copy_database_flag = list_pr.Child<OptionalParseResult>(5);
+	if (copy_database_flag.HasResult()) {
+		auto copy_type = transformer.Transform<CopyDatabaseType>(copy_database_flag.optional_result);
+		return make_uniq<CopyDatabaseStatement>(from_database, to_database, copy_type);
+	}
+	auto result = make_uniq<PragmaStatement>();
+	result->info->name = "copy_database";
+	result->info->parameters.emplace_back(make_uniq<ConstantExpression>(Value(from_database)));
+	result->info->parameters.emplace_back(make_uniq<ConstantExpression>(Value(to_database)));
+	return std::move(result);
+}
+
+CopyDatabaseType PEGTransformerFactory::TransformCopyDatabaseFlag(PEGTransformer &transformer,
+                                                                  optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	auto extract_parens = ExtractResultFromParens(list_pr.Child<ListParseResult>(0))->Cast<ListParseResult>();
+	auto schema_or_data = extract_parens.Child<ChoiceParseResult>(0);
+	return transformer.TransformEnum<CopyDatabaseType>(schema_or_data.result);
+}
+
+string PEGTransformerFactory::ExtractFormat(const string &file_path) {
 	auto format = StringUtil::Lower(file_path);
 	// We first remove extension suffixes
 	if (StringUtil::EndsWith(format, CompressionExtensionFromType(FileCompressionType::GZIP))) {
@@ -148,7 +176,7 @@ GenericCopyOption PEGTransformerFactory::TransformForceQuoteOption(PEGTransforme
 	bool force_quote = list_pr.Child<OptionalParseResult>(0).HasResult();
 	string func_name = force_quote ? "force_quote" : "quote";
 	// TODO(dtenwolde) continue with options here. Need to return ParsedExpressions rather than Value
-
+	return GenericCopyOption(func_name, Value());
 }
 
 } // namespace duckdb

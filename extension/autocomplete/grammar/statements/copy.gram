@@ -37,4 +37,6 @@ GenericCopyOption <- CopyOptionName Expression?
 CopyFromDatabase <- 'FROM'i 'DATABASE'i ColId 'TO'i ColId CopyDatabaseFlag?
 
 CopyDatabaseFlag <- Parens(SchemaOrData)
-SchemaOrData <- 'SCHEMA'i / 'DATA'i
+SchemaOrData <- CopySchema / CopyData
+CopySchema <- 'SCHEMA'i
+CopyData <- 'DATA'i
