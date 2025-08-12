@@ -24,7 +24,7 @@ string PEGTransformerFactory::TransformIdentifierOrKeyword(PEGTransformer &trans
 			if (child->type == ParseResultType::IDENTIFIER) {
 				return child->Cast<IdentifierParseResult>().identifier;
 			}
-			throw InternalException("Unexpected IdentifierOrKeyword type encountered %s.", ToString(child->type));
+			throw InternalException("Unexpected IdentifierOrKeyword type encountered %s.", ParseResultToString(child->type));
 		}
 	}
 	throw ParserException("Unexpected ParseResult type in identifier transformation.");
