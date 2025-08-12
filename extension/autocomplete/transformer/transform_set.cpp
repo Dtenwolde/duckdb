@@ -25,17 +25,17 @@ unique_ptr<SQLStatement> PEGTransformerFactory::TransformUseStatement(PEGTransfo
 	return make_uniq<SetVariableStatement>("schema", std::move(value_expr), SetScope::AUTOMATIC);
 }
 
-QualifiedName PEGTransformerFactory::TransformUseTarget(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+QualifiedName PEGTransformerFactory::TransformUseTarget(PEGTransformer &transformer,
+                                                        optional_ptr<ParseResult> parse_result) {
 	auto &list_pr = parse_result->Cast<ListParseResult>();
 	auto &choice_pr = list_pr.Child<ChoiceParseResult>(0);
 	string qualified_name;
 	if (choice_pr.result->type == ParseResultType::LIST) {
 		auto use_target_children = choice_pr.result->Cast<ListParseResult>();
-		for (auto& child : use_target_children.children) {
+		for (auto &child : use_target_children.children) {
 			if (child->type == ParseResultType::IDENTIFIER) {
 				qualified_name += child->Cast<IdentifierParseResult>().identifier;
-			}
-			else if (child->type == ParseResultType::KEYWORD) {
+			} else if (child->type == ParseResultType::KEYWORD) {
 				qualified_name += child->Cast<KeywordParseResult>().keyword;
 			}
 		}
@@ -45,7 +45,6 @@ QualifiedName PEGTransformerFactory::TransformUseTarget(PEGTransformer &transfor
 	auto result = QualifiedName::Parse(qualified_name);
 	return result;
 }
-
 
 unique_ptr<SQLStatement> PEGTransformerFactory::TransformSetStatement(PEGTransformer &transformer,
                                                                       optional_ptr<ParseResult> parse_result) {
@@ -71,7 +70,7 @@ unique_ptr<SQLStatement> PEGTransformerFactory::TransformStandardAssignment(PEGT
 	// Composer: (SetVariable / SetSetting) SetAssignment
 	auto &choice_pr = parse_result->Cast<ChoiceParseResult>();
 	auto &list_pr = choice_pr.result->Cast<ListParseResult>();
-	auto &first_sub_rule= list_pr.Child<ListParseResult>(0);
+	auto &first_sub_rule = list_pr.Child<ListParseResult>(0);
 
 	auto &setting_or_var_pr = first_sub_rule.Child<ChoiceParseResult>(0);
 	SettingInfo setting_info = transformer.Transform<SettingInfo>(setting_or_var_pr.result);
@@ -82,14 +81,16 @@ unique_ptr<SQLStatement> PEGTransformerFactory::TransformStandardAssignment(PEGT
 	return make_uniq<SetVariableStatement>(setting_info.name, std::move(value[0]), setting_info.scope);
 }
 
-SettingInfo PEGTransformerFactory::TransformSettingOrVariable(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+SettingInfo PEGTransformerFactory::TransformSettingOrVariable(PEGTransformer &transformer,
+                                                              optional_ptr<ParseResult> parse_result) {
 	// Dispatcher: SetVariable / SetSetting
 	auto &choice_pr = parse_result->Cast<ChoiceParseResult>();
 	auto &matched_child = choice_pr.result;
 	return transformer.Transform<SettingInfo>(matched_child);
 }
 
-SettingInfo PEGTransformerFactory::TransformSetSetting(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+SettingInfo PEGTransformerFactory::TransformSetSetting(PEGTransformer &transformer,
+                                                       optional_ptr<ParseResult> parse_result) {
 	// Leaf: SettingScope? SettingName
 	auto &list_pr = parse_result->Cast<ListParseResult>();
 	auto &optional_scope_pr = list_pr.Child<OptionalParseResult>(0);
@@ -104,7 +105,8 @@ SettingInfo PEGTransformerFactory::TransformSetSetting(PEGTransformer &transform
 	return result;
 }
 
-SettingInfo PEGTransformerFactory::TransformSetVariable(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+SettingInfo PEGTransformerFactory::TransformSetVariable(PEGTransformer &transformer,
+                                                        optional_ptr<ParseResult> parse_result) {
 	// Leaf: VariableScope SettingName
 	auto &list_pr = parse_result->Cast<ListParseResult>();
 
@@ -114,15 +116,15 @@ SettingInfo PEGTransformerFactory::TransformSetVariable(PEGTransformer &transfor
 	return result;
 }
 
-vector<unique_ptr<ParsedExpression>> PEGTransformerFactory::TransformSetAssignment(PEGTransformer &transformer,
-                                                                           optional_ptr<ParseResult> parse_result) {
+vector<unique_ptr<ParsedExpression>>
+PEGTransformerFactory::TransformSetAssignment(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
 	auto &list_pr = parse_result->Cast<ListParseResult>();
 	auto &variable_list_pr = list_pr.children[1];
 	return transformer.Transform<vector<unique_ptr<ParsedExpression>>>(variable_list_pr);
 }
 
-vector<unique_ptr<ParsedExpression>> PEGTransformerFactory::TransformVariableList(PEGTransformer &transformer,
-                                                                          optional_ptr<ParseResult> parse_result) {
+vector<unique_ptr<ParsedExpression>>
+PEGTransformerFactory::TransformVariableList(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
 	auto &variable_list = parse_result->Cast<ListParseResult>();
 	auto &list_pr = variable_list.Child<ListParseResult>(0);
 	vector<unique_ptr<ParsedExpression>> expressions;

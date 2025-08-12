@@ -1,6 +1,7 @@
 namespace duckdb {
 
-string PEGTransformerFactory::TransformIdentifierOrKeyword(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+string PEGTransformerFactory::TransformIdentifierOrKeyword(PEGTransformer &transformer,
+                                                           optional_ptr<ParseResult> parse_result) {
 	if (parse_result->type == ParseResultType::IDENTIFIER) {
 		return parse_result->Cast<IdentifierParseResult>().identifier;
 	}
@@ -24,13 +25,15 @@ string PEGTransformerFactory::TransformIdentifierOrKeyword(PEGTransformer &trans
 			if (child->type == ParseResultType::IDENTIFIER) {
 				return child->Cast<IdentifierParseResult>().identifier;
 			}
-			throw InternalException("Unexpected IdentifierOrKeyword type encountered %s.", ParseResultToString(child->type));
+			throw InternalException("Unexpected IdentifierOrKeyword type encountered %s.",
+			                        ParseResultToString(child->type));
 		}
 	}
 	throw ParserException("Unexpected ParseResult type in identifier transformation.");
 }
 
-QualifiedName PEGTransformerFactory::TransformDottedIdentifier(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+QualifiedName PEGTransformerFactory::TransformDottedIdentifier(PEGTransformer &transformer,
+                                                               optional_ptr<ParseResult> parse_result) {
 	// Rule: ColId ('.' ColLabel)*
 	auto &list_pr = parse_result->Cast<ListParseResult>();
 	vector<string> parts;

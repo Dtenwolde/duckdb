@@ -4,18 +4,19 @@
 namespace duckdb {
 
 unique_ptr<SQLStatement> PEGTransformerFactory::TransformCopyStatement(PEGTransformer &transformer,
-																		 optional_ptr<ParseResult> parse_result) {
+                                                                       optional_ptr<ParseResult> parse_result) {
 	auto &list_pr = parse_result->Cast<ListParseResult>();
 	auto &copy_mode = list_pr.Child<ListParseResult>(1);
 	return transformer.Transform<unique_ptr<SQLStatement>>(copy_mode.Child<ChoiceParseResult>(0).result);
 }
 
-unique_ptr<SQLStatement> PEGTransformerFactory::TransformCopySelect(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+unique_ptr<SQLStatement> PEGTransformerFactory::TransformCopySelect(PEGTransformer &transformer,
+                                                                    optional_ptr<ParseResult> parse_result) {
 	throw NotImplementedException("TransformCopySelect");
 }
 
 unique_ptr<SQLStatement> PEGTransformerFactory::TransformCopyTable(PEGTransformer &transformer,
-																		 optional_ptr<ParseResult> parse_result) {
+                                                                   optional_ptr<ParseResult> parse_result) {
 	auto &list_pr = parse_result->Cast<ListParseResult>();
 
 	auto result = make_uniq<CopyStatement>();
@@ -55,13 +56,15 @@ bool PEGTransformerFactory::TransformFromOrTo(PEGTransformer &transformer, optio
 	return StringUtil::Lower(keyword.keyword) == "from";
 }
 
-string PEGTransformerFactory::TransformCopyFileName(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+string PEGTransformerFactory::TransformCopyFileName(PEGTransformer &transformer,
+                                                    optional_ptr<ParseResult> parse_result) {
 	// TODO(dtenwolde) support stdin and stdout
 	auto &list_pr = parse_result->Cast<ListParseResult>();
 	return transformer.Transform<string>(list_pr.Child<ChoiceParseResult>(0).result);
 }
 
-string PEGTransformerFactory::TransformIdentifierColId(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+string PEGTransformerFactory::TransformIdentifierColId(PEGTransformer &transformer,
+                                                       optional_ptr<ParseResult> parse_result) {
 	auto &list_pr = parse_result->Cast<ListParseResult>();
 	string result;
 	result += list_pr.Child<IdentifierParseResult>(0).name;
@@ -70,7 +73,8 @@ string PEGTransformerFactory::TransformIdentifierColId(PEGTransformer &transform
 	return result;
 }
 
-case_insensitive_map_t<vector<Value>> PEGTransformerFactory::TransformCopyOptions(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+case_insensitive_map_t<vector<Value>>
+PEGTransformerFactory::TransformCopyOptions(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
 	// CopyOptions <- 'WITH'i? Parens(GenericCopyOptionList) / SpecializedOption+
 	auto &list_pr = parse_result->Cast<ListParseResult>();
 	case_insensitive_map_t<vector<Value>> result;
@@ -80,7 +84,9 @@ case_insensitive_map_t<vector<Value>> PEGTransformerFactory::TransformCopyOption
 	return result;
 }
 
-case_insensitive_map_t<vector<Value>> PEGTransformerFactory::TransformGenericCopyOptionListParens(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+case_insensitive_map_t<vector<Value>>
+PEGTransformerFactory::TransformGenericCopyOptionListParens(PEGTransformer &transformer,
+                                                            optional_ptr<ParseResult> parse_result) {
 	auto &list_pr = parse_result->Cast<ListParseResult>();
 	auto generic_options = ExtractResultFromParens(list_pr.Child<ListParseResult>(0));
 	auto generic_options_transformed = transformer.Transform<unordered_map<string, vector<Value>>>(generic_options);

@@ -5,7 +5,7 @@
 namespace duckdb {
 
 unique_ptr<SQLStatement> PEGTransformerFactory::TransformExportStatement(PEGTransformer &transformer,
-																		 optional_ptr<ParseResult> parse_result) {
+                                                                         optional_ptr<ParseResult> parse_result) {
 	auto info = make_uniq<CopyInfo>();
 	auto &list_pr = parse_result->Cast<ListParseResult>();
 	info->file_path = list_pr.Child<StringLiteralParseResult>(3).result;
@@ -27,7 +27,8 @@ unique_ptr<SQLStatement> PEGTransformerFactory::TransformExportStatement(PEGTran
 	return result;
 }
 
-string PEGTransformerFactory::TransformExportSource(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+string PEGTransformerFactory::TransformExportSource(PEGTransformer &transformer,
+                                                    optional_ptr<ParseResult> parse_result) {
 	auto &list_pr = parse_result->Cast<ListParseResult>();
 	return list_pr.Child<IdentifierParseResult>(0).identifier;
 }

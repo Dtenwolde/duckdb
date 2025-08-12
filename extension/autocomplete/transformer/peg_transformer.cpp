@@ -38,7 +38,7 @@ T PEGTransformer::TransformEnum(optional_ptr<ParseResult> parse_result) {
 		throw ParserException("Enum transform failed: could not find mapping for '%s'", enum_rule_name);
 	}
 
-	auto *typed_enum_ptr = dynamic_cast<TypedTransformEnumResult<T>*>(rule_value->second.get());
+	auto *typed_enum_ptr = dynamic_cast<TypedTransformEnumResult<T> *>(rule_value->second.get());
 	if (!typed_enum_ptr) {
 		throw InternalException("Enum mapping for rule '%s' has an unexpected type.", enum_rule_name);
 	}
