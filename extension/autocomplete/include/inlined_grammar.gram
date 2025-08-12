@@ -1091,7 +1091,9 @@ CopySelect <- Parens(SelectStatement) 'TO'i CopyFileName CopyOptions?
 CopyFileName <- StringLiteral / IdentifierColId / Identifier
 IdentifierColId <- Identifier '.' ColId
 
-CopyOptions <- 'WITH'i? Parens(GenericCopyOptionList) / SpecializedOption+
+CopyOptions <- 'WITH'i? GenericCopyOptionListParens / SpecializedOptionList
+GenericCopyOptionListParens <- Parens(GenericCopyOptionList)
+SpecializedOptionList <- List(SpecializedOption)
 SpecializedOption <-
 	'BINARY'i / 'FREEZE'i / 'OIDS'i / 'CSV'i / 'HEADER'i /
 	SpecializedStringOption /

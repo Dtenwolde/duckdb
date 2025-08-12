@@ -7,7 +7,7 @@ namespace duckdb {
 
 struct GenericCopyOption {
 	string name;
-	Value value = Value(true); // Default value
+	vector<Value> children; // Default value
 };
 
 } // namespace duckdb

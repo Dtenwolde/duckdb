@@ -46,14 +46,26 @@ unique_ptr<ParsedExpression> PEGTransformerFactory::TransformSingleExpression(PE
 	auto &list_pr = parse_result->Cast<ListParseResult>();
 	auto &expression = list_pr.Child<ChoiceParseResult>(0);
 
-	return transformer.Transform<unique_ptr<ParsedExpression>>(expression);
+	return transformer.Transform<unique_ptr<ParsedExpression>>(expression.result);
+}
+
+unique_ptr<ParsedExpression> PEGTransformerFactory::TransformParenthesisExpression(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	// ParenthesisExpression <- Parens(List(Expression))
+	vector<unique_ptr<ParsedExpression>> children;
+
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	auto expressions = ExtractParseResultsFromList(ExtractResultFromParens(list_pr.Child<ListParseResult>(0)));
+
+	for (auto &expression : expressions) {
+		children.push_back(transformer.Transform<unique_ptr<ParsedExpression>>(expression));
+	}
+	return make_uniq<OperatorExpression>(ExpressionType::PLACEHOLDER, std::move(children));
 }
 
 unique_ptr<ParsedExpression> PEGTransformerFactory::TransformLiteralExpression(PEGTransformer &transformer,
                                                                                optional_ptr<ParseResult> parse_result) {
 	// Rule: StringLiteral / NumberLiteral / 'NULL'i / 'TRUE'i / 'FALSE'i
-	auto &choice_pr = parse_result->Cast<ChoiceParseResult>();
-	auto &choice_result = choice_pr.result->Cast<ListParseResult>();
+	auto &choice_result = parse_result->Cast<ListParseResult>();
 	auto &matched_rule_result = choice_result.Child<ChoiceParseResult>(0);
 
 	if (matched_rule_result.name == "StringLiteral") {
@@ -76,8 +88,7 @@ unique_ptr<ParsedExpression> PEGTransformerFactory::TransformLiteralExpression(P
 unique_ptr<ParsedExpression> PEGTransformerFactory::TransformColumnReference(PEGTransformer &transformer,
                                                                              optional_ptr<ParseResult> parse_result) {
 	// TODO(dtenwolde) figure out how this rule works with all the options
-	auto &choice_pr = parse_result->Cast<ChoiceParseResult>();
-	auto &list_pr = choice_pr.result->Cast<ListParseResult>();
+	auto &list_pr = parse_result->Cast<ListParseResult>();
 	auto &col_ref = list_pr.Child<ChoiceParseResult>(0);
 	vector<string> column_name_parts;
 	column_name_parts.push_back(col_ref.result->Cast<IdentifierParseResult>().identifier);

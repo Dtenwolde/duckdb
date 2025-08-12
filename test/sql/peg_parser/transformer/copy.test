@@ -24,6 +24,8 @@ COPY lineitem (l_orderkey, l_partkey) TO lineitem.csv;
 ----
 Catalog Error: Table with name lineitem does not exist!
 
-statement ok
+statement error
 copy 'bla' to 'bla' (format parquet, partition_by(season,director,aired));
+----
+Catalog Error: Table with name 'bla' does not exist!
 

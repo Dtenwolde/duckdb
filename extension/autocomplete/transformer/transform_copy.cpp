@@ -37,6 +37,11 @@ unique_ptr<SQLStatement> PEGTransformerFactory::TransformCopyTable(PEGTransforme
 	if (copy_options_pr.HasResult()) {
 		// TODO(dtenwolde) deal with format option here which is a special case.
 		info->options = transformer.Transform<case_insensitive_map_t<vector<Value>>>(copy_options_pr.optional_result);
+		auto format_option = info->options.find("format");
+		if (format_option != info->options.end()) {
+			info->format = format_option->second[0].GetValue<string>();
+			info->is_format_auto_detected = false;
+		}
 	}
 
 	result->info = std::move(info);
@@ -66,7 +71,24 @@ string PEGTransformerFactory::TransformIdentifierColId(PEGTransformer &transform
 }
 
 case_insensitive_map_t<vector<Value>> PEGTransformerFactory::TransformCopyOptions(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
-	throw NotImplementedException("CopyOptions not implemented");
+	// CopyOptions <- 'WITH'i? Parens(GenericCopyOptionList) / SpecializedOption+
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	case_insensitive_map_t<vector<Value>> result;
+	auto copy_option_pr = list_pr.Child<ChoiceParseResult>(1).result;
+	auto all_options = transformer.Transform<case_insensitive_map_t<vector<Value>>>(copy_option_pr);
+
+	return result;
+}
+
+case_insensitive_map_t<vector<Value>> PEGTransformerFactory::TransformGenericCopyOptionListParens(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	auto generic_options = ExtractResultFromParens(list_pr.Child<ListParseResult>(0));
+	auto generic_options_transformed = transformer.Transform<unordered_map<string, vector<Value>>>(generic_options);
+	case_insensitive_map_t<vector<Value>> result;
+	for (auto option : generic_options_transformed) {
+		result[option.first] = {option.second};
+	}
+	return result;
 }
 
 } // namespace duckdb
