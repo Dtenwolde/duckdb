@@ -1,3 +1,5 @@
+#include "duckdb/common/enums/file_compression_type.hpp"
+#include "duckdb/parser/parser.hpp"
 #include "duckdb/parser/statement/copy_statement.hpp"
 #include "transformer/peg_transformer.hpp"
 
@@ -13,6 +15,24 @@ unique_ptr<SQLStatement> PEGTransformerFactory::TransformCopyStatement(PEGTransf
 unique_ptr<SQLStatement> PEGTransformerFactory::TransformCopySelect(PEGTransformer &transformer,
                                                                     optional_ptr<ParseResult> parse_result) {
 	throw NotImplementedException("TransformCopySelect");
+}
+
+string ExtractFormat(const string &file_path) {
+	auto format = StringUtil::Lower(file_path);
+	// We first remove extension suffixes
+	if (StringUtil::EndsWith(format, CompressionExtensionFromType(FileCompressionType::GZIP))) {
+		format = format.substr(0, format.size() - 3);
+	} else if (StringUtil::EndsWith(format, CompressionExtensionFromType(FileCompressionType::ZSTD))) {
+		format = format.substr(0, format.size() - 4);
+	}
+	// Now lets check for the last .
+	size_t dot_pos = format.rfind('.');
+	if (dot_pos == std::string::npos || dot_pos == format.length() - 1) {
+		// No format found
+		return "";
+	}
+	// We found something
+	return format.substr(dot_pos + 1);
 }
 
 unique_ptr<SQLStatement> PEGTransformerFactory::TransformCopyTable(PEGTransformer &transformer,
@@ -31,12 +51,11 @@ unique_ptr<SQLStatement> PEGTransformerFactory::TransformCopyTable(PEGTransforme
 		info->select_list = transformer.Transform<vector<string>>(insert_column_list.optional_result);
 	}
 	info->is_from = transformer.Transform<bool>(list_pr.Child<ListParseResult>(2));
-
 	info->file_path = transformer.Transform<string>(list_pr.Child<ListParseResult>(3));
+	info->format = ExtractFormat(info->file_path);
 
 	auto &copy_options_pr = list_pr.Child<OptionalParseResult>(4);
 	if (copy_options_pr.HasResult()) {
-		// TODO(dtenwolde) deal with format option here which is a special case.
 		info->options = transformer.Transform<case_insensitive_map_t<vector<Value>>>(copy_options_pr.optional_result);
 		auto format_option = info->options.find("format");
 		if (format_option != info->options.end()) {
@@ -77,11 +96,8 @@ case_insensitive_map_t<vector<Value>>
 PEGTransformerFactory::TransformCopyOptions(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
 	// CopyOptions <- 'WITH'i? Parens(GenericCopyOptionList) / SpecializedOption+
 	auto &list_pr = parse_result->Cast<ListParseResult>();
-	case_insensitive_map_t<vector<Value>> result;
 	auto copy_option_pr = list_pr.Child<ChoiceParseResult>(1).result;
-	auto all_options = transformer.Transform<case_insensitive_map_t<vector<Value>>>(copy_option_pr);
-
-	return result;
+	return transformer.Transform<case_insensitive_map_t<vector<Value>>>(copy_option_pr);
 }
 
 case_insensitive_map_t<vector<Value>>
@@ -95,6 +111,44 @@ PEGTransformerFactory::TransformGenericCopyOptionListParens(PEGTransformer &tran
 		result[option.first] = {option.second};
 	}
 	return result;
+}
+
+
+case_insensitive_map_t<vector<Value>> PEGTransformerFactory::TransformSpecializedOptionList(PEGTransformer &transformer,
+															optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	auto options = ExtractParseResultsFromList(list_pr.Child<ListParseResult>(0));
+	case_insensitive_map_t<vector<Value>> result;
+	for (auto option : options) {
+		auto option_result = transformer.Transform<GenericCopyOption>(option);
+		result[option_result.name] = option_result.children;
+	}
+
+	return result;
+}
+
+GenericCopyOption PEGTransformerFactory::TransformSpecializedOption(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	return transformer.Transform<GenericCopyOption>(list_pr.Child<ChoiceParseResult>(0).result);
+}
+
+GenericCopyOption PEGTransformerFactory::TransformSingleOption(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	return transformer.TransformEnum<GenericCopyOption>(list_pr.Child<ChoiceParseResult>(0).result);
+}
+
+GenericCopyOption PEGTransformerFactory::TransformEncodingOption(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	auto string_literal = list_pr.Child<StringLiteralParseResult>(1).result;
+	return GenericCopyOption("encoding", string_literal);
+}
+
+GenericCopyOption PEGTransformerFactory::TransformForceQuoteOption(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	bool force_quote = list_pr.Child<OptionalParseResult>(0).HasResult();
+	string func_name = force_quote ? "force_quote" : "quote";
+	// TODO(dtenwolde) continue with options here. Need to return ParsedExpressions rather than Value
+
 }
 
 } // namespace duckdb

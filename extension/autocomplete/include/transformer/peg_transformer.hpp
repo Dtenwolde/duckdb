@@ -202,6 +202,14 @@ private:
 	                                                                  optional_ptr<ParseResult> parse_result);
 	static case_insensitive_map_t<vector<Value>>
 	TransformGenericCopyOptionListParens(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static case_insensitive_map_t<vector<Value>>
+	TransformSpecializedOptionList(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+
+	static GenericCopyOption TransformSpecializedOption(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static GenericCopyOption TransformSingleOption(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static GenericCopyOption TransformEncodingOption(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static GenericCopyOption TransformForceQuoteOption(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+
 
 	static unique_ptr<BaseTableRef> TransformBaseTableName(PEGTransformer &transformer,
 	                                                       optional_ptr<ParseResult> parse_result);

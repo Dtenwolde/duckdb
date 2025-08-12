@@ -8,6 +8,14 @@ namespace duckdb {
 struct GenericCopyOption {
 	string name;
 	vector<Value> children; // Default value
+
+	GenericCopyOption() {
+
+	};
+
+	GenericCopyOption(const string &name_p, const Value &value) : name(name_p) {
+		children.push_back(value);
+	}
 };
 
 } // namespace duckdb
