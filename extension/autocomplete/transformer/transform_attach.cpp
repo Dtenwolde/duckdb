@@ -1,5 +1,6 @@
 #include "ast/generic_copy_option.hpp"
 #include "duckdb/parser/expression/columnref_expression.hpp"
+#include "duckdb/parser/expression/operator_expression.hpp"
 #include "duckdb/parser/statement/attach_statement.hpp"
 #include "transformer/peg_transformer.hpp"
 
@@ -50,26 +51,31 @@ unordered_map<string, Value> PEGTransformerFactory::TransformAttachOptions(PEGTr
 	auto &list_pr = parse_result->Cast<ListParseResult>();
 	auto &parens = list_pr.Child<ListParseResult>(0);
 	auto &generic_copy_option_list = parens.Child<ListParseResult>(1);
-	return transformer.Transform<unordered_map<string, Value>>(generic_copy_option_list);
+
+	auto generic_options = transformer.Transform<unordered_map<string, vector<Value>>>(generic_copy_option_list);
+	unordered_map<string, Value> option_result;
+	for (auto &option : generic_options) {
+		option_result[option.first] = option.second[0];
+	}
+	return option_result;
 }
 
-unordered_map<string, Value> PEGTransformerFactory::TransformGenericCopyOptionList(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
-	unordered_map<string, Value> result;
+unordered_map<string, vector<Value>> PEGTransformerFactory::TransformGenericCopyOptionList(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	unordered_map<string, vector<Value>> result;
 	auto &list_pr = parse_result->Cast<ListParseResult>();
 	auto &list = list_pr.Child<ListParseResult>(0);
 	auto &first_element = list.Child<ListParseResult>(0);
 	GenericCopyOption copy_option = transformer.Transform<GenericCopyOption>(first_element);
-	result[copy_option.name] = copy_option.value;
+	result[copy_option.name] = copy_option.children;
 	auto &extra_elements = list.Child<OptionalParseResult>(1);
 	if (extra_elements.HasResult()) {
 		auto &repeat_pr = extra_elements.optional_result->Cast<RepeatParseResult>();
 		for (auto &element : repeat_pr.children) {
 			auto &child = element->Cast<ListParseResult>();
 			GenericCopyOption extra_copy_option = transformer.Transform<GenericCopyOption>(child.Child<ListParseResult>(1));
-			result[extra_copy_option.name] = extra_copy_option.value;
+			result[extra_copy_option.name] = extra_copy_option.children;
 		}
 	}
-
 	return result;
 }
 
@@ -82,9 +88,14 @@ GenericCopyOption PEGTransformerFactory::TransformGenericCopyOption(PEGTransform
 	if (optional_expression.HasResult()) {
 		auto expression = transformer.Transform<unique_ptr<ParsedExpression>>(optional_expression.optional_result);
 		if (expression->GetExpressionType() == ExpressionType::VALUE_CONSTANT) {
-			copy_option.value = Value(expression->Cast<ConstantExpression>().value);
+			copy_option.children.push_back(Value(expression->Cast<ConstantExpression>().value));
 		} else if (expression->GetExpressionType() == ExpressionType::COLUMN_REF) {
-			copy_option.value = Value(expression->Cast<ColumnRefExpression>().GetColumnName());
+			copy_option.children.push_back(Value(expression->Cast<ColumnRefExpression>().GetColumnName()));
+		} else if (expression->GetExpressionType() == ExpressionType::PLACEHOLDER) {
+			auto &op_expr = expression->Cast<OperatorExpression>();
+			for (auto &child : op_expr.children) {
+				copy_option.children.push_back(Value(child->Cast<ColumnRefExpression>().GetColumnName()));
+			}
 		} else {
 			throw NotImplementedException("Unrecognized expression type %s", ExpressionTypeToString(expression->GetExpressionType()));
 		}

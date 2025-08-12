@@ -125,7 +125,7 @@ private:
 	static unique_ptr<SQLStatement> TransformAttachStatement(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static string TransformAttachAlias(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static unordered_map<string, Value> TransformAttachOptions(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
-	static unordered_map<string, Value> TransformGenericCopyOptionList(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unordered_map<string, vector<Value>> TransformGenericCopyOptionList(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static GenericCopyOption TransformGenericCopyOption(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 
 	static unique_ptr<SQLStatement> TransformCheckpointStatement(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
@@ -164,6 +164,7 @@ private:
 	static string TransformCopyFileName(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static string TransformIdentifierColId(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static case_insensitive_map_t<vector<Value>> TransformCopyOptions(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static case_insensitive_map_t<vector<Value>> TransformGenericCopyOptionListParens(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 
 	static unique_ptr<BaseTableRef> TransformBaseTableName(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static unique_ptr<BaseTableRef> TransformSchemaReservedTable(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
@@ -189,6 +190,7 @@ private:
 	static unique_ptr<ParsedExpression> TransformBaseExpression(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static unique_ptr<ParsedExpression> TransformSingleExpression(PEGTransformer &transformer,
 	                                                              optional_ptr<ParseResult> parse_result);
+	static unique_ptr<ParsedExpression> TransformParenthesisExpression(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static unique_ptr<ParsedExpression> TransformLiteralExpression(PEGTransformer &transformer,
 	                                                               optional_ptr<ParseResult> parse_result);
 	static unique_ptr<ParsedExpression> TransformColumnReference(PEGTransformer &transformer,
