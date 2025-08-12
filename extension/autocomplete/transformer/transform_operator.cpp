@@ -1,4 +1,3 @@
-#include "duckdb/common/enums/operator_result_type.hpp"
 #include "transformer/peg_transformer.hpp"
 
 namespace duckdb {
