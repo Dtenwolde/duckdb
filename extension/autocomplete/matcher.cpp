@@ -152,7 +152,8 @@ public:
 		}
 		state.token_index = list_state.token_index;
 		// Empty name implies it's a subrule, e.g. 'SET'i (StandardAssignment / SetTimeZone)
-		return state.allocator.Allocate(make_uniq<ListParseResult>(std::move(results), name));;
+		return state.allocator.Allocate(make_uniq<ListParseResult>(std::move(results), name));
+		;
 	}
 
 	SuggestionType AddSuggestionInternal(MatchState &state) const override {
@@ -480,22 +481,22 @@ private:
 		switch (suggestion_type) {
 		case SuggestionState::SUGGEST_TYPE_NAME:
 			if (keyword_helper.KeywordCategoryType(token_text, KeywordCategory::KEYWORD_RESERVED) ||
-				keyword_helper.KeywordCategoryType(token_text, GetBannedCategory())) {
+			    keyword_helper.KeywordCategoryType(token_text, GetBannedCategory())) {
 				return false;
-				}
+			}
 			break;
 		default: {
 			const auto banned_category = GetBannedCategory();
 			const auto allowed_override_category = banned_category == KeywordCategory::KEYWORD_COL_NAME
-													   ? KeywordCategory::KEYWORD_TYPE_FUNC
-													   : KeywordCategory::KEYWORD_COL_NAME;
+			                                           ? KeywordCategory::KEYWORD_TYPE_FUNC
+			                                           : KeywordCategory::KEYWORD_COL_NAME;
 
 			const bool is_reserved = keyword_helper.KeywordCategoryType(token_text, KeywordCategory::KEYWORD_RESERVED);
 			const bool has_extra_banned_category = keyword_helper.KeywordCategoryType(token_text, banned_category);
 			const bool has_banned_flag = is_reserved || has_extra_banned_category;
 
 			const bool is_unreserved =
-				keyword_helper.KeywordCategoryType(token_text, KeywordCategory::KEYWORD_UNRESERVED);
+			    keyword_helper.KeywordCategoryType(token_text, KeywordCategory::KEYWORD_UNRESERVED);
 			const bool has_override_flag = keyword_helper.KeywordCategoryType(token_text, allowed_override_category);
 			const bool has_allowed_flag = is_unreserved || has_override_flag;
 
@@ -545,7 +546,6 @@ private:
 		state.token_index++;
 		return true;
 	}
-
 };
 
 class StringLiteralMatcher : public Matcher {
@@ -573,7 +573,8 @@ public:
 		if (!MatchStringLiteral(state)) {
 			return nullptr;
 		}
-		string stripped_string = token_text.substr(1, token_text.length() - 2);;
+		string stripped_string = token_text.substr(1, token_text.length() - 2);
+		;
 		auto result = state.allocator.Allocate(make_uniq<StringLiteralParseResult>(stripped_string));
 		result->name = name;
 		return result;

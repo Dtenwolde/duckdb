@@ -3,7 +3,7 @@
 namespace duckdb {
 
 vector<string> PEGTransformerFactory::TransformInsertColumnList(PEGTransformer &transformer,
-																		 optional_ptr<ParseResult> parse_result) {
+                                                                optional_ptr<ParseResult> parse_result) {
 	// InsertColumnList <- Parens(ColumnList)
 	auto &list_pr = parse_result->Cast<ListParseResult>();
 	auto column_list = ExtractResultFromParens(list_pr.Child<ListParseResult>(0));
@@ -11,7 +11,7 @@ vector<string> PEGTransformerFactory::TransformInsertColumnList(PEGTransformer &
 }
 
 vector<string> PEGTransformerFactory::TransformColumnList(PEGTransformer &transformer,
-																		 optional_ptr<ParseResult> parse_result) {
+                                                          optional_ptr<ParseResult> parse_result) {
 	// ColumnList <- List(ColId)
 	auto &list_pr = parse_result->Cast<ListParseResult>();
 	auto column_list = ExtractParseResultsFromList(list_pr.Child<ListParseResult>(0));
@@ -21,6 +21,5 @@ vector<string> PEGTransformerFactory::TransformColumnList(PEGTransformer &transf
 	}
 	return result;
 }
-
 
 } // namespace duckdb

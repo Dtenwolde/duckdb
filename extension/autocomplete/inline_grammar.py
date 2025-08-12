@@ -50,9 +50,11 @@ keyword_sets = {category: set() for category in CPP_MAP_NAMES.keys()}
 reserved_set = set()
 unreserved_set = set()
 
+
 def load_keywords(filepath):
     with open(filepath, "r") as f:
         return [line.strip().lower() for line in f if line.strip()]
+
 
 # Validate and load all keywords
 for filename in os.listdir(keywords_dir):
@@ -107,7 +109,6 @@ with open(output_path, "w") as f:
     f.write("} // namespace duckdb\n")
 
 print(f"Successfully generated {output_path}")
-
 
 
 def filename_to_upper_camel(file):

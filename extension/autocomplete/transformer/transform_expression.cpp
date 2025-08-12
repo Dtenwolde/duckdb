@@ -16,16 +16,21 @@ unique_ptr<ParsedExpression> PEGTransformerFactory::TransformExpression(PEGTrans
 		auto repeat_expression_pr = indirection_pr.optional_result->Cast<RepeatParseResult>();
 		vector<unique_ptr<ParsedExpression>> expr_children;
 		for (auto &child : repeat_expression_pr.children) {
-			// TODO(Dtenwolde) this requires a lot more work to figure out. Probably need to sit with Mark re. this at some point
-			auto operator_expr = std::move(transformer.Transform<unique_ptr<ParsedExpression>>(child)->Cast<OperatorExpression>());
-			current_expr = make_uniq<OperatorExpression>(operator_expr.type, std::move(current_expr), std::move(operator_expr.children[0]));
+			// TODO(Dtenwolde) this requires a lot more work to figure out. Probably need to sit with Mark re. this at
+			// some point
+			auto operator_expr =
+			    std::move(transformer.Transform<unique_ptr<ParsedExpression>>(child)->Cast<OperatorExpression>());
+			current_expr = make_uniq<OperatorExpression>(operator_expr.type, std::move(current_expr),
+			                                             std::move(operator_expr.children[0]));
 		}
 	}
 
 	return current_expr;
 }
 
-unique_ptr<ParsedExpression> PEGTransformerFactory::TransformRecursiveExpression(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+unique_ptr<ParsedExpression>
+PEGTransformerFactory::TransformRecursiveExpression(PEGTransformer &transformer,
+                                                    optional_ptr<ParseResult> parse_result) {
 	auto &list_pr = parse_result->Cast<ListParseResult>();
 	auto operator_expr = transformer.Transform<ExpressionType>(list_pr.Child<ListParseResult>(0));
 	vector<unique_ptr<ParsedExpression>> expr_children;
@@ -49,7 +54,9 @@ unique_ptr<ParsedExpression> PEGTransformerFactory::TransformSingleExpression(PE
 	return transformer.Transform<unique_ptr<ParsedExpression>>(expression.result);
 }
 
-unique_ptr<ParsedExpression> PEGTransformerFactory::TransformParenthesisExpression(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+unique_ptr<ParsedExpression>
+PEGTransformerFactory::TransformParenthesisExpression(PEGTransformer &transformer,
+                                                      optional_ptr<ParseResult> parse_result) {
 	// ParenthesisExpression <- Parens(List(Expression))
 	vector<unique_ptr<ParsedExpression>> children;
 

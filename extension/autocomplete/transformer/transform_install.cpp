@@ -5,7 +5,7 @@
 namespace duckdb {
 
 unique_ptr<SQLStatement> PEGTransformerFactory::TransformInstallStatement(PEGTransformer &transformer,
-																		 optional_ptr<ParseResult> parse_result) {
+                                                                          optional_ptr<ParseResult> parse_result) {
 	auto &list_pr = parse_result->Cast<ListParseResult>();
 	auto result = make_uniq<LoadStatement>();
 	auto info = make_uniq<LoadInfo>();
@@ -28,7 +28,8 @@ unique_ptr<SQLStatement> PEGTransformerFactory::TransformInstallStatement(PEGTra
 	return result;
 }
 
-ExtensionRepositoryInfo PEGTransformerFactory::TransformFromSource(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+ExtensionRepositoryInfo PEGTransformerFactory::TransformFromSource(PEGTransformer &transformer,
+                                                                   optional_ptr<ParseResult> parse_result) {
 	auto &list_pr = parse_result->Cast<ListParseResult>();
 	auto &sub_list_pr = list_pr.Child<ListParseResult>(1);
 	auto &string_or_identifier = sub_list_pr.Child<ChoiceParseResult>(0);
@@ -43,12 +44,14 @@ ExtensionRepositoryInfo PEGTransformerFactory::TransformFromSource(PEGTransforme
 	return result;
 }
 
-string PEGTransformerFactory::TransformIdentifierOrStringLiteral(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+string PEGTransformerFactory::TransformIdentifierOrStringLiteral(PEGTransformer &transformer,
+                                                                 optional_ptr<ParseResult> parse_result) {
 	auto &list_pr = parse_result->Cast<ListParseResult>();
 	return transformer.Transform<string>(list_pr.Child<ChoiceParseResult>(0));
 }
 
-string PEGTransformerFactory::TransformVersionNumber(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+string PEGTransformerFactory::TransformVersionNumber(PEGTransformer &transformer,
+                                                     optional_ptr<ParseResult> parse_result) {
 	auto &list_pr = parse_result->Cast<ListParseResult>();
 	return list_pr.Child<IdentifierParseResult>(1).identifier;
 }

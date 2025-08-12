@@ -27,7 +27,7 @@ enum class ParseResultType : uint8_t {
 	INVALID
 };
 
-inline const char* ParseResultToString(ParseResultType type) {
+inline const char *ParseResultToString(ParseResultType type) {
 	switch (type) {
 	case ParseResultType::LIST:
 		return "LIST";
@@ -69,7 +69,8 @@ public:
 	template <class TARGET>
 	TARGET &Cast() {
 		if (TARGET::TYPE != ParseResultType::INVALID && type != TARGET::TYPE) {
-			throw InternalException("Failed to cast parse result of type %s to type %s for rule %s", ParseResultToString(TARGET::TYPE), ParseResultToString(type), name);
+			throw InternalException("Failed to cast parse result of type %s to type %s for rule %s",
+			                        ParseResultToString(TARGET::TYPE), ParseResultToString(type), name);
 		}
 		return reinterpret_cast<TARGET &>(*this);
 	}
@@ -78,7 +79,8 @@ public:
 	string name;
 
 	// Add a new parameter `is_last`
-	virtual void ToStringInternal(std::stringstream &ss, std::unordered_set<const ParseResult*>& visited, const std::string &indent, bool is_last) const {
+	virtual void ToStringInternal(std::stringstream &ss, std::unordered_set<const ParseResult *> &visited,
+	                              const std::string &indent, bool is_last) const {
 		ss << indent << (is_last ? "└─" : "├─") << " " << ParseResultToString(type);
 		if (!name.empty()) {
 			ss << " (" << name << ")";
@@ -88,7 +90,7 @@ public:
 	// The public entry point
 	std::string ToString() const {
 		std::stringstream ss;
-		std::unordered_set<const ParseResult*> visited;
+		std::unordered_set<const ParseResult *> visited;
 		// The root is always the "last" element at its level
 		ToStringInternal(ss, visited, "", true);
 		return ss.str();
@@ -102,7 +104,8 @@ struct IdentifierParseResult : ParseResult {
 	explicit IdentifierParseResult(string identifier_p) : ParseResult(TYPE), identifier(std::move(identifier_p)) {
 	}
 
-	void ToStringInternal(std::stringstream &ss, std::unordered_set<const ParseResult*>& visited, const std::string &indent, bool is_last) const override {
+	void ToStringInternal(std::stringstream &ss, std::unordered_set<const ParseResult *> &visited,
+	                      const std::string &indent, bool is_last) const override {
 		ParseResult::ToStringInternal(ss, visited, indent, is_last);
 		ss << ": \"" << identifier << "\"\n";
 	}
@@ -115,7 +118,8 @@ struct KeywordParseResult : ParseResult {
 	explicit KeywordParseResult(string keyword_p) : ParseResult(TYPE), keyword(std::move(keyword_p)) {
 	}
 
-	void ToStringInternal(std::stringstream &ss, std::unordered_set<const ParseResult*>& visited, const std::string &indent, bool is_last) const override {
+	void ToStringInternal(std::stringstream &ss, std::unordered_set<const ParseResult *> &visited,
+	                      const std::string &indent, bool is_last) const override {
 		ParseResult::ToStringInternal(ss, visited, indent, is_last);
 		ss << ": \"" << keyword << "\"\n";
 	}
@@ -127,7 +131,7 @@ struct ListParseResult : ParseResult {
 
 public:
 	explicit ListParseResult(vector<optional_ptr<ParseResult>> results_p, string name_p)
-		: ParseResult(TYPE), children(std::move(results_p)) {
+	    : ParseResult(TYPE), children(std::move(results_p)) {
 		name = name_p;
 	}
 
@@ -139,7 +143,8 @@ public:
 		return children[index]->Cast<T>();
 	}
 
-	void ToStringInternal(std::stringstream &ss, std::unordered_set<const ParseResult*>& visited, const std::string &indent, bool is_last) const override {
+	void ToStringInternal(std::stringstream &ss, std::unordered_set<const ParseResult *> &visited,
+	                      const std::string &indent, bool is_last) const override {
 		ss << indent << (is_last ? "└─" : "├─");
 
 		if (visited.count(this)) {
@@ -149,7 +154,9 @@ public:
 		visited.insert(this);
 
 		ss << " " << ParseResultToString(type);
-		if (!name.empty()) { ss << " (" << name << ")"; }
+		if (!name.empty()) {
+			ss << " (" << name << ")";
+		}
 		ss << " [" << children.size() << " children]\n";
 
 		std::string child_indent = indent + (is_last ? "   " : "│  ");
@@ -161,7 +168,6 @@ public:
 			}
 		}
 	}
-
 };
 
 struct RepeatParseResult : ParseResult {
@@ -169,7 +175,7 @@ struct RepeatParseResult : ParseResult {
 	vector<optional_ptr<ParseResult>> children;
 
 	explicit RepeatParseResult(vector<optional_ptr<ParseResult>> results_p)
-		: ParseResult(TYPE), children(std::move(results_p)) {
+	    : ParseResult(TYPE), children(std::move(results_p)) {
 	}
 
 	template <class T>
@@ -180,7 +186,8 @@ struct RepeatParseResult : ParseResult {
 		return children[index]->Cast<T>();
 	}
 
-	void ToStringInternal(std::stringstream &ss, std::unordered_set<const ParseResult*>& visited, const std::string &indent, bool is_last) const override {
+	void ToStringInternal(std::stringstream &ss, std::unordered_set<const ParseResult *> &visited,
+	                      const std::string &indent, bool is_last) const override {
 		ss << indent << (is_last ? "└─" : "├─");
 
 		if (visited.count(this)) {
@@ -190,7 +197,9 @@ struct RepeatParseResult : ParseResult {
 		visited.insert(this);
 
 		ss << " " << ParseResultToString(type);
-		if (!name.empty()) { ss << " (" << name << ")"; }
+		if (!name.empty()) {
+			ss << " (" << name << ")";
+		}
 		ss << " [" << children.size() << " children]\n";
 
 		std::string child_indent = indent + (is_last ? "   " : "│  ");
@@ -218,7 +227,8 @@ struct OptionalParseResult : ParseResult {
 		return optional_result != nullptr;
 	}
 
-	void ToStringInternal(std::stringstream &ss, std::unordered_set<const ParseResult*>& visited, const std::string &indent, bool is_last) const override {
+	void ToStringInternal(std::stringstream &ss, std::unordered_set<const ParseResult *> &visited,
+	                      const std::string &indent, bool is_last) const override {
 		if (HasResult()) {
 			// The optional node has a value, so we "collapse" it by just printing its child.
 			// We pass the same indentation and is_last status, so it takes the place of the Optional node.
@@ -239,13 +249,15 @@ public:
 		name = parse_result_p->name;
 	}
 
-	optional_ptr<ParseResult>  result;
+	optional_ptr<ParseResult> result;
 	idx_t selected_idx;
 
-	void ToStringInternal(std::stringstream &ss, std::unordered_set<const ParseResult*>& visited, const std::string &indent, bool is_last) const override {
+	void ToStringInternal(std::stringstream &ss, std::unordered_set<const ParseResult *> &visited,
+	                      const std::string &indent, bool is_last) const override {
 		if (result) {
 			// The choice was resolved. We print a marker and then print the child below it.
-			ss << indent << (is_last ? "└─" : "├─") << " [" << ParseResultToString(type) << " (idx: " << selected_idx << ")] ->\n";
+			ss << indent << (is_last ? "└─" : "├─") << " [" << ParseResultToString(type) << " (idx: " << selected_idx
+			   << ")] ->\n";
 
 			// The child is now on a new indentation level and is the only child of our marker.
 			std::string child_indent = indent + (is_last ? "   " : "│  ");
@@ -266,7 +278,8 @@ public:
 	// TODO(dtenwolde): Should probably be stored as a size_t, int32_t or float_t depending on what number is.
 	string number;
 
-	void ToStringInternal(std::stringstream &ss, std::unordered_set<const ParseResult*>& visited, const std::string &indent, bool is_last) const override {
+	void ToStringInternal(std::stringstream &ss, std::unordered_set<const ParseResult *> &visited,
+	                      const std::string &indent, bool is_last) const override {
 		ParseResult::ToStringInternal(ss, visited, indent, is_last);
 		ss << ": " << number << "\n";
 	}
@@ -280,12 +293,12 @@ public:
 	}
 	string result;
 
-	void ToStringInternal(std::stringstream &ss, std::unordered_set<const ParseResult*>& visited, const std::string &indent, bool is_last) const override {
+	void ToStringInternal(std::stringstream &ss, std::unordered_set<const ParseResult *> &visited,
+	                      const std::string &indent, bool is_last) const override {
 		ParseResult::ToStringInternal(ss, visited, indent, is_last);
 		ss << ": \"" << result << "\"\n";
 	}
 };
-
 
 class OperatorParseResult : public ParseResult {
 public:
@@ -295,7 +308,8 @@ public:
 	}
 	string operator_token;
 
-	void ToStringInternal(std::stringstream &ss, std::unordered_set<const ParseResult*>& visited, const std::string &indent, bool is_last) const override {
+	void ToStringInternal(std::stringstream &ss, std::unordered_set<const ParseResult *> &visited,
+	                      const std::string &indent, bool is_last) const override {
 		ParseResult::ToStringInternal(ss, visited, indent, is_last);
 		ss << ": " << operator_token << "\n";
 	}
