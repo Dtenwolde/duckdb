@@ -78,6 +78,11 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	REGISTER_TRANSFORM(TransformGenericCopyOptionList);
 	REGISTER_TRANSFORM(TransformGenericCopyOption);
 	REGISTER_TRANSFORM(TransformGenericCopyOptionListParens);
+	REGISTER_TRANSFORM(TransformSpecializedOptionList);
+	REGISTER_TRANSFORM(TransformSpecializedOption);
+	REGISTER_TRANSFORM(TransformSingleOption);
+	REGISTER_TRANSFORM(TransformEncodingOption);
+	REGISTER_TRANSFORM(TransformForceQuoteOption);
 
 	REGISTER_TRANSFORM(TransformInsertColumnList);
 	REGISTER_TRANSFORM(TransformColumnList);
@@ -160,6 +165,12 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	RegisterEnum<Value>("FalseLiteral", Value(false));
 	RegisterEnum<Value>("TrueLiteral", Value(true));
 	RegisterEnum<Value>("NullLiteral", Value());
+
+	RegisterEnum<GenericCopyOption>("BinaryOption", GenericCopyOption("format", Value("binary")));
+	RegisterEnum<GenericCopyOption>("FreezeOption", GenericCopyOption("freeze", Value()));
+	RegisterEnum<GenericCopyOption>("OidsOption", GenericCopyOption("oids", Value()));
+	RegisterEnum<GenericCopyOption>("CsvOption", GenericCopyOption("format", Value("csv")));
+	RegisterEnum<GenericCopyOption>("HeaderOption", GenericCopyOption("header", Value()));
 
 	RegisterEnum<TransactionModifierType>("ReadOnly", TransactionModifierType::TRANSACTION_READ_ONLY);
 	RegisterEnum<TransactionModifierType>("ReadWrite", TransactionModifierType::TRANSACTION_READ_WRITE);

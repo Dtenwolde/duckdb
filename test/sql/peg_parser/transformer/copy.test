@@ -10,6 +10,11 @@ statement ok
 call peg_parser();
 
 statement error
+copy 'bla' to 'bla' binary;
+----
+Catalog Error: Copy Function with name binary does not exist!
+
+statement error
 COPY lineitem to 's3://test-bucket/tpch-sf0_01/lineitem.parquet';
 ----
 Catalog Error: Table with name lineitem does not exist!

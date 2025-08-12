@@ -1094,13 +1094,20 @@ IdentifierColId <- Identifier '.' ColId
 CopyOptions <- 'WITH'i? GenericCopyOptionListParens / SpecializedOptionList
 GenericCopyOptionListParens <- Parens(GenericCopyOptionList)
 SpecializedOptionList <- List(SpecializedOption)
-SpecializedOption <-
-	'BINARY'i / 'FREEZE'i / 'OIDS'i / 'CSV'i / 'HEADER'i /
-	SpecializedStringOption /
-	('ENCODING'i StringLiteral) /
-	('FORCE'i 'QUOTE'i StarOrColumnList) /
-	('PARTITION'i 'BY'i StarOrColumnList) /
-	('FORCE'i 'NOT'i? 'NULL'i ColumnList)
+SpecializedOption <- SingleOption / SpecializedStringOption /
+	EncodingOption / ForceQuoteOption / PartitionByOption / ForceNullOption
+
+SingleOption <- BinaryOption / FreezeOption / OidsOption / CsvOption / HeaderOption
+BinaryOption <- 'BINARY'i
+FreezeOption <- 'FREEZE'i
+OidsOption <- 'OIDS'i
+CsvOption <- 'CSV'i
+HeaderOption <- 'HEADER'i
+EncodingOption <- 'ENCODING'i StringLiteral
+ForceQuoteOption <- 'FORCE'i 'QUOTE'i StarOrColumnList
+PartitionByOption <- 'PARTITION'i 'BY'i StarOrColumnList
+ForceNullOption <- 'FORCE'i 'NOT'i? 'NULL'i ColumnList
+
 
 SpecializedStringOption <- ('DELIMITER'i / 'NULL'i / 'QUOTE'i / 'ESCAPE'i) 'AS'i? StringLiteral
 
