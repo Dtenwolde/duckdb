@@ -201,7 +201,9 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	RegisterEnum<LogicalType>("SmallintType", LogicalType(LogicalTypeId::SMALLINT));
 	RegisterEnum<LogicalType>("BigintType", LogicalType(LogicalTypeId::BIGINT));
 	RegisterEnum<LogicalType>("RealType", LogicalType(LogicalTypeId::FLOAT));
+	RegisterEnum<LogicalType>("DoubleType", LogicalType(LogicalTypeId::DOUBLE));
 	RegisterEnum<LogicalType>("BooleanType", LogicalType(LogicalTypeId::BOOLEAN));
+
 }
 
 optional_ptr<ParseResult> PEGTransformerFactory::ExtractResultFromParens(optional_ptr<ParseResult> parse_result) {

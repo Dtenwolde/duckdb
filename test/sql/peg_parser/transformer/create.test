@@ -9,3 +9,6 @@ call peg_parser();
 
 statement ok
 CREATE TABLE foo (i bigint);
+
+statement ok
+create table foo2 (i float(32));
