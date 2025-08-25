@@ -1,0 +1,11 @@
+# name: test/sql/peg_parser/transformer/create.test
+# description: 
+# group: [transformer]
+
+require autocomplete
+
+statement ok
+call peg_parser();
+
+statement ok
+CREATE TABLE foo (i bigint);

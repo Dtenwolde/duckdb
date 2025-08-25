@@ -9,6 +9,7 @@ add_library_unity(
   transform_checkpoint.cpp
   transform_common.cpp
   transform_copy.cpp
+  transform_create.cpp
   transform_deallocate.cpp
   transform_delete.cpp
   transform_detach.cpp

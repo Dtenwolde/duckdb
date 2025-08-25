@@ -754,7 +754,8 @@ PrepareStatement <- 'PREPARE'i Identifier TypeList? 'AS'i Statement
 
 TypeList <- Parens(List(Type))
 
-CreateStatement <- 'CREATE'i OrReplace? Temporary? (CreateTableStmt / CreateMacroStmt / CreateSequenceStmt / CreateTypeStmt / CreateSchemaStmt / CreateViewStmt / CreateIndexStmt / CreateSecretStmt)
+CreateStatement <- 'CREATE'i OrReplace? Temporary? CreateStatementVariation
+CreateStatementVariation <- CreateTableStmt / CreateMacroStmt / CreateSequenceStmt / CreateTypeStmt / CreateSchemaStmt / CreateViewStmt / CreateIndexStmt / CreateSecretStmt
 OrReplace <- 'OR'i 'REPLACE'i
 Temporary <- 'TEMP'i / 'TEMPORARY'i / 'PERSISTENT'i
 
@@ -765,9 +766,10 @@ WithData <- 'WITH'i 'NO'i? 'DATA'i
 IdentifierList <- Parens(List(Identifier))
 CreateColumnList <- Parens(CreateTableColumnList)
 IfNotExists <- 'IF'i 'NOT'i 'EXISTS'i
-QualifiedName <- CatalogReservedSchemaIdentifier / SchemaReservedIdentifierOrStringLiteral / IdentifierOrStringLiteral
+QualifiedName <- CatalogReservedSchemaIdentifierOrStringLiteral / SchemaReservedIdentifierOrStringLiteral / TableNameIdentifierOrStringLiteral
+CatalogReservedSchemaIdentifierOrStringLiteral <- CatalogQualification ReservedSchemaQualification ReservedIdentifierOrStringLiteral
 SchemaReservedIdentifierOrStringLiteral <- SchemaQualification ReservedIdentifierOrStringLiteral
-CatalogReservedSchemaIdentifier <- CatalogQualification ReservedSchemaQualification ReservedIdentifierOrStringLiteral
+TableNameIdentifierOrStringLiteral <- IdentifierOrStringLiteral
 IdentifierOrStringLiteral <- Identifier / StringLiteral
 ReservedIdentifierOrStringLiteral <- ReservedIdentifier / StringLiteral
 CatalogQualification <- CatalogName '.'
@@ -1289,17 +1291,23 @@ Interval <- YearKeyword /
 
 BitType <- 'BIT'i 'VARYING'i? Parens(List(Expression))?
 
-NumericType <- 'INT'i /
-               'INTEGER'i /
-               'SMALLINT'i /
-               'BIGINT'i /
-               'REAL'i /
-               'BOOLEAN'i /
-               ('FLOAT'i Parens(NumberLiteral)?) /
-               ('DOUBLE'i 'PRECISION'i) /
-               ('DECIMAL'i TypeModifiers?) /
-               ('DEC'i TypeModifiers?) /
-               ('NUMERIC'i TypeModifiers?)
+NumericType <- SimpleNumericType / DecimalNumericType
+SimpleNumericType <- IntType / IntegerType / SmallintType /
+                BigintType / RealType / BooleanType
+DecimalNumericType <- FloatType / DoubleType / DecimalType /
+                DecType / NumericModType
+IntType <- 'INT'i
+IntegerType <- 'INTEGER'i
+SmallintType <- 'SMALLINT'i
+BigintType <- 'BIGINT'i
+RealType <- 'REAL'i
+BooleanType <- 'BOOLEAN'i
+
+FloatType <- ('FLOAT'i Parens(NumberLiteral)?)
+DoubleType <- ('DOUBLE'i 'PRECISION'i)
+Decimaltype <- ('DECIMAL'i TypeModifiers?)
+DecType <- ('DEC'i TypeModifiers?)
+NumericModType <- ('NUMERIC'i TypeModifiers?)
 
 QualifiedTypeName <- CatalogQualification? SchemaQualification? TypeName
 TypeModifiers <- Parens(List(Expression)?)

@@ -56,7 +56,6 @@ inline const char *ParseResultToString(ParseResultType type) {
 	case ParseResultType::INVALID:
 		return "INVALID";
 	}
-	// Default case for robustness in case of invalid enum values
 	return "INVALID";
 }
 
@@ -78,7 +77,6 @@ public:
 	ParseResultType type;
 	string name;
 
-	// Add a new parameter `is_last`
 	virtual void ToStringInternal(std::stringstream &ss, std::unordered_set<const ParseResult *> &visited,
 	                              const std::string &indent, bool is_last) const {
 		ss << indent << (is_last ? "└─" : "├─") << " " << ParseResultToString(type);

@@ -47,7 +47,14 @@ ExtensionRepositoryInfo PEGTransformerFactory::TransformFromSource(PEGTransforme
 string PEGTransformerFactory::TransformIdentifierOrStringLiteral(PEGTransformer &transformer,
                                                                  optional_ptr<ParseResult> parse_result) {
 	auto &list_pr = parse_result->Cast<ListParseResult>();
-	return transformer.Transform<string>(list_pr.Child<ChoiceParseResult>(0));
+	auto choice_pr = list_pr.Child<ChoiceParseResult>(0);
+	if (choice_pr.result->type == ParseResultType::IDENTIFIER) {
+		return choice_pr.result->Cast<IdentifierParseResult>().identifier;
+	}
+	if (choice_pr.result->type == ParseResultType::STRING) {
+		return choice_pr.result->Cast<StringLiteralParseResult>().result;
+	}
+	throw NotImplementedException("Unexpected type encountered: %s", ParseResultToString(choice_pr.result->type));
 }
 
 string PEGTransformerFactory::TransformVersionNumber(PEGTransformer &transformer,

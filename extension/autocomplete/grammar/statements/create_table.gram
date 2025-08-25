@@ -1,4 +1,5 @@
-CreateStatement <- 'CREATE'i OrReplace? Temporary? (CreateTableStmt / CreateMacroStmt / CreateSequenceStmt / CreateTypeStmt / CreateSchemaStmt / CreateViewStmt / CreateIndexStmt / CreateSecretStmt)
+CreateStatement <- 'CREATE'i OrReplace? Temporary? CreateStatementVariation
+CreateStatementVariation <- CreateTableStmt / CreateMacroStmt / CreateSequenceStmt / CreateTypeStmt / CreateSchemaStmt / CreateViewStmt / CreateIndexStmt / CreateSecretStmt
 OrReplace <- 'OR'i 'REPLACE'i
 Temporary <- 'TEMP'i / 'TEMPORARY'i / 'PERSISTENT'i
 
@@ -9,9 +10,10 @@ WithData <- 'WITH'i 'NO'i? 'DATA'i
 IdentifierList <- Parens(List(Identifier))
 CreateColumnList <- Parens(CreateTableColumnList)
 IfNotExists <- 'IF'i 'NOT'i 'EXISTS'i
-QualifiedName <- CatalogReservedSchemaIdentifier / SchemaReservedIdentifierOrStringLiteral / IdentifierOrStringLiteral
+QualifiedName <- CatalogReservedSchemaIdentifierOrStringLiteral / SchemaReservedIdentifierOrStringLiteral / TableNameIdentifierOrStringLiteral
+CatalogReservedSchemaIdentifierOrStringLiteral <- CatalogQualification ReservedSchemaQualification ReservedIdentifierOrStringLiteral
 SchemaReservedIdentifierOrStringLiteral <- SchemaQualification ReservedIdentifierOrStringLiteral
-CatalogReservedSchemaIdentifier <- CatalogQualification ReservedSchemaQualification ReservedIdentifierOrStringLiteral
+TableNameIdentifierOrStringLiteral <- IdentifierOrStringLiteral
 IdentifierOrStringLiteral <- Identifier / StringLiteral
 ReservedIdentifierOrStringLiteral <- ReservedIdentifier / StringLiteral
 CatalogQualification <- CatalogName '.'

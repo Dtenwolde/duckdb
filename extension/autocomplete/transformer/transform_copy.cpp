@@ -19,7 +19,8 @@ unique_ptr<SQLStatement> PEGTransformerFactory::TransformCopySelect(PEGTransform
 	throw NotImplementedException("TransformCopySelect");
 }
 
-unique_ptr<SQLStatement> PEGTransformerFactory::TransformCopyFromDatabase(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+unique_ptr<SQLStatement> PEGTransformerFactory::TransformCopyFromDatabase(PEGTransformer &transformer,
+                                                                          optional_ptr<ParseResult> parse_result) {
 	auto &list_pr = parse_result->Cast<ListParseResult>();
 
 	auto from_database = transformer.Transform<string>(list_pr.Child<ListParseResult>(2));
@@ -141,9 +142,9 @@ PEGTransformerFactory::TransformGenericCopyOptionListParens(PEGTransformer &tran
 	return result;
 }
 
-
-case_insensitive_map_t<vector<Value>> PEGTransformerFactory::TransformSpecializedOptionList(PEGTransformer &transformer,
-															optional_ptr<ParseResult> parse_result) {
+case_insensitive_map_t<vector<Value>>
+PEGTransformerFactory::TransformSpecializedOptionList(PEGTransformer &transformer,
+                                                      optional_ptr<ParseResult> parse_result) {
 	auto &list_pr = parse_result->Cast<ListParseResult>();
 	auto options = ExtractParseResultsFromList(list_pr.Child<ListParseResult>(0));
 	case_insensitive_map_t<vector<Value>> result;
@@ -155,23 +156,27 @@ case_insensitive_map_t<vector<Value>> PEGTransformerFactory::TransformSpecialize
 	return result;
 }
 
-GenericCopyOption PEGTransformerFactory::TransformSpecializedOption(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+GenericCopyOption PEGTransformerFactory::TransformSpecializedOption(PEGTransformer &transformer,
+                                                                    optional_ptr<ParseResult> parse_result) {
 	auto &list_pr = parse_result->Cast<ListParseResult>();
 	return transformer.Transform<GenericCopyOption>(list_pr.Child<ChoiceParseResult>(0).result);
 }
 
-GenericCopyOption PEGTransformerFactory::TransformSingleOption(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+GenericCopyOption PEGTransformerFactory::TransformSingleOption(PEGTransformer &transformer,
+                                                               optional_ptr<ParseResult> parse_result) {
 	auto &list_pr = parse_result->Cast<ListParseResult>();
 	return transformer.TransformEnum<GenericCopyOption>(list_pr.Child<ChoiceParseResult>(0).result);
 }
 
-GenericCopyOption PEGTransformerFactory::TransformEncodingOption(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+GenericCopyOption PEGTransformerFactory::TransformEncodingOption(PEGTransformer &transformer,
+                                                                 optional_ptr<ParseResult> parse_result) {
 	auto &list_pr = parse_result->Cast<ListParseResult>();
 	auto string_literal = list_pr.Child<StringLiteralParseResult>(1).result;
 	return GenericCopyOption("encoding", string_literal);
 }
 
-GenericCopyOption PEGTransformerFactory::TransformForceQuoteOption(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+GenericCopyOption PEGTransformerFactory::TransformForceQuoteOption(PEGTransformer &transformer,
+                                                                   optional_ptr<ParseResult> parse_result) {
 	auto &list_pr = parse_result->Cast<ListParseResult>();
 	bool force_quote = list_pr.Child<OptionalParseResult>(0).HasResult();
 	string func_name = force_quote ? "force_quote" : "quote";

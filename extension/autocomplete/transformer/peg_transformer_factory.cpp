@@ -89,6 +89,18 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	REGISTER_TRANSFORM(TransformInsertColumnList);
 	REGISTER_TRANSFORM(TransformColumnList);
 
+	REGISTER_TRANSFORM(TransformCreateStatement);
+	REGISTER_TRANSFORM(TransformCreateStatementVariation);
+	REGISTER_TRANSFORM(TransformCreateTableStmt);
+	REGISTER_TRANSFORM(TransformCreateColumnList);
+	REGISTER_TRANSFORM(TransformCreateTableColumnList);
+
+	REGISTER_TRANSFORM(TransformColumnDefinition);
+	REGISTER_TRANSFORM(TransformTypeOrGenerated);
+	REGISTER_TRANSFORM(TransformType);
+	REGISTER_TRANSFORM(TransformNumericType);
+	REGISTER_TRANSFORM(TransformSimpleNumericType);
+
 	REGISTER_TRANSFORM(TransformCheckpointStatement);
 	REGISTER_TRANSFORM(TransformExportStatement);
 	REGISTER_TRANSFORM(TransformImportStatement);
@@ -119,6 +131,10 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	REGISTER_TRANSFORM(TransformCatalogReservedSchemaTable);
 	REGISTER_TRANSFORM(TransformSchemaQualification);
 	REGISTER_TRANSFORM(TransformCatalogQualification);
+	REGISTER_TRANSFORM(TransformQualifiedName);
+	REGISTER_TRANSFORM(TransformSchemaReservedIdentifierOrStringLiteral);
+	REGISTER_TRANSFORM(TransformCatalogReservedSchemaIdentifierOrStringLiteral);
+	REGISTER_TRANSFORM(TransformTableNameIdentifierOrStringLiteral);
 
 	REGISTER_TRANSFORM(TransformStandardAssignment);
 	REGISTER_TRANSFORM(TransformSetAssignment);
@@ -180,6 +196,12 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	RegisterEnum<CopyDatabaseType>("CopySchema", CopyDatabaseType::COPY_SCHEMA);
 	RegisterEnum<CopyDatabaseType>("CopyData", CopyDatabaseType::COPY_DATA);
 
+	RegisterEnum<LogicalType>("IntType", LogicalType(LogicalTypeId::INTEGER));
+	RegisterEnum<LogicalType>("IntegerType", LogicalType(LogicalTypeId::INTEGER));
+	RegisterEnum<LogicalType>("SmallintType", LogicalType(LogicalTypeId::SMALLINT));
+	RegisterEnum<LogicalType>("BigintType", LogicalType(LogicalTypeId::BIGINT));
+	RegisterEnum<LogicalType>("RealType", LogicalType(LogicalTypeId::FLOAT));
+	RegisterEnum<LogicalType>("BooleanType", LogicalType(LogicalTypeId::BOOLEAN));
 }
 
 optional_ptr<ParseResult> PEGTransformerFactory::ExtractResultFromParens(optional_ptr<ParseResult> parse_result) {

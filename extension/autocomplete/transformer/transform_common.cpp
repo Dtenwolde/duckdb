@@ -30,4 +30,22 @@ string PEGTransformerFactory::TransformIdentifier(PEGTransformer &transformer, o
 	return identifier_pr.identifier;
 }
 
+LogicalType PEGTransformerFactory::TransformType(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	auto &type_pr = list_pr.Child<ListParseResult>(0);
+	auto type = transformer.Transform<LogicalType>(type_pr.Child<ChoiceParseResult>(0).result);
+	// TODO(Dtenwolde) deal with arraybounds
+	return type;
+}
+
+LogicalType PEGTransformerFactory::TransformNumericType(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	return transformer.Transform<LogicalType>(list_pr.Child<ChoiceParseResult>(0).result);
+}
+
+LogicalType PEGTransformerFactory::TransformSimpleNumericType(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	return transformer.TransformEnum<LogicalType>(list_pr.Child<ChoiceParseResult>(0).result);
+}
+
 } // namespace duckdb

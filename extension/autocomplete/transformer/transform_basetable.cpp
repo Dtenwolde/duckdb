@@ -50,4 +50,38 @@ string PEGTransformerFactory::TransformCatalogQualification(PEGTransformer &tran
 	return list_pr.Child<IdentifierParseResult>(0).identifier;
 }
 
+QualifiedName PEGTransformerFactory::TransformQualifiedName(PEGTransformer &transformer,
+                                                            optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	return transformer.Transform<QualifiedName>(list_pr.Child<ChoiceParseResult>(0).result);
+}
+
+QualifiedName PEGTransformerFactory::TransformCatalogReservedSchemaIdentifierOrStringLiteral(PEGTransformer &transformer,
+                                                                              optional_ptr<ParseResult> parse_result) {
+	QualifiedName result;
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	result.catalog = transformer.Transform<string>(list_pr.Child<ListParseResult>(0));
+	result.schema = transformer.Transform<string>(list_pr.Child<ListParseResult>(1));
+	result.name = transformer.Transform<string>(list_pr.Child<ListParseResult>(2));
+	return result;
+}
+
+QualifiedName PEGTransformerFactory::TransformSchemaReservedIdentifierOrStringLiteral(PEGTransformer &transformer,
+                                                                        optional_ptr<ParseResult> parse_result) {
+	QualifiedName result;
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	result.catalog = INVALID_CATALOG;
+	result.schema = transformer.Transform<string>(list_pr.Child<ListParseResult>(0));
+	result.name = transformer.Transform<string>(list_pr.Child<ListParseResult>(1));
+	return result;
+}
+
+QualifiedName PEGTransformerFactory::TransformTableNameIdentifierOrStringLiteral(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	QualifiedName result;
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	result.catalog = INVALID_CATALOG;
+	result.schema = INVALID_SCHEMA;
+	result.name = transformer.Transform<string>(list_pr.Child<ListParseResult>(0));
+	return result;
+}
 } // namespace duckdb
