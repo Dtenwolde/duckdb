@@ -113,10 +113,10 @@ RealType <- 'REAL'i
 BooleanType <- 'BOOLEAN'i
 DoubleType <- ('DOUBLE'i 'PRECISION'i)
 
-FloatType <- ('FLOAT'i Parens(NumberLiteral)?)
-Decimaltype <- ('DECIMAL'i TypeModifiers?)
-DecType <- ('DEC'i TypeModifiers?)
-NumericModType <- ('NUMERIC'i TypeModifiers?)
+FloatType <- 'FLOAT'i Parens(NumberLiteral)?
+DecimalType <- 'DECIMAL'i TypeModifiers?
+DecType <- 'DEC'i TypeModifiers?
+NumericModType <- 'NUMERIC'i TypeModifiers?
 
 QualifiedTypeName <- CatalogQualification? SchemaQualification? TypeName
 TypeModifiers <- Parens(List(Expression)?)

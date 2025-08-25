@@ -1293,21 +1293,21 @@ BitType <- 'BIT'i 'VARYING'i? Parens(List(Expression))?
 
 NumericType <- SimpleNumericType / DecimalNumericType
 SimpleNumericType <- IntType / IntegerType / SmallintType /
-                BigintType / RealType / BooleanType
-DecimalNumericType <- FloatType / DoubleType / DecimalType /
-                DecType / NumericModType
+                BigintType / RealType / BooleanType / DoubleType
+DecimalNumericType <- FloatType / DecimalType / DecType / NumericModType
+
 IntType <- 'INT'i
 IntegerType <- 'INTEGER'i
 SmallintType <- 'SMALLINT'i
 BigintType <- 'BIGINT'i
 RealType <- 'REAL'i
 BooleanType <- 'BOOLEAN'i
-
-FloatType <- ('FLOAT'i Parens(NumberLiteral)?)
 DoubleType <- ('DOUBLE'i 'PRECISION'i)
-Decimaltype <- ('DECIMAL'i TypeModifiers?)
-DecType <- ('DEC'i TypeModifiers?)
-NumericModType <- ('NUMERIC'i TypeModifiers?)
+
+FloatType <- 'FLOAT'i Parens(NumberLiteral)?
+DecimalType <- 'DECIMAL'i TypeModifiers?
+DecType <- 'DEC'i TypeModifiers?
+NumericModType <- 'NUMERIC'i TypeModifiers?
 
 QualifiedTypeName <- CatalogQualification? SchemaQualification? TypeName
 TypeModifiers <- Parens(List(Expression)?)
