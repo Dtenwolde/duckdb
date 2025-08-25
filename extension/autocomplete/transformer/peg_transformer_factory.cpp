@@ -100,6 +100,10 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	REGISTER_TRANSFORM(TransformType);
 	REGISTER_TRANSFORM(TransformNumericType);
 	REGISTER_TRANSFORM(TransformSimpleNumericType);
+	REGISTER_TRANSFORM(TransformDecimalNumericType);
+	REGISTER_TRANSFORM(TransformFloatType);
+	REGISTER_TRANSFORM(TransformDecimalType);
+	REGISTER_TRANSFORM(TransformTypeModifiers);
 
 	REGISTER_TRANSFORM(TransformCheckpointStatement);
 	REGISTER_TRANSFORM(TransformExportStatement);
