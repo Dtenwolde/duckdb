@@ -15,3 +15,9 @@ create table foo2 (i float(32));
 
 statement ok
 create table foo3 (i decimal(2,1));
+
+statement ok
+create table foo4 (i dec(2,1));
+
+statement ok
+create table foo5 (i numeric(2,1));

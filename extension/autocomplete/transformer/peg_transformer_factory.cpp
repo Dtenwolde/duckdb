@@ -103,6 +103,8 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	REGISTER_TRANSFORM(TransformDecimalNumericType);
 	REGISTER_TRANSFORM(TransformFloatType);
 	REGISTER_TRANSFORM(TransformDecimalType);
+	Register("DecType", &TransformDecimalType);
+	Register("NumericModType", &TransformDecimalType);
 	REGISTER_TRANSFORM(TransformTypeModifiers);
 
 	REGISTER_TRANSFORM(TransformCheckpointStatement);
