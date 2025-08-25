@@ -35,19 +35,32 @@ string PEGTransformerFactory::TransformIdentifierOrKeyword(PEGTransformer &trans
 QualifiedName PEGTransformerFactory::TransformDottedIdentifier(PEGTransformer &transformer,
                                                                optional_ptr<ParseResult> parse_result) {
 	// Rule: ColId ('.' ColLabel)*
+	// TODO(Dtenwolde): Should probably not return a qualifiedName (what about struct e.g.x.y.z)
 	auto &list_pr = parse_result->Cast<ListParseResult>();
 	vector<string> parts;
 
 	auto &col_id_pr = list_pr.children[0];
-	parts.push_back(transformer.Transform<string>(col_id_pr));
-
-	auto &repetition_list = list_pr.Child<ListParseResult>(1);
-	for (auto &child_ref : repetition_list.children) {
-		// Each child is a sequence: "'.' ColLabel"
-		auto &sub_list = child_ref->Cast<ListParseResult>();
-		auto &col_label_pr = sub_list.children[1];
-		parts.push_back(transformer.Transform<string>(col_label_pr));
+	if (col_id_pr->type == ParseResultType::IDENTIFIER) {
+		parts.push_back(col_id_pr->Cast<IdentifierParseResult>().identifier);
+	} else {
+		parts.push_back(transformer.Transform<string>(col_id_pr));
 	}
+
+	auto &optional_elements = list_pr.Child<OptionalParseResult>(1);
+	if (optional_elements.HasResult()) {
+		auto repeat_elements = optional_elements.optional_result->Cast<RepeatParseResult>();
+		for (auto &child_ref : repeat_elements.children) {
+			// Each child is a sequence: "'.' ColLabel"
+			auto &sub_list = child_ref->Cast<ListParseResult>();
+			auto &col_label_pr = sub_list.children[1];
+			if (col_label_pr->type == ParseResultType::IDENTIFIER) {
+				parts.push_back(col_label_pr->Cast<IdentifierParseResult>().identifier);
+			} else {
+				parts.push_back(transformer.Transform<string>(col_label_pr));
+			}
+		}
+	}
+
 
 	QualifiedName result;
 	if (parts.size() == 1) {

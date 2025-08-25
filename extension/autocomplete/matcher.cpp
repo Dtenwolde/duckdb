@@ -574,7 +574,7 @@ public:
 			return nullptr;
 		}
 		string stripped_string = token_text.substr(1, token_text.length() - 2);
-		;
+
 		auto result = state.allocator.Allocate(make_uniq<StringLiteralParseResult>(stripped_string));
 		result->name = name;
 		return result;

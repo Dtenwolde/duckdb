@@ -4,6 +4,7 @@
 #include "parse_result.hpp"
 #include "transform_enum_result.hpp"
 #include "transform_result.hpp"
+#include "ast/column_element.hpp"
 #include "ast/extension_repository_info.hpp"
 #include "ast/generic_copy_option.hpp"
 #include "ast/set_info.hpp"
@@ -190,12 +191,28 @@ private:
 	static unique_ptr<SQLStatement> TransformTruncateStatement(PEGTransformer &transformer,
 	                                                           optional_ptr<ParseResult> parse_result);
 
+	static unique_ptr<SQLStatement> TransformCreateStatement(PEGTransformer &transformer,
+	                                                         optional_ptr<ParseResult> parse_result);
+	static unique_ptr<SQLStatement> TransformCreateStatementVariation(PEGTransformer &transformer,
+	                                                                  optional_ptr<ParseResult> parse_result);
+	static unique_ptr<SQLStatement> TransformCreateTableStmt(PEGTransformer &transformer,
+	                                                         optional_ptr<ParseResult> parse_result);
+	static ColumnElements TransformCreateColumnList(PEGTransformer &transformer,
+	                                                optional_ptr<ParseResult> parse_result);
+	static ColumnElements TransformCreateTableColumnList(PEGTransformer &transformer,
+	                                                     optional_ptr<ParseResult> parse_result);
+
+	static ColumnDefinition TransformColumnDefinition(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static LogicalType TransformTypeOrGenerated(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+
 	static unique_ptr<SQLStatement> TransformCopyStatement(PEGTransformer &transformer,
 	                                                       optional_ptr<ParseResult> parse_result);
 	static unique_ptr<SQLStatement> TransformCopySelect(PEGTransformer &transformer,
 	                                                    optional_ptr<ParseResult> parse_result);
-	static unique_ptr<SQLStatement> TransformCopyFromDatabase(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
-	static CopyDatabaseType TransformCopyDatabaseFlag(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<SQLStatement> TransformCopyFromDatabase(PEGTransformer &transformer,
+	                                                          optional_ptr<ParseResult> parse_result);
+	static CopyDatabaseType TransformCopyDatabaseFlag(PEGTransformer &transformer,
+	                                                  optional_ptr<ParseResult> parse_result);
 	static unique_ptr<SQLStatement> TransformCopyTable(PEGTransformer &transformer,
 	                                                   optional_ptr<ParseResult> parse_result);
 	static bool TransformFromOrTo(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
@@ -205,14 +222,20 @@ private:
 	                                                                  optional_ptr<ParseResult> parse_result);
 	static case_insensitive_map_t<vector<Value>>
 	TransformGenericCopyOptionListParens(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
-	static case_insensitive_map_t<vector<Value>>
-	TransformSpecializedOptionList(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static case_insensitive_map_t<vector<Value>> TransformSpecializedOptionList(PEGTransformer &transformer,
+	                                                                            optional_ptr<ParseResult> parse_result);
 
-	static GenericCopyOption TransformSpecializedOption(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static LogicalType TransformType(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static LogicalType TransformNumericType(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static LogicalType TransformSimpleNumericType(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+
+	static GenericCopyOption TransformSpecializedOption(PEGTransformer &transformer,
+	                                                    optional_ptr<ParseResult> parse_result);
 	static GenericCopyOption TransformSingleOption(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
-	static GenericCopyOption TransformEncodingOption(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
-	static GenericCopyOption TransformForceQuoteOption(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
-
+	static GenericCopyOption TransformEncodingOption(PEGTransformer &transformer,
+	                                                 optional_ptr<ParseResult> parse_result);
+	static GenericCopyOption TransformForceQuoteOption(PEGTransformer &transformer,
+	                                                   optional_ptr<ParseResult> parse_result);
 
 	static unique_ptr<BaseTableRef> TransformBaseTableName(PEGTransformer &transformer,
 	                                                       optional_ptr<ParseResult> parse_result);
@@ -222,6 +245,13 @@ private:
 	                                                                    optional_ptr<ParseResult> parse_result);
 	static string TransformSchemaQualification(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static string TransformCatalogQualification(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static QualifiedName TransformQualifiedName(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+
+	static QualifiedName TransformCatalogReservedSchemaIdentifierOrStringLiteral(PEGTransformer &transformer,
+																  optional_ptr<ParseResult> parse_result);
+	static QualifiedName TransformSchemaReservedIdentifierOrStringLiteral(PEGTransformer &transformer,
+	                                                                      optional_ptr<ParseResult> parse_result);
+	static QualifiedName TransformTableNameIdentifierOrStringLiteral(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 
 	static string TransformColIdOrString(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static string TransformColId(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
