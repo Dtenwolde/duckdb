@@ -22,8 +22,8 @@ static SizeModifiers GetSizeModifiers(duckdb_libpgquery::PGTypeName &type_name, 
 
 	if (base_type == LogicalTypeId::DECIMAL) {
 		// Defaults for DECIMAL
-		result.width = 18;
-		result.scale = 3;
+		result.width = Decimal::DEFAULT_WIDTH_DECIMAL;
+		result.scale = Decimal::DEFAULT_SCALE_DECIMAL;
 	}
 
 	if (type_name.typmods) {
