@@ -43,6 +43,8 @@ public:
 	static constexpr uint8_t MAX_WIDTH_INT64 = DecimalWidth<int64_t>::max;
 	static constexpr uint8_t MAX_WIDTH_INT128 = DecimalWidth<hugeint_t>::max;
 	static constexpr uint8_t MAX_WIDTH_DECIMAL = MAX_WIDTH_INT128;
+	static constexpr uint8_t DEFAULT_WIDTH_DECIMAL = 18;
+	static constexpr uint8_t DEFAULT_SCALE_DECIMAL = 3;
 
 public:
 	static string ToString(int16_t value, uint8_t width, uint8_t scale);
