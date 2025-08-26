@@ -37,8 +37,8 @@ ColumnCollation <- 'COLLATE'i Expression
 ColumnCompression <- 'USING'i 'COMPRESSION'i ColIdOrString
 
 KeyActions <- UpdateAction? DeleteAction?
-UpdateAction <- 'ON' 'UPDATE' KeyAction
-DeleteAction <- 'ON' 'DELETE' KeyAction
+UpdateAction <- 'ON'i 'UPDATE'i KeyAction
+DeleteAction <- 'ON'i 'DELETE'i KeyAction
 KeyAction <- ('NO'i 'ACTION'i) / 'RESTRICT'i / 'CASCADE'i / ('SET'i 'NULL'i) / ('SET'i 'DEFAULT'i)
 
 TopLevelConstraint <- ConstraintNameClause? TopLevelConstraintList
