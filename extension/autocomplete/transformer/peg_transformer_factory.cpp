@@ -122,6 +122,13 @@ PEGTransformerFactory::PEGTransformerFactory() {
 
 	REGISTER_TRANSFORM(TransformTypeModifiers);
 
+	REGISTER_TRANSFORM(TransformTopLevelConstraint);
+	REGISTER_TRANSFORM(TransformTopLevelConstraintList);
+	REGISTER_TRANSFORM(TransformTopPrimaryKeyConstraint);
+	REGISTER_TRANSFORM(TransformTopUniqueConstraint);
+
+	REGISTER_TRANSFORM(TransformColumnIdList);
+
 	REGISTER_TRANSFORM(TransformCheckpointStatement);
 	REGISTER_TRANSFORM(TransformExportStatement);
 	REGISTER_TRANSFORM(TransformImportStatement);

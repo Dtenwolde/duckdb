@@ -3,6 +3,7 @@
 #include "transformer/peg_transformer.hpp"
 #include "duckdb/parser/constraint.hpp"
 #include "ast/column_element.hpp"
+#include "duckdb/parser/constraints/unique_constraint.hpp"
 
 namespace duckdb {
 
@@ -97,6 +98,44 @@ LogicalType PEGTransformerFactory::TransformTypeOrGenerated(PEGTransformer &tran
 	}
 	// TODO(Dtenwolde) deal with generated columns
 	return type;
+}
+
+unique_ptr<Constraint> PEGTransformerFactory::TransformTopLevelConstraint(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	// TODO(dtenwolde) figure out what to do with constraint name.
+	auto opt_constraint_name = list_pr.Child<OptionalParseResult>(0);
+	auto result = transformer.Transform<unique_ptr<Constraint>>(list_pr.Child<ListParseResult>(1));
+	return result;
+}
+
+unique_ptr<Constraint> PEGTransformerFactory::TransformTopLevelConstraintList(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	return transformer.Transform<unique_ptr<Constraint>>(list_pr.Child<ChoiceParseResult>(0).result);
+}
+
+unique_ptr<Constraint> PEGTransformerFactory::TransformTopPrimaryKeyConstraint(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	auto column_list = transformer.Transform<vector<string>>(list_pr.Child<ListParseResult>(2));
+	auto result = make_uniq<UniqueConstraint>(column_list, true);
+	return result;
+}
+
+unique_ptr<Constraint> PEGTransformerFactory::TransformTopUniqueConstraint(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	auto column_list = transformer.Transform<vector<string>>(list_pr.Child<ListParseResult>(2));
+	auto result = make_uniq<UniqueConstraint>(column_list, false);
+	return result;
+}
+
+vector<string> PEGTransformerFactory::TransformColumnIdList(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	vector<string> result;
+	auto colid_list = ExtractResultFromParens(list_pr.Child<ListParseResult>(0));
+	auto colids = ExtractParseResultsFromList(colid_list);
+	for (auto colid : colids) {
+		result.push_back(transformer.Transform<string>(colid));
+	}
+	return result;
 }
 
 } // namespace duckdb

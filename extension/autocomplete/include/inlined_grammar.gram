@@ -793,8 +793,8 @@ ColumnCollation <- 'COLLATE'i Expression
 ColumnCompression <- 'USING'i 'COMPRESSION'i ColIdOrString
 
 KeyActions <- UpdateAction? DeleteAction?
-UpdateAction <- 'ON' 'UPDATE' KeyAction
-DeleteAction <- 'ON' 'DELETE' KeyAction
+UpdateAction <- 'ON'i 'UPDATE'i KeyAction
+DeleteAction <- 'ON'i 'DELETE'i KeyAction
 KeyAction <- ('NO'i 'ACTION'i) / 'RESTRICT'i / 'CASCADE'i / ('SET'i 'NULL'i) / ('SET'i 'DEFAULT'i)
 
 TopLevelConstraint <- ConstraintNameClause? TopLevelConstraintList
@@ -898,7 +898,7 @@ DefaultValues <- 'DEFAULT'i 'VALUES'i
 OnConflictClause <- 'ON'i 'CONFLICT'i OnConflictTarget? OnConflictAction
 
 OnConflictTarget <- OnConflictExpressionTarget / OnConflictIndexTarget
-OnConflictExpressionTarget <- Parens(List(ColId)) WhereClause?
+OnConflictExpressionTarget <- ColumnIdList WhereClause?
 OnConflictIndexTarget <- 'ON'i 'CONSTRAINT'i ConstraintName
 
 
@@ -924,7 +924,7 @@ SimpleSelect <- SelectFrom WhereClause? GroupByClause? HavingClause? WindowClaus
 
 SelectFrom <- (SelectClause FromClause?) / (FromClause SelectClause?)
 WithStatement <- ColIdOrString InsertColumnList? UsingKey? 'AS'i Materialized? SubqueryReference
-UsingKey <- 'USING'i 'KEY'i Parens(List(ColId))
+UsingKey <- 'USING'i 'KEY'i ColumnIdList
 Materialized <- 'NOT'i? 'MATERIALIZED'i
 WithClause <- 'WITH'i Recursive? List(WithStatement)
 Recursive <- 'RECURSIVE'i

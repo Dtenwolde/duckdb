@@ -23,4 +23,4 @@ call peg_parser();
 # create table foo5 (i numeric(2,1));
 
 statement ok
-create table foo6 (i varchar);
+create table foo6 (constraint boo primary key (i), i varchar);
