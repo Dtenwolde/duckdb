@@ -1,5 +1,6 @@
 #include "transformer/peg_transformer.hpp"
 #include "matcher.hpp"
+#include "chrono"
 #include "duckdb/common/to_string.hpp"
 
 namespace duckdb {
@@ -22,8 +23,15 @@ unique_ptr<SQLStatement> PEGTransformerFactory::Transform(vector<MatcherToken> &
 	MatchState state(tokens, suggestions, parse_result_allocator);
 	MatcherAllocator allocator;
 	auto &matcher = Matcher::RootMatcher(allocator);
+	// --- TIMING START ---
+	auto start_time = std::chrono::high_resolution_clock::now();
 	auto match_result = matcher.MatchParseResult(state);
+	auto end_time = std::chrono::high_resolution_clock::now();
+	// --- TIMING END ---
+	auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time);
 	Printer::Print(match_result->ToString());
+	Printer::PrintF("Parsing took: %lld µs\n", duration.count());
+
 	if (match_result == nullptr || state.token_index < state.tokens.size()) {
 		// TODO(dtenwolde) add error handling
 		string token_list;

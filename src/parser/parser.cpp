@@ -225,9 +225,14 @@ void Parser::ParseQuery(const string &query) {
 		// Creating a new scope to prevent multiple PostgresParser destructors being called
 		// which led to some memory issues
 		{
-
 			PostgresParser parser;
+			auto start_time = std::chrono::high_resolution_clock::now();
 			parser.Parse(query);
+			auto end_time = std::chrono::high_resolution_clock::now();
+			// --- TIMING END ---
+			auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time);
+			Printer::PrintF("Parsing took: %lld µs\n", duration.count());
+
 			if (parser.success) {
 				if (!parser.parse_tree) {
 					// empty statement
