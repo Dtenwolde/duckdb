@@ -1,8 +1,8 @@
-#include "ast/column_element.hpp"
 #include "duckdb/parser/parsed_data/create_table_info.hpp"
 #include "duckdb/parser/statement/create_statement.hpp"
 #include "transformer/peg_transformer.hpp"
 #include "duckdb/parser/constraint.hpp"
+#include "ast/column_element.hpp"
 
 namespace duckdb {
 
@@ -11,21 +11,21 @@ unique_ptr<SQLStatement> PEGTransformerFactory::TransformCreateStatement(PEGTran
 	auto &list_pr = parse_result->Cast<ListParseResult>();
 	bool replace = list_pr.Child<OptionalParseResult>(1).HasResult();
 	bool temporary = list_pr.Child<OptionalParseResult>(2).HasResult();
-	auto result = transformer.Transform<unique_ptr<SQLStatement>>(list_pr.Child<ListParseResult>(3));
-
-	// todo(dtenwolde) do some more with result
-	return result;
+	auto result = transformer.Transform<unique_ptr<CreateStatement>>(list_pr.Child<ListParseResult>(3));
+	result->info->on_conflict = replace ? OnCreateConflict::REPLACE_ON_CONFLICT : OnCreateConflict::ERROR_ON_CONFLICT;
+	result->info->temporary = temporary;
+	return std::move(result);
 }
 
-unique_ptr<SQLStatement>
+unique_ptr<CreateStatement>
 PEGTransformerFactory::TransformCreateStatementVariation(PEGTransformer &transformer,
                                                          optional_ptr<ParseResult> parse_result) {
 	auto &list_pr = parse_result->Cast<ListParseResult>();
 	auto choice_pr = list_pr.Child<ChoiceParseResult>(0);
-	return transformer.Transform<unique_ptr<SQLStatement>>(choice_pr.result);
+	return transformer.Transform<unique_ptr<CreateStatement>>(choice_pr.result);
 }
 
-unique_ptr<SQLStatement> PEGTransformerFactory::TransformCreateTableStmt(PEGTransformer &transformer,
+unique_ptr<CreateStatement> PEGTransformerFactory::TransformCreateTableStmt(PEGTransformer &transformer,
                                                                          optional_ptr<ParseResult> parse_result) {
 	auto &list_pr = parse_result->Cast<ListParseResult>();
 
@@ -50,7 +50,7 @@ unique_ptr<SQLStatement> PEGTransformerFactory::TransformCreateTableStmt(PEGTran
 	auto commit_action = list_pr.Child<OptionalParseResult>(4).HasResult();
 
 	result->info = std::move(info);
-	return result;
+	return std::move(result);
 }
 
 ColumnElements PEGTransformerFactory::TransformCreateColumnList(PEGTransformer &transformer,
