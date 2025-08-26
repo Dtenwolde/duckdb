@@ -3,6 +3,8 @@
 #include "transformer/peg_transformer.hpp"
 #include "duckdb/parser/constraint.hpp"
 #include "ast/column_element.hpp"
+#include "duckdb/parser/constraints/check_constraint.hpp"
+#include "duckdb/parser/constraints/foreign_key_constraint.hpp"
 #include "duckdb/parser/constraints/unique_constraint.hpp"
 
 namespace duckdb {
@@ -13,6 +15,9 @@ unique_ptr<SQLStatement> PEGTransformerFactory::TransformCreateStatement(PEGTran
 	bool replace = list_pr.Child<OptionalParseResult>(1).HasResult();
 	bool temporary = list_pr.Child<OptionalParseResult>(2).HasResult();
 	auto result = transformer.Transform<unique_ptr<CreateStatement>>(list_pr.Child<ListParseResult>(3));
+	if (result->info->on_conflict == OnCreateConflict::IGNORE_ON_CONFLICT && replace) {
+		throw ParserException("Cannot specify both OR REPLACE and IF NOT EXISTS within single create statement");
+	}
 	result->info->on_conflict = replace ? OnCreateConflict::REPLACE_ON_CONFLICT : OnCreateConflict::ERROR_ON_CONFLICT;
 	result->info->temporary = temporary;
 	return std::move(result);
@@ -36,6 +41,7 @@ unique_ptr<CreateStatement> PEGTransformerFactory::TransformCreateTableStmt(PEGT
 	auto info = make_uniq<CreateTableInfo>(table_name.catalog, table_name.schema, table_name.name);
 
 	bool if_not_exists = list_pr.Child<OptionalParseResult>(1).HasResult();
+	info->on_conflict = if_not_exists ? OnCreateConflict::IGNORE_ON_CONFLICT : OnCreateConflict::ERROR_ON_CONFLICT;
 	auto &table_as_or_column_list = list_pr.Child<ListParseResult>(3).Child<ChoiceParseResult>(0);
 	if (table_as_or_column_list.name == "CreateTableAs") {
 		throw NotImplementedException("CreateTableAs");
@@ -125,6 +131,35 @@ unique_ptr<Constraint> PEGTransformerFactory::TransformTopUniqueConstraint(PEGTr
 	auto column_list = transformer.Transform<vector<string>>(list_pr.Child<ListParseResult>(2));
 	auto result = make_uniq<UniqueConstraint>(column_list, false);
 	return result;
+}
+
+unique_ptr<Constraint> PEGTransformerFactory::TransformCheckConstraint(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	auto extract_parens = ExtractResultFromParens(list_pr.Child<ListParseResult>(0));
+	auto check_expr = transformer.Transform<unique_ptr<ParsedExpression>>(extract_parens);
+	auto result = make_uniq<CheckConstraint>(std::move(check_expr));
+	return result;
+}
+
+unique_ptr<Constraint> PEGTransformerFactory::TransformTopForeignKeyConstraint(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	auto fk_list = transformer.Transform<vector<string>>(list_pr.Child<ListParseResult>(2));
+
+	auto table_name = transformer.Transform<unique_ptr<BaseTableRef>>(list_pr.Child<ListParseResult>(4));
+	auto opt_pk_list = list_pr.Child<OptionalParseResult>(5);
+	vector<string> pk_list;
+	if (opt_pk_list.HasResult()) {
+		pk_list = transformer.Transform<vector<string>>(opt_pk_list.optional_result);
+	}
+	auto key_actions = list_pr.Child<OptionalParseResult>(6);
+	// TODO(Dtenwolde) do something with key actions
+
+	ForeignKeyInfo fk_info;
+	fk_info.table = table_name->table_name;
+	fk_info.schema = table_name->schema_name;
+	// TODO(Dtenwolde) unsure about the fk type or how to figure this out.
+	fk_info.type = ForeignKeyType::FK_TYPE_FOREIGN_KEY_TABLE;
+	return make_uniq<ForeignKeyConstraint>(pk_list, fk_list, fk_info);
 }
 
 vector<string> PEGTransformerFactory::TransformColumnIdList(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {

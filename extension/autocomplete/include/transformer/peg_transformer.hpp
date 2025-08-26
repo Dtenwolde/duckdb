@@ -210,6 +210,8 @@ private:
 	static unique_ptr<Constraint> TransformTopLevelConstraintList(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static unique_ptr<Constraint> TransformTopPrimaryKeyConstraint(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static unique_ptr<Constraint> TransformTopUniqueConstraint(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<Constraint> TransformCheckConstraint(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<Constraint> TransformTopForeignKeyConstraint(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 
 	static vector<string> TransformColumnIdList(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 

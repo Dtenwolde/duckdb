@@ -760,7 +760,7 @@ const char INLINED_PEG_GRAMMAR[] = {
 	"ConstraintNameClause <- 'CONSTRAINT'i Identifier\n"
 	"TopPrimaryKeyConstraint <- 'PRIMARY'i 'KEY'i ColumnIdList\n"
 	"TopUniqueConstraint <- 'UNIQUE'i ColumnIdList\n"
-	"TopForeignKeyConstraint <- 'FOREIGN'i 'KEY'i ColumnIdList ForeignKeyConstraint\n"
+	"TopForeignKeyConstraint <- 'FOREIGN'i 'KEY'i ColumnIdList 'REFERENCES'i BaseTableName ColumnIdList? KeyActions?\n"
 	"ColumnIdList <- Parens(List(ColId))\n"
 	"PlainIdentifier <- !ReservedKeyword <[a-z_]i[a-z0-9_]i*>\n"
 	"QuotedIdentifier <- '\"' [^\"]* '\"'\n"

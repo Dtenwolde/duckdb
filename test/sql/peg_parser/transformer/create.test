@@ -24,3 +24,8 @@ call peg_parser();
 
 statement ok
 create table foo6 (constraint boo primary key (i), i varchar);
+
+statement error
+create or replace table foo (constraint boo foreign key (i) references j(i), i varchar);
+----
+Catalog Error: Table with name j does not exist!
