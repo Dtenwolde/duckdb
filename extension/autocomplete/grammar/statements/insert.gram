@@ -15,7 +15,7 @@ DefaultValues <- 'DEFAULT'i 'VALUES'i
 OnConflictClause <- 'ON'i 'CONFLICT'i OnConflictTarget? OnConflictAction
 
 OnConflictTarget <- OnConflictExpressionTarget / OnConflictIndexTarget
-OnConflictExpressionTarget <- Parens(List(ColId)) WhereClause?
+OnConflictExpressionTarget <- ColumnIdList WhereClause?
 OnConflictIndexTarget <- 'ON'i 'CONSTRAINT'i ConstraintName
 
 

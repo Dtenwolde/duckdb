@@ -12,7 +12,7 @@ SimpleSelect <- SelectFrom WhereClause? GroupByClause? HavingClause? WindowClaus
 
 SelectFrom <- (SelectClause FromClause?) / (FromClause SelectClause?)
 WithStatement <- ColIdOrString InsertColumnList? UsingKey? 'AS'i Materialized? SubqueryReference
-UsingKey <- 'USING'i 'KEY'i Parens(List(ColId))
+UsingKey <- 'USING'i 'KEY'i ColumnIdList
 Materialized <- 'NOT'i? 'MATERIALIZED'i
 WithClause <- 'WITH'i Recursive? List(WithStatement)
 Recursive <- 'RECURSIVE'i
