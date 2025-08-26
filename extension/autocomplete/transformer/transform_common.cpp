@@ -3,9 +3,8 @@
 #include "transformer/peg_transformer.hpp"
 
 namespace duckdb {
-
 string PEGTransformerFactory::TransformColIdOrString(PEGTransformer &transformer,
-                                                     optional_ptr<ParseResult> parse_result) {
+													 optional_ptr<ParseResult> parse_result) {
 	auto &list_pr = parse_result->Cast<ListParseResult>();
 	auto &choice_pr = list_pr.Child<ChoiceParseResult>(0);
 	return transformer.Transform<string>(choice_pr.result);
@@ -21,7 +20,7 @@ string PEGTransformerFactory::TransformColId(PEGTransformer &transformer, option
 }
 
 string PEGTransformerFactory::TransformStringLiteral(PEGTransformer &transformer,
-                                                     optional_ptr<ParseResult> parse_result) {
+													 optional_ptr<ParseResult> parse_result) {
 	auto &string_literal_pr = parse_result->Cast<StringLiteralParseResult>();
 	return string_literal_pr.result;
 }
@@ -73,7 +72,7 @@ LogicalType PEGTransformerFactory::TransformDecimalType(PEGTransformer &transfor
 		if (type_modifiers[0]->GetExpressionClass() != ExpressionClass::CONSTANT ||
 			type_modifiers[1]->GetExpressionClass() != ExpressionClass::CONSTANT) {
 			throw ParserException("Type modifiers must be a constant expression");
-		}
+			}
 		// Parsing of width and scale
 		width = type_modifiers[0]->Cast<ConstantExpression>().value.GetValue<uint8_t>();
 		scale = type_modifiers.size() == 2 ? type_modifiers[1]->Cast<ConstantExpression>().value.GetValue<uint8_t>() : scale;
@@ -94,6 +93,45 @@ vector<unique_ptr<ParsedExpression>> PEGTransformerFactory::TransformTypeModifie
 	}
 
 	return result;
+}
+
+LogicalType PEGTransformerFactory::TransformSimpleType(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	auto qualified_type_or_character = list_pr.Child<ListParseResult>(0);
+	LogicalType result = transformer.Transform<LogicalType>(qualified_type_or_character.Child<ChoiceParseResult>(0).result);
+	auto opt_modifiers = list_pr.Child<OptionalParseResult>(1);
+	vector<unique_ptr<ParsedExpression>> modifiers;
+	if (opt_modifiers.HasResult()) {
+		modifiers = transformer.Transform<vector<unique_ptr<ParsedExpression>>>(opt_modifiers.optional_result);
+	}
+	// TODO(Dtenwolde) add modifiers
+	return result;
+}
+
+
+LogicalType PEGTransformerFactory::TransformQualifiedTypeName(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	// TODO(Dtenwolde) figure out what to do with qualified names
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	QualifiedName result;
+	auto catalog_pr = list_pr.Child<OptionalParseResult>(0);
+	if (catalog_pr.HasResult()) {
+		result.catalog = transformer.Transform<string>(catalog_pr.optional_result);
+	}
+	auto schema_pr = list_pr.Child<OptionalParseResult>(1);
+	if (schema_pr.HasResult()) {
+		result.schema = transformer.Transform<string>(schema_pr.optional_result);
+	}
+
+	if (list_pr.children[2]->type == ParseResultType::IDENTIFIER) {
+		result.name = list_pr.Child<IdentifierParseResult>(2).identifier;
+	} else {
+		result.name = transformer.Transform<string>(list_pr.Child<ListParseResult>(2));
+	}
+	return LogicalType(TransformStringToLogicalTypeId(result.name));
+
+}
+LogicalType PEGTransformerFactory::TransformCharacterType(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	return LogicalType(LogicalTypeId::VARCHAR);
 }
 
 } // namespace duckdb
