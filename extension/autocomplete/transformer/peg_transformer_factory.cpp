@@ -29,8 +29,6 @@ unique_ptr<SQLStatement> PEGTransformerFactory::Transform(vector<MatcherToken> &
 	auto end_time = std::chrono::high_resolution_clock::now();
 	// --- TIMING END ---
 	auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time);
-	Printer::Print(match_result->ToString());
-	Printer::PrintF("Parsing took: %lld µs\n", duration.count());
 
 	if (match_result == nullptr || state.token_index < state.tokens.size()) {
 		// TODO(dtenwolde) add error handling
@@ -47,6 +45,10 @@ unique_ptr<SQLStatement> PEGTransformerFactory::Transform(vector<MatcherToken> &
 		throw ParserException("Failed to parse query - did not consume all tokens (got to token %d - %s)\nTokens:\n%s",
 		                      state.token_index, tokens[state.token_index].text, token_list);
 	}
+
+	Printer::Print(match_result->ToString());
+	Printer::PrintF("Parsing took: %lld µs\n", duration.count());
+
 	match_result->name = "Statement";
 	ArenaAllocator transformer_allocator(Allocator::DefaultAllocator());
 	PEGTransformerState transformer_state(tokens);
@@ -113,6 +115,11 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	REGISTER_TRANSFORM(TransformDecimalType);
 	Register("DecType", &TransformDecimalType);
 	Register("NumericModType", &TransformDecimalType);
+
+	REGISTER_TRANSFORM(TransformSimpleType);
+	REGISTER_TRANSFORM(TransformQualifiedTypeName);
+	REGISTER_TRANSFORM(TransformCharacterType);
+
 	REGISTER_TRANSFORM(TransformTypeModifiers);
 
 	REGISTER_TRANSFORM(TransformCheckpointStatement);
