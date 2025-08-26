@@ -11,6 +11,7 @@
 #include "duckdb/parser/parsed_data/transaction_info.hpp"
 #include "duckdb/parser/statement/copy_database_statement.hpp"
 #include "duckdb/parser/statement/set_statement.hpp"
+#include "duckdb/parser/statement/create_statement.hpp"
 #include "duckdb/parser/tableref/basetableref.hpp"
 #include "parser/peg_parser.hpp"
 #include "duckdb/storage/arena_allocator.hpp"
@@ -193,9 +194,9 @@ private:
 
 	static unique_ptr<SQLStatement> TransformCreateStatement(PEGTransformer &transformer,
 	                                                         optional_ptr<ParseResult> parse_result);
-	static unique_ptr<SQLStatement> TransformCreateStatementVariation(PEGTransformer &transformer,
+	static unique_ptr<CreateStatement> TransformCreateStatementVariation(PEGTransformer &transformer,
 	                                                                  optional_ptr<ParseResult> parse_result);
-	static unique_ptr<SQLStatement> TransformCreateTableStmt(PEGTransformer &transformer,
+	static unique_ptr<CreateStatement> TransformCreateTableStmt(PEGTransformer &transformer,
 	                                                         optional_ptr<ParseResult> parse_result);
 	static ColumnElements TransformCreateColumnList(PEGTransformer &transformer,
 	                                                optional_ptr<ParseResult> parse_result);
