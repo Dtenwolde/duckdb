@@ -121,6 +121,7 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	REGISTER_TRANSFORM(TransformCharacterType);
 	REGISTER_TRANSFORM(TransformBitType);
 	REGISTER_TRANSFORM(TransformRowType);
+	REGISTER_TRANSFORM(TransformMapType);
 	REGISTER_TRANSFORM(TransformUnionType);
 	REGISTER_TRANSFORM(TransformColIdTypeList);
 	REGISTER_TRANSFORM(TransformColIdType);

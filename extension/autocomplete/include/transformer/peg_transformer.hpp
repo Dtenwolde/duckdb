@@ -214,6 +214,7 @@ private:
 	static unique_ptr<Constraint> TransformTopForeignKeyConstraint(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 
 	static LogicalType TransformBitType(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static LogicalType TransformMapType(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static LogicalType TransformRowType(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static LogicalType TransformUnionType(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static child_list_t<LogicalType> TransformColIdTypeList(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);

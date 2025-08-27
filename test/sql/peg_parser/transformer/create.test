@@ -14,6 +14,9 @@ statement ok
 CREATE TABLE t1 (s STRUCT(v VARCHAR, i INTEGER));
 
 statement ok
+CREATE TABLE tbl (col MAP(INTEGER, DOUBLE));
+
+statement ok
 create table boo (i bit);
 
 statement ok
