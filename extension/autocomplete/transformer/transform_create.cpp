@@ -90,6 +90,8 @@ ColumnDefinition PEGTransformerFactory::TransformColumnDefinition(PEGTransformer
 
 	auto column_name = transformer.Transform<QualifiedName>(list_pr.Child<ListParseResult>(0));
 	auto type = transformer.Transform<LogicalType>(list_pr.Child<ListParseResult>(1));
+
+	// TODO(Dtenwolde) Deal with ColumnConstraint
 	auto result = ColumnDefinition(column_name.name, type);
 	return result;
 }
@@ -171,6 +173,19 @@ vector<string> PEGTransformerFactory::TransformColumnIdList(PEGTransformer &tran
 		result.push_back(transformer.Transform<string>(colid));
 	}
 	return result;
+}
+
+LogicalType PEGTransformerFactory::TransformBitType(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	auto &opt_varying = list_pr.Child<OptionalParseResult>(1);
+	if (opt_varying.HasResult()) {
+		throw ParserException("Type with name varbit does not exist.");
+	}
+	auto &opt_modifiers = list_pr.Child<OptionalParseResult>(2);
+	if (opt_modifiers.HasResult()) {
+		throw ParserException("Type BIT does not support any modifiers.");
+	}
+	return LogicalType(LogicalTypeId::BIT);
 }
 
 } // namespace duckdb
