@@ -24,11 +24,11 @@ unique_ptr<SQLStatement> PEGTransformerFactory::Transform(vector<MatcherToken> &
 	MatcherAllocator allocator;
 	auto &matcher = Matcher::RootMatcher(allocator);
 	// --- TIMING START ---
-	auto start_time = std::chrono::high_resolution_clock::now();
+	// auto start_time = std::chrono::high_resolution_clock::now();
 	auto match_result = matcher.MatchParseResult(state);
-	auto end_time = std::chrono::high_resolution_clock::now();
+	// auto end_time = std::chrono::high_resolution_clock::now();
 	// --- TIMING END ---
-	auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time);
+	// auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time);
 
 	if (match_result == nullptr || state.token_index < state.tokens.size()) {
 		// TODO(dtenwolde) add error handling
@@ -46,8 +46,8 @@ unique_ptr<SQLStatement> PEGTransformerFactory::Transform(vector<MatcherToken> &
 		                      state.token_index, tokens[state.token_index].text, token_list);
 	}
 
-	Printer::Print(match_result->ToString());
-	Printer::PrintF("Parsing took: %lld µs\n", duration.count());
+	// Printer::Print(match_result->ToString());
+	// Printer::PrintF("Parsing took: %lld µs\n", duration.count());
 
 	match_result->name = "Statement";
 	ArenaAllocator transformer_allocator(Allocator::DefaultAllocator());
