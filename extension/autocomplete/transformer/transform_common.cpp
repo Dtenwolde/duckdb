@@ -130,8 +130,21 @@ LogicalType PEGTransformerFactory::TransformQualifiedTypeName(PEGTransformer &tr
 	return LogicalType(TransformStringToLogicalTypeId(result.name));
 
 }
+
 LogicalType PEGTransformerFactory::TransformCharacterType(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
 	return LogicalType(LogicalTypeId::VARCHAR);
+}
+
+LogicalType PEGTransformerFactory::TransformMapType(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	auto extract_parens = ExtractResultFromParens(list_pr.Child<ListParseResult>(1));
+	auto type_list = ExtractParseResultsFromList(extract_parens);
+	if (type_list.size() != 2) {
+		throw ParserException("Map type needs exactly two entries, key and value type.");
+	}
+	auto key_type = transformer.Transform<LogicalType>(type_list[0]);
+	auto value_type = transformer.Transform<LogicalType>(type_list[1]);
+	return LogicalType::MAP(key_type, value_type);
 }
 
 LogicalType PEGTransformerFactory::TransformRowType(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
