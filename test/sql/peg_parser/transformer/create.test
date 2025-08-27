@@ -13,6 +13,16 @@ CREATE TABLE tbl1 (u UNION(num INTEGER, str VARCHAR));
 statement ok
 CREATE TABLE t1 (s STRUCT(v VARCHAR, i INTEGER));
 
+statement error
+CREATE TABLE tbl (col MAP(INTEGER));
+----
+Map type needs exactly two entries, key and value type.
+
+statement error
+CREATE TABLE tbl (col MAP(INTEGER, INTEGER, INTEGER));
+----
+Map type needs exactly two entries, key and value type.
+
 statement ok
 CREATE TABLE tbl (col MAP(INTEGER, DOUBLE));
 
