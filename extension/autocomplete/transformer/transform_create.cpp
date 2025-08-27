@@ -175,5 +175,4 @@ vector<string> PEGTransformerFactory::TransformColumnIdList(PEGTransformer &tran
 	return result;
 }
 
-
 } // namespace duckdb

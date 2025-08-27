@@ -11,6 +11,9 @@ statement ok
 CREATE TABLE tbl1 (u UNION(num INTEGER, str VARCHAR));
 
 statement ok
+CREATE TABLE t1 (s STRUCT(v VARCHAR, i INTEGER));
+
+statement ok
 create table boo (i bit);
 
 statement ok
