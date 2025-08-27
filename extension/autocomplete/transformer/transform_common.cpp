@@ -134,6 +134,12 @@ LogicalType PEGTransformerFactory::TransformCharacterType(PEGTransformer &transf
 	return LogicalType(LogicalTypeId::VARCHAR);
 }
 
+LogicalType PEGTransformerFactory::TransformRowType(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	auto colid_list = transformer.Transform<child_list_t<LogicalType>>(list_pr.Child<ListParseResult>(1));
+	return LogicalType::STRUCT(colid_list);
+}
+
 LogicalType PEGTransformerFactory::TransformUnionType(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
 	auto &list_pr = parse_result->Cast<ListParseResult>();
 	auto colid_list = transformer.Transform<child_list_t<LogicalType>>(list_pr.Child<ListParseResult>(1));
