@@ -57,7 +57,7 @@ unique_ptr<CreateStatement> PEGTransformerFactory::TransformCreateTableStmt(PEGT
 	auto commit_action = list_pr.Child<OptionalParseResult>(4).HasResult();
 
 	result->info = std::move(info);
-	return std::move(result);
+	return result;
 }
 
 ColumnElements PEGTransformerFactory::TransformCreateColumnList(PEGTransformer &transformer,
@@ -173,6 +173,31 @@ vector<string> PEGTransformerFactory::TransformColumnIdList(PEGTransformer &tran
 		result.push_back(transformer.Transform<string>(colid));
 	}
 	return result;
+}
+
+LogicalType PEGTransformerFactory::TransformUnionType(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	auto colid_list = transformer.Transform<child_list_t<LogicalType>>(list_pr.Child<ListParseResult>(1));
+	return LogicalType::UNION(colid_list);
+}
+
+child_list_t<LogicalType> PEGTransformerFactory::TransformColIdTypeList(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	auto extract_list = ExtractResultFromParens(list_pr.Child<ListParseResult>(0));
+	auto colid_type_list = ExtractParseResultsFromList(extract_list);
+
+	child_list_t<LogicalType> result;
+	for (auto colid_type : colid_type_list) {
+		result.push_back(transformer.Transform<std::pair<std::string, LogicalType>>(colid_type));
+	}
+	return result;
+}
+
+std::pair<std::string, LogicalType> PEGTransformerFactory::TransformColIdType(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	auto colid = transformer.Transform<string>(list_pr.Child<ListParseResult>(0));
+	auto type = transformer.Transform<LogicalType>(list_pr.Child<ListParseResult>(1));
+	return std::make_pair(colid, type);
 }
 
 LogicalType PEGTransformerFactory::TransformBitType(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {

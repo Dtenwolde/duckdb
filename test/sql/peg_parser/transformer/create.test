@@ -8,6 +8,9 @@ statement ok
 call peg_parser();
 
 statement ok
+CREATE TABLE tbl1 (u UNION(num INTEGER, str VARCHAR));
+
+statement ok
 create table boo (i bit);
 
 statement ok
