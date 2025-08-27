@@ -175,42 +175,5 @@ vector<string> PEGTransformerFactory::TransformColumnIdList(PEGTransformer &tran
 	return result;
 }
 
-LogicalType PEGTransformerFactory::TransformUnionType(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
-	auto &list_pr = parse_result->Cast<ListParseResult>();
-	auto colid_list = transformer.Transform<child_list_t<LogicalType>>(list_pr.Child<ListParseResult>(1));
-	return LogicalType::UNION(colid_list);
-}
-
-child_list_t<LogicalType> PEGTransformerFactory::TransformColIdTypeList(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
-	auto &list_pr = parse_result->Cast<ListParseResult>();
-	auto extract_list = ExtractResultFromParens(list_pr.Child<ListParseResult>(0));
-	auto colid_type_list = ExtractParseResultsFromList(extract_list);
-
-	child_list_t<LogicalType> result;
-	for (auto colid_type : colid_type_list) {
-		result.push_back(transformer.Transform<std::pair<std::string, LogicalType>>(colid_type));
-	}
-	return result;
-}
-
-std::pair<std::string, LogicalType> PEGTransformerFactory::TransformColIdType(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
-	auto &list_pr = parse_result->Cast<ListParseResult>();
-	auto colid = transformer.Transform<string>(list_pr.Child<ListParseResult>(0));
-	auto type = transformer.Transform<LogicalType>(list_pr.Child<ListParseResult>(1));
-	return std::make_pair(colid, type);
-}
-
-LogicalType PEGTransformerFactory::TransformBitType(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
-	auto &list_pr = parse_result->Cast<ListParseResult>();
-	auto &opt_varying = list_pr.Child<OptionalParseResult>(1);
-	if (opt_varying.HasResult()) {
-		throw ParserException("Type with name varbit does not exist.");
-	}
-	auto &opt_modifiers = list_pr.Child<OptionalParseResult>(2);
-	if (opt_modifiers.HasResult()) {
-		throw ParserException("Type BIT does not support any modifiers.");
-	}
-	return LogicalType(LogicalTypeId::BIT);
-}
 
 } // namespace duckdb
