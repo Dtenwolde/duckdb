@@ -61,7 +61,9 @@ CharacterType <- ('CHARACTER'i 'VARYING'i?) /
                  ('NATIONAL'i 'CHAR'i 'VARYING'i?) /
                  ('NCHAR'i 'VARYING'i?) /
                  'VARCHAR'i
-IntervalType <- ('INTERVAL'i Interval?) / ('INTERVAL'i Parens(NumberLiteral))
+IntervalType <- IntervalInterval / IntervalNumber
+IntervalInterval <- 'INTERVAL'i Interval?
+IntervalNumber <- 'INTERVAL'i Parens(NumberLiteral)
 
 YearKeyword         <- 'YEAR'i / 'YEARS'i
 MonthKeyword        <- 'MONTH'i / 'MONTHS'i

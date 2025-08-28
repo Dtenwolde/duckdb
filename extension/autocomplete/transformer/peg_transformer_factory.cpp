@@ -2,6 +2,7 @@
 #include "matcher.hpp"
 #include "chrono"
 #include "duckdb/common/to_string.hpp"
+#include "duckdb/common/enums/date_part_specifier.hpp"
 
 namespace duckdb {
 
@@ -123,6 +124,9 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	REGISTER_TRANSFORM(TransformRowType);
 	REGISTER_TRANSFORM(TransformMapType);
 	REGISTER_TRANSFORM(TransformUnionType);
+	REGISTER_TRANSFORM(TransformIntervalType);
+	REGISTER_TRANSFORM(TransformIntervalInterval);
+	REGISTER_TRANSFORM(TransformInterval);
 	REGISTER_TRANSFORM(TransformColIdTypeList);
 	REGISTER_TRANSFORM(TransformColIdType);
 
@@ -241,6 +245,8 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	RegisterEnum<LogicalType>("DoubleType", LogicalType(LogicalTypeId::DOUBLE));
 	RegisterEnum<LogicalType>("BooleanType", LogicalType(LogicalTypeId::BOOLEAN));
 
+	RegisterEnum<DatePartSpecifier>("YearKeyword", DatePartSpecifier::YEAR);
+	RegisterEnum<DatePartSpecifier>("MonthKeyword", DatePartSpecifier::MONTH);
 }
 
 optional_ptr<ParseResult> PEGTransformerFactory::ExtractResultFromParens(optional_ptr<ParseResult> parse_result) {

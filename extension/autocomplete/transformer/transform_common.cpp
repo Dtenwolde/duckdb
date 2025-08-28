@@ -75,7 +75,7 @@ LogicalType PEGTransformerFactory::TransformDecimalType(PEGTransformer &transfor
 			}
 		// Parsing of width and scale
 		width = type_modifiers[0]->Cast<ConstantExpression>().value.GetValue<uint8_t>();
-		scale = type_modifiers.size() == 2 ? type_modifiers[1]->Cast<ConstantExpression>().value.GetValue<uint8_t>() : scale;
+		scale = type_modifiers.size() == 2 ? type_modifiers[1]->Cast<ConstantExpression>().value.GetValue<uint8_t>() : 0;
 	}
 	auto type_info = make_shared_ptr<DecimalTypeInfo>(width, scale);
 	return LogicalType(LogicalTypeId::DECIMAL, type_info);
@@ -191,4 +191,24 @@ LogicalType PEGTransformerFactory::TransformBitType(PEGTransformer &transformer,
 	return LogicalType(LogicalTypeId::BIT);
 }
 
+LogicalType PEGTransformerFactory::TransformIntervalType(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	return transformer.Transform<LogicalType>(list_pr.Child<ChoiceParseResult>(0).result);
+}
+
+LogicalType PEGTransformerFactory::TransformIntervalInterval(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	auto opt_interval = list_pr.Child<OptionalParseResult>(1);
+	if (opt_interval.HasResult()) {
+		return transformer.Transform<LogicalType>(opt_interval.optional_result);
+	} else {
+		return LogicalType(LogicalTypeId::INTERVAL);
+	}
+}
+
+LogicalType PEGTransformerFactory::TransformInterval(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	// TODO(Dtenwolde) I think we need to do more here, but I cannot figure it out at the moment.
+	// See transform_typename.cpp and interval_type.hpp
+	return LogicalType(LogicalTypeId::INTERVAL);
+}
 } // namespace duckdb
