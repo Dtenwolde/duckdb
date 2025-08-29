@@ -1322,9 +1322,13 @@ ArrayBounds <- SquareBracketsArray / 'ARRAY'i
 ArrayKeyword <- 'ARRAY'i
 SquareBracketsArray <- '[' NumberLiteral? ']'
 TimeType <- TimeOrTimestamp TypeModifiers? TimeZone?
-TimeOrTimestamp <- 'TIME'i / 'TIMESTAMP'i
+TimeOrTimestamp <- TimeTypeId / TimestampTypeId
+TimeTypeId <- 'TIME'i
+TimestampTypeId <- 'TIMESTAMP'i
 TimeZone <- WithOrWithout 'TIME'i 'ZONE'i
-WithOrWithout <- 'WITH'i / 'WITHOUT'i
+WithOrWithout <- WithRule / WithoutRule
+WithRule <- 'WITH'i
+WithoutRule <- 'WITHOUT'i
 
 RowOrStruct <- 'ROW'i / 'STRUCT'i
 

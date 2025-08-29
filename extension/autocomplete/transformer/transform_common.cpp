@@ -75,6 +75,48 @@ int64_t PEGTransformerFactory::TransformSquareBracketsArray(PEGTransformer &tran
 	return -1;
 }
 
+LogicalType PEGTransformerFactory::TransformTimeType(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	LogicalTypeId type = transformer.Transform<LogicalTypeId>(list_pr.Child<ListParseResult>(0));
+	auto opt_type_modifiers = list_pr.Child<OptionalParseResult>(1);
+	vector<unique_ptr<ParsedExpression>> modifiers;
+	if (opt_type_modifiers.HasResult()) {
+		modifiers = transformer.Transform<vector<unique_ptr<ParsedExpression>>>(opt_type_modifiers.optional_result);
+	}
+	if (type == LogicalTypeId::TIME && modifiers.size() > 0) {
+		throw ParserException("Type TIME does not allow any modifiers");
+	}
+	auto opt_timezone = list_pr.Child<OptionalParseResult>(2);
+	bool with_timezone = false; // Default is without time zone
+	if (opt_timezone.HasResult()) {
+		with_timezone = transformer.Transform<bool>(opt_timezone.optional_result);
+	}
+	if (with_timezone) {
+		if (type == LogicalTypeId::TIME) {
+			type = LogicalTypeId::TIME_TZ;
+		} else if (type == LogicalTypeId::TIMESTAMP) {
+			type = LogicalTypeId::TIMESTAMP_TZ;
+		}
+	}
+	return type;
+}
+
+bool PEGTransformerFactory::TransformTimeZone(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	return transformer.Transform<bool>(list_pr.Child<ListParseResult>(0));
+}
+
+bool PEGTransformerFactory::TransformWithOrWithout(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	return transformer.TransformEnum<bool>(list_pr.Child<ChoiceParseResult>(0));
+}
+
+LogicalTypeId PEGTransformerFactory::TransformTimeOrTimestamp(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	auto time_or_timestamp = list_pr.Child<ChoiceParseResult>(0).result;
+	return transformer.TransformEnum<LogicalTypeId>(time_or_timestamp);
+}
+
 LogicalType PEGTransformerFactory::TransformNumericType(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
 	auto &list_pr = parse_result->Cast<ListParseResult>();
 	return transformer.Transform<LogicalType>(list_pr.Child<ChoiceParseResult>(0).result);

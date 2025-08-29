@@ -64,7 +64,9 @@ public:
 		if (!MatchKeyword(state)) {
 			return nullptr;
 		}
-		return state.allocator.Allocate(make_uniq<KeywordParseResult>(keyword));
+		auto result = state.allocator.Allocate(make_uniq<KeywordParseResult>(keyword));
+		result->name = name;
+		return result;
 	}
 
 	SuggestionType AddSuggestionInternal(MatchState &state) const override {
