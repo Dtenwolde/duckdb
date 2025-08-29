@@ -127,7 +127,9 @@ UnionType <- 'UNION'i ColIdTypeList
 ColIdTypeList <- Parens(List(ColIdType))
 MapType <- 'MAP'i Parens(List(Type))
 ColIdType <- ColId Type
-ArrayBounds <- ('[' NumberLiteral? ']') / 'ARRAY'i
+ArrayBounds <- SquareBracketsArray / 'ARRAY'i
+ArrayKeyword <- 'ARRAY'i
+SquareBracketsArray <- '[' NumberLiteral? ']'
 TimeType <- TimeOrTimestamp TypeModifiers? TimeZone?
 TimeOrTimestamp <- 'TIME'i / 'TIMESTAMP'i
 TimeZone <- WithOrWithout 'TIME'i 'ZONE'i

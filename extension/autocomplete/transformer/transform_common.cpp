@@ -35,8 +35,44 @@ LogicalType PEGTransformerFactory::TransformType(PEGTransformer &transformer, op
 	auto &list_pr = parse_result->Cast<ListParseResult>();
 	auto &type_pr = list_pr.Child<ListParseResult>(0);
 	auto type = transformer.Transform<LogicalType>(type_pr.Child<ChoiceParseResult>(0).result);
-	// TODO(Dtenwolde) deal with arraybounds
+	auto opt_array_bounds_pr = list_pr.Child<OptionalParseResult>(1);
+	if (opt_array_bounds_pr.HasResult()) {
+		auto array_bounds_repeat = opt_array_bounds_pr.optional_result->Cast<RepeatParseResult>();
+		for (auto &array_bound : array_bounds_repeat.children) {
+			auto array_size = transformer.Transform<int64_t>(array_bound);
+			if (array_size < 0) {
+				type = LogicalType::LIST(type);
+			} else if (array_size == 0) {
+				// Empty arrays are not supported
+				throw ParserException("Arrays must have a size of at least 1");
+			} else if (array_size > static_cast<int64_t>(ArrayType::MAX_ARRAY_SIZE)) {
+				throw ParserException("Arrays must have a size of at most %d", ArrayType::MAX_ARRAY_SIZE);
+			} else {
+				type = LogicalType::ARRAY(type, NumericCast<idx_t>(array_size));
+			}
+		}
+	}
 	return type;
+}
+
+int64_t PEGTransformerFactory::TransformArrayBounds(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	return transformer.Transform<int64_t>(list_pr.Child<ChoiceParseResult>(0).result);
+}
+
+int64_t PEGTransformerFactory::TransformArrayKeyword(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	// ArrayKeyword <- 'ARRAY'i
+	// Empty array so we return -1 to signify it's a list
+	return -1;
+}
+
+int64_t PEGTransformerFactory::TransformSquareBracketsArray(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	auto opt_array_size = list_pr.Child<OptionalParseResult>(1);
+	if (opt_array_size.HasResult()) {
+		return std::stoi(opt_array_size.optional_result->Cast<NumberParseResult>().number);
+	}
+	return -1;
 }
 
 LogicalType PEGTransformerFactory::TransformNumericType(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {

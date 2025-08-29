@@ -117,6 +117,10 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	Register("DecType", &TransformDecimalType);
 	Register("NumericModType", &TransformDecimalType);
 
+	REGISTER_TRANSFORM(TransformArrayBounds);
+	REGISTER_TRANSFORM(TransformArrayKeyword);
+	REGISTER_TRANSFORM(TransformSquareBracketsArray);
+
 	REGISTER_TRANSFORM(TransformSimpleType);
 	REGISTER_TRANSFORM(TransformQualifiedTypeName);
 	REGISTER_TRANSFORM(TransformCharacterType);
