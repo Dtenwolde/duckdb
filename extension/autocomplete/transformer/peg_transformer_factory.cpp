@@ -121,6 +121,11 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	REGISTER_TRANSFORM(TransformArrayKeyword);
 	REGISTER_TRANSFORM(TransformSquareBracketsArray);
 
+	REGISTER_TRANSFORM(TransformTimeType);
+	REGISTER_TRANSFORM(TransformTimeOrTimestamp);
+	REGISTER_TRANSFORM(TransformTimeZone);
+	REGISTER_TRANSFORM(TransformWithOrWithout);
+
 	REGISTER_TRANSFORM(TransformSimpleType);
 	REGISTER_TRANSFORM(TransformQualifiedTypeName);
 	REGISTER_TRANSFORM(TransformCharacterType);
@@ -251,6 +256,11 @@ PEGTransformerFactory::PEGTransformerFactory() {
 
 	RegisterEnum<DatePartSpecifier>("YearKeyword", DatePartSpecifier::YEAR);
 	RegisterEnum<DatePartSpecifier>("MonthKeyword", DatePartSpecifier::MONTH);
+
+	RegisterEnum<LogicalTypeId>("TimeTypeId", LogicalTypeId::TIME);
+	RegisterEnum<LogicalTypeId>("TimestampTypeId", LogicalTypeId::TIMESTAMP);
+	RegisterEnum<bool>("WithRule", true);
+	RegisterEnum<bool>("WithoutRule", false);
 }
 
 optional_ptr<ParseResult> PEGTransformerFactory::ExtractResultFromParens(optional_ptr<ParseResult> parse_result) {

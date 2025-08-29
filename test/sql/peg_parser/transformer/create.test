@@ -7,6 +7,9 @@ require autocomplete
 statement ok
 call peg_parser();
 
+statement ok
+create table time_table (j time);
+
 # statement ok
 # create table i6 (j interval months);
 

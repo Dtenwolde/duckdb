@@ -71,6 +71,10 @@ public:
 private:
 	template <typename T>
 	void RegisterEnum(const string &rule_name, T value) {
+		auto existing_rule = enum_mappings.find(rule_name);
+		if (existing_rule != enum_mappings.end()) {
+			throw InternalException("EnumRule %s already exists", rule_name);
+		}
 		enum_mappings[rule_name] = make_uniq<TypedTransformEnumResult<T>>(value);
 	}
 
@@ -216,6 +220,11 @@ private:
 	static int64_t TransformArrayBounds(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static int64_t TransformArrayKeyword(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static int64_t TransformSquareBracketsArray(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+
+	static LogicalType TransformTimeType(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static LogicalTypeId TransformTimeOrTimestamp(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static bool TransformTimeZone(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static bool TransformWithOrWithout(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 
 	static LogicalType TransformBitType(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static LogicalType TransformMapType(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
