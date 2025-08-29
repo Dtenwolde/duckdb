@@ -1,7 +1,10 @@
 CreateStatement <- 'CREATE'i OrReplace? Temporary? CreateStatementVariation
 CreateStatementVariation <- CreateTableStmt / CreateMacroStmt / CreateSequenceStmt / CreateTypeStmt / CreateSchemaStmt / CreateViewStmt / CreateIndexStmt / CreateSecretStmt
 OrReplace <- 'OR'i 'REPLACE'i
-Temporary <- 'TEMP'i / 'TEMPORARY'i / 'PERSISTENT'i
+Temporary <- Persistent / TempPersistent / TemporaryPersistent
+Persistent <- 'PERSISTENT'i
+TempPersistent <- 'TEMP'i
+TemporaryPersistent <- 'TEMPORARY'i
 
 CreateTableStmt <- 'TABLE'i IfNotExists? QualifiedName (CreateTableAs / CreateColumnList) CommitAction?
 
