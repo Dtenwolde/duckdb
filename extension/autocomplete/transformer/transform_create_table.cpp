@@ -3,6 +3,7 @@
 #include "transformer/peg_transformer.hpp"
 #include "duckdb/parser/constraint.hpp"
 #include "ast/column_element.hpp"
+#include "ast/persist_type.hpp"
 #include "duckdb/parser/constraints/check_constraint.hpp"
 #include "duckdb/parser/constraints/foreign_key_constraint.hpp"
 #include "duckdb/parser/constraints/unique_constraint.hpp"
@@ -13,14 +14,31 @@ unique_ptr<SQLStatement> PEGTransformerFactory::TransformCreateStatement(PEGTran
                                                                          optional_ptr<ParseResult> parse_result) {
 	auto &list_pr = parse_result->Cast<ListParseResult>();
 	bool replace = list_pr.Child<OptionalParseResult>(1).HasResult();
-	bool temporary = list_pr.Child<OptionalParseResult>(2).HasResult();
 	auto result = transformer.Transform<unique_ptr<CreateStatement>>(list_pr.Child<ListParseResult>(3));
 	if (result->info->on_conflict == OnCreateConflict::IGNORE_ON_CONFLICT && replace) {
 		throw ParserException("Cannot specify both OR REPLACE and IF NOT EXISTS within single create statement");
 	}
 	result->info->on_conflict = replace ? OnCreateConflict::REPLACE_ON_CONFLICT : OnCreateConflict::ERROR_ON_CONFLICT;
-	result->info->temporary = temporary;
+	auto temporary_pr = list_pr.Child<OptionalParseResult>(2);
+	PersistType persistent_type = temporary_pr.HasResult() ?
+		transformer.Transform<PersistType>(temporary_pr.optional_result) : PersistType::DEFAULT;
+	if (result->info->TYPE == ParseInfoType::CREATE_SECRET_INFO) {
+		auto &secret_info = result->info->Cast<CreateSecretInfo>();
+		if (persistent_type == PersistType::TEMPORARY) {
+			secret_info.persist_type = SecretPersistType::TEMPORARY;
+		} else if (persistent_type == PersistType::PERSISTENT) {
+			secret_info.persist_type = SecretPersistType::PERSISTENT;
+		} else {
+			secret_info.persist_type = SecretPersistType::DEFAULT;
+		}
+	}
+	result->info->temporary = persistent_type == PersistType::TEMPORARY;
 	return std::move(result);
+}
+
+PersistType PEGTransformerFactory::TransformTemporary(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	return transformer.TransformEnum<PersistType>(list_pr.Child<ChoiceParseResult>(0).result);
 }
 
 unique_ptr<CreateStatement>

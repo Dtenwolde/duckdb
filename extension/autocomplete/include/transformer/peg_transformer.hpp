@@ -7,6 +7,7 @@
 #include "ast/column_element.hpp"
 #include "ast/extension_repository_info.hpp"
 #include "ast/generic_copy_option.hpp"
+#include "ast/persist_type.hpp"
 #include "ast/set_info.hpp"
 #include "duckdb/parser/parsed_data/transaction_info.hpp"
 #include "duckdb/parser/statement/copy_database_statement.hpp"
@@ -206,6 +207,7 @@ private:
 	                                                optional_ptr<ParseResult> parse_result);
 	static ColumnElements TransformCreateTableColumnList(PEGTransformer &transformer,
 	                                                     optional_ptr<ParseResult> parse_result);
+	static PersistType TransformTemporary(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 
 	static ColumnDefinition TransformColumnDefinition(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static LogicalType TransformTypeOrGenerated(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
@@ -236,6 +238,9 @@ private:
 	static child_list_t<LogicalType> TransformColIdTypeList(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static std::pair<std::string, LogicalType> TransformColIdType(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static vector<string> TransformColumnIdList(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+
+	static unique_ptr<CreateStatement> TransformCreateSecretStmt(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static string TransformSecretStorageSpecifier(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 
 	static unique_ptr<SQLStatement> TransformCopyStatement(PEGTransformer &transformer,
 	                                                       optional_ptr<ParseResult> parse_result);

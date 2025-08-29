@@ -105,6 +105,10 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	REGISTER_TRANSFORM(TransformCreateTableStmt);
 	REGISTER_TRANSFORM(TransformCreateColumnList);
 	REGISTER_TRANSFORM(TransformCreateTableColumnList);
+	REGISTER_TRANSFORM(TransformTemporary);
+
+	REGISTER_TRANSFORM(TransformCreateSecretStmt);
+	REGISTER_TRANSFORM(TransformSecretStorageSpecifier);
 
 	REGISTER_TRANSFORM(TransformColumnDefinition);
 	REGISTER_TRANSFORM(TransformTypeOrGenerated);
@@ -261,6 +265,10 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	RegisterEnum<LogicalTypeId>("TimestampTypeId", LogicalTypeId::TIMESTAMP);
 	RegisterEnum<bool>("WithRule", true);
 	RegisterEnum<bool>("WithoutRule", false);
+
+	RegisterEnum<PersistType>("TempPersistent", PersistType::TEMPORARY);
+	RegisterEnum<PersistType>("TemporaryPersistent", PersistType::TEMPORARY);
+	RegisterEnum<PersistType>("Persistent", PersistType::PERSISTENT);
 }
 
 optional_ptr<ParseResult> PEGTransformerFactory::ExtractResultFromParens(optional_ptr<ParseResult> parse_result) {
