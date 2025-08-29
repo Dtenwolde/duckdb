@@ -83,11 +83,20 @@ LogicalType PEGTransformerFactory::TransformTimeType(PEGTransformer &transformer
 	if (opt_type_modifiers.HasResult()) {
 		modifiers = transformer.Transform<vector<unique_ptr<ParsedExpression>>>(opt_type_modifiers.optional_result);
 	}
-	if (type == LogicalTypeId::TIME && modifiers.size() > 0) {
-		throw ParserException("Type TIME does not allow any modifiers");
+	auto opt_timezone = list_pr.Child<OptionalParseResult>(2);
+	const bool with_timezone = opt_timezone.HasResult()
+		? transformer.Transform<bool>(opt_timezone.optional_result)
+		: false;
+	if (type == LogicalTypeId::TIME) {
+		if (modifiers.size() > 0) {
+			throw ParserException("Type TIME does not allow any modifiers");
+		}
+		return with_timezone ? LogicalType::TIME_TZ : LogicalType::TIME;
 	}
-	if (type == LogicalType::TIMESTAMP) {
-		if (modifiers.size() == 0) {}
+	if (type == LogicalTypeId::TIMESTAMP) {
+		if (modifiers.size() == 0) {
+			return with_timezone ? LogicalType::TIMESTAMP_TZ : LogicalType::TIMESTAMP;
+		}
 		if (modifiers.size() > 1) {
 			throw ParserException("TIMESTAMP only supports a single modifier");
 		}
@@ -99,30 +108,20 @@ LogicalType PEGTransformerFactory::TransformTimeType(PEGTransformer &transformer
 			throw ParserException("TIMESTAMP only supports until nano-second precision (9)");
 		}
 		if (timestamp_precision < 0) {
-			throw ParserException("TIMESTAMP precision should be between 0 and 10");
+			throw ParserException("TIMESTAMP precision should be between 0 and 10 (inclusive)");
 		}
 		if (timestamp_precision == 0) {
 			return LogicalType::TIMESTAMP_S;
-		} if (timestamp_precision <= 3) {
+		} else if (timestamp_precision <= 3) {
 			return LogicalType::TIMESTAMP_MS;
-		} if (timestamp_precision <= 6) {
+		} else if (timestamp_precision <= 6) {
+			// Corresponds to microseconds, which is the default TIMESTAMP
 			return LogicalType::TIMESTAMP;
-		}
-		return LogicalType::TIMESTAMP_NS;
-	}
-	auto opt_timezone = list_pr.Child<OptionalParseResult>(2);
-	bool with_timezone = false; // Default is without time zone
-	if (opt_timezone.HasResult()) {
-		with_timezone = transformer.Transform<bool>(opt_timezone.optional_result);
-	}
-	if (with_timezone) {
-		if (type == LogicalTypeId::TIME) {
-			type = LogicalTypeId::TIME_TZ;
-		} else if (type == LogicalTypeId::TIMESTAMP) {
-			type = LogicalTypeId::TIMESTAMP_TZ;
+		} else {
+			return LogicalType::TIMESTAMP_NS;
 		}
 	}
-	return LogicalType(type);
+	throw ParserException("Unexpected time type encountered");
 }
 
 bool PEGTransformerFactory::TransformTimeZone(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
