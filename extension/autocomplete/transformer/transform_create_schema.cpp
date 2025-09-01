@@ -1,4 +1,3 @@
-#include "../../../third_party/catch/catch.hpp"
 #include "duckdb/parser/parsed_data/create_schema_info.hpp"
 #include "transformer/peg_transformer.hpp"
 
