@@ -122,6 +122,15 @@ PEGTransformerFactory::PEGTransformerFactory() {
 
 	REGISTER_TRANSFORM(TransformCreateSchemaStmt);
 
+	REGISTER_TRANSFORM(TransformCreateSequenceStmt);
+	REGISTER_TRANSFORM(TransformSequenceOption);
+	REGISTER_TRANSFORM(TransformSeqSetCycle);
+	REGISTER_TRANSFORM(TransformSeqSetIncrement);
+	REGISTER_TRANSFORM(TransformSeqSetMinMax);
+	REGISTER_TRANSFORM(TransformNoMinMax);
+	REGISTER_TRANSFORM(TransformSeqStartWith);
+	REGISTER_TRANSFORM(TransformSeqOwnedBy);
+
 	REGISTER_TRANSFORM(TransformColumnDefinition);
 	REGISTER_TRANSFORM(TransformTypeOrGenerated);
 	REGISTER_TRANSFORM(TransformType);
@@ -294,6 +303,9 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	RegisterEnum<CatalogType>("CommentSchema", CatalogType::SCHEMA_ENTRY);
 	RegisterEnum<CatalogType>("CommentType", CatalogType::TYPE_ENTRY);
 	RegisterEnum<CatalogType>("CommentColumn", CatalogType::INVALID);
+
+	RegisterEnum<string>("MinValue", "minvalue");
+	RegisterEnum<string>("MaxValue", "maxvalue");
 	}
 
 optional_ptr<ParseResult> PEGTransformerFactory::ExtractResultFromParens(optional_ptr<ParseResult> parse_result) {

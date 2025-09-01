@@ -12,6 +12,7 @@ add_library_unity(
   transform_copy.cpp
   transform_create_schema.cpp
   transform_create_secret.cpp
+  transform_create_sequence.cpp
   transform_create_table.cpp
   transform_create_type.cpp
   transform_create_view.cpp

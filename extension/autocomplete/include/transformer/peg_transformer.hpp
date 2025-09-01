@@ -8,6 +8,7 @@
 #include "ast/extension_repository_info.hpp"
 #include "ast/generic_copy_option.hpp"
 #include "ast/persist_type.hpp"
+#include "ast/sequence_option.hpp"
 #include "ast/set_info.hpp"
 #include "duckdb/parser/parsed_data/create_type_info.hpp"
 #include "duckdb/parser/parsed_data/transaction_info.hpp"
@@ -219,6 +220,15 @@ private:
 	static unique_ptr<CreateStatement> TransformCreateTypeStmt(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static unique_ptr<CreateTypeInfo> TransformCreateType(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static LogicalType TransformEnumStringLiteralList(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+
+	static unique_ptr<CreateStatement> TransformCreateSequenceStmt(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static pair<string, SequenceOption> TransformSequenceOption(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static pair<string, SequenceOption> TransformSeqSetCycle(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static pair<string, SequenceOption> TransformSeqSetIncrement(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static pair<string, SequenceOption> TransformSeqSetMinMax(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static pair<string, SequenceOption> TransformNoMinMax(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static pair<string, SequenceOption> TransformSeqStartWith(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static pair<string, SequenceOption> TransformSeqOwnedBy(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 
 	static ColumnDefinition TransformColumnDefinition(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static LogicalType TransformTypeOrGenerated(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);

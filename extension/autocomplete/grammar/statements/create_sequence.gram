@@ -15,6 +15,7 @@ SeqNoMinMax <- 'NO'i SeqMinOrMax
 SeqStartWith <- 'START'i 'WITH'i? Expression
 SeqOwnedBy <- 'OWNED'i 'BY'i QualifiedName
 
-
-SeqMinOrMax <- 'MINVALUE'i / 'MAXVALUE'i
+SeqMinOrMax <- MinValue / MaxValue
+MinValue <- 'MINVALUE'i
+MaxValue <- 'MAXVALUE'i
 

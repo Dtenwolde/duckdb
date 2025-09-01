@@ -1,0 +1,11 @@
+# name: test/sql/peg_parser/transformer/create.test
+# description:
+# group: [transformer]
+
+require autocomplete
+
+statement ok
+call peg_parser();
+
+statement ok
+create sequence minseq INCREMENT BY -1 MINVALUE -5 MAXVALUE 5 CYCLE;
