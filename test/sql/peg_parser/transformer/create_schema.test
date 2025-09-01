@@ -1,0 +1,21 @@
+# name: test/sql/peg_parser/transformer/create.test
+# description:
+# group: [transformer]
+
+require autocomplete
+
+statement ok
+call peg_parser();
+
+statement ok
+create schema foo
+
+statement error
+create schema foo.bar;
+----
+Binder Error: Catalog "foo" does not exist!
+
+statement error
+create schema bar.foo.bar;
+----
+Parser Error: CREATE SCHEMA too many dots: expected "catalog.schema" or "schema"

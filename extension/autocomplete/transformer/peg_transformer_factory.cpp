@@ -110,6 +110,8 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	REGISTER_TRANSFORM(TransformCreateSecretStmt);
 	REGISTER_TRANSFORM(TransformSecretStorageSpecifier);
 
+	REGISTER_TRANSFORM(TransformCreateSchemaStmt);
+
 	REGISTER_TRANSFORM(TransformColumnDefinition);
 	REGISTER_TRANSFORM(TransformTypeOrGenerated);
 	REGISTER_TRANSFORM(TransformType);
@@ -187,6 +189,7 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	REGISTER_TRANSFORM(TransformCatalogQualification);
 	REGISTER_TRANSFORM(TransformQualifiedName);
 	REGISTER_TRANSFORM(TransformSchemaReservedIdentifierOrStringLiteral);
+	REGISTER_TRANSFORM(TransformReservedIdentifierOrStringLiteral);
 	REGISTER_TRANSFORM(TransformCatalogReservedSchemaIdentifierOrStringLiteral);
 	REGISTER_TRANSFORM(TransformTableNameIdentifierOrStringLiteral);
 
