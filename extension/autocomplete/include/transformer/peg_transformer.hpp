@@ -9,6 +9,7 @@
 #include "ast/generic_copy_option.hpp"
 #include "ast/persist_type.hpp"
 #include "ast/set_info.hpp"
+#include "duckdb/parser/parsed_data/create_type_info.hpp"
 #include "duckdb/parser/parsed_data/transaction_info.hpp"
 #include "duckdb/parser/statement/copy_database_statement.hpp"
 #include "duckdb/parser/statement/set_statement.hpp"
@@ -215,6 +216,9 @@ private:
 
 	static unique_ptr<CreateStatement> TransformCreateSchemaStmt(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static unique_ptr<CreateStatement> TransformCreateViewStmt(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<CreateStatement> TransformCreateTypeStmt(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<CreateTypeInfo> TransformCreateType(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static LogicalType TransformEnumStringLiteralList(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 
 	static ColumnDefinition TransformColumnDefinition(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static LogicalType TransformTypeOrGenerated(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
