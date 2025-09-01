@@ -106,11 +106,12 @@ ColumnElements PEGTransformerFactory::TransformCreateTableColumnList(PEGTransfor
 ColumnDefinition PEGTransformerFactory::TransformColumnDefinition(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
 	auto &list_pr = parse_result->Cast<ListParseResult>();
 
-	auto column_name = transformer.Transform<QualifiedName>(list_pr.Child<ListParseResult>(0));
+	auto dotted_identifier = transformer.Transform<vector<string>>(list_pr.Child<ListParseResult>(0));
+	auto qualified_name = StringToQualifiedName(dotted_identifier);
 	auto type = transformer.Transform<LogicalType>(list_pr.Child<ListParseResult>(1));
 
 	// TODO(Dtenwolde) Deal with ColumnConstraint
-	auto result = ColumnDefinition(column_name.name, type);
+	auto result = ColumnDefinition(qualified_name.name, type);
 	return result;
 }
 

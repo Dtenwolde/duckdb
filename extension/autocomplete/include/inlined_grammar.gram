@@ -1355,10 +1355,23 @@ MacroParameter <- NamedParameter / TypeFuncName
 ScalarMacroDefinition <- Expression
 TableMacroDefinition <- 'TABLE'i SelectStatement
 
-CommentStatement <- 'COMMENT'i 'ON'i CommentOnType ColumnReference 'IS'i CommentValue
+CommentStatement <- 'COMMENT'i 'ON'i CommentOnType DottedIdentifier 'IS'i CommentValue
 
+CommentOnType <-    CommentTable / CommentSequence / CommentFunction / CommentMacroTable / CommentMacro /
+                    CommentView / CommentDatabase / CommentIndex / CommentSchema / CommentType / CommentColumn
 
-CommentOnType <- 'TABLE'i / 'SEQUENCE'i / 'FUNCTION'i / ('MACRO'i 'TABLE'i?) / 'VIEW'i / 'DATABASE'i / 'INDEX'i / 'SCHEMA'i / 'TYPE'i / 'COLUMN'i
+CommentTable <- 'TABLE'i
+CommentSequence <- 'SEQUENCE'i
+CommentFunction <- 'FUNCTION'i
+CommentMacroTable <- 'MACRO'i 'TABLE'i
+CommentMacro <- 'MACRO'i
+CommentView <- 'VIEW'i
+CommentDatabase <- 'DATABASE'i
+CommentIndex <- 'INDEX'i
+CommentSchema <- 'SCHEMA'i
+CommentType <- 'TYPE'i
+CommentColumn <- 'COLUMN'i
+
 CommentValue <- 'NULL'i / StringLiteral
 
 AttachStatement <- 'ATTACH'i OrReplace? IfNotExists? Database? DatabasePath AttachAlias? AttachOptions?

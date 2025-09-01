@@ -7,6 +7,7 @@ add_library_unity(
   transform_basetable.cpp
   transform_call.cpp
   transform_checkpoint.cpp
+  transform_comment.cpp
   transform_common.cpp
   transform_copy.cpp
   transform_create_schema.cpp

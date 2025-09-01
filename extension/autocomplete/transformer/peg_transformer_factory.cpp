@@ -100,6 +100,10 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	REGISTER_TRANSFORM(TransformInsertColumnList);
 	REGISTER_TRANSFORM(TransformColumnList);
 
+	REGISTER_TRANSFORM(TransformCommentStatement);
+	REGISTER_TRANSFORM(TransformCommentOnType);
+	REGISTER_TRANSFORM(TransformCommentValue);
+
 	REGISTER_TRANSFORM(TransformCreateStatement);
 	REGISTER_TRANSFORM(TransformCreateStatementVariation);
 	REGISTER_TRANSFORM(TransformCreateTableStmt);
@@ -272,7 +276,19 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	RegisterEnum<PersistType>("TempPersistent", PersistType::TEMPORARY);
 	RegisterEnum<PersistType>("TemporaryPersistent", PersistType::TEMPORARY);
 	RegisterEnum<PersistType>("Persistent", PersistType::PERSISTENT);
-}
+
+	RegisterEnum<CatalogType>("CommentTable", CatalogType::TABLE_ENTRY);
+	RegisterEnum<CatalogType>("CommentSequence", CatalogType::SEQUENCE_ENTRY);
+	RegisterEnum<CatalogType>("CommentFunction", CatalogType::MACRO_ENTRY);
+	RegisterEnum<CatalogType>("CommentMacroTable", CatalogType::TABLE_MACRO_ENTRY);
+	RegisterEnum<CatalogType>("CommentMacro", CatalogType::MACRO_ENTRY);
+	RegisterEnum<CatalogType>("CommentView", CatalogType::VIEW_ENTRY);
+	RegisterEnum<CatalogType>("CommentDatabase", CatalogType::DATABASE_ENTRY);
+	RegisterEnum<CatalogType>("CommentIndex", CatalogType::INDEX_ENTRY);
+	RegisterEnum<CatalogType>("CommentSchema", CatalogType::SCHEMA_ENTRY);
+	RegisterEnum<CatalogType>("CommentType", CatalogType::TYPE_ENTRY);
+	RegisterEnum<CatalogType>("CommentColumn", CatalogType::INVALID);
+	}
 
 optional_ptr<ParseResult> PEGTransformerFactory::ExtractResultFromParens(optional_ptr<ParseResult> parse_result) {
 	// Parens(D) <- '(' D ')'
@@ -295,6 +311,29 @@ PEGTransformerFactory::ExtractParseResultsFromList(optional_ptr<ParseResult> par
 		}
 	}
 
+	return result;
+}
+
+QualifiedName PEGTransformerFactory::StringToQualifiedName(vector<string> input) {
+	QualifiedName result;
+	if (input.empty()) {
+		throw InternalException("QualifiedName cannot be made with an empty input.");
+	}
+	if (input.size() == 1) {
+		result.catalog = INVALID_CATALOG;
+		result.schema = INVALID_SCHEMA;
+		result.name = input[0];
+	} else if (input.size() == 2) {
+		result.catalog = INVALID_CATALOG;
+		result.schema = input[0];
+		result.name = input[1];
+	} else if (input.size() == 3) {
+		result.catalog = input[0];
+		result.schema = input[1];
+		result.name = input[2];
+	} else {
+		throw ParserException("Too many dots found.");
+	}
 	return result;
 }
 

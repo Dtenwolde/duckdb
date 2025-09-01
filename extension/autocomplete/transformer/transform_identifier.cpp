@@ -32,7 +32,7 @@ string PEGTransformerFactory::TransformIdentifierOrKeyword(PEGTransformer &trans
 	throw ParserException("Unexpected ParseResult type in identifier transformation.");
 }
 
-QualifiedName PEGTransformerFactory::TransformDottedIdentifier(PEGTransformer &transformer,
+vector<string> PEGTransformerFactory::TransformDottedIdentifier(PEGTransformer &transformer,
                                                                optional_ptr<ParseResult> parse_result) {
 	// Rule: ColId ('.' ColLabel)*
 	// TODO(Dtenwolde): Should probably not return a qualifiedName (what about struct e.g.x.y.z)
@@ -60,22 +60,7 @@ QualifiedName PEGTransformerFactory::TransformDottedIdentifier(PEGTransformer &t
 			}
 		}
 	}
-
-
-	QualifiedName result;
-	if (parts.size() == 1) {
-		result.name = parts[0];
-	} else if (parts.size() == 2) {
-		result.schema = parts[0];
-		result.name = parts[1];
-	} else if (parts.size() == 3) {
-		result.catalog = parts[0];
-		result.schema = parts[1];
-		result.name = parts[2];
-	} else if (parts.size() > 3) {
-		throw ParserException("Too many parts in identifier, expected a maximum of 3 (catalog.schema.name)");
-	}
-	return result;
+	return parts;
 }
 
 } // namespace duckdb

@@ -125,7 +125,7 @@ private:
 	static unique_ptr<SQLStatement> TransformUseStatement(PEGTransformer &, optional_ptr<ParseResult> identifier_pr);
 	static unique_ptr<SQLStatement> TransformSetStatement(PEGTransformer &, optional_ptr<ParseResult> choice_pr);
 	static unique_ptr<SQLStatement> TransformResetStatement(PEGTransformer &, optional_ptr<ParseResult> choice_pr);
-	static QualifiedName TransformDottedIdentifier(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static vector<string> TransformDottedIdentifier(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static QualifiedName TransformUseTarget(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static unique_ptr<SQLStatement> TransformDeleteStatement(PEGTransformer &transformer,
 	                                                         optional_ptr<ParseResult> parse_result);
@@ -196,6 +196,10 @@ private:
 
 	static unique_ptr<SQLStatement> TransformTruncateStatement(PEGTransformer &transformer,
 	                                                           optional_ptr<ParseResult> parse_result);
+
+	static unique_ptr<SQLStatement> TransformCommentStatement(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static CatalogType TransformCommentOnType(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static Value TransformCommentValue(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 
 	static unique_ptr<SQLStatement> TransformCreateStatement(PEGTransformer &transformer,
 	                                                         optional_ptr<ParseResult> parse_result);
@@ -341,6 +345,7 @@ private:
 	static vector<optional_ptr<ParseResult>> ExtractParseResultsFromList(optional_ptr<ParseResult> parse_result);
 
 	static string ExtractFormat(const string &file_path);
+	static QualifiedName StringToQualifiedName(vector<string> input);
 
 private:
 	PEGParser parser;
