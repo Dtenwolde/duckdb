@@ -111,6 +111,8 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	REGISTER_TRANSFORM(TransformCreateTableColumnList);
 	REGISTER_TRANSFORM(TransformTemporary);
 
+	REGISTER_TRANSFORM(TransformCreateViewStmt);
+
 	REGISTER_TRANSFORM(TransformCreateSecretStmt);
 	REGISTER_TRANSFORM(TransformSecretStorageSpecifier);
 
