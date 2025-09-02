@@ -917,19 +917,25 @@ OnConflictNothing <- 'DO'i 'NOTHING'i
 ReturningClause <- 'RETURNING'i TargetList
 
 CreateSchemaStmt <- 'SCHEMA'i IfNotExists? QualifiedName
-SelectStatement <- SelectOrParens (SetopClause SelectStatement)* ResultModifiers
+SelectStatement <- SelectOrParens RepeatSetopSelect* ResultModifiers?
 
+RepeatSetopSelect <- SetOpClause SelectStatement
 SetopClause <- ('UNION'i / 'EXCEPT'i / 'INTERSECT'i) DistinctOrAll? ByName?
 ByName <- 'BY'i 'NAME'i
-SelectOrParens <- BaseSelect / Parens(SelectStatement)
+SelectOrParens <- BaseSelect / SelectParens
+SelectParens <- Parens(SelectStatement)
 
-BaseSelect <- WithClause? (OptionalParensSimpleSelect / ValuesClause / DescribeStatement / TableStatement / PivotStatement / UnpivotStatement) ResultModifiers
+BaseSelect <- WithClause? SelectStatementType ResultModifiers
+SelectStatementType <- OptionalParensSimpleSelect / ValuesClause / DescribeStatement / TableStatement / PivotStatement / UnpivotStatement
 ResultModifiers <- OrderByClause? LimitClause? OffsetClause?
 TableStatement <- 'TABLE' BaseTableName
-OptionalParensSimpleSelect <- Parens(SimpleSelect) / SimpleSelect
+OptionalParensSimpleSelect <- SimpleSelectParens / SimpleSelect
+SimpleSelectParens <- Parens(SimpleSelect)
 SimpleSelect <- SelectFrom WhereClause? GroupByClause? HavingClause? WindowClause? QualifyClause? SampleClause?
 
-SelectFrom <- (SelectClause FromClause?) / (FromClause SelectClause?)
+SelectFrom <- SelectFromClause / FromSelectClause
+SelectFromClause <- SelectClause FromClause?
+FromSelectClause <- FromClause SelectClause?
 WithStatement <- ColIdOrString InsertColumnList? UsingKey? 'AS'i Materialized? SubqueryReference
 UsingKey <- 'USING'i 'KEY'i ColumnIdList
 Materialized <- 'NOT'i? 'MATERIALIZED'i
@@ -1035,7 +1041,10 @@ LimitClause <- 'LIMIT'i LimitValue
 OffsetClause <- 'OFFSET'i LimitValue
 LimitValue <- 'ALL'i / (NumberLiteral 'PERCENT'i) / (Expression '%'?)
 
-AliasedExpression <- (ColId ':' Expression) / (Expression 'AS'i ColLabelOrString) / (Expression Identifier?)
+AliasedExpression <- ColIdExpression / ExpressionAsColLabel / ExpressionOptIdentifier
+ColIdExpression <- ColId ':' Expression
+ExpressionAsColLabel <- Expression 'AS'i ColLabelOrString
+ExpressionOptIdentifier <- Expression Identifier?
 
 ValuesClause <- 'VALUES'i List(ValuesExpressions)
 ValuesExpressions <- Parens(List(Expression))

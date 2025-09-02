@@ -82,6 +82,22 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	REGISTER_TRANSFORM(TransformIdentifierColId);
 	REGISTER_TRANSFORM(TransformCopyOptions);
 
+	REGISTER_TRANSFORM(TransformSelectStatement);
+	REGISTER_TRANSFORM(TransformSelectOrParens);
+	REGISTER_TRANSFORM(TransformSelectParens);
+	REGISTER_TRANSFORM(TransformBaseSelect);
+	REGISTER_TRANSFORM(TransformSelectStatementType);
+	REGISTER_TRANSFORM(TransformOptionalParensSimpleSelect);
+	REGISTER_TRANSFORM(TransformSimpleSelectParens);
+	REGISTER_TRANSFORM(TransformSimpleSelect);
+	REGISTER_TRANSFORM(TransformSelectFrom);
+	REGISTER_TRANSFORM(TransformSelectFromClause);
+	REGISTER_TRANSFORM(TransformFromSelectClause);
+	REGISTER_TRANSFORM(TransformSelectClause);
+	REGISTER_TRANSFORM(TransformTargetList);
+	REGISTER_TRANSFORM(TransformAliasedExpression);
+	REGISTER_TRANSFORM(TransformExpressionOptIdentifier);
+
 	REGISTER_TRANSFORM(TransformDetachStatement);
 	REGISTER_TRANSFORM(TransformAttachStatement);
 	REGISTER_TRANSFORM(TransformAttachAlias);
