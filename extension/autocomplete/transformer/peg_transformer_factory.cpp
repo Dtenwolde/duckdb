@@ -242,6 +242,7 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	REGISTER_TRANSFORM(TransformParenthesisExpression);
 	REGISTER_TRANSFORM(TransformLiteralExpression);
 	REGISTER_TRANSFORM(TransformPrefixExpression);
+	REGISTER_TRANSFORM(TransformPrefixOperator);
 	REGISTER_TRANSFORM(TransformColumnReference);
 	REGISTER_TRANSFORM(TransformColIdOrString);
 	REGISTER_TRANSFORM(TransformIdentifierOrStringLiteral);

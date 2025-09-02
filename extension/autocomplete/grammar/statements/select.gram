@@ -6,7 +6,7 @@ ByName <- 'BY'i 'NAME'i
 SelectOrParens <- BaseSelect / SelectParens
 SelectParens <- Parens(SelectStatement)
 
-BaseSelect <- WithClause? SelectStatementType ResultModifiers
+BaseSelect <- WithClause? SelectStatementType ResultModifiers?
 SelectStatementType <- OptionalParensSimpleSelect / ValuesClause / DescribeStatement / TableStatement / PivotStatement / UnpivotStatement
 ResultModifiers <- OrderByClause? LimitClause? OffsetClause?
 TableStatement <- 'TABLE' BaseTableName

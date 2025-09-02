@@ -1,15 +1,16 @@
 #include "transformer/peg_transformer.hpp"
+#include "duckdb/parser/tableref/emptytableref.hpp"
 #include "duckdb/parser/query_node/select_node.hpp"
 
 namespace duckdb {
 
-unique_ptr<SelectStatement> PEGTransformerFactory::TransformSelectStatement(PEGTransformer &transformer,
+unique_ptr<SQLStatement> PEGTransformerFactory::TransformSelectStatement(PEGTransformer &transformer,
 																		 optional_ptr<ParseResult> parse_result) {
 	auto &list_pr = parse_result->Cast<ListParseResult>();
 
 	auto select_statement = transformer.Transform<unique_ptr<SelectStatement>>(list_pr.Child<ListParseResult>(0));
 	// SetOperationNode
-	auto repeat_setop_select = transformer.Transform<unique_ptr<SelectStatement>>(list_pr.Child<RepeatParseResult>(1));
+	// auto repeat_setop_select = transformer.Transform<unique_ptr<SelectStatement>>(list_pr.Child<RepeatParseResult>(1));
 	// vector<unique_ptr<ResultModifier>>
 	// auto modifiers = transformer.Transform<vector<unique_ptr<ResultModifier>>>(list_pr.Child<ListParseResult>(2));
 	return select_statement;
@@ -30,7 +31,7 @@ unique_ptr<SelectStatement> PEGTransformerFactory::TransformBaseSelect(PEGTransf
 	auto &list_pr = parse_result->Cast<ListParseResult>();
 	auto with_clause = list_pr.Child<OptionalParseResult>(0);
 	auto select_statement = transformer.Transform<unique_ptr<SelectStatement>>(list_pr.Child<ListParseResult>(1));
-	auto modifiers = transformer.Transform<vector<unique_ptr<ResultModifier>>>(list_pr.Child<ListParseResult>(2));
+	// auto modifiers = transformer.Transform<vector<unique_ptr<ResultModifier>>>(list_pr.Child<ListParseResult>(2));
 	return select_statement;
 }
 
@@ -96,6 +97,8 @@ unique_ptr<SelectNode> PEGTransformerFactory::TransformSelectFromClause(PEGTrans
 	auto opt_from = list_pr.Child<OptionalParseResult>(1);
 	if (opt_from.HasResult()) {
 		select_node->from_table = transformer.Transform<unique_ptr<TableRef>>(opt_from.optional_result);
+	} else {
+		select_node->from_table = make_uniq<EmptyTableRef>();
 	}
 	return select_node;
 }

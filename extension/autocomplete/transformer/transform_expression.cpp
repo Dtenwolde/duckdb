@@ -56,12 +56,14 @@ unique_ptr<ParsedExpression> PEGTransformerFactory::TransformPrefixExpression(PE
 	auto &list_pr = parse_result->Cast<ListParseResult>();
 	auto prefix = transformer.Transform<string>(list_pr.Child<ListParseResult>(0));
 	auto expr = transformer.Transform<unique_ptr<ParsedExpression>>(list_pr.Child<ListParseResult>(1));
-	if (prefix == "not") {
+	if (prefix == "NOT") {
 		return make_uniq<OperatorExpression>(ExpressionType::OPERATOR_NOT, std::move(expr));
 	}
 	vector<unique_ptr<ParsedExpression>> expr_children;
 	expr_children.push_back(std::move(expr));
-	return make_uniq<FunctionExpression>(prefix, std::move(expr_children));
+	auto func_expr = make_uniq<FunctionExpression>(prefix, std::move(expr_children));
+	func_expr->is_operator = true;
+	return func_expr;
 }
 
 string PEGTransformerFactory::TransformPrefixOperator(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {

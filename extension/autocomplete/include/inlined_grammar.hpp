@@ -854,7 +854,7 @@ const char INLINED_PEG_GRAMMAR[] = {
 	"ByName <- 'BY'i 'NAME'i\n"
 	"SelectOrParens <- BaseSelect / SelectParens\n"
 	"SelectParens <- Parens(SelectStatement)\n"
-	"BaseSelect <- WithClause? SelectStatementType ResultModifiers\n"
+	"BaseSelect <- WithClause? SelectStatementType ResultModifiers?\n"
 	"SelectStatementType <- OptionalParensSimpleSelect / ValuesClause / DescribeStatement / TableStatement / PivotStatement / UnpivotStatement\n"
 	"ResultModifiers <- OrderByClause? LimitClause? OffsetClause?\n"
 	"TableStatement <- 'TABLE' BaseTableName\n"
