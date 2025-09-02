@@ -1,6 +1,7 @@
 #include "transformer/peg_transformer.hpp"
 #include "matcher.hpp"
 #include "chrono"
+#include "ast/prefix_operator.hpp"
 #include "duckdb/common/to_string.hpp"
 #include "duckdb/common/enums/date_part_specifier.hpp"
 
@@ -223,6 +224,7 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	REGISTER_TRANSFORM(TransformSingleExpression);
 	REGISTER_TRANSFORM(TransformParenthesisExpression);
 	REGISTER_TRANSFORM(TransformLiteralExpression);
+	REGISTER_TRANSFORM(TransformPrefixExpression);
 	REGISTER_TRANSFORM(TransformColumnReference);
 	REGISTER_TRANSFORM(TransformColIdOrString);
 	REGISTER_TRANSFORM(TransformIdentifierOrStringLiteral);
@@ -306,6 +308,11 @@ PEGTransformerFactory::PEGTransformerFactory() {
 
 	RegisterEnum<string>("MinValue", "minvalue");
 	RegisterEnum<string>("MaxValue", "maxvalue");
+
+	RegisterEnum<string>("NotPrefixOperator", "NOT");
+	RegisterEnum<string>("MinusPrefixOperator", "-");
+	RegisterEnum<string>("PlusPrefixOperator", "+");
+	RegisterEnum<string>("TildePrefixOperator", "~");
 	}
 
 optional_ptr<ParseResult> PEGTransformerFactory::ExtractResultFromParens(optional_ptr<ParseResult> parse_result) {

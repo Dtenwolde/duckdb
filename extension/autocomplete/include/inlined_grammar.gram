@@ -594,7 +594,11 @@ WindowFrameContents <- WindowPartition? OrderByClause? FrameClause?
 BaseWindowName <- Identifier
 WindowPartition <- 'PARTITION'i 'BY'i List(Expression)
 PrefixExpression <- PrefixOperator Expression
-PrefixOperator <- 'NOT'i / '-' / '+' / '~'
+PrefixOperator <- NotPrefixOperator / MinusPrefixOperator / PlusPrefixOperator / TildePrefixOperator
+NotPrefixOperator <- 'NOT'i
+MinusPrefixOperator <- '-'i
+PlusPrefixOperator <- '+'i
+TildePrefixOperator <- '~'i
 ListExpression <- 'ARRAY'i? (BoundedListExpression / SelectStatement)
 BoundedListExpression <- '[' List(Expression)? ']'
 StructExpression <- '{' List(StructField)? '}'

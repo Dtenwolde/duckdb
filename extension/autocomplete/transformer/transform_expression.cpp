@@ -16,8 +16,6 @@ unique_ptr<ParsedExpression> PEGTransformerFactory::TransformExpression(PEGTrans
 		auto repeat_expression_pr = indirection_pr.optional_result->Cast<RepeatParseResult>();
 		vector<unique_ptr<ParsedExpression>> expr_children;
 		for (auto &child : repeat_expression_pr.children) {
-			// TODO(Dtenwolde) this requires a lot more work to figure out. Probably need to sit with Mark re. this at
-			// some point
 			auto operator_expr =
 			    std::move(transformer.Transform<unique_ptr<ParsedExpression>>(child)->Cast<OperatorExpression>());
 			current_expr = make_uniq<OperatorExpression>(operator_expr.type, std::move(current_expr),
@@ -52,6 +50,24 @@ unique_ptr<ParsedExpression> PEGTransformerFactory::TransformSingleExpression(PE
 	auto &expression = list_pr.Child<ChoiceParseResult>(0);
 
 	return transformer.Transform<unique_ptr<ParsedExpression>>(expression.result);
+}
+
+unique_ptr<ParsedExpression> PEGTransformerFactory::TransformPrefixExpression(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	auto prefix = transformer.Transform<string>(list_pr.Child<ListParseResult>(0));
+	auto expr = transformer.Transform<unique_ptr<ParsedExpression>>(list_pr.Child<ListParseResult>(1));
+	if (prefix == "not") {
+		return make_uniq<OperatorExpression>(ExpressionType::OPERATOR_NOT, std::move(expr));
+	}
+	vector<unique_ptr<ParsedExpression>> expr_children;
+	expr_children.push_back(std::move(expr));
+	return make_uniq<FunctionExpression>(prefix, std::move(expr_children));
+}
+
+string PEGTransformerFactory::TransformPrefixOperator(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	auto choice_pr = list_pr.Child<ChoiceParseResult>(0);
+	return transformer.TransformEnum<string>(choice_pr.result);
 }
 
 unique_ptr<ParsedExpression>
