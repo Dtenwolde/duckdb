@@ -270,6 +270,13 @@ private:
 	static unique_ptr<SelectStatement> TransformSimpleSelectParens(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static unique_ptr<SelectStatement> TransformSimpleSelect(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 
+	static unique_ptr<TableRef> TransformFromClause(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<TableRef> TransformTableRef(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<TableRef> TransformInnerTableRef(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<TableRef> TransformValuesRef(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static vector<vector<unique_ptr<ParsedExpression>>> TransformValuesClause(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static vector<unique_ptr<ParsedExpression>> TransformValuesExpressions(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+
 	static unique_ptr<SelectNode> TransformSelectFrom(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static unique_ptr<SelectNode> TransformSelectFromClause(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static unique_ptr<SelectNode> TransformFromSelectClause(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
