@@ -1,7 +1,6 @@
 #include "transformer/peg_transformer.hpp"
 #include "matcher.hpp"
 #include "chrono"
-#include "ast/prefix_operator.hpp"
 #include "duckdb/common/to_string.hpp"
 #include "duckdb/common/enums/date_part_specifier.hpp"
 

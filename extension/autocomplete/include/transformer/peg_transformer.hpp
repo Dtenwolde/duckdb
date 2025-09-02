@@ -8,7 +8,6 @@
 #include "ast/extension_repository_info.hpp"
 #include "ast/generic_copy_option.hpp"
 #include "ast/persist_type.hpp"
-#include "ast/prefix_operator.hpp"
 #include "ast/sequence_option.hpp"
 #include "ast/set_info.hpp"
 #include "duckdb/parser/parsed_data/create_type_info.hpp"
