@@ -96,6 +96,8 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	REGISTER_TRANSFORM(TransformSelectClause);
 	REGISTER_TRANSFORM(TransformTargetList);
 	REGISTER_TRANSFORM(TransformAliasedExpression);
+	REGISTER_TRANSFORM(TransformExpressionAsCollabel);
+	REGISTER_TRANSFORM(TransformColIdExpression);
 	REGISTER_TRANSFORM(TransformExpressionOptIdentifier);
 
 	REGISTER_TRANSFORM(TransformDetachStatement);
