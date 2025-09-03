@@ -4,6 +4,7 @@
 #include "duckdb/parser/query_node/select_node.hpp"
 #include "duckdb/parser/tableref/joinref.hpp"
 #include "duckdb/parser/tableref/expressionlistref.hpp"
+#include "duckdb/parser/tableref/subqueryref.hpp"
 
 namespace duckdb {
 
@@ -159,13 +160,20 @@ unique_ptr<TableRef> PEGTransformerFactory::TransformValuesRef(PEGTransformer &t
 	auto &list_pr = parse_result->Cast<ListParseResult>();
 	auto result = make_uniq<ExpressionListRef>();
 	result->values = transformer.Transform<vector<vector<unique_ptr<ParsedExpression>>>>(list_pr.Child<ListParseResult>(0));
+	result->alias = "valueslist";
+	auto select_statement = make_uniq<SelectStatement>();
+	auto select_node = make_uniq<SelectNode>();
+	select_node->from_table = std::move(result);
+	select_node->select_list.push_back(make_uniq<StarExpression>());
+	select_statement->node = std::move(select_node);
+	auto subquery_ref = make_uniq<SubqueryRef>(std::move(select_statement));
 	auto opt_alias = list_pr.Child<OptionalParseResult>(1);
 	if (opt_alias.HasResult()) {
 		auto table_alias = transformer.Transform<TableAlias>(opt_alias.optional_result);
-		result->alias = table_alias.name;
-		result->expected_names = table_alias.column_name_alias;
+		subquery_ref->alias = table_alias.name;
+		subquery_ref->column_name_alias = table_alias.column_name_alias;
 	}
-	return result;
+	return subquery_ref;
 }
 
 vector<vector<unique_ptr<ParsedExpression>>> PEGTransformerFactory::TransformValuesClause(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
