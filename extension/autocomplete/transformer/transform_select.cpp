@@ -114,9 +114,7 @@ unique_ptr<SelectNode> PEGTransformerFactory::TransformFromSelectClause(PEGTrans
 	if (opt_select.HasResult()) {
 		select_node->select_list = transformer.Transform<vector<unique_ptr<ParsedExpression>>>(opt_select.optional_result);
 	} else {
-		vector<unique_ptr<ParsedExpression>> select_list;
-		select_list.push_back(make_uniq<StarExpression>());
-		select_node->select_list = std::move(select_list);
+		select_node->select_list.push_back(make_uniq<StarExpression>());
 	}
 	return select_node;
 }
@@ -160,10 +158,12 @@ unique_ptr<TableRef> PEGTransformerFactory::TransformInnerTableRef(PEGTransforme
 unique_ptr<TableRef> PEGTransformerFactory::TransformValuesRef(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
 	auto &list_pr = parse_result->Cast<ListParseResult>();
 	auto result = make_uniq<ExpressionListRef>();
-	auto values_clause = transformer.Transform<vector<vector<unique_ptr<ParsedExpression>>>>(list_pr.Child<ListParseResult>(0));
+	result->values = transformer.Transform<vector<vector<unique_ptr<ParsedExpression>>>>(list_pr.Child<ListParseResult>(0));
 	auto opt_alias = list_pr.Child<OptionalParseResult>(1);
 	if (opt_alias.HasResult()) {
-		result->alias = transformer.Transform<string>(opt_alias.optional_result);
+		auto table_alias = transformer.Transform<TableAlias>(opt_alias.optional_result);
+		result->alias = table_alias.name;
+		result->column_name_alias = table_alias.column_name_alias;
 	}
 	return result;
 }
@@ -246,6 +246,28 @@ unique_ptr<ParsedExpression> PEGTransformerFactory::TransformExpressionOptIdenti
 		expr->alias = opt_identifier.optional_result->Cast<IdentifierParseResult>().identifier;
 	}
 	return expr;
+}
+
+TableAlias PEGTransformerFactory::TransformTableAlias(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	TableAlias result;
+	result.name = transformer.Transform<string>(list_pr.Child<ListParseResult>(1));
+	auto opt_column_aliases = list_pr.Child<OptionalParseResult>(2);
+	if (opt_column_aliases.HasResult()) {
+		result.column_name_alias = transformer.Transform<vector<string>>(opt_column_aliases.optional_result);
+	}
+	return result;
+}
+
+vector<string> PEGTransformerFactory::TransformColumnAliases(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	vector<string> result;
+	auto extract_parens = ExtractResultFromParens(list_pr.Child<ListParseResult>(0));
+	auto alias_list = ExtractParseResultsFromList(extract_parens);
+	for (auto alias : alias_list) {
+		result.push_back(transformer.Transform<string>(alias));
+	}
+	return result;
 }
 
 } // namespace duckdb

@@ -94,6 +94,9 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	REGISTER_TRANSFORM(TransformSelectFromClause);
 	REGISTER_TRANSFORM(TransformFromSelectClause);
 
+	REGISTER_TRANSFORM(TransformTableAlias);
+	REGISTER_TRANSFORM(TransformColumnAliases);
+
 	REGISTER_TRANSFORM(TransformFromClause);
 	REGISTER_TRANSFORM(TransformTableRef);
 	REGISTER_TRANSFORM(TransformInnerTableRef);
