@@ -159,15 +159,8 @@ unique_ptr<TableRef> PEGTransformerFactory::TransformInnerTableRef(PEGTransforme
 
 unique_ptr<TableRef> PEGTransformerFactory::TransformValuesRef(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
 	auto &list_pr = parse_result->Cast<ListParseResult>();
-	auto result = make_uniq<ExpressionListRef>();
-	result->values = transformer.Transform<vector<vector<unique_ptr<ParsedExpression>>>>(list_pr.Child<ListParseResult>(0));
-	result->alias = "valueslist";
-	auto select_statement = make_uniq<SelectStatement>();
-	auto select_node = make_uniq<SelectNode>();
-	select_node->from_table = std::move(result);
-	select_node->select_list.push_back(make_uniq<StarExpression>());
-	select_statement->node = std::move(select_node);
-	auto subquery_ref = make_uniq<SubqueryRef>(std::move(select_statement));
+	auto values_select_statement = transformer.Transform<unique_ptr<SelectStatement>>(list_pr.Child<ListParseResult>(0));
+	auto subquery_ref = make_uniq<SubqueryRef>(std::move(values_select_statement));
 	auto opt_alias = list_pr.Child<OptionalParseResult>(1);
 	if (opt_alias.HasResult()) {
 		auto table_alias = transformer.Transform<TableAlias>(opt_alias.optional_result);
@@ -177,24 +170,32 @@ unique_ptr<TableRef> PEGTransformerFactory::TransformValuesRef(PEGTransformer &t
 	return subquery_ref;
 }
 
-vector<vector<unique_ptr<ParsedExpression>>> PEGTransformerFactory::TransformValuesClause(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+unique_ptr<SelectStatement> PEGTransformerFactory::TransformValuesClause(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
 	auto &list_pr = parse_result->Cast<ListParseResult>();
-	vector<vector<unique_ptr<ParsedExpression>>> result;
 
 	auto value_expression_list = ExtractParseResultsFromList(list_pr.Child<ListParseResult>(1));
+	vector<vector<unique_ptr<ParsedExpression>>> values_list;
 	for (auto value_expression : value_expression_list) {
-		result.push_back(transformer.Transform<vector<unique_ptr<ParsedExpression>>>(value_expression));
+		values_list.push_back(transformer.Transform<vector<unique_ptr<ParsedExpression>>>(value_expression));
 	}
-	if (result.size() > 1) {
-		const auto expected_size = result[0].size();
-		for (idx_t i = 1; i < result.size(); i++) {
-			if (result[i].size() != expected_size) {
+	if (values_list.size() > 1) {
+		const auto expected_size = values_list[0].size();
+		for (idx_t i = 1; i < values_list.size(); i++) {
+			if (values_list[i].size() != expected_size) {
 				throw ParserException("VALUES lists must all be the same length");
 			}
 		}
 	}
+	auto result = make_uniq<ExpressionListRef>();
+	result->alias = "valueslist";
+	result->values = std::move(values_list);
 
-	return result;
+	auto select_node = make_uniq<SelectNode>();
+	select_node->from_table = std::move(result);
+	select_node->select_list.push_back(make_uniq<StarExpression>());
+	auto select_statement = make_uniq<SelectStatement>();
+	select_statement->node = std::move(select_node);
+	return select_statement;
 }
 
 vector<unique_ptr<ParsedExpression>> PEGTransformerFactory::TransformValuesExpressions(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
