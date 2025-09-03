@@ -3,6 +3,7 @@
 #include "duckdb/parser/expression/function_expression.hpp"
 #include "duckdb/parser/expression/operator_expression.hpp"
 #include "transformer/parse_result.hpp"
+#include "duckdb/parser/expression/cast_expression.hpp"
 
 namespace duckdb {
 
@@ -117,6 +118,21 @@ unique_ptr<ParsedExpression> PEGTransformerFactory::TransformColumnReference(PEG
 	return make_uniq<ColumnRefExpression>(std::move(identifiers));
 }
 
+unique_ptr<ParsedExpression> PEGTransformerFactory::TransformCastExpression(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	bool try_cast = transformer.Transform<bool>(list_pr.Child<ListParseResult>(0));
+	auto extract_parens = ExtractResultFromParens(list_pr.Child<ListParseResult>(1))->Cast<ListParseResult>();
+	auto expr = transformer.Transform<unique_ptr<ParsedExpression>>(extract_parens.Child<ListParseResult>(0));
+	auto type = transformer.Transform<LogicalType>(extract_parens.Child<ListParseResult>(2));
+	return make_uniq<CastExpression>(type, std::move(expr), try_cast);
+}
+
+bool PEGTransformerFactory::TransformCastOrTryCast(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	auto choice_pr = list_pr.Child<ChoiceParseResult>(0);
+	return StringUtil::Lower(choice_pr.result->Cast<KeywordParseResult>().keyword) == "try_cast";
+}
+
 unique_ptr<ParsedExpression> PEGTransformerFactory::TransformFunctionExpression(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
 	// TODO(Dtenwolde) Not everything here is used yet.
 	auto &list_pr = parse_result->Cast<ListParseResult>();
@@ -198,6 +214,29 @@ QualifiedName PEGTransformerFactory::TransformFunctionName(PEGTransformer &trans
 	result.catalog = INVALID_CATALOG;
 	result.schema = INVALID_SCHEMA;
 	result.name = list_pr.Child<IdentifierParseResult>(0).identifier;
+	return result;
+}
+
+unique_ptr<ParsedExpression> PEGTransformerFactory::TransformStarExpression(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+
+	auto result = make_uniq<StarExpression>();
+	auto repeat_colid_opt = list_pr.Child<OptionalParseResult>(0);
+	if (repeat_colid_opt.HasResult()) {
+		auto repeat_colid = repeat_colid_opt.optional_result->Cast<RepeatParseResult>();
+	}
+	auto exclude_list_opt = list_pr.Child<OptionalParseResult>(2);
+	if (exclude_list_opt.HasResult()) {
+		result->exclude_list = transformer.Transform<qualified_column_set_t>(exclude_list_opt.optional_result);
+	}
+	auto replace_list_opt = list_pr.Child<OptionalParseResult>(3);
+	if (replace_list_opt.HasResult()) {
+		result->replace_list = transformer.Transform<case_insensitive_map_t<unique_ptr<ParsedExpression>>>(replace_list_opt.optional_result);
+	}
+	auto rename_list_opt = list_pr.Child<OptionalParseResult>(4);
+	if (rename_list_opt.HasResult()) {
+		result->rename_list = transformer.Transform<qualified_column_map_t<string>>(rename_list_opt.optional_result);
+	}
 	return result;
 }
 

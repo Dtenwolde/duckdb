@@ -262,6 +262,9 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	REGISTER_TRANSFORM(TransformSingleExpression);
 	REGISTER_TRANSFORM(TransformParenthesisExpression);
 	REGISTER_TRANSFORM(TransformLiteralExpression);
+	REGISTER_TRANSFORM(TransformCastExpression);
+	REGISTER_TRANSFORM(TransformCastOrTryCast);
+	REGISTER_TRANSFORM(TransformStarExpression);
 	REGISTER_TRANSFORM(TransformPrefixExpression);
 	REGISTER_TRANSFORM(TransformFunctionExpression);
 	REGISTER_TRANSFORM(TransformFunctionIdentifier);

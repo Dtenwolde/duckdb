@@ -390,8 +390,11 @@ private:
 	                                                                   optional_ptr<ParseResult> parse_result);
 	static unique_ptr<ParsedExpression> TransformPrefixExpression(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static string TransformPrefixOperator(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<ParsedExpression> TransformStarExpression(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static unique_ptr<ParsedExpression> TransformLiteralExpression(PEGTransformer &transformer,
 	                                                               optional_ptr<ParseResult> parse_result);
+	static unique_ptr<ParsedExpression> TransformCastExpression(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static bool TransformCastOrTryCast(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static unique_ptr<ParsedExpression> TransformColumnReference(PEGTransformer &transformer,
 	                                                             optional_ptr<ParseResult> parse_result);
 	static unique_ptr<ParsedExpression> TransformFunctionExpression(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
