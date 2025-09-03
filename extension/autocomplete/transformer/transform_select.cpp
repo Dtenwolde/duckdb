@@ -163,7 +163,7 @@ unique_ptr<TableRef> PEGTransformerFactory::TransformValuesRef(PEGTransformer &t
 	if (opt_alias.HasResult()) {
 		auto table_alias = transformer.Transform<TableAlias>(opt_alias.optional_result);
 		result->alias = table_alias.name;
-		result->column_name_alias = table_alias.column_name_alias;
+		result->expected_names = table_alias.column_name_alias;
 	}
 	return result;
 }
