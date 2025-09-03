@@ -275,6 +275,9 @@ private:
 	static unique_ptr<TableRef> TransformTableRef(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static unique_ptr<TableRef> TransformInnerTableRef(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static unique_ptr<TableRef> TransformTableFunction(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<TableRef> TransformTableFunctionLateralOpt(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<TableRef> TransformTableFunctionAliasColon(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static QualifiedName TransformQualifiedTableFunction(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static unique_ptr<TableRef> TransformValuesRef(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static unique_ptr<SelectStatement> TransformValuesClause(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static vector<unique_ptr<ParsedExpression>> TransformValuesExpressions(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);

@@ -5,6 +5,7 @@
 #include "duckdb/parser/tableref/joinref.hpp"
 #include "duckdb/parser/tableref/expressionlistref.hpp"
 #include "duckdb/parser/tableref/subqueryref.hpp"
+#include "duckdb/parser/tableref/table_function_ref.hpp"
 
 namespace duckdb {
 
@@ -160,6 +161,54 @@ unique_ptr<TableRef> PEGTransformerFactory::TransformInnerTableRef(PEGTransforme
 unique_ptr<TableRef> PEGTransformerFactory::TransformTableFunction(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
 	auto &list_pr = parse_result->Cast<ListParseResult>();
 	return transformer.Transform<unique_ptr<TableRef>>(list_pr.Child<ChoiceParseResult>(0).result);
+}
+
+unique_ptr<TableRef> PEGTransformerFactory::TransformTableFunctionLateralOpt(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+
+	auto result = make_uniq<TableFunctionRef>();
+
+	// TODO(Dtenwolde) Figure out what to do with lateral
+	auto lateral_opt = list_pr.Child<OptionalParseResult>(0).HasResult();
+	auto qualified_table_function = transformer.Transform<QualifiedName>(list_pr.Child<ListParseResult>(1));
+	auto table_function_arguments = transformer.Transform<vector<unique_ptr<ParsedExpression>>>(list_pr.Child<ListParseResult>(2));
+
+	result->function = make_uniq<FunctionExpression>(
+														qualified_table_function.catalog,
+														qualified_table_function.schema,
+														qualified_table_function.name,
+														std::move(table_function_arguments));
+	auto table_alias_opt = list_pr.Child<OptionalParseResult>(3);
+	if (table_alias_opt.HasResult()) {
+		auto table_alias = transformer.Transform<TableAlias>(table_alias_opt.optional_result);
+		result->alias = table_alias.name;
+		result->column_name_alias = table_alias.column_name_alias;
+	}
+	return result;
+}
+
+unique_ptr<TableRef> PEGTransformerFactory::TransformTableFunctionAliasColon(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+
+}
+
+QualifiedName PEGTransformerFactory::TransformQualifiedTableFunction(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	QualifiedName result;
+	auto opt_catalog = list_pr.Child<OptionalParseResult>(0);
+	if (opt_catalog.HasResult()) {
+		result.catalog = transformer.Transform<string>(opt_catalog.optional_result);
+	} else {
+		result.catalog = INVALID_CATALOG;
+	}
+	auto opt_schema = list_pr.Child<OptionalParseResult>(1);
+	if (opt_schema.HasResult()) {
+		result.schema = transformer.Transform<string>(opt_schema.optional_result);
+	} else {
+		result.schema = INVALID_SCHEMA;
+	}
+	result.name = list_pr.Child<IdentifierParseResult>(2).identifier;
+	return result;
 }
 
 unique_ptr<TableRef> PEGTransformerFactory::TransformValuesRef(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {

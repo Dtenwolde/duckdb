@@ -100,6 +100,10 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	REGISTER_TRANSFORM(TransformFromClause);
 	REGISTER_TRANSFORM(TransformTableRef);
 	REGISTER_TRANSFORM(TransformInnerTableRef);
+	REGISTER_TRANSFORM(TransformTableFunction);
+	REGISTER_TRANSFORM(TransformTableFunctionLateralOpt);
+	REGISTER_TRANSFORM(TransformTableFunctionAliasColon);
+	REGISTER_TRANSFORM(TransformQualifiedTableFunction);
 	REGISTER_TRANSFORM(TransformValuesRef);
 	REGISTER_TRANSFORM(TransformValuesClause);
 	REGISTER_TRANSFORM(TransformValuesExpressions);
