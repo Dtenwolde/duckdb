@@ -258,6 +258,29 @@ unique_ptr<TableRef> PEGTransformerFactory::TransformSubqueryReference(PEGTransf
 	return subquery_ref;
 }
 
+unique_ptr<TableRef> PEGTransformerFactory::TransformBaseTableRef(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	auto result = transformer.Transform<unique_ptr<BaseTableRef>>(list_pr.Child<ListParseResult>(1));
+	auto table_alias_colon_opt = list_pr.Child<OptionalParseResult>(0);
+	if (table_alias_colon_opt.HasResult()) {
+		result->alias = transformer.Transform<string>(table_alias_colon_opt.optional_result);
+	}
+	auto table_alias_opt = list_pr.Child<OptionalParseResult>(2);
+	if (table_alias_opt.HasResult() && table_alias_colon_opt.HasResult()) {
+		throw ParserException("Table reference %s cannot have two aliases", result->ToString());
+	}
+	if (table_alias_opt.HasResult()) {
+		auto table_alias = transformer.Transform<TableAlias>(table_alias_opt.optional_result);
+		result->alias = table_alias.name;
+		result->column_name_alias = table_alias.column_name_alias;
+	}
+	auto at_clause_opt = list_pr.Child<OptionalParseResult>(3);
+	if (at_clause_opt.HasResult()) {
+		result->at_clause = transformer.Transform<unique_ptr<AtClause>>(at_clause_opt.optional_result);
+	}
+	return result;
+}
+
 unique_ptr<TableRef> PEGTransformerFactory::TransformValuesRef(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
 	auto &list_pr = parse_result->Cast<ListParseResult>();
 	auto values_select_statement = transformer.Transform<unique_ptr<SelectStatement>>(list_pr.Child<ListParseResult>(0));

@@ -112,12 +112,9 @@ unique_ptr<ParsedExpression> PEGTransformerFactory::TransformLiteralExpression(P
 
 unique_ptr<ParsedExpression> PEGTransformerFactory::TransformColumnReference(PEGTransformer &transformer,
                                                                              optional_ptr<ParseResult> parse_result) {
-	// TODO(dtenwolde) figure out how this rule works with all the options
 	auto &list_pr = parse_result->Cast<ListParseResult>();
-	auto &col_ref = list_pr.Child<ChoiceParseResult>(0);
-	vector<string> column_name_parts;
-	column_name_parts.push_back(col_ref.result->Cast<IdentifierParseResult>().identifier);
-	return make_uniq<ColumnRefExpression>(column_name_parts);
+	auto identifiers = transformer.Transform<vector<string>>(list_pr.Child<ListParseResult>(0));
+	return make_uniq<ColumnRefExpression>(std::move(identifiers));
 }
 
 } // namespace duckdb

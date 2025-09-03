@@ -539,7 +539,7 @@ const char INLINED_PEG_GRAMMAR[] = {
 	"ValueOrValues <- 'VALUE' / 'VALUES'\n"
 	"IncludeExcludeNulls <- ('INCLUDE' / 'EXCLUDE') 'NULLS'\n"
 	"UnpivotHeader <- ColIdOrString / Parens(List(ColIdOrString))\n"
-	"ColumnReference <- CatalogReservedSchemaTableColumnName / SchemaReservedTableColumnName / TableReservedColumnName / ColumnName\n"
+	"ColumnReference <- DottedIdentifier\n"
 	"CatalogReservedSchemaTableColumnName <- CatalogQualification ReservedSchemaQualification ReservedTableQualification ReservedColumnName\n"
 	"SchemaReservedTableColumnName <- SchemaQualification ReservedTableQualification ReservedColumnName\n"
 	"TableReservedColumnName <- TableQualification ReservedColumnName\n"

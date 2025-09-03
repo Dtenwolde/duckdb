@@ -541,7 +541,7 @@ ValueOrValues <- 'VALUE' / 'VALUES'
 IncludeExcludeNulls <- ('INCLUDE' / 'EXCLUDE') 'NULLS'
 UnpivotHeader <- ColIdOrString / Parens(List(ColIdOrString))
 
-ColumnReference <- CatalogReservedSchemaTableColumnName / SchemaReservedTableColumnName / TableReservedColumnName / ColumnName
+ColumnReference <- DottedIdentifier
 CatalogReservedSchemaTableColumnName <- CatalogQualification ReservedSchemaQualification ReservedTableQualification ReservedColumnName
 SchemaReservedTableColumnName <- SchemaQualification ReservedTableQualification ReservedColumnName
 TableReservedColumnName <- TableQualification ReservedColumnName

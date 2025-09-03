@@ -282,6 +282,8 @@ private:
 	static unique_ptr<TableRef> TransformTableSubquery(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static unique_ptr<TableRef> TransformSubqueryReference(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 
+	static unique_ptr<TableRef> TransformBaseTableRef(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+
 	static unique_ptr<TableRef> TransformValuesRef(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static unique_ptr<SelectStatement> TransformValuesClause(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static vector<unique_ptr<ParsedExpression>> TransformValuesExpressions(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
