@@ -105,6 +105,9 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	REGISTER_TRANSFORM(TransformTableFunctionAliasColon);
 	REGISTER_TRANSFORM(TransformQualifiedTableFunction);
 	REGISTER_TRANSFORM(TransformTableAliasColon);
+	REGISTER_TRANSFORM(TransformTableSubquery);
+	REGISTER_TRANSFORM(TransformSubqueryReference);
+
 	REGISTER_TRANSFORM(TransformValuesRef);
 	REGISTER_TRANSFORM(TransformValuesClause);
 	REGISTER_TRANSFORM(TransformValuesExpressions);

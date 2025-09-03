@@ -229,6 +229,35 @@ QualifiedName PEGTransformerFactory::TransformQualifiedTableFunction(PEGTransfor
 	return result;
 }
 
+unique_ptr<TableRef> PEGTransformerFactory::TransformTableSubquery(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	// TODO(Dtenwolde)
+	auto lateral_opt = list_pr.Child<OptionalParseResult>(0).HasResult();
+	auto subquery_reference = transformer.Transform<unique_ptr<TableRef>>(list_pr.Child<ListParseResult>(1));
+	auto table_alias_opt = list_pr.Child<OptionalParseResult>(2);
+	if (table_alias_opt.HasResult()) {
+		auto table_alias = transformer.Transform<TableAlias>(table_alias_opt.optional_result);
+		subquery_reference->alias = table_alias.name;
+		subquery_reference->column_name_alias = table_alias.column_name_alias;
+	}
+	return subquery_reference;
+}
+
+unique_ptr<TableRef> PEGTransformerFactory::TransformSubqueryReference(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	auto extract_parens = ExtractResultFromParens(list_pr.Child<ListParseResult>(0));
+	auto sql_statement = transformer.Transform<unique_ptr<SQLStatement>>(extract_parens);
+	if (sql_statement->type != StatementType::SELECT_STATEMENT) {
+		throw ParserException("Subquery needs a SELECT statement");
+	}
+	auto *raw_stmt = sql_statement.release();
+	auto select_statement_ptr = static_cast<SelectStatement *>(raw_stmt);
+	auto select_statement = unique_ptr<SelectStatement>(select_statement_ptr);
+
+	auto subquery_ref = make_uniq<SubqueryRef>(std::move(select_statement));
+	return subquery_ref;
+}
+
 unique_ptr<TableRef> PEGTransformerFactory::TransformValuesRef(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
 	auto &list_pr = parse_result->Cast<ListParseResult>();
 	auto values_select_statement = transformer.Transform<unique_ptr<SelectStatement>>(list_pr.Child<ListParseResult>(0));
