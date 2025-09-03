@@ -258,6 +258,7 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	REGISTER_TRANSFORM(TransformColIdOrString);
 	REGISTER_TRANSFORM(TransformIdentifierOrStringLiteral);
 	REGISTER_TRANSFORM(TransformColId);
+	REGISTER_TRANSFORM(TransformColLabelOrString);
 	REGISTER_TRANSFORM(TransformStringLiteral);
 	REGISTER_TRANSFORM(TransformIdentifier);
 	REGISTER_TRANSFORM(TransformSetSetting);

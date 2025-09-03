@@ -20,7 +20,13 @@ string PEGTransformerFactory::TransformIdentifierOrKeyword(PEGTransformer &trans
 			}
 			if (child->type == ParseResultType::CHOICE) {
 				auto &choice_pr = child->Cast<ChoiceParseResult>();
-				return choice_pr.result->Cast<KeywordParseResult>().keyword;
+				if (choice_pr.result->type == ParseResultType::IDENTIFIER) {
+					return choice_pr.result->Cast<IdentifierParseResult>().identifier;
+				}
+				if (choice_pr.result->type == ParseResultType::KEYWORD) {
+					return choice_pr.result->Cast<KeywordParseResult>().keyword;
+				}
+				throw ParserException("Unexpected type encountered.");
 			}
 			if (child->type == ParseResultType::IDENTIFIER) {
 				return child->Cast<IdentifierParseResult>().identifier;

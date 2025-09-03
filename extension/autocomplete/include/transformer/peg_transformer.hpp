@@ -352,6 +352,7 @@ private:
 
 	static string TransformColIdOrString(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static string TransformColId(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static string TransformColLabelOrString(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static string TransformStringLiteral(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static string TransformIdentifierOrStringLiteral(PEGTransformer &transformer,
 	                                                 optional_ptr<ParseResult> parse_result);

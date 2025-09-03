@@ -10,6 +10,17 @@ string PEGTransformerFactory::TransformColIdOrString(PEGTransformer &transformer
 	return transformer.Transform<string>(choice_pr.result);
 }
 
+string PEGTransformerFactory::TransformColLabelOrString(PEGTransformer &transformer,
+													optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	auto choice_pr = list_pr.Child<ChoiceParseResult>(0);
+	if (choice_pr.result->type == ParseResultType::STRING) {
+		return choice_pr.Cast<StringLiteralParseResult>().result;
+	}
+	return transformer.Transform<string>(choice_pr.result);
+}
+
+
 string PEGTransformerFactory::TransformColId(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
 	auto &list_pr = parse_result->Cast<ListParseResult>();
 	auto &choice_pr = list_pr.Child<ChoiceParseResult>(0);
