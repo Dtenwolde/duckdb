@@ -157,6 +157,11 @@ unique_ptr<TableRef> PEGTransformerFactory::TransformInnerTableRef(PEGTransforme
 	return transformer.Transform<unique_ptr<TableRef>>(list_pr.Child<ChoiceParseResult>(0).result);
 }
 
+unique_ptr<TableRef> PEGTransformerFactory::TransformTableFunction(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	return transformer.Transform<unique_ptr<TableRef>>(list_pr.Child<ChoiceParseResult>(0).result);
+}
+
 unique_ptr<TableRef> PEGTransformerFactory::TransformValuesRef(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
 	auto &list_pr = parse_result->Cast<ListParseResult>();
 	auto values_select_statement = transformer.Transform<unique_ptr<SelectStatement>>(list_pr.Child<ListParseResult>(0));
