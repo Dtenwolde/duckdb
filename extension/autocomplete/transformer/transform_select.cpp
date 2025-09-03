@@ -190,6 +190,24 @@ unique_ptr<TableRef> PEGTransformerFactory::TransformTableFunctionLateralOpt(PEG
 unique_ptr<TableRef> PEGTransformerFactory::TransformTableFunctionAliasColon(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
 	auto &list_pr = parse_result->Cast<ListParseResult>();
 
+	auto table_alias = transformer.Transform<string>(list_pr.Child<ListParseResult>(0));
+
+	auto qualified_table_function = transformer.Transform<QualifiedName>(list_pr.Child<ListParseResult>(1));
+	auto table_function_arguments = transformer.Transform<vector<unique_ptr<ParsedExpression>>>(list_pr.Child<ListParseResult>(2));
+
+	auto result = make_uniq<TableFunctionRef>();
+	result->function = make_uniq<FunctionExpression>(
+														qualified_table_function.catalog,
+														qualified_table_function.schema,
+														qualified_table_function.name,
+														std::move(table_function_arguments));
+	result->alias = table_alias;
+	return result;
+}
+
+string PEGTransformerFactory::TransformTableAliasColon(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	return transformer.Transform<string>(list_pr.Child<ListParseResult>(0));
 }
 
 QualifiedName PEGTransformerFactory::TransformQualifiedTableFunction(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
