@@ -117,4 +117,89 @@ unique_ptr<ParsedExpression> PEGTransformerFactory::TransformColumnReference(PEG
 	return make_uniq<ColumnRefExpression>(std::move(identifiers));
 }
 
+unique_ptr<ParsedExpression> PEGTransformerFactory::TransformFunctionExpression(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	// TODO(Dtenwolde) Not everything here is used yet.
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	auto qualified_function = transformer.Transform<QualifiedName>(list_pr.Child<ListParseResult>(0));
+	auto extract_parens = ExtractResultFromParens(list_pr.Child<ListParseResult>(1))->Cast<ListParseResult>();
+	auto distinct_or_all_opt = extract_parens.Child<OptionalParseResult>(0);
+	auto function_arg_opt = extract_parens.Child<OptionalParseResult>(1);
+	vector<unique_ptr<ParsedExpression>> function_children;
+	if (function_arg_opt.HasResult()) {
+		auto function_argument_list = ExtractParseResultsFromList(function_arg_opt.optional_result);
+		for (auto function_argument : function_argument_list) {
+			function_children.push_back(transformer.Transform<unique_ptr<ParsedExpression>>(function_argument));
+		}
+	}
+	auto order_by_opt = extract_parens.Child<OptionalParseResult>(2);
+	auto ignore_nulls_opt = extract_parens.Child<OptionalParseResult>(3);
+
+	auto within_group_opt = list_pr.Child<OptionalParseResult>(2);
+	auto filter_opt = list_pr.Child<OptionalParseResult>(3);
+	auto export_opt = list_pr.Child<OptionalParseResult>(4);
+	auto over_opt = list_pr.Child<OptionalParseResult>(5);
+
+	auto result = make_uniq<FunctionExpression>(qualified_function.catalog,
+		qualified_function.schema,
+		qualified_function.name,
+		std::move(function_children));
+
+	return result;
+}
+
+QualifiedName PEGTransformerFactory::TransformFunctionIdentifier(PEGTransformer &transformer,
+                                                                 optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	auto choice_pr = list_pr.Child<ChoiceParseResult>(0);
+	if (choice_pr.result->type == ParseResultType::IDENTIFIER) {
+		QualifiedName result;
+		result.catalog = INVALID_CATALOG;
+		result.schema = INVALID_SCHEMA;
+		result.name = choice_pr.result->Cast<IdentifierParseResult>().identifier;
+		return result;
+	}
+	return transformer.Transform<QualifiedName>(list_pr.Child<ChoiceParseResult>(0).result);
+}
+
+QualifiedName PEGTransformerFactory::TransformCatalogReservedSchemaFunctionName(PEGTransformer &transformer,
+																 optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	QualifiedName result;
+	result.catalog = transformer.Transform<string>(list_pr.Child<ListParseResult>(0));
+	auto schema_opt = list_pr.Child<OptionalParseResult>(1);
+	if (schema_opt.HasResult()) {
+		result.schema = transformer.Transform<string>(schema_opt.optional_result);
+	} else {
+		result.schema = INVALID_SCHEMA;
+	}
+	result.name = transformer.Transform<string>(list_pr.Child<ListParseResult>(2));
+	return result;
+}
+
+QualifiedName PEGTransformerFactory::TransformSchemaReservedFunctionName(PEGTransformer &transformer,
+																 optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	QualifiedName result;
+	result.catalog = INVALID_CATALOG;
+	result.schema = transformer.Transform<string>(list_pr.Child<ListParseResult>(0));
+	result.name = transformer.Transform<string>(list_pr.Child<ListParseResult>(1));
+	return result;
+}
+
+string PEGTransformerFactory::TransformReservedFunctionName(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	return list_pr.Child<IdentifierParseResult>(0).identifier;
+}
+
+QualifiedName PEGTransformerFactory::TransformFunctionName(PEGTransformer &transformer,
+																 optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	QualifiedName result;
+	result.catalog = INVALID_CATALOG;
+	result.schema = INVALID_SCHEMA;
+	result.name = list_pr.Child<IdentifierParseResult>(0).identifier;
+	return result;
+}
+
+
 } // namespace duckdb
