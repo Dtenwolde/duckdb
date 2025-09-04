@@ -119,15 +119,15 @@ if __name__ == "__main__":
             coverage_perc = (len(covered_in_file) / total_in_file) * 100 if total_in_file > 0 else 0
 
             print("-" * 40)
-            print(f"File: {filename}")
-            print(f"Coverage: {coverage_perc:.2f}% ({len(covered_in_file)} / {total_in_file} rules)")
 
             if missing_in_file:
+                print(f"File: {filename}")
+                print(f"Coverage: {coverage_perc:.2f}% ({len(covered_in_file)} / {total_in_file} rules)")
                 print("Missing rules:")
                 for rule in sorted(list(missing_in_file)):
                     print(f"  - {rule}")
             else:
-                print("Missing rules: None")
+                print(f"File: {filename} ✅")
         print("-" * 40)
 
         # --- Total Statistics Reporting ---
