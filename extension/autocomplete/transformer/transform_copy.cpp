@@ -16,7 +16,27 @@ unique_ptr<SQLStatement> PEGTransformerFactory::TransformCopyStatement(PEGTransf
 
 unique_ptr<SQLStatement> PEGTransformerFactory::TransformCopySelect(PEGTransformer &transformer,
                                                                     optional_ptr<ParseResult> parse_result) {
-	throw NotImplementedException("TransformCopySelect");
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	auto select_parens = ExtractResultFromParens(list_pr.Child<ListParseResult>(0));
+	auto sql_statement = transformer.Transform<unique_ptr<SQLStatement>>(select_parens);
+	if (sql_statement->type != StatementType::SELECT_STATEMENT) {
+		throw ParserException("Subquery needs a SELECT statement");
+	}
+	auto *raw_stmt = sql_statement.release();
+	auto select_statement_ptr = static_cast<SelectStatement *>(raw_stmt);
+	auto select_statement = unique_ptr<SelectStatement>(select_statement_ptr);
+
+	auto result = make_uniq<CopyStatement>();
+	auto info = make_uniq<CopyInfo>();
+	info->is_from = false;
+	info->file_path = transformer.Transform<string>(list_pr.Child<ListParseResult>(2));
+	auto options_opt = list_pr.Child<OptionalParseResult>(3);
+	if (options_opt.HasResult()) {
+		info->options = transformer.Transform<case_insensitive_map_t<vector<Value>>>(options_opt.optional_result);
+	}
+	info->select_statement = std::move(select_statement->node);
+	result->info = std::move(info);
+	return result;
 }
 
 unique_ptr<SQLStatement> PEGTransformerFactory::TransformCopyFromDatabase(PEGTransformer &transformer,

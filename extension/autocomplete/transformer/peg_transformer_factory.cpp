@@ -307,6 +307,7 @@ PEGTransformerFactory::PEGTransformerFactory() {
 
 	REGISTER_TRANSFORM(TransformExplainStatement);
 	REGISTER_TRANSFORM(TransformExplainOptions);
+	REGISTER_TRANSFORM(TransformAnalyzeStatement);
 
 
 

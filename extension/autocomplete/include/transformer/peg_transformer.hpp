@@ -426,11 +426,7 @@ private:
 	static unique_ptr<SQLStatement> TransformExplainStatement(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static unordered_map<string, vector<Value>> TransformExplainOptions(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 
-
-
-
-
-
+	static unique_ptr<SQLStatement> TransformAnalyzeStatement(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 
 	//! Operator
 	static ExpressionType TransformOperator(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);

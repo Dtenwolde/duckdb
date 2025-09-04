@@ -15,7 +15,7 @@ string PEGTransformerFactory::TransformColLabelOrString(PEGTransformer &transfor
 	auto &list_pr = parse_result->Cast<ListParseResult>();
 	auto choice_pr = list_pr.Child<ChoiceParseResult>(0);
 	if (choice_pr.result->type == ParseResultType::STRING) {
-		return choice_pr.Cast<StringLiteralParseResult>().result;
+		return choice_pr.result->Cast<StringLiteralParseResult>().result;
 	}
 	return transformer.Transform<string>(choice_pr.result);
 }
