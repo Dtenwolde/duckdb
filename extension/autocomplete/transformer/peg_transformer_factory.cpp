@@ -287,6 +287,7 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	REGISTER_TRANSFORM(TransformOrderByExpression);
 
 
+
 	REGISTER_TRANSFORM(TransformPrefixOperator);
 	REGISTER_TRANSFORM(TransformColumnReference);
 	REGISTER_TRANSFORM(TransformColIdOrString);
@@ -300,6 +301,9 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	REGISTER_TRANSFORM(TransformDottedIdentifier);
 
 	REGISTER_TRANSFORM(TransformOperator);
+
+	REGISTER_TRANSFORM(TransformPrepareStatement);
+
 
 	// Manual registration for mismatched names or special cases
 	Register("PragmaName", &TransformIdentifierOrKeyword);
