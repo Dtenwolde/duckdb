@@ -421,6 +421,8 @@ private:
 	static OrderByNode TransformOrderByExpression(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 
 	static unique_ptr<SQLStatement> TransformPrepareStatement(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<SQLStatement> TransformExecuteStatement(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+
 
 
 
