@@ -29,7 +29,6 @@ WindowExpression::WindowExpression(ExpressionType type, string catalog_name, str
 	case ExpressionType::WINDOW_LAG:
 	case ExpressionType::WINDOW_NTILE:
 	case ExpressionType::WINDOW_FILL:
-	case ExpressionType::WINDOW_INVALID:
 		break;
 	default:
 		throw NotImplementedException("Window aggregate type %s not supported", ExpressionTypeToString(type).c_str());

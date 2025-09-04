@@ -30,7 +30,7 @@ unique_ptr<SQLStatement> PEGTransformerFactory::TransformPragmaFunction(PEGTrans
 	auto &list_pr = parse_result->Cast<ListParseResult>();
 	result->info->name = list_pr.Child<IdentifierParseResult>(0).identifier;
 	auto &optional_parameters_pr = list_pr.Child<OptionalParseResult>(1);
-	if (optional_parameters_pr.optional_result) {
+	if (optional_parameters_pr.HasResult()) {
 		result->info->parameters =
 		    transformer.Transform<vector<unique_ptr<ParsedExpression>>>(optional_parameters_pr.optional_result);
 	}
@@ -39,9 +39,15 @@ unique_ptr<SQLStatement> PEGTransformerFactory::TransformPragmaFunction(PEGTrans
 
 vector<unique_ptr<ParsedExpression>>
 PEGTransformerFactory::TransformPragmaParameters(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	// TODO(Dtenwolde) Check about named parameters
 	// PragmaParameters <- List(Expression)
-
-	throw NotImplementedException("TransformPragmaParameters not implemented");
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	auto expr_list = ExtractParseResultsFromList(list_pr.Child<ListParseResult>(0));
+	vector<unique_ptr<ParsedExpression>> parameters;
+	for (auto expr : expr_list) {
+		parameters.push_back(transformer.Transform<unique_ptr<ParsedExpression>>(expr));
+	}
+	return parameters;
 }
 
 } // namespace duckdb

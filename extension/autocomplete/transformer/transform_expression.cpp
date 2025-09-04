@@ -231,7 +231,8 @@ unique_ptr<WindowExpression> PEGTransformerFactory::TransformWindowFrameNameCont
 
 unique_ptr<WindowExpression> PEGTransformerFactory::TransformWindowFrameContents(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
 	auto &list_pr = parse_result->Cast<ListParseResult>();
-	auto result = make_uniq<WindowExpression>(ExpressionType::WINDOW_INVALID, INVALID_CATALOG, INVALID_SCHEMA, string());
+	//! Create a dummy result to add modifiers to
+	auto result = make_uniq<WindowExpression>(ExpressionType::WINDOW_AGGREGATE, INVALID_CATALOG, INVALID_SCHEMA, string());
 	auto partition_opt = list_pr.Child<OptionalParseResult>(0);
 	if (partition_opt.HasResult()) {
 		result->partitions = transformer.Transform<vector<unique_ptr<ParsedExpression>>>(partition_opt.optional_result);
