@@ -305,6 +305,9 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	REGISTER_TRANSFORM(TransformPrepareStatement);
 	REGISTER_TRANSFORM(TransformExecuteStatement);
 
+	REGISTER_TRANSFORM(TransformExplainStatement);
+	REGISTER_TRANSFORM(TransformExplainOptions);
+
 
 
 	// Manual registration for mismatched names or special cases
