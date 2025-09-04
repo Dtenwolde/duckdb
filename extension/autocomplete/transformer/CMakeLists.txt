@@ -19,6 +19,7 @@ add_library_unity(
   transform_create_view.cpp
   transform_deallocate.cpp
   transform_delete.cpp
+  transform_describe.cpp
   transform_detach.cpp
   transform_execute.cpp
   transform_explain.cpp
