@@ -23,11 +23,25 @@ unique_ptr<CreateTypeInfo> PEGTransformerFactory::TransformCreateType(PEGTransfo
 	auto &list_pr = parse_result->Cast<ListParseResult>();
 	auto choice_pr = list_pr.Child<ChoiceParseResult>(0);
 	if (choice_pr.result->name == "EnumSelectType") {
-		throw NotImplementedException("Create TYPE using SelectStatement has not yet been implemented.");
+		auto sql_statement = transformer.Transform<unique_ptr<SQLStatement>>(choice_pr.result);
+		if (sql_statement->type != StatementType::SELECT_STATEMENT) {
+			throw ParserException("Subquery needs a SELECT statement");
+		}
+		auto *raw_stmt = sql_statement.release();
+		auto select_statement_ptr = static_cast<SelectStatement *>(raw_stmt);
+		auto select_statement = unique_ptr<SelectStatement>(select_statement_ptr);
+		result->query = std::move(select_statement);
+		result->type = LogicalType::INVALID;
 	} else {
 		result->type = transformer.Transform<LogicalType>(choice_pr.result);
 	}
 	return result;
+}
+
+unique_ptr<SQLStatement> PEGTransformerFactory::TransformEnumSelectType(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	auto extract_parens = ExtractResultFromParens(list_pr.Child<ListParseResult>(1));
+	return transformer.Transform<unique_ptr<SQLStatement>>(extract_parens);
 }
 
 LogicalType PEGTransformerFactory::TransformEnumStringLiteralList(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {

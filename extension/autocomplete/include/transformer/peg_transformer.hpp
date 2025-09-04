@@ -223,6 +223,8 @@ private:
 	static unique_ptr<CreateStatement> TransformCreateViewStmt(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static unique_ptr<CreateStatement> TransformCreateTypeStmt(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static unique_ptr<CreateTypeInfo> TransformCreateType(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<SQLStatement> TransformEnumSelectType(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+
 	static LogicalType TransformEnumStringLiteralList(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 
 	static unique_ptr<CreateStatement> TransformCreateSequenceStmt(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);

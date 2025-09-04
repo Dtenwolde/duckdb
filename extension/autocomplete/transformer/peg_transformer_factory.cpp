@@ -153,6 +153,7 @@ PEGTransformerFactory::PEGTransformerFactory() {
 
 	REGISTER_TRANSFORM(TransformCreateTypeStmt);
 	REGISTER_TRANSFORM(TransformCreateType);
+	REGISTER_TRANSFORM(TransformEnumSelectType);
 	REGISTER_TRANSFORM(TransformEnumStringLiteralList);
 
 	REGISTER_TRANSFORM(TransformCreateSecretStmt);
