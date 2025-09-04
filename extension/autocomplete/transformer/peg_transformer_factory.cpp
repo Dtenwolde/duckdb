@@ -272,6 +272,21 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	REGISTER_TRANSFORM(TransformSchemaReservedFunctionName);
 	REGISTER_TRANSFORM(TransformReservedFunctionName);
 	REGISTER_TRANSFORM(TransformFunctionName);
+	REGISTER_TRANSFORM(TransformOverClause);
+	REGISTER_TRANSFORM(TransformWindowFrame);
+	REGISTER_TRANSFORM(TransformWindowFrameDefinition);
+	REGISTER_TRANSFORM(TransformWindowFrameContentsParens);
+	REGISTER_TRANSFORM(TransformWindowFrameNameContentsParens);
+	REGISTER_TRANSFORM(TransformWindowFrameContents);
+	REGISTER_TRANSFORM(TransformWindowPartition);
+
+	REGISTER_TRANSFORM(TransformOrderByClause);
+	REGISTER_TRANSFORM(TransformOrderByExpressions);
+	REGISTER_TRANSFORM(TransformOrderByExpressionList);
+	REGISTER_TRANSFORM(TransformOrderByAll);
+	REGISTER_TRANSFORM(TransformOrderByExpression);
+
+
 	REGISTER_TRANSFORM(TransformPrefixOperator);
 	REGISTER_TRANSFORM(TransformColumnReference);
 	REGISTER_TRANSFORM(TransformColIdOrString);

@@ -45,8 +45,11 @@ FrameBound <- ('UNBOUNDED'i 'PRECEDING'i) / ('UNBOUNDED'i 'FOLLOWING'i) / ('CURR
 WindowExcludeClause <- 'EXCLUDE'i WindowExcludeElement
 WindowExcludeElement <- ('CURRENT'i 'ROW'i) / 'GROUP'i / 'TIES'i / ('NO'i 'OTHERS'i)
 OverClause <- 'OVER'i WindowFrame
-WindowFrame <- WindowFrameDefinition / Identifier / Parens(Identifier)
-WindowFrameDefinition <- Parens(BaseWindowName? WindowFrameContents) / Parens(WindowFrameContents)
+WindowFrame <- WindowFrameDefinition / Identifier / ParensIdentifier
+ParensIdentifier <- Parens(Identifier)
+WindowFrameDefinition <- WindowFrameNameContentsParens / WindowFrameContentsParens
+WindowFrameNameContentsParens <- Parens(BaseWindowName? WindowFrameContents)
+WindowFrameContentsParens <- Parens(WindowFrameContents)
 WindowFrameContents <- WindowPartition? OrderByClause? FrameClause?
 BaseWindowName <- Identifier
 WindowPartition <- 'PARTITION'i 'BY'i List(Expression)

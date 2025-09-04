@@ -115,7 +115,8 @@ OrderByExpression <- Expression DescOrAsc? NullsFirstOrLast?
 DescOrAsc <- 'DESC'i / 'DESCENDING'i / 'ASC'i / 'ASCENDING'i
 NullsFirstOrLast <- 'NULLS'i 'FIRST'i / 'LAST'i
 OrderByClause <- 'ORDER'i 'BY'i OrderByExpressions
-OrderByExpressions <- List(OrderByExpression) / OrderByAll
+OrderByExpressions <- OrderByExpressionList / OrderByAll
+OrderByExpressionList <- List(OrderByExpression)
 OrderByAll <- 'ALL'i DescOrAsc? NullsFirstOrLast?
 
 LimitClause <- 'LIMIT'i LimitValue

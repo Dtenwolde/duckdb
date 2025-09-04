@@ -11,6 +11,7 @@
 #include "ast/sequence_option.hpp"
 #include "ast/set_info.hpp"
 #include "ast/table_alias.hpp"
+#include "duckdb/parser/expression/window_expression.hpp"
 #include "duckdb/parser/parsed_data/create_type_info.hpp"
 #include "duckdb/parser/parsed_data/transaction_info.hpp"
 #include "duckdb/parser/statement/copy_database_statement.hpp"
@@ -404,6 +405,25 @@ private:
 	static string TransformReservedFunctionName(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static QualifiedName TransformFunctionName(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static string TransformIdentifierOrKeyword(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+
+	static unique_ptr<WindowExpression> TransformOverClause(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<WindowExpression> TransformWindowFrame(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<WindowExpression> TransformWindowFrameDefinition(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<WindowExpression> TransformWindowFrameContentsParens(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<WindowExpression> TransformWindowFrameNameContentsParens(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<WindowExpression> TransformWindowFrameContents(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static vector<unique_ptr<ParsedExpression>> TransformWindowPartition(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+
+	static vector<OrderByNode> TransformOrderByClause(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static vector<OrderByNode> TransformOrderByExpressions(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static vector<OrderByNode> TransformOrderByExpressionList(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static vector<OrderByNode> TransformOrderByAll(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static OrderByNode TransformOrderByExpression(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+
+
+
+
+
 
 	//! Operator
 	static ExpressionType TransformOperator(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
