@@ -34,8 +34,7 @@ add_library_unity(
   transform_prepare.cpp
   transform_select.cpp
   transform_set.cpp
-  transform_transaction.cpp
-  transform_truncate.cpp)
+  transform_transaction.cpp)
 set(AUTOCOMPLETE_EXTENSION_FILES
     ${AUTOCOMPLETE_EXTENSION_FILES} $<TARGET_OBJECTS:duckdb_peg_transformer>
     PARENT_SCOPE)

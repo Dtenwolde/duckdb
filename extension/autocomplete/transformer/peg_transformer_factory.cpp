@@ -67,7 +67,6 @@ PEGTransformerFactory::PEGTransformerFactory() {
 
 	REGISTER_TRANSFORM(TransformSetStatement);
 	REGISTER_TRANSFORM(TransformResetStatement);
-	REGISTER_TRANSFORM(TransformDeleteStatement);
 	REGISTER_TRANSFORM(TransformPragmaStatement);
 	REGISTER_TRANSFORM(TransformPragmaAssign);
 	REGISTER_TRANSFORM(TransformPragmaFunction);
@@ -308,6 +307,10 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	REGISTER_TRANSFORM(TransformExplainStatement);
 	REGISTER_TRANSFORM(TransformExplainOptions);
 	REGISTER_TRANSFORM(TransformAnalyzeStatement);
+
+	REGISTER_TRANSFORM(TransformDeleteStatement);
+	REGISTER_TRANSFORM(TransformTargetOptAlias);
+	REGISTER_TRANSFORM(TransformDeleteUsingClause);
 
 
 

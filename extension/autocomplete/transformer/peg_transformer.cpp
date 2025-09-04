@@ -46,4 +46,12 @@ T PEGTransformer::TransformEnum(optional_ptr<ParseResult> parse_result) {
 	return typed_enum_ptr->value;
 }
 
+template <typename T>
+	void PEGTransformer::TransformOptional(ListParseResult &list_pr, idx_t child_idx, T &target) {
+	auto &opt = list_pr.Child<OptionalParseResult>(child_idx);
+	if (opt.HasResult()) {
+		target = Transform<T>(opt.optional_result);
+	}
+}
+
 } // namespace duckdb

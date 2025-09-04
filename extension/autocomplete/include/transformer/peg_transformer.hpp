@@ -55,6 +55,9 @@ public:
 	template <typename T>
 	T TransformEnum(optional_ptr<ParseResult> parse_result);
 
+	template <typename T>
+	void TransformOptional(ListParseResult &list_pr, idx_t child_idx, T &target);
+
 	// Make overloads return raw pointers, as ownership is handled by the ArenaAllocator.
 	template <class T, typename... Args>
 	T *Make(Args &&...args) {
@@ -132,8 +135,6 @@ private:
 	static unique_ptr<SQLStatement> TransformResetStatement(PEGTransformer &, optional_ptr<ParseResult> choice_pr);
 	static vector<string> TransformDottedIdentifier(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static QualifiedName TransformUseTarget(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
-	static unique_ptr<SQLStatement> TransformDeleteStatement(PEGTransformer &transformer,
-	                                                         optional_ptr<ParseResult> parse_result);
 	static unique_ptr<SQLStatement> TransformPragmaStatement(PEGTransformer &transformer,
 	                                                         optional_ptr<ParseResult> parse_result);
 	static unique_ptr<SQLStatement> TransformPragmaAssign(PEGTransformer &transformer,
@@ -427,6 +428,11 @@ private:
 	static unordered_map<string, vector<Value>> TransformExplainOptions(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 
 	static unique_ptr<SQLStatement> TransformAnalyzeStatement(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+
+	static unique_ptr<SQLStatement> TransformDeleteStatement(PEGTransformer &transformer,
+															 optional_ptr<ParseResult> parse_result);
+	static unique_ptr<BaseTableRef> TransformTargetOptAlias(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static vector<unique_ptr<TableRef>> TransformDeleteUsingClause(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 
 	//! Operator
 	static ExpressionType TransformOperator(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
