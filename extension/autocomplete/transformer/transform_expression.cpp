@@ -139,6 +139,10 @@ unique_ptr<ParsedExpression> PEGTransformerFactory::TransformFunctionExpression(
 	auto qualified_function = transformer.Transform<QualifiedName>(list_pr.Child<ListParseResult>(0));
 	auto extract_parens = ExtractResultFromParens(list_pr.Child<ListParseResult>(1))->Cast<ListParseResult>();
 	auto distinct_or_all_opt = extract_parens.Child<OptionalParseResult>(0);
+	if (distinct_or_all_opt.HasResult()) {
+		// TODO(Dtenwolde)
+		throw NotImplementedException("Distinct or All has not yet been implemented");
+	}
 	auto function_arg_opt = extract_parens.Child<OptionalParseResult>(1);
 	vector<unique_ptr<ParsedExpression>> function_children;
 	if (function_arg_opt.HasResult()) {
@@ -148,12 +152,29 @@ unique_ptr<ParsedExpression> PEGTransformerFactory::TransformFunctionExpression(
 		}
 	}
 	auto order_by_opt = extract_parens.Child<OptionalParseResult>(2);
+	if (order_by_opt.HasResult()) {
+		throw NotImplementedException("Order by has not yet been implemented");
+	}
 	auto ignore_nulls_opt = extract_parens.Child<OptionalParseResult>(3);
-
+	if (ignore_nulls_opt.HasResult()) {
+		throw NotImplementedException("Ignore nulls has not yet been implemented");
+	}
 	auto within_group_opt = list_pr.Child<OptionalParseResult>(2);
+	if (within_group_opt.HasResult()) {
+		throw NotImplementedException("Within group has not yet been implemented");
+	}
 	auto filter_opt = list_pr.Child<OptionalParseResult>(3);
+	if (filter_opt.HasResult()) {
+		throw NotImplementedException("Filter has not yet been implemented");
+	}
 	auto export_opt = list_pr.Child<OptionalParseResult>(4);
+	if (export_opt.HasResult()) {
+		throw NotImplementedException("Export has not yet been implemented");
+	}
 	auto over_opt = list_pr.Child<OptionalParseResult>(5);
+	if (over_opt.HasResult()) {
+		throw NotImplementedException("Over has not yet been implemented");
+	}
 
 	auto result = make_uniq<FunctionExpression>(qualified_function.catalog,
 		qualified_function.schema,
