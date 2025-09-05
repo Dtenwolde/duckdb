@@ -1,7 +1,7 @@
 {
   "description": "Test PEG Parser + transformer",
   "skip_compiled": "true",
-  "on_init": "pragma enable_logging;SET logging_storage='stdout';call peg_parser(on_error='continue', enable_logging=true);",
+  "on_init": "call peg_parser();",
   "statically_loaded_extensions": [
     "core_functions",
     "autocomplete"

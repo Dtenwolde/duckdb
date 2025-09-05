@@ -309,6 +309,7 @@ private:
 
 
 
+
 	static unique_ptr<SelectNode> TransformSelectFrom(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static unique_ptr<SelectNode> TransformSelectFromClause(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static unique_ptr<SelectNode> TransformFromSelectClause(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
@@ -458,6 +459,7 @@ private:
 	static ShowType TransformShowOrDescribe(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static ShowType TransformSummarize(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 
+	static unique_ptr<SQLStatement> TransformInsertStatement(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 
 
 	//! Operator

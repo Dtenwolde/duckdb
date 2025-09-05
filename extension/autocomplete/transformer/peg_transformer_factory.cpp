@@ -101,7 +101,6 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	REGISTER_TRANSFORM(TransformAtSpecifier);
 	REGISTER_TRANSFORM(TransformAtUnit);
 
-
 	REGISTER_TRANSFORM(TransformFromClause);
 	REGISTER_TRANSFORM(TransformTableRef);
 	REGISTER_TRANSFORM(TransformInnerTableRef);
@@ -330,6 +329,8 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	REGISTER_TRANSFORM(TransformShowOrDescribeOrSummarize);
 	REGISTER_TRANSFORM(TransformShowOrDescribe);
 	REGISTER_TRANSFORM(TransformSummarize);
+
+	REGISTER_TRANSFORM(TransformInsertStatement);
 
 
 	// Manual registration for mismatched names or special cases
