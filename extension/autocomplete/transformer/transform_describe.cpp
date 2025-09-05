@@ -50,9 +50,17 @@ unique_ptr<QueryNode> PEGTransformerFactory::TransformShowQualifiedName(PEGTrans
 			result->table_name = choice_pr.result->Cast<StringLiteralParseResult>().result;
 		} else {
 			auto base_table = transformer.Transform<unique_ptr<BaseTableRef>>(choice_pr.result);
-			result->catalog_name = base_table->catalog_name;
-			result->schema_name = base_table->schema_name;
-			result->table_name = base_table->table_name;
+			if (IsInvalidSchema(base_table->schema_name)) {
+				// Check for special table names
+				auto table_name = StringUtil::Lower(base_table->table_name);
+				if (table_name == "databases" || table_name == "tables" || table_name == "variables") {
+					result->table_name = "\"" + table_name + "\"";
+				}
+			} else {
+				result->catalog_name = base_table->catalog_name;
+				result->schema_name = base_table->schema_name;
+				result->table_name = base_table->table_name;
+			}
 		}
 	} else {
 		if (result->show_type == ShowType::SUMMARY) {
