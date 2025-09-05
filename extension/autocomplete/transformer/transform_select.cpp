@@ -60,31 +60,15 @@ unique_ptr<SelectStatement> PEGTransformerFactory::TransformSimpleSelect(PEGTran
 	auto &list_pr = parse_result->Cast<ListParseResult>();
 	auto select_from = transformer.Transform<unique_ptr<SelectNode>>(list_pr.Child<ListParseResult>(0));
 	auto opt_where_clause = list_pr.Child<OptionalParseResult>(1);
-	if (opt_where_clause.HasResult()) {
-		select_from->where_clause = transformer.Transform<unique_ptr<ParsedExpression>>(opt_where_clause.optional_result);
-	}
-	auto opt_group_by = list_pr.Child<OptionalParseResult>(2);
-	if (opt_group_by.HasResult()) {
-		select_from->groups = transformer.Transform<GroupByNode>(opt_group_by.optional_result);
-	}
-	auto opt_having_clause = list_pr.Child<OptionalParseResult>(3);
-	if (opt_having_clause.HasResult()) {
-		select_from->having = transformer.Transform<unique_ptr<ParsedExpression>>(opt_having_clause.optional_result);
-	}
+	transformer.TransformOptional<unique_ptr<ParsedExpression>>(list_pr, 1, select_from->where_clause);
+	transformer.TransformOptional<GroupByNode>(list_pr, 2, select_from->groups);
+	transformer.TransformOptional<unique_ptr<ParsedExpression>>(list_pr, 3, select_from->having);
 	auto opt_window_clause = list_pr.Child<OptionalParseResult>(4);
-	if (opt_having_clause.HasResult()) {
-		// TODO(Dtenwolde) Window function
+	if (opt_window_clause.HasResult()) {
+		throw NotImplementedException("Window clause in SELECT statement has not yet been implemented.");
 	}
-
-	auto opt_qualify_clause = list_pr.Child<OptionalParseResult>(4);
-	if (opt_qualify_clause.HasResult()) {
-		select_from->qualify = transformer.Transform<unique_ptr<ParsedExpression>>(opt_qualify_clause.optional_result);
-	}
-
-	auto opt_sample_clause = list_pr.Child<OptionalParseResult>(4);
-	if (opt_sample_clause.HasResult()) {
-		select_from->sample = transformer.Transform<unique_ptr<SampleOptions>>(opt_sample_clause.optional_result);
-	}
+	transformer.TransformOptional<unique_ptr<ParsedExpression>>(list_pr, 5, select_from->qualify);
+	transformer.TransformOptional<unique_ptr<SampleOptions>>(list_pr, 6, select_from->sample);
 	auto select_statement = make_uniq<SelectStatement>();
 	select_statement->node = std::move(select_from);
 	return select_statement;
@@ -454,6 +438,16 @@ OrderByNode PEGTransformerFactory::TransformOrderByExpression(PEGTransformer &tr
 		order_by_null_type = transformer.Transform<OrderByNullType>(order_by_null_pr.optional_result);
 	}
 	return OrderByNode(order_type, order_by_null_type, std::move(expr));
+}
+
+unique_ptr<ParsedExpression> PEGTransformerFactory::TransformWhereClause(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	return transformer.Transform<unique_ptr<ParsedExpression>>(list_pr.Child<ListParseResult>(1));
+}
+
+unique_ptr<ParsedExpression> PEGTransformerFactory::TransformHavingClause(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	return transformer.Transform<unique_ptr<ParsedExpression>>(list_pr.Child<ListParseResult>(1));
 }
 
 } // namespace duckdb

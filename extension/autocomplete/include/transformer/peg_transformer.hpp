@@ -286,6 +286,11 @@ private:
 	static unique_ptr<TableRef> TransformTableSubquery(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static unique_ptr<TableRef> TransformSubqueryReference(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 
+	static unique_ptr<ParsedExpression> TransformWhereClause(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<ParsedExpression> TransformHavingClause(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+
+
+
 	static unique_ptr<TableRef> TransformBaseTableRef(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 
 	static unique_ptr<TableRef> TransformValuesRef(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);

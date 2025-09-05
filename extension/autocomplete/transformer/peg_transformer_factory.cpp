@@ -108,6 +108,9 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	REGISTER_TRANSFORM(TransformTableSubquery);
 	REGISTER_TRANSFORM(TransformSubqueryReference);
 
+	REGISTER_TRANSFORM(TransformWhereClause);
+	REGISTER_TRANSFORM(TransformHavingClause);
+
 	REGISTER_TRANSFORM(TransformBaseTableRef);
 
 	REGISTER_TRANSFORM(TransformValuesRef);
