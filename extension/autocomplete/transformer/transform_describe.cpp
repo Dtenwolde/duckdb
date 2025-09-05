@@ -5,7 +5,7 @@ namespace duckdb {
 
 unique_ptr<SelectStatement> PEGTransformerFactory::TransformDescribeStatement(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
 	auto &list_pr = parse_result->Cast<ListParseResult>();
-	auto select_statement = make_unique<SelectStatement>();
+	auto select_statement = make_uniq<SelectStatement>();
 	select_statement->node = transformer.Transform<unique_ptr<QueryNode>>(list_pr.Child<ChoiceParseResult>(0).result);
 	return select_statement;
 }
@@ -37,6 +37,11 @@ ShowType PEGTransformerFactory::TransformShowOrDescribeOrSummarize(PEGTransforme
 ShowType PEGTransformerFactory::TransformShowOrDescribe(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
 	auto &list_pr = parse_result->Cast<ListParseResult>();
 	return transformer.TransformEnum<ShowType>(list_pr.Child<ChoiceParseResult>(0).result);
+}
+
+ShowType PEGTransformerFactory::TransformSummarize(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	return transformer.TransformEnum<ShowType>(list_pr.Child<ListParseResult>(0));
 }
 
 

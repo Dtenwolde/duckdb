@@ -712,9 +712,13 @@ ShowSelect <- ShowOrDescribeOrSummarize SelectStatement
 ShowAllTables <- ShowOrDescribe 'ALL'i 'TABLES'
 ShowQualifiedName <- ShowOrDescribeOrSummarize (BaseTableName / StringLiteral)?
 
-ShowOrDescribeOrSummarize <- ShowOrDescribe / 'SUMMARIZE'i
-ShowOrDescribe <- 'SHOW'i / 'DESCRIBE'i / 'DESC'i
-
+ShowOrDescribeOrSummarize <- ShowOrDescribe / Summarize
+Summarize <- SummarizeRule
+SummarizeRule <- 'SUMMARIZE'i
+ShowOrDescribe <- ShowRule / DescribeRule / DescRule
+ShowRule <- 'SHOW'i
+DescribeRule <- 'DESCRIBE'i
+DescRule <- 'DESC'i
 VacuumStatement <- 'VACUUM'i (VacuumLegacyOptions AnalyzeStatement / VacuumLegacyOptions QualifiedTarget / VacuumLegacyOptions / VacuumParensOptions QualifiedTarget?)?
 
 VacuumLegacyOptions <- OptFull OptFreeze OptVerbose

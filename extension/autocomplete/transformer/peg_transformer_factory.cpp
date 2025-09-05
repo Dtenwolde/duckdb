@@ -318,6 +318,7 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	REGISTER_TRANSFORM(TransformShowSelect);
 	REGISTER_TRANSFORM(TransformShowOrDescribeOrSummarize);
 	REGISTER_TRANSFORM(TransformShowOrDescribe);
+	REGISTER_TRANSFORM(TransformSummarize);
 
 
 	// Manual registration for mismatched names or special cases
