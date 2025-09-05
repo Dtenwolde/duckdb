@@ -130,6 +130,7 @@ void PEGParser::ParseRules(const char *grammar) {
 				token.type = PEGTokenType::LITERAL;
 				rule.tokens.push_back(token);
 				c++;
+				// TODO(Dtenwolde) Remove the i from grammar files and remove this check.
 				if (grammar[c] == 'i') {
 					// skip optional case insensitive marker
 					// note: all keywords we parse are case insensitive so we just ignore this marker
