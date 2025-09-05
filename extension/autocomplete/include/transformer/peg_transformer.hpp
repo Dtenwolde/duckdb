@@ -302,6 +302,13 @@ private:
 	static TableAlias TransformTableAlias(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static vector<string> TransformColumnAliases(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 
+	static unique_ptr<AtClause> TransformAtClause(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<AtClause> TransformAtSpecifier(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static string TransformAtUnit(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+
+
+
+
 	static unique_ptr<SelectNode> TransformSelectFrom(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static unique_ptr<SelectNode> TransformSelectFromClause(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static unique_ptr<SelectNode> TransformFromSelectClause(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);

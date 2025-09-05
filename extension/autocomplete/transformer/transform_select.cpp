@@ -6,6 +6,7 @@
 #include "duckdb/parser/tableref/expressionlistref.hpp"
 #include "duckdb/parser/tableref/subqueryref.hpp"
 #include "duckdb/parser/tableref/table_function_ref.hpp"
+#include "duckdb/parser/tableref/at_clause.hpp"
 
 namespace duckdb {
 
@@ -255,11 +256,27 @@ unique_ptr<TableRef> PEGTransformerFactory::TransformBaseTableRef(PEGTransformer
 		result->alias = table_alias.name;
 		result->column_name_alias = table_alias.column_name_alias;
 	}
-	auto at_clause_opt = list_pr.Child<OptionalParseResult>(3);
-	if (at_clause_opt.HasResult()) {
-		result->at_clause = transformer.Transform<unique_ptr<AtClause>>(at_clause_opt.optional_result);
-	}
+	transformer.TransformOptional<unique_ptr<AtClause>>(list_pr, 3, result->at_clause);
 	return result;
+}
+
+unique_ptr<AtClause> PEGTransformerFactory::TransformAtClause(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	auto extract_parens = ExtractResultFromParens(list_pr.Child<ListParseResult>(1));
+	return transformer.Transform<unique_ptr<AtClause>>(extract_parens);
+}
+
+unique_ptr<AtClause> PEGTransformerFactory::TransformAtSpecifier(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	auto unit = transformer.Transform<string>(list_pr.Child<ListParseResult>(0));
+	auto expr = transformer.Transform<unique_ptr<ParsedExpression>>(list_pr.Child<ListParseResult>(2));
+	return make_uniq<AtClause>(unit, std::move(expr));
+}
+
+string PEGTransformerFactory::TransformAtUnit(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	auto choice_pr = list_pr.Child<ChoiceParseResult>(0);
+	return choice_pr.result->Cast<KeywordParseResult>().keyword;
 }
 
 unique_ptr<TableRef> PEGTransformerFactory::TransformValuesRef(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
