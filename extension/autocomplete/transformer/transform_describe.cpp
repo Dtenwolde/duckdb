@@ -38,6 +38,33 @@ unique_ptr<QueryNode> PEGTransformerFactory::TransformShowAllTables(PEGTransform
 	return select_node;
 }
 
+unique_ptr<QueryNode> PEGTransformerFactory::TransformShowQualifiedName(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	auto result = make_uniq<ShowRef>();
+	result->show_type = transformer.Transform<ShowType>(list_pr.Child<ListParseResult>(0));
+	auto opt_table_name_parens = list_pr.Child<OptionalParseResult>(1);
+	if (opt_table_name_parens.HasResult()) {
+		auto base_table_or_string = opt_table_name_parens.optional_result->Cast<ListParseResult>();
+		auto choice_pr = base_table_or_string.Child<ChoiceParseResult>(0);
+		if (choice_pr.result->type == ParseResultType::STRING) {
+			result->table_name = choice_pr.result->Cast<StringLiteralParseResult>().result;
+		} else {
+			auto base_table = transformer.Transform<unique_ptr<BaseTableRef>>(choice_pr.result);
+			result->catalog_name = base_table->catalog_name;
+			result->schema_name = base_table->schema_name;
+			result->table_name = base_table->table_name;
+		}
+	} else {
+		if (result->show_type == ShowType::SUMMARY) {
+			throw ParserException("Expected table name with SUMMARIZE");
+		}
+	}
+	auto select_node = make_uniq<SelectNode>();
+	select_node->select_list.push_back(make_uniq<StarExpression>());
+	select_node->from_table = std::move(result);
+	return select_node;
+}
+
 ShowType PEGTransformerFactory::TransformShowOrDescribeOrSummarize(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
 	auto &list_pr = parse_result->Cast<ListParseResult>();
 	return transformer.Transform<ShowType>(list_pr.Child<ChoiceParseResult>(0).result);
