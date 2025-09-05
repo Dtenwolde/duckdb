@@ -24,12 +24,49 @@ unique_ptr<SQLStatement> PEGTransformerFactory::TransformInsertStatement(PEGTran
 	if (insert_values.sql_statement) {
 		result->select_statement = unique_ptr_cast<SQLStatement, SelectStatement>(std::move(insert_values.sql_statement));
 	}
-	auto on_conflict_info = transformer.Transform<unique_ptr<OnConflictInfo>>(list_pr.Child<ListParseResult>(8));
-	transformer.TransformOptional(list_pr, 2, on_conflict_info->action_type);
-	result->on_conflict_info = std::move(on_conflict_info);
+	transformer.TransformOptional<unique_ptr<OnConflictInfo>>(list_pr, 8, result->on_conflict_info);
+	if (result->on_conflict_info) {
+		transformer.TransformOptional(list_pr, 2, result->on_conflict_info->action_type);
+	}
 	transformer.TransformOptional<vector<unique_ptr<ParsedExpression>>>(list_pr, 9, result->returning_list);
 
 	return result;
+}
+
+unique_ptr<BaseTableRef> PEGTransformerFactory::TransformInsertTarget(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	auto table_ref = transformer.Transform<unique_ptr<BaseTableRef>>(list_pr.Child<ListParseResult>(0));
+	transformer.TransformOptional<string>(list_pr, 1, table_ref->alias);
+	return table_ref;
+}
+
+unique_ptr<OnConflictInfo> PEGTransformerFactory::TransformOnConflictClause(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	throw NotImplementedException("ON CONFLICT clause is not yet supported.");
+}
+
+InsertValues PEGTransformerFactory::TransformInsertValues(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	InsertValues result;
+	auto choice_pr = list_pr.Child<ChoiceParseResult>(0);
+	if (choice_pr.result->name == "DefaultValues") {
+		result.default_values = true;
+		result.sql_statement = nullptr;
+		return result;
+	} else if (choice_pr.result->name == "SelectStatement") {
+		result.default_values = false;
+		result.sql_statement = transformer.Transform<unique_ptr<SQLStatement>>(choice_pr.result);
+		return result;
+	} else {
+		throw InternalException("Unexpected choice in InsertValues statement.");
+	}
+}
+
+
+
+InsertColumnOrder PEGTransformerFactory::TransformByNameOrPosition(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	return transformer.Transform<InsertColumnOrder>(list_pr.Child<ChoiceParseResult>(1).result);
 }
 
 vector<string> PEGTransformerFactory::TransformInsertColumnList(PEGTransformer &transformer,

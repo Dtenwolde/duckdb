@@ -3,6 +3,7 @@
 #include "chrono"
 #include "duckdb/common/to_string.hpp"
 #include "duckdb/common/enums/date_part_specifier.hpp"
+#include "duckdb/parser/statement/insert_statement.hpp"
 #include "duckdb/parser/tableref/showref.hpp"
 
 namespace duckdb {
@@ -331,6 +332,10 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	REGISTER_TRANSFORM(TransformSummarize);
 
 	REGISTER_TRANSFORM(TransformInsertStatement);
+	REGISTER_TRANSFORM(TransformByNameOrPosition);
+	REGISTER_TRANSFORM(TransformInsertValues);
+	REGISTER_TRANSFORM(TransformOnConflictClause);
+	REGISTER_TRANSFORM(TransformInsertTarget);
 
 
 	// Manual registration for mismatched names or special cases
@@ -414,6 +419,9 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	RegisterEnum<ShowType>("ShowRule", ShowType::SHOW_FROM);
 	RegisterEnum<ShowType>("DescribeRule", ShowType::DESCRIBE);
 	RegisterEnum<ShowType>("DescRule", ShowType::DESCRIBE);
+
+	RegisterEnum<InsertColumnOrder>("InsertByName", InsertColumnOrder::INSERT_BY_NAME);
+	RegisterEnum<InsertColumnOrder>("InsertByPosition", InsertColumnOrder::INSERT_BY_POSITION);
 	}
 
 optional_ptr<ParseResult> PEGTransformerFactory::ExtractResultFromParens(optional_ptr<ParseResult> parse_result) {

@@ -7,6 +7,7 @@
 #include "ast/column_element.hpp"
 #include "ast/extension_repository_info.hpp"
 #include "ast/generic_copy_option.hpp"
+#include "ast/insert_values.hpp"
 #include "ast/persist_type.hpp"
 #include "ast/sequence_option.hpp"
 #include "ast/set_info.hpp"
@@ -21,6 +22,7 @@
 #include "parser/peg_parser.hpp"
 #include "duckdb/storage/arena_allocator.hpp"
 #include "duckdb/parser/query_node/select_node.hpp"
+#include "duckdb/parser/statement/insert_statement.hpp"
 
 namespace duckdb {
 
@@ -460,6 +462,11 @@ private:
 	static ShowType TransformSummarize(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 
 	static unique_ptr<SQLStatement> TransformInsertStatement(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static InsertColumnOrder TransformByNameOrPosition(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static InsertValues TransformInsertValues(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<OnConflictInfo> TransformOnConflictClause(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<BaseTableRef> TransformInsertTarget(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+
 
 
 	//! Operator

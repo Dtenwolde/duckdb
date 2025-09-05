@@ -898,7 +898,9 @@ UpdateSetElement <- ColumnName '=' Expression
 InsertStatement <- WithClause? 'INSERT'i OrAction? 'INTO'i InsertTarget ByNameOrPosition? InsertColumnList? InsertValues OnConflictClause? ReturningClause?
 
 OrAction <- 'OR'i 'REPLACE'i / 'IGNORE'i
-ByNameOrPosition <- 'BY'i 'NAME'i / 'POSITION'i
+ByNameOrPosition <- 'BY'i InsertByName / InsertByPosition
+InsertByName <- 'NAME'i
+InsertByPosition <- 'POSITION'i
 
 InsertTarget <- BaseTableName InsertAlias?
 InsertAlias <- 'AS'i Identifier
