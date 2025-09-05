@@ -316,6 +316,7 @@ PEGTransformerFactory::PEGTransformerFactory() {
 
 	REGISTER_TRANSFORM(TransformDescribeStatement);
 	REGISTER_TRANSFORM(TransformShowSelect);
+	REGISTER_TRANSFORM(TransformShowAllTables);
 	REGISTER_TRANSFORM(TransformShowOrDescribeOrSummarize);
 	REGISTER_TRANSFORM(TransformShowOrDescribe);
 	REGISTER_TRANSFORM(TransformSummarize);

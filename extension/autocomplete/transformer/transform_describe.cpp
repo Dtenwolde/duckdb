@@ -18,11 +18,20 @@ unique_ptr<QueryNode> PEGTransformerFactory::TransformShowSelect(PEGTransformer 
 	if (sql_statement->type != StatementType::SELECT_STATEMENT) {
 		throw ParserException("Subquery needs a SELECT statement");
 	}
-	// TODO(Dtenwolde)
-	auto *raw_stmt = sql_statement.release();
-	auto select_statement_ptr = static_cast<SelectStatement *>(raw_stmt);
-	auto select_statement = unique_ptr<SelectStatement>(select_statement_ptr);
-	result->query = std::move(select_statement->node);
+	auto select_statement = unique_ptr_cast<SQLStatement, SelectStatement>(std::move(sql_statement));
+	result->query =	std::move(select_statement->node);
+	auto select_node = make_uniq<SelectNode>();
+	select_node->select_list.push_back(make_uniq<StarExpression>());
+	select_node->from_table = std::move(result);
+	return select_node;
+}
+
+unique_ptr<QueryNode> PEGTransformerFactory::TransformShowAllTables(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	auto result = make_uniq<ShowRef>();
+	// Legacy reasons, see bind_showref.cpp
+	result->table_name = "__show_tables_expanded";
+	result->show_type = ShowType::DESCRIBE;
 	auto select_node = make_uniq<SelectNode>();
 	select_node->select_list.push_back(make_uniq<StarExpression>());
 	select_node->from_table = std::move(result);

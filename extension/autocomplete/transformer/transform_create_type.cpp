@@ -27,9 +27,7 @@ unique_ptr<CreateTypeInfo> PEGTransformerFactory::TransformCreateType(PEGTransfo
 		if (sql_statement->type != StatementType::SELECT_STATEMENT) {
 			throw ParserException("Subquery needs a SELECT statement");
 		}
-		auto *raw_stmt = sql_statement.release();
-		auto select_statement_ptr = static_cast<SelectStatement *>(raw_stmt);
-		auto select_statement = unique_ptr<SelectStatement>(select_statement_ptr);
+		auto select_statement = unique_ptr_cast<SQLStatement, SelectStatement>(std::move(sql_statement));
 		result->query = std::move(select_statement);
 		result->type = LogicalType::INVALID;
 	} else {

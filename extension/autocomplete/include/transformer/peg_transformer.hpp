@@ -438,6 +438,7 @@ private:
 
 	static unique_ptr<SelectStatement> TransformDescribeStatement(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static unique_ptr<QueryNode> TransformShowSelect(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<QueryNode> TransformShowAllTables(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static ShowType TransformShowOrDescribeOrSummarize(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static ShowType TransformShowOrDescribe(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static ShowType TransformSummarize(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
