@@ -25,9 +25,9 @@ vector<unique_ptr<SQLStatement>> PEGParserOverride::Parse(const string &query) {
 			if (tokenized_statement.empty()) {
 				continue;
 			}
-			Printer::PrintF("Trying to transform: %s", query);
+			// Printer::PrintF("Trying to transform: %s", query);
 			auto statement = factory->Transform(tokenizer.statements[0], "Statement");
-			Printer::PrintF("Successfully transformed: %s", statement->ToString());
+			// Printer::PrintF("Successfully transformed: %s", statement->ToString());
 			result.push_back(std::move(statement));
 		}
 		return result;

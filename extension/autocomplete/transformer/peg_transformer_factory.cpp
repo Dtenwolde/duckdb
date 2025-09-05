@@ -48,7 +48,7 @@ unique_ptr<SQLStatement> PEGTransformerFactory::Transform(vector<MatcherToken> &
 		                      state.token_index, tokens[state.token_index].text, token_list);
 	}
 
-	Printer::Print(match_result->ToString());
+	// Printer::Print(match_result->ToString());
 	// Printer::PrintF("Parsing took: %lld µs\n", duration.count());
 
 	match_result->name = "Statement";
