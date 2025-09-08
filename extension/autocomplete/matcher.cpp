@@ -60,11 +60,13 @@ public:
 		return MatchResultType::SUCCESS;
 	}
 
-	unique_ptr<ParseResult> MatchParseResult(MatchState &state) const override {
+	optional_ptr<ParseResult> MatchParseResult(MatchState &state) const override {
 		if (!MatchKeyword(state)) {
 			return nullptr;
 		}
-		return make_uniq<KeywordParseResult>(keyword);
+		auto result = state.allocator.Allocate(make_uniq<KeywordParseResult>(keyword));
+		result->name = name;
+		return result;
 	}
 
 	SuggestionType AddSuggestionInternal(MatchState &state) const override {
@@ -84,6 +86,9 @@ private:
 	char extra_char;
 
 	bool MatchKeyword(MatchState &state) const {
+		if (state.token_index >= state.tokens.size()) {
+			return false;
+		}
 		auto &token = state.tokens[state.token_index];
 		if (StringUtil::CIEquals(keyword, token.text)) {
 			// move to the next token
@@ -136,23 +141,21 @@ public:
 		return MatchResultType::SUCCESS;
 	}
 
-	unique_ptr<ParseResult> MatchParseResult(MatchState &state) const override {
+	optional_ptr<ParseResult> MatchParseResult(MatchState &state) const override {
 		MatchState list_state(state);
-		vector<unique_ptr<ParseResult>> owned_results;
-		owned_results.reserve(matchers.size());
+		vector<optional_ptr<ParseResult>> results;
 
 		for (const auto &child_matcher : matchers) {
 			auto child_result = child_matcher.get().MatchParseResult(list_state);
 			if (!child_result) {
 				return nullptr;
 			}
-			owned_results.push_back(std::move(child_result));
+			results.push_back(std::move(child_result));
 		}
-
 		state.token_index = list_state.token_index;
-		auto result = make_uniq<ListParseResult>(std::move(owned_results));
-		result->name = name;
-		return result;
+		// Empty name implies it's a subrule, e.g. 'SET'i (StandardAssignment / SetTimeZone)
+		return state.allocator.Allocate(make_uniq<ListParseResult>(std::move(results), name));
+		;
 	}
 
 	SuggestionType AddSuggestionInternal(MatchState &state) const override {
@@ -202,16 +205,16 @@ public:
 		return MatchResultType::SUCCESS;
 	}
 
-	unique_ptr<ParseResult> MatchParseResult(MatchState &state) const override {
+	optional_ptr<ParseResult> MatchParseResult(MatchState &state) const override {
 		MatchState child_state(state);
 		auto child_match = matcher.MatchParseResult(child_state);
 		if (child_match == nullptr) {
 			// did not succeed in matching - go back up (simply return a nullptr)
-			return nullptr;
+			return state.allocator.Allocate(make_uniq<OptionalParseResult>());
 		}
 		// propagate the child state upwards
 		state.token_index = child_state.token_index;
-		return make_uniq<OptionalParseResult>(child_match.release());
+		return state.allocator.Allocate(make_uniq<OptionalParseResult>(child_match));
 	}
 
 	SuggestionType AddSuggestionInternal(MatchState &state) const override {
@@ -250,14 +253,15 @@ public:
 		return MatchResultType::FAIL;
 	}
 
-	ParseResult &MatchParseResult(MatchState &state) const override {
+	optional_ptr<ParseResult> MatchParseResult(MatchState &state) const override {
 		for (idx_t i = 0; i < matchers.size(); i++) {
 			MatchState choice_state(state);
 			auto child_result = matchers[i].get().MatchParseResult(choice_state);
 			if (child_result != nullptr) {
 				// we matched this child - propagate upwards
 				state.token_index = choice_state.token_index;
-				return make_uniq<ChoiceParseResult>(child_result, i);
+				auto result = state.allocator.Allocate(make_uniq<ChoiceParseResult>(child_result, i));
+				return result;
 			}
 		}
 		return nullptr;
@@ -324,9 +328,10 @@ public:
 		}
 	}
 
-	unique_ptr<ParseResult> MatchParseResult(MatchState &state) const override {
+	optional_ptr<ParseResult> MatchParseResult(MatchState &state) const override {
 		MatchState repeat_state(state);
-		vector<reference<ParseResult>> results;
+		// TODO(dtenwolde) check if this is correct
+		vector<optional_ptr<ParseResult>> results;
 
 		// First, we MUST match the element at least once.
 		auto first_result = element.MatchParseResult(repeat_state);
@@ -334,7 +339,7 @@ public:
 			// The first match failed, so the whole repeat fails.
 			return nullptr;
 		}
-		results.push_back(*first_result);
+		results.push_back(first_result);
 
 		// After the first success, the overall result is a success.
 		// Now, we continue matching the element as many times as possible.
@@ -353,11 +358,11 @@ public:
 				// No more matches found, we are done.
 				break;
 			}
-			results.push_back(*next_result);
+			results.push_back(next_result);
 		}
 
 		// Return all collected results in a RepeatParseResult.
-		return make_uniq<RepeatParseResult>(std::move(results));
+		return state.allocator.Allocate(make_uniq<RepeatParseResult>(std::move(results)));
 	}
 
 	SuggestionType AddSuggestionInternal(MatchState &state) const override {
@@ -395,19 +400,21 @@ public:
 	}
 
 	MatchResultType Match(MatchState &state) const override {
-		// variable matchers match anything except for reserved keywords
-		auto &token_text = state.tokens[state.token_index].text;
-		auto category = KeywordHelper::Instance().KeywordCategoryType(token_text);
-		if (category == KeywordCategory::KEYWORD_RESERVED || category == KeywordCategory::KEYWORD_UNRESERVED ||
-		    category == KeywordCategory::KEYWORD_COL_NAME || category == KeywordCategory::KEYWORD_TYPE_FUNC ||
-		    category == GetBannedCategory()) {
+		if (!MatchIdentifier(state)) {
 			return MatchResultType::FAIL;
 		}
-		if (!IsIdentifier(token_text)) {
-			return MatchResultType::FAIL;
-		}
-		state.token_index++;
 		return MatchResultType::SUCCESS;
+	}
+
+	optional_ptr<ParseResult> MatchParseResult(MatchState &state) const override {
+		if (state.token_index >= state.tokens.size()) {
+			return nullptr;
+		}
+		auto &token_text = state.tokens[state.token_index].text;
+		if (!MatchIdentifier(state)) {
+			return nullptr;
+		}
+		return state.allocator.Allocate(make_uniq<IdentifierParseResult>(token_text));
 	}
 
 	bool SupportsStringLiteral() const {
@@ -467,6 +474,46 @@ public:
 	}
 
 	SuggestionState suggestion_type;
+
+private:
+	bool MatchIdentifier(MatchState &state) const {
+		// variable matchers match anything except for reserved keywords
+		auto &token_text = state.tokens[state.token_index].text;
+		const auto &keyword_helper = PEGKeywordHelper::Instance();
+		switch (suggestion_type) {
+		case SuggestionState::SUGGEST_TYPE_NAME:
+			if (keyword_helper.KeywordCategoryType(token_text, KeywordCategory::KEYWORD_RESERVED) ||
+			    keyword_helper.KeywordCategoryType(token_text, GetBannedCategory())) {
+				return false;
+			}
+			break;
+		default: {
+			const auto banned_category = GetBannedCategory();
+			const auto allowed_override_category = banned_category == KeywordCategory::KEYWORD_COL_NAME
+			                                           ? KeywordCategory::KEYWORD_TYPE_FUNC
+			                                           : KeywordCategory::KEYWORD_COL_NAME;
+
+			const bool is_reserved = keyword_helper.KeywordCategoryType(token_text, KeywordCategory::KEYWORD_RESERVED);
+			const bool has_extra_banned_category = keyword_helper.KeywordCategoryType(token_text, banned_category);
+			const bool has_banned_flag = is_reserved || has_extra_banned_category;
+
+			const bool is_unreserved =
+			    keyword_helper.KeywordCategoryType(token_text, KeywordCategory::KEYWORD_UNRESERVED);
+			const bool has_override_flag = keyword_helper.KeywordCategoryType(token_text, allowed_override_category);
+			const bool has_allowed_flag = is_unreserved || has_override_flag;
+
+			if (has_banned_flag && !has_allowed_flag) {
+				return false;
+			}
+			break;
+		}
+		}
+		if (!IsIdentifier(token_text)) {
+			return false;
+		}
+		state.token_index++;
+		return true;
+	}
 };
 
 class ReservedIdentifierMatcher : public IdentifierMatcher {
@@ -478,22 +525,22 @@ public:
 	}
 
 	MatchResultType Match(MatchState &state) const override {
-		if (!MatchIdentifier(state)) {
+		if (!MatchReservedIdentifier(state)) {
 			return MatchResultType::FAIL;
 		}
 		return MatchResultType::SUCCESS;
 	}
 
-	unique_ptr<ParseResult> MatchParseResult(MatchState &state) const override {
+	optional_ptr<ParseResult> MatchParseResult(MatchState &state) const override {
 		auto &token_text = state.tokens[state.token_index].text;
-		if (!MatchIdentifier(state)) {
+		if (!MatchReservedIdentifier(state)) {
 			return nullptr;
 		}
-		return make_uniq<IdentifierParseResult>(token_text);
+		return state.allocator.Allocate(make_uniq<IdentifierParseResult>(token_text));
 	}
 
 private:
-	bool MatchIdentifier(MatchState &state) const {
+	bool MatchReservedIdentifier(MatchState &state) const {
 		auto &token_text = state.tokens[state.token_index].text;
 		if (!IsIdentifier(token_text)) {
 			return false;
@@ -501,7 +548,6 @@ private:
 		state.token_index++;
 		return true;
 	}
-
 };
 
 class StringLiteralMatcher : public Matcher {
@@ -510,6 +556,7 @@ public:
 
 public:
 	explicit StringLiteralMatcher() : Matcher(TYPE) {
+		name = "StringLiteral";
 	}
 
 	MatchResultType Match(MatchState &state) const override {
@@ -520,12 +567,19 @@ public:
 		return MatchResultType::SUCCESS;
 	}
 
-	unique_ptr<ParseResult> MatchParseResult(MatchState &state) const override {
+	optional_ptr<ParseResult> MatchParseResult(MatchState &state) const override {
+		if (state.token_index >= state.tokens.size()) {
+			return nullptr;
+		}
 		auto &token_text = state.tokens[state.token_index].text;
 		if (!MatchStringLiteral(state)) {
 			return nullptr;
 		}
-		return make_uniq<StringLiteralParseResult>(token_text);
+		string stripped_string = token_text.substr(1, token_text.length() - 2);
+
+		auto result = state.allocator.Allocate(make_uniq<StringLiteralParseResult>(stripped_string));
+		result->name = name;
+		return result;
 	}
 
 	SuggestionType AddSuggestionInternal(MatchState &state) const override {
@@ -553,6 +607,7 @@ public:
 
 public:
 	explicit NumberLiteralMatcher() : Matcher(TYPE) {
+		name = "NumberLiteral";
 	}
 
 	MatchResultType Match(MatchState &state) const override {
@@ -563,13 +618,17 @@ public:
 		return MatchResultType::SUCCESS;
 	}
 
-	unique_ptr<ParseResult> MatchParseResult(MatchState &state) const override {
-		// variable matchers match anything except for reserved keywords
+	optional_ptr<ParseResult> MatchParseResult(MatchState &state) const override {
+		if (state.token_index >= state.tokens.size()) {
+			return nullptr;
+		}
 		auto &token_text = state.tokens[state.token_index].text;
 		if (!MatchNumberLiteral(state)) {
 			return nullptr;
 		}
-		return make_uniq<NumberParseResult>(token_text);
+		auto result = state.allocator.Allocate(make_uniq<NumberParseResult>(token_text));
+		result->name = name;
+		return result;
 	}
 
 	SuggestionType AddSuggestionInternal(MatchState &state) const override {
@@ -611,12 +670,15 @@ public:
 		return MatchResultType::SUCCESS;
 	}
 
-	unique_ptr<ParseResult> MatchParseResult(MatchState &state) const override {
+	optional_ptr<ParseResult> MatchParseResult(MatchState &state) const override {
+		if (state.token_index >= state.tokens.size()) {
+			return nullptr;
+		}
 		auto &token_text = state.tokens[state.token_index].text;
 		if (!MatchOperator(state)) {
 			return nullptr;
 		}
-		return make_uniq<OperatorParseResult>(token_text);
+		return state.allocator.Allocate(make_uniq<OperatorParseResult>(token_text));
 	}
 
 	SuggestionType AddSuggestionInternal(MatchState &state) const override {
@@ -662,10 +724,10 @@ Matcher &MatcherAllocator::Allocate(unique_ptr<Matcher> matcher) {
 	return result;
 }
 
-ParseResult &MatcherAllocator::AllocateParseResult(unique_ptr<ParseResult> parse_result) {
-	auto &result = *parse_result;
+optional_ptr<ParseResult> ParseResultAllocator::Allocate(unique_ptr<ParseResult> parse_result) {
+	auto result_ptr = parse_result.get();
 	parse_results.push_back(std::move(parse_result));
-	return result;
+	return optional_ptr<ParseResult>(result_ptr);
 }
 
 //! Class for building matchers
@@ -707,8 +769,6 @@ private:
 	Matcher &ReservedScalarFunctionName() const;
 	Matcher &ReservedVariable() const;
 
-	ParseResult &KeywordPR(const string& keyword) const;
-
 	void AddKeywordOverride(const char *name, uint32_t score, char extra_char = ' ');
 	void AddRuleOverride(const char *name, Matcher &matcher);
 	Matcher &CreateMatcher(PEGParser &parser, string_t rule_name);
@@ -726,10 +786,6 @@ Matcher &MatcherFactory::Keyword(const string &keyword) const {
 		return entry->second.get();
 	}
 	return allocator.Allocate(make_uniq<KeywordMatcher>(keyword, 0, ' '));
-}
-
-ParseResult &MatcherFactory::KeywordPR(const string& keyword) const {
-	return allocator.AllocateParseResult(make_uniq<KeywordParseResult>(keyword));
 }
 
 Matcher &MatcherFactory::List() const {
@@ -1016,26 +1072,38 @@ Matcher &MatcherFactory::CreateMatcher(PEGParser &parser, string_t rule_name, ve
 				break;
 			}
 			case '/': {
-				// OR operator - this signifies a choice between the last rule and the next rule
-				auto &last_matcher = list.GetLastRootMatcher().matcher;
-				if (last_matcher.Type() != MatcherType::LIST) {
-					throw InternalException("OR expected a list matcher");
+				// OR operator - signifies a choice between rules.
+				auto &last_root_matcher = list.GetLastRootMatcher().matcher;
+				if (last_root_matcher.Type() != MatcherType::LIST) {
+					throw InternalException("OR operator must follow a list of rules");
 				}
-				auto &list_matcher = last_matcher.Cast<ListMatcher>();
+				auto &list_matcher = last_root_matcher.Cast<ListMatcher>();
 				if (list_matcher.matchers.empty()) {
-					throw InternalException("OR rule found as first token");
+					throw InternalException("OR operator cannot be the first token in a rule");
 				}
-				auto &final_matcher = list_matcher.matchers.back();
-				vector<reference<Matcher>> choice_matchers;
-				choice_matchers.push_back(final_matcher);
-				auto &choice_matcher = Choice(choice_matchers);
 
-				// the choice matcher gets added to the list matcher (instead of the previous matcher)
-				list_matcher.matchers.pop_back();
-				list_matcher.matchers.push_back(choice_matcher);
-				// then it gets pushed onto the stack of matchers
-				// the next rule will then get pushed onto the choice matcher
-				list.AddRootMatcher(choice_matcher);
+				// Get the previous rule, which is the left-hand side of the '/'
+				auto &previous_matcher = list_matcher.matchers.back();
+
+				// Check if we are already building a choice (e.g., handling the second '/' in A / B / C)
+				if (previous_matcher.get().Type() == MatcherType::CHOICE) {
+					// If it's already a choice, we don't need to do anything to the list_matcher.
+					// We just set the existing ChoiceMatcher as the root so the *next* rule is added to it.
+					list.AddRootMatcher(previous_matcher);
+				} else {
+					// This is a new choice (e.g., handling the first '/' in A / B)
+					// Create a new ChoiceMatcher containing the previous rule.
+					vector<reference<Matcher>> choice_options;
+					choice_options.push_back(previous_matcher);
+					auto &new_choice_matcher = Choice(choice_options);
+
+					// Replace the previous rule in the list with our new ChoiceMatcher.
+					list_matcher.matchers.pop_back();
+					list_matcher.matchers.push_back(new_choice_matcher);
+
+					// Set the new ChoiceMatcher as the root so the *next* rule is added to it.
+					list.AddRootMatcher(new_choice_matcher);
+				}
 				break;
 			}
 			case '(': {

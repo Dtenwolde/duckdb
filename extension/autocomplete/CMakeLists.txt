@@ -10,9 +10,6 @@ set(AUTOCOMPLETE_EXTENSION_FILES autocomplete_extension.cpp keyword_helper.cpp
 add_subdirectory(parser)
 add_subdirectory(transformer)
 
-add_subdirectory(parser)
-add_subdirectory(transformer)
-
 build_static_extension(autocomplete ${AUTOCOMPLETE_EXTENSION_FILES})
 set(PARAMETERS "-warnings")
 build_loadable_extension(autocomplete ${PARAMETERS}
