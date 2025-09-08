@@ -31,5 +31,14 @@ c_acctbal	DECIMAL(15,2)	NO	NULL	NULL	NULL
 c_mktsegment	VARCHAR	NO	NULL	NULL	NULL
 c_comment	VARCHAR	NO	NULL	NULL	NULL
 
-statement ok
+query IIIIIIIIIIII
 summarize customer;
+----
+c_custkey	BIGINT	1	450	499	225.5	130.0480680363995	113	226	338	450	0.00
+c_name	VARCHAR	Customer#000000001	Customer#000000450	482	NULL	NULL	NULL	NULL	NULL	450	0.00
+c_address	VARCHAR	 5X4Kxhq,U5DKcW	zwrDoaY2gxCkdTXFaxNc	436	NULL	NULL	NULL	NULL	NULL	450	0.00
+c_nationkey	INTEGER	0	24	26	11.48	7.105366709760883	5	11	18	450	0.00
+c_phone	VARCHAR	10-229-548-7118	34-992-529-2023	486	NULL	NULL	NULL	NULL	NULL	450	0.00
+c_acctbal	DECIMAL(15,2)	-994.79	9987.71	438	4420.412511111111	3244.2244090929107	1644	4309	7388	450	0.00
+c_mktsegment	VARCHAR	AUTOMOBILE	MACHINERY	4	NULL	NULL	NULL	NULL	NULL	450	0.00
+c_comment	VARCHAR	 accounts boost blithely over the blithely regular sheaves. even courts alongside of the iro	ys among the accounts affix blithely asymptotes. carefully even deposits are fluff	395	NULL	NULL	NULL	NULL	NULL	450	0.00
