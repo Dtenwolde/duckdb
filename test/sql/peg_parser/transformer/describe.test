@@ -1,0 +1,35 @@
+# name: test/sql/peg_parser/transformer/call.test
+# description:
+# group: [transformer]
+
+require autocomplete
+
+require tpch
+
+# TODO(dtenwolde) remove this test
+statement error
+from foo
+----
+Catalog Error: Table with name foo does not exist!
+
+
+statement ok
+call peg_parser();
+
+statement ok
+CALL dbgen(sf=0.003);
+
+query IIIIII
+describe customer;
+----
+c_custkey	BIGINT	NO	NULL	NULL	NULL
+c_name	VARCHAR	NO	NULL	NULL	NULL
+c_address	VARCHAR	NO	NULL	NULL	NULL
+c_nationkey	INTEGER	NO	NULL	NULL	NULL
+c_phone	VARCHAR	NO	NULL	NULL	NULL
+c_acctbal	DECIMAL(15,2)	NO	NULL	NULL	NULL
+c_mktsegment	VARCHAR	NO	NULL	NULL	NULL
+c_comment	VARCHAR	NO	NULL	NULL	NULL
+
+statement ok
+summarize customer;

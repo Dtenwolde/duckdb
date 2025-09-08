@@ -12,20 +12,26 @@ unique_ptr<ParsedExpression> PEGTransformerFactory::TransformExpression(PEGTrans
                                                                         optional_ptr<ParseResult> parse_result) {
 	auto &list_pr = parse_result->Cast<ListParseResult>();
 	auto &base_expr_pr = list_pr.Child<ListParseResult>(0);
-	unique_ptr<ParsedExpression> current_expr = transformer.Transform<unique_ptr<ParsedExpression>>(base_expr_pr);
+	unique_ptr<ParsedExpression> base_expr = transformer.Transform<unique_ptr<ParsedExpression>>(base_expr_pr);
 	auto &indirection_pr = list_pr.Child<OptionalParseResult>(1);
 	if (indirection_pr.HasResult()) {
 		auto repeat_expression_pr = indirection_pr.optional_result->Cast<RepeatParseResult>();
 		vector<unique_ptr<ParsedExpression>> expr_children;
 		for (auto &child : repeat_expression_pr.children) {
-			auto operator_expr =
-			    std::move(transformer.Transform<unique_ptr<ParsedExpression>>(child)->Cast<OperatorExpression>());
-			current_expr = make_uniq<OperatorExpression>(operator_expr.type, std::move(current_expr),
-			                                             std::move(operator_expr.children[0]));
+			auto expr =
+			    transformer.Transform<unique_ptr<ParsedExpression>>(child);
+			if (expr->expression_class == ExpressionClass::COMPARISON) {
+				auto compare_expr = unique_ptr_cast<ParsedExpression, ComparisonExpression>(std::move(expr));
+				compare_expr->left = std::move(base_expr);
+				base_expr = std::move(compare_expr);
+			} else {
+				base_expr = make_uniq<OperatorExpression>(expr->type, std::move(base_expr),
+															 std::move(expr));
+			}
 		}
 	}
 
-	return current_expr;
+	return base_expr;
 }
 
 unique_ptr<ParsedExpression>
@@ -34,6 +40,11 @@ PEGTransformerFactory::TransformRecursiveExpression(PEGTransformer &transformer,
 	auto &list_pr = parse_result->Cast<ListParseResult>();
 	auto operator_expr = transformer.Transform<ExpressionType>(list_pr.Child<ListParseResult>(0));
 	vector<unique_ptr<ParsedExpression>> expr_children;
+	auto right_expr = transformer.Transform<unique_ptr<ParsedExpression>>(list_pr.Child<ListParseResult>(1));
+	if (operator_expr != ExpressionType::INVALID) {
+		return make_uniq<ComparisonExpression>(operator_expr, nullptr, std::move(right_expr));
+	}
+	// Fall back to generic operator expression
 	expr_children.push_back(transformer.Transform<unique_ptr<ParsedExpression>>(list_pr.Child<ListParseResult>(1)));
 	return make_uniq<OperatorExpression>(operator_expr, std::move(expr_children));
 }

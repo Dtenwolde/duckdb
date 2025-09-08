@@ -18,7 +18,7 @@ unique_ptr<SQLStatement> PEGTransformerFactory::TransformSelectStatement(PEGTran
 	// SetOperationNode
 	// auto repeat_setop_select = transformer.Transform<unique_ptr<SelectStatement>>(list_pr.Child<RepeatParseResult>(1));
 	// vector<unique_ptr<ResultModifier>>
-	auto modifiers = transformer.Transform<vector<unique_ptr<ResultModifier>>>(list_pr.Child<ListParseResult>(2));
+	transformer.TransformOptional<vector<unique_ptr<ResultModifier>>>(list_pr, 2, select_statement->node->modifiers);
 	return select_statement;
 }
 

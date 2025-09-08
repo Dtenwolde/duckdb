@@ -55,6 +55,8 @@ unique_ptr<QueryNode> PEGTransformerFactory::TransformShowQualifiedName(PEGTrans
 				auto table_name = StringUtil::Lower(base_table->table_name);
 				if (table_name == "databases" || table_name == "tables" || table_name == "variables") {
 					result->table_name = "\"" + table_name + "\"";
+				} else {
+					result->table_name = base_table->table_name;
 				}
 			} else {
 				result->catalog_name = base_table->catalog_name;
