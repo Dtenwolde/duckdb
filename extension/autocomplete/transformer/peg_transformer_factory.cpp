@@ -95,6 +95,10 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	REGISTER_TRANSFORM(TransformSelectFromClause);
 	REGISTER_TRANSFORM(TransformFromSelectClause);
 
+	REGISTER_TRANSFORM(TransformResultModifiers);
+	REGISTER_TRANSFORM(TransformLimitOffsetClause);
+
+
 	REGISTER_TRANSFORM(TransformTableAlias);
 	REGISTER_TRANSFORM(TransformColumnAliases);
 
@@ -155,6 +159,8 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	REGISTER_TRANSFORM(TransformCreateStatement);
 	REGISTER_TRANSFORM(TransformCreateStatementVariation);
 	REGISTER_TRANSFORM(TransformCreateTableStmt);
+	REGISTER_TRANSFORM(TransformCreateTableAs);
+	REGISTER_TRANSFORM(TransformIdentifierList);
 	REGISTER_TRANSFORM(TransformCreateColumnList);
 	REGISTER_TRANSFORM(TransformCreateTableColumnList);
 	REGISTER_TRANSFORM(TransformTemporary);

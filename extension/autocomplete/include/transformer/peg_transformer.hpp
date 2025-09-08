@@ -5,6 +5,7 @@
 #include "transform_enum_result.hpp"
 #include "transform_result.hpp"
 #include "ast/column_element.hpp"
+#include "ast/create_table_as.hpp"
 #include "ast/extension_repository_info.hpp"
 #include "ast/generic_copy_option.hpp"
 #include "ast/insert_values.hpp"
@@ -215,6 +216,9 @@ private:
 	                                                                  optional_ptr<ParseResult> parse_result);
 	static unique_ptr<CreateStatement> TransformCreateTableStmt(PEGTransformer &transformer,
 	                                                         optional_ptr<ParseResult> parse_result);
+	static CreateTableAs TransformCreateTableAs(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static ColumnList TransformIdentifierList(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+
 	static ColumnElements TransformCreateColumnList(PEGTransformer &transformer,
 	                                                optional_ptr<ParseResult> parse_result);
 	static ColumnElements TransformCreateTableColumnList(PEGTransformer &transformer,
@@ -292,6 +296,8 @@ private:
 	static unique_ptr<ParsedExpression> TransformHavingClause(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static unique_ptr<ParsedExpression> TransformQualifyClause(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 
+	static vector<unique_ptr<ResultModifier>> TransformResultModifiers(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<LimitModifier> TransformLimitOffsetClause(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 
 
 

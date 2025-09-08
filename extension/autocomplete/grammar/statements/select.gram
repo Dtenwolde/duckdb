@@ -8,7 +8,8 @@ SelectParens <- Parens(SelectStatement)
 
 BaseSelect <- WithClause? SelectStatementType ResultModifiers?
 SelectStatementType <- OptionalParensSimpleSelect / ValuesClause / DescribeStatement / TableStatement / PivotStatement / UnpivotStatement
-ResultModifiers <- OrderByClause? LimitClause? OffsetClause?
+ResultModifiers <- OrderByClause? LimitOffsetClause?
+LimitOffsetClause <- LimitClause? OffsetClause?
 TableStatement <- 'TABLE' BaseTableName
 OptionalParensSimpleSelect <- SimpleSelectParens / SimpleSelect
 SimpleSelectParens <- Parens(SimpleSelect)

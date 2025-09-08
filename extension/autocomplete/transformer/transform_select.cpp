@@ -18,7 +18,7 @@ unique_ptr<SQLStatement> PEGTransformerFactory::TransformSelectStatement(PEGTran
 	// SetOperationNode
 	// auto repeat_setop_select = transformer.Transform<unique_ptr<SelectStatement>>(list_pr.Child<RepeatParseResult>(1));
 	// vector<unique_ptr<ResultModifier>>
-	// auto modifiers = transformer.Transform<vector<unique_ptr<ResultModifier>>>(list_pr.Child<ListParseResult>(2));
+	auto modifiers = transformer.Transform<vector<unique_ptr<ResultModifier>>>(list_pr.Child<ListParseResult>(2));
 	return select_statement;
 }
 
@@ -470,6 +470,30 @@ unique_ptr<ParsedExpression> PEGTransformerFactory::TransformHavingClause(PEGTra
 unique_ptr<ParsedExpression> PEGTransformerFactory::TransformQualifyClause(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
 	auto &list_pr = parse_result->Cast<ListParseResult>();
 	return transformer.Transform<unique_ptr<ParsedExpression>>(list_pr.Child<ListParseResult>(1));
+}
+
+vector<unique_ptr<ResultModifier>> PEGTransformerFactory::TransformResultModifiers(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	vector<unique_ptr<ResultModifier>> result;
+	vector<OrderByNode> order_by;
+	transformer.TransformOptional<vector<OrderByNode>>(list_pr, 0, order_by);
+	// if (order_by) {
+	// 	result.push_back(std::move(order_by));
+	// }
+	unique_ptr<LimitModifier> limit_offset;
+	transformer.TransformOptional<unique_ptr<LimitModifier>>(list_pr, 0, limit_offset);
+	if (limit_offset) {
+		result.push_back(std::move(limit_offset));
+	}
+	return result;
+}
+
+unique_ptr<LimitModifier> PEGTransformerFactory::TransformLimitOffsetClause(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	auto result = make_uniq<LimitModifier>();
+	transformer.TransformOptional<unique_ptr<ParsedExpression>>(list_pr, 0, result->limit);
+	transformer.TransformOptional<unique_ptr<ParsedExpression>>(list_pr, 1, result->offset);
+	return result;
 }
 
 } // namespace duckdb

@@ -3,6 +3,7 @@
 #include "transformer/peg_transformer.hpp"
 #include "duckdb/parser/constraint.hpp"
 #include "ast/column_element.hpp"
+#include "ast/create_table_as.hpp"
 #include "ast/persist_type.hpp"
 #include "duckdb/parser/constraints/check_constraint.hpp"
 #include "duckdb/parser/constraints/foreign_key_constraint.hpp"
@@ -62,10 +63,10 @@ unique_ptr<CreateStatement> PEGTransformerFactory::TransformCreateTableStmt(PEGT
 	info->on_conflict = if_not_exists ? OnCreateConflict::IGNORE_ON_CONFLICT : OnCreateConflict::ERROR_ON_CONFLICT;
 	auto &table_as_or_column_list = list_pr.Child<ListParseResult>(3).Child<ChoiceParseResult>(0);
 	if (table_as_or_column_list.name == "CreateTableAs") {
-		throw NotImplementedException("CreateTableAs");
-		// info->query =
-		// transformer.Transform<unique_ptr<SQLStatement>>(table_as_or_column_list.result)->Cast<SelectStatement>();
-		// info->query = std::move(sql_statement);
+		auto create_table_as = transformer.Transform<CreateTableAs>(table_as_or_column_list.result);
+		// TODO(Dtenwolde) Figure out what to do with WithData?
+		info->query = std::move(create_table_as.select_statement);
+		info->columns = std::move(create_table_as.column_names);
 	} else {
 		auto column_list = transformer.Transform<ColumnElements>(table_as_or_column_list.result);
 		info->columns = std::move(column_list.columns);
@@ -75,6 +76,26 @@ unique_ptr<CreateStatement> PEGTransformerFactory::TransformCreateTableStmt(PEGT
 	auto commit_action = list_pr.Child<OptionalParseResult>(4).HasResult();
 
 	result->info = std::move(info);
+	return result;
+}
+
+CreateTableAs PEGTransformerFactory::TransformCreateTableAs(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	CreateTableAs result;
+	transformer.TransformOptional<ColumnList>(list_pr, 0, result.column_names);
+	result.select_statement = unique_ptr_cast<SQLStatement, SelectStatement>(transformer.Transform<unique_ptr<SQLStatement>>(list_pr.Child<ListParseResult>(2)));
+	transformer.TransformOptional<bool>(list_pr, 3, result.with_data);
+	return result;
+}
+
+ColumnList PEGTransformerFactory::TransformIdentifierList(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	auto extract_parens = ExtractResultFromParens(list_pr.Child<ListParseResult>(0));
+	auto identifier_list = ExtractParseResultsFromList(extract_parens);
+	ColumnList result;
+	for (auto identifier : identifier_list) {
+		result.AddColumn(ColumnDefinition(identifier->Cast<IdentifierParseResult>().identifier, LogicalType::UNKNOWN));
+	}
 	return result;
 }
 
