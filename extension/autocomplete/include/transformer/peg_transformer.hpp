@@ -130,7 +130,6 @@ private:
 			return make_uniq<TypedTransformResult<RETURN_TYPE>>(std::move(result_value));
 		};
 	}
-	// ... Add more overloads for 3, 4, etc., arguments as needed.
 	static unique_ptr<SQLStatement> TransformStatement(PEGTransformer &, optional_ptr<ParseResult> list);
 
 	static unique_ptr<SQLStatement> TransformUseStatement(PEGTransformer &, optional_ptr<ParseResult> identifier_pr);
