@@ -1,4 +1,5 @@
 #include "ast/insert_values.hpp"
+#include "ast/on_conflict_expression_target.hpp"
 #include "transformer/peg_transformer.hpp"
 #include "duckdb/parser/statement/insert_statement.hpp"
 
@@ -42,7 +43,38 @@ unique_ptr<BaseTableRef> PEGTransformerFactory::TransformInsertTarget(PEGTransfo
 
 unique_ptr<OnConflictInfo> PEGTransformerFactory::TransformOnConflictClause(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
 	auto &list_pr = parse_result->Cast<ListParseResult>();
-	throw NotImplementedException("ON CONFLICT clause is not yet supported.");
+	auto result = make_uniq<OnConflictInfo>();
+	result->action_type = transformer.Transform<OnConflictAction>(list_pr.Child<ListParseResult>(3));
+	// TODO(Dtenwolde) Leaving DO UPDATE SET for later
+	auto on_conflict_target_opt = list_pr.Child<OptionalParseResult>(2);
+	if (on_conflict_target_opt.HasResult()) {
+		auto expression_target = transformer.Transform<OnConflictExpressionTarget>(on_conflict_target_opt.optional_result);
+		result->indexed_columns = expression_target.indexed_columns;
+		result->condition = std::move(expression_target.where_clause);
+	}
+	return result;
+}
+
+OnConflictExpressionTarget PEGTransformerFactory::TransformOnConflictExpressionTarget(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+    auto &list_pr = parse_result->Cast<ListParseResult>();
+	OnConflictExpressionTarget result;
+	result.indexed_columns = transformer.Transform<vector<string>>(list_pr.Child<ListParseResult>(0));
+	transformer.TransformOptional<unique_ptr<ParsedExpression>>(list_pr, 1, result.where_clause);
+	return result;
+}
+
+OnConflictAction PEGTransformerFactory::TransformOnConflictAction(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	return transformer.Transform<OnConflictAction>(list_pr.Child<ChoiceParseResult>(0).result);
+}
+
+OnConflictAction PEGTransformerFactory::TransformOnConflictUpdate(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	throw NotImplementedException("Rule 'OnConflictUpdate' has not been implemented yet");
+}
+
+OnConflictAction PEGTransformerFactory::TransformOnConflictNothing(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	return OnConflictAction::NOTHING;
 }
 
 InsertValues PEGTransformerFactory::TransformInsertValues(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
@@ -87,6 +119,11 @@ vector<string> PEGTransformerFactory::TransformColumnList(PEGTransformer &transf
 		result.push_back(transformer.Transform<string>(column));
 	}
 	return result;
+}
+
+vector<unique_ptr<ParsedExpression>> PEGTransformerFactory::TransformReturningClause(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	return transformer.Transform<vector<unique_ptr<ParsedExpression>>>(list_pr.Child<ListParseResult>(1));
 }
 
 } // namespace duckdb

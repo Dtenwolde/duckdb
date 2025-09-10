@@ -33,6 +33,7 @@ unique_ptr<SQLStatement> PEGTransformerFactory::Transform(vector<MatcherToken> &
 	// --- TIMING END ---
 	auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time);
 
+	Printer::PrintF("Parsing took: %lld µs\n", duration.count());
 	if (match_result == nullptr || state.token_index < state.tokens.size()) {
 		// TODO(dtenwolde) add error handling
 		string token_list;
@@ -49,7 +50,7 @@ unique_ptr<SQLStatement> PEGTransformerFactory::Transform(vector<MatcherToken> &
 		                      state.token_index, tokens[state.token_index].text, token_list);
 	}
 
-	Printer::Print(match_result->ToString());
+	// Printer::Print(match_result->ToString());
 	auto t_start_time = std::chrono::high_resolution_clock::now();
 	match_result->name = "Statement";
 	ArenaAllocator transformer_allocator(Allocator::DefaultAllocator());
@@ -60,7 +61,7 @@ unique_ptr<SQLStatement> PEGTransformerFactory::Transform(vector<MatcherToken> &
 	auto t_end_time = std::chrono::high_resolution_clock::now();
 	// --- TIMING END ---
 	auto t_duration = std::chrono::duration_cast<std::chrono::microseconds>(t_end_time - t_start_time);
-	Printer::PrintF("Parsing took: %lld µs\nTransforming took: %lld µs", duration.count(), t_duration.count());
+	Printer::PrintF("Transforming took: %lld µs\n", t_duration.count());
 	return transformed_result;
 }
 
@@ -346,6 +347,11 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	REGISTER_TRANSFORM(TransformInsertValues);
 	REGISTER_TRANSFORM(TransformOnConflictClause);
 	REGISTER_TRANSFORM(TransformInsertTarget);
+	REGISTER_TRANSFORM(TransformOnConflictAction);
+	REGISTER_TRANSFORM(TransformOnConflictUpdate);
+	REGISTER_TRANSFORM(TransformOnConflictNothing);
+	REGISTER_TRANSFORM(TransformOnConflictExpressionTarget);
+	REGISTER_TRANSFORM(TransformReturningClause);
 
 
 	// Manual registration for mismatched names or special cases

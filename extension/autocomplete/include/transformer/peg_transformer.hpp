@@ -9,6 +9,7 @@
 #include "ast/extension_repository_info.hpp"
 #include "ast/generic_copy_option.hpp"
 #include "ast/insert_values.hpp"
+#include "ast/on_conflict_expression_target.hpp"
 #include "ast/persist_type.hpp"
 #include "ast/sequence_option.hpp"
 #include "ast/set_info.hpp"
@@ -469,6 +470,11 @@ private:
 	static InsertValues TransformInsertValues(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static unique_ptr<OnConflictInfo> TransformOnConflictClause(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static unique_ptr<BaseTableRef> TransformInsertTarget(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static OnConflictAction TransformOnConflictAction(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static OnConflictAction TransformOnConflictUpdate(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static OnConflictAction TransformOnConflictNothing(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static OnConflictExpressionTarget TransformOnConflictExpressionTarget(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static vector<unique_ptr<ParsedExpression>> TransformReturningClause(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 
 
 
