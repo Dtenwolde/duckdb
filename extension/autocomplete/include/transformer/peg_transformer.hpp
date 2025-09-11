@@ -506,6 +506,7 @@ private:
 	static ExpressionType TransformOperator(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 
 	//! Helper functions
+	static bool ExpressionIsEmptyStar(ParsedExpression &expr);
 	static optional_ptr<ParseResult> ExtractResultFromParens(optional_ptr<ParseResult> parse_result);
 	static vector<optional_ptr<ParseResult>> ExtractParseResultsFromList(optional_ptr<ParseResult> parse_result);
 

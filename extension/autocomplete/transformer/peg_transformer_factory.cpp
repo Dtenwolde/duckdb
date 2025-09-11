@@ -3,6 +3,7 @@
 #include "chrono"
 #include "duckdb/common/to_string.hpp"
 #include "duckdb/common/enums/date_part_specifier.hpp"
+#include "duckdb/parser/expression/star_expression.hpp"
 #include "duckdb/parser/statement/insert_statement.hpp"
 #include "duckdb/parser/tableref/showref.hpp"
 
@@ -482,6 +483,17 @@ PEGTransformerFactory::ExtractParseResultsFromList(optional_ptr<ParseResult> par
 	}
 
 	return result;
+}
+
+bool PEGTransformerFactory::ExpressionIsEmptyStar(ParsedExpression &expr) {
+	if (expr.GetExpressionClass() != ExpressionClass::STAR) {
+		return false;
+	}
+	auto &star = expr.Cast<StarExpression>();
+	if (!star.columns && star.exclude_list.empty() && star.replace_list.empty()) {
+		return true;
+	}
+	return false;
 }
 
 QualifiedName PEGTransformerFactory::StringToQualifiedName(vector<string> input) {

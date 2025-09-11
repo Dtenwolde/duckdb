@@ -1,0 +1,13 @@
+# name: test/sql/peg_parser/transformer/pragma.test
+# description:
+# group: [transformer]
+
+require autocomplete
+
+statement ok
+call peg_parser();
+
+query I
+select count(*);
+----
+1

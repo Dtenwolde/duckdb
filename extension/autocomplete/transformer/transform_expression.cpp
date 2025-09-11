@@ -225,6 +225,12 @@ unique_ptr<ParsedExpression> PEGTransformerFactory::TransformFunctionExpression(
 			function_children.push_back(transformer.Transform<unique_ptr<ParsedExpression>>(function_argument));
 		}
 	}
+
+	if (function_children.size() == 1 && ExpressionIsEmptyStar(*function_children[0])) {
+		// COUNT(*) gets converted into COUNT()
+		function_children.clear();
+	}
+
 	auto order_by_opt = extract_parens.Child<OptionalParseResult>(2);
 	if (order_by_opt.HasResult()) {
 		throw NotImplementedException("Order by has not yet been implemented");
