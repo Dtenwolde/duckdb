@@ -102,6 +102,8 @@ PEGTransformerFactory::PEGTransformerFactory() {
 
 	REGISTER_TRANSFORM(TransformResultModifiers);
 	REGISTER_TRANSFORM(TransformLimitOffsetClause);
+	REGISTER_TRANSFORM(TransformLimitClause);
+	REGISTER_TRANSFORM(TransformLimitValue);
 
 
 	REGISTER_TRANSFORM(TransformTableAlias);

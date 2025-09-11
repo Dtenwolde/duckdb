@@ -487,9 +487,6 @@ vector<unique_ptr<ResultModifier>> PEGTransformerFactory::TransformResultModifie
 	vector<unique_ptr<ResultModifier>> result;
 	vector<OrderByNode> order_by;
 	transformer.TransformOptional<vector<OrderByNode>>(list_pr, 0, order_by);
-	// if (order_by) {
-	// 	result.push_back(std::move(order_by));
-	// }
 	unique_ptr<LimitModifier> limit_offset;
 	transformer.TransformOptional<unique_ptr<LimitModifier>>(list_pr, 0, limit_offset);
 	if (limit_offset) {
@@ -504,6 +501,16 @@ unique_ptr<LimitModifier> PEGTransformerFactory::TransformLimitOffsetClause(PEGT
 	transformer.TransformOptional<unique_ptr<ParsedExpression>>(list_pr, 0, result->limit);
 	transformer.TransformOptional<unique_ptr<ParsedExpression>>(list_pr, 1, result->offset);
 	return result;
+}
+
+unique_ptr<ParsedExpression> PEGTransformerFactory::TransformLimitClause(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	return transformer.Transform<unique_ptr<ParsedExpression>>(list_pr.Child<ChoiceParseResult>(1).result);
+}
+
+unique_ptr<ParsedExpression> PEGTransformerFactory::TransformLimitValue(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	throw NotImplementedException("Rule 'LimitValue' has not been implemented yet");
 }
 
 } // namespace duckdb

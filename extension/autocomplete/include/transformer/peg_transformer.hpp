@@ -299,6 +299,9 @@ private:
 
 	static vector<unique_ptr<ResultModifier>> TransformResultModifiers(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static unique_ptr<LimitModifier> TransformLimitOffsetClause(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<ParsedExpression> TransformLimitClause(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<ParsedExpression> TransformLimitValue(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+
 
 	static unique_ptr<TableRef> TransformBaseTableRef(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 
