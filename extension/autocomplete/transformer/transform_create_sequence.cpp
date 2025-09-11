@@ -26,7 +26,7 @@ unique_ptr<CreateStatement> PEGTransformerFactory::TransformCreateSequenceStmt(P
 	}
 	bool no_min = sequence_options.find("nominvalue") != sequence_options.end();
 	bool no_max = sequence_options.find("nomaxvalue") != sequence_options.end();
-	int64_t default_start_value = 0;
+	int64_t default_start_value = info->start_value;
 	bool has_start_value = false;
 
 	for (auto option : sequence_options) {
