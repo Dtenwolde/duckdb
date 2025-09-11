@@ -116,7 +116,9 @@ OrderByExpression <- Expression DescOrAsc? NullsFirstOrLast?
 DescOrAsc <- DescendingOrder / AscendingOrder
 DescendingOrder <- 'DESC'i / 'DESCENDING'i
 AscendingOrder <- 'ASC'i / 'ASCENDING'i
-NullsFirstOrLast <- 'NULLS'i 'FIRST'i / 'LAST'i
+NullsFirstOrLast <- NullsFirst / NullsLast
+NullsFirst <- 'NULLS'i 'FIRST'i
+NullsLast <- 'NULLS'i 'LAST'i
 OrderByClause <- 'ORDER'i 'BY'i OrderByExpressions
 OrderByExpressions <- OrderByExpressionList / OrderByAll
 OrderByExpressionList <- List(OrderByExpression)

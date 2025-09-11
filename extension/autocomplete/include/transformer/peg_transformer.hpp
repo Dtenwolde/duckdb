@@ -456,6 +456,7 @@ private:
 	static vector<OrderByNode> TransformOrderByAll(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static OrderByNode TransformOrderByExpression(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static OrderType TransformDescOrAsc(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static OrderByNullType TransformNullsFirstOrLast(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 
 
 	static unique_ptr<SQLStatement> TransformPrepareStatement(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);

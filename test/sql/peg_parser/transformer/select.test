@@ -6,3 +6,6 @@ require autocomplete
 
 statement ok
 call check_peg_transformer($$SELECT * FROM decimals ORDER BY d DESC$$);
+
+statement ok
+call check_peg_transformer($$SELECT * FROM final ORDER BY s_store_name1 NULLS FIRST$$);

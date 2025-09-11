@@ -318,6 +318,8 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	REGISTER_TRANSFORM(TransformOrderByAll);
 	REGISTER_TRANSFORM(TransformOrderByExpression);
 	REGISTER_TRANSFORM(TransformDescOrAsc);
+	REGISTER_TRANSFORM(TransformNullsFirstOrLast);
+
 
 
 
@@ -463,6 +465,8 @@ PEGTransformerFactory::PEGTransformerFactory() {
 
 	RegisterEnum<OrderType>("DescendingOrder", OrderType::DESCENDING);
 	RegisterEnum<OrderType>("AscendingOrder", OrderType::ASCENDING);
+	RegisterEnum<OrderByNullType>("NullsFirst", OrderByNullType::NULLS_FIRST);
+	RegisterEnum<OrderByNullType>("NullsLast", OrderByNullType::NULLS_LAST);
 	}
 
 optional_ptr<ParseResult> PEGTransformerFactory::ExtractResultFromParens(optional_ptr<ParseResult> parse_result) {
