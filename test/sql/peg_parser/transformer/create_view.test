@@ -1,0 +1,11 @@
+# name: test/sql/peg_parser/transformer/create.test
+# description:
+# group: [transformer]
+
+require autocomplete
+
+statement ok
+call check_peg_transformer($$CREATE VIEW test.v AS SELECT * FROM test.t;$$);
+
+statement ok
+call check_peg_transformer($$CREATE VIEW test.v (b,c) AS SELECT * FROM test.t; $$);

@@ -9,6 +9,8 @@ import re
 import requests
 from urllib.parse import urlparse
 from typing import Optional
+import csv
+from datetime import datetime
 
 # --- Argument Parsing Setup ---
 parser = argparse.ArgumentParser(description="Test the PEG parser and transformer.")
@@ -263,10 +265,41 @@ if __name__ == "__main__":
     failed_tests = len(failed_test_list)
     total_tests_run = len(files)
     if total_tests_run > 0:
+        # --- This part remains the same: print detailed failures to console ---
         print("\nList of failed tests: ")
         for test, statement in failed_test_list:
             print(f"{test}\n{statement}\n\n")
+
         percentage_failed = round(failed_tests / total_tests_run * 100, 2)
         print(f"Total of {failed_tests} out of {total_tests_run} failed ({percentage_failed}%).")
+
+        # --- New section to append summary to a single CSV file ---
+        try:
+            filename = "test_summary.csv"
+            now = datetime.now()
+
+            # 1. Check if the file already exists. We'll use this to decide whether to write the header.
+            file_exists = os.path.exists(filename)
+
+            # 2. Define the header and data row for the CSV
+            header = ['timestamp', 'failed_tests', 'total_tests', 'percentage_failed']
+            data_row = [now.isoformat(), failed_tests, total_tests_run, percentage_failed]
+
+            # 3. Open the file in append mode ('a')
+            with open(filename, 'a', newline='') as csvfile:
+                writer = csv.writer(csvfile)
+
+                # Write the header only if the file is newly created
+                if not file_exists:
+                    writer.writerow(header)
+
+                # Always write the data row
+                writer.writerow(data_row)
+
+            print(f"\nTest summary appended to {filename}")
+
+        except IOError as e:
+            print(f"\nError: Could not write summary to file {filename}. Reason: {e}")
+
     else:
         print("No tests were run.")

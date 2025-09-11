@@ -1,0 +1,8 @@
+# name: test/sql/peg_parser/transformer/pragma.test
+# description:
+# group: [transformer]
+
+require autocomplete
+
+statement ok
+call check_peg_transformer($$SELECT * FROM decimals ORDER BY d DESC$$);

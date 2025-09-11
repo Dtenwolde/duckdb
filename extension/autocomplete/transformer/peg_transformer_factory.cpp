@@ -317,6 +317,7 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	REGISTER_TRANSFORM(TransformOrderByExpressionList);
 	REGISTER_TRANSFORM(TransformOrderByAll);
 	REGISTER_TRANSFORM(TransformOrderByExpression);
+	REGISTER_TRANSFORM(TransformDescOrAsc);
 
 
 
@@ -459,6 +460,9 @@ PEGTransformerFactory::PEGTransformerFactory() {
 
 	RegisterEnum<InsertColumnOrder>("InsertByName", InsertColumnOrder::INSERT_BY_NAME);
 	RegisterEnum<InsertColumnOrder>("InsertByPosition", InsertColumnOrder::INSERT_BY_POSITION);
+
+	RegisterEnum<OrderType>("DescendingOrder", OrderType::DESCENDING);
+	RegisterEnum<OrderType>("AscendingOrder", OrderType::ASCENDING);
 	}
 
 optional_ptr<ParseResult> PEGTransformerFactory::ExtractResultFromParens(optional_ptr<ParseResult> parse_result) {

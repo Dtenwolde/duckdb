@@ -460,16 +460,18 @@ OrderByNode PEGTransformerFactory::TransformOrderByExpression(PEGTransformer &tr
 	auto &list_pr = parse_result->Cast<ListParseResult>();
 	auto expr = transformer.Transform<unique_ptr<ParsedExpression>>(list_pr.Child<ListParseResult>(0));
 	auto order_type = OrderType::ORDER_DEFAULT;
-	auto order_type_pr = list_pr.Child<OptionalParseResult>(1);
-	if (order_type_pr.HasResult()) {
-		order_type = transformer.Transform<OrderType>(order_type_pr.optional_result);
-	}
+	transformer.TransformOptional<OrderType>(list_pr, 1, order_type);
 	auto order_by_null_type = OrderByNullType::ORDER_DEFAULT;
 	auto order_by_null_pr = list_pr.Child<OptionalParseResult>(2);
 	if (order_by_null_pr.HasResult()) {
 		order_by_null_type = transformer.Transform<OrderByNullType>(order_by_null_pr.optional_result);
 	}
 	return OrderByNode(order_type, order_by_null_type, std::move(expr));
+}
+
+OrderType PEGTransformerFactory::TransformDescOrAsc(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	return transformer.TransformEnum<OrderType>(list_pr.Child<ChoiceParseResult>(0).result);
 }
 
 unique_ptr<ParsedExpression> PEGTransformerFactory::TransformWhereClause(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {

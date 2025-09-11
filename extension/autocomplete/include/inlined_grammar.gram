@@ -1046,7 +1046,9 @@ GroupingSetsClause <- 'GROUPING'i 'SETS'i Parens(GroupByList)
 SubqueryReference <- Parens(SelectStatement)
 
 OrderByExpression <- Expression DescOrAsc? NullsFirstOrLast?
-DescOrAsc <- 'DESC'i / 'DESCENDING'i / 'ASC'i / 'ASCENDING'i
+DescOrAsc <- DescendingOrder / AscendingOrder
+DescendingOrder <- 'DESC'i / 'DESCENDING'i
+AscendingOrder <- 'ASC'i / 'ASCENDING'i
 NullsFirstOrLast <- 'NULLS'i 'FIRST'i / 'LAST'i
 OrderByClause <- 'ORDER'i 'BY'i OrderByExpressions
 OrderByExpressions <- OrderByExpressionList / OrderByAll
