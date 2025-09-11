@@ -8,6 +8,7 @@ namespace duckdb {
 class PEGParserOverride : public ParserOverride {
 public:
 	explicit PEGParserOverride(unique_ptr<ParserOverrideOptions> options, ClientContext &context);
+	explicit PEGParserOverride(ClientContext &context);
 
 	vector<unique_ptr<SQLStatement>> Parse(const string &query) override;
 

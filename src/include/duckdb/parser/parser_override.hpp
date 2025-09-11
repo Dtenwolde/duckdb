@@ -15,6 +15,10 @@ public:
 	    : error(error_p), enable_logging(enable_logging_p) {
 	}
 
+	ParserOverrideOptions()
+		: error(OnParserOverrideError::THROW_ON_ERROR), enable_logging(false) {
+	}
+
 	unique_ptr<ParserOverrideOptions> Copy() {
 		return make_uniq<ParserOverrideOptions>(error, enable_logging);
 	}
@@ -28,6 +32,10 @@ class ParserOverride {
 public:
 	explicit ParserOverride(unique_ptr<ParserOverrideOptions> options_p, ClientContext &context_p)
 	    : options(std::move(options_p)), context(context_p) {};
+
+	explicit ParserOverride(ClientContext &context_p)
+		: context(context_p) {};
+
 	virtual ~ParserOverride() = default;
 
 	//! Tries to parse a query.

@@ -8,8 +8,10 @@ import tempfile
 import re
 import requests
 from urllib.parse import urlparse
+from typing import Optional
 
-parser = argparse.ArgumentParser(description="Test serialization")
+# --- Argument Parsing Setup ---
+parser = argparse.ArgumentParser(description="Test the PEG parser and transformer.")
 parser.add_argument("--shell", type=str, help="Shell binary to run", default=os.path.join('build', 'debug', 'duckdb'))
 parser.add_argument("--offset", type=int, help="File offset", default=None)
 parser.add_argument("--count", type=int, help="File count", default=None)
@@ -18,6 +20,22 @@ parser.add_argument('--print-failing-only', action='store_true', help='Print fai
 parser.add_argument(
     '--include-extensions', action='store_true', help='Include test files of out-of-tree extensions', default=False
 )
+
+# New arguments for mode and statement type
+parser.add_argument(
+    '--mode',
+    type=str,
+    choices=['parser', 'transformer'],
+    default='parser',
+    help='Specify the testing mode: "parser" (only parsing) or "transformer" (parsing + transforming).',
+)
+parser.add_argument(
+    '--statement-type',
+    type=str,
+    help='Filter tests to only run a specific statement type (e.g., SELECT, CREATE, INSERT). Case-insensitive.',
+    default=None,
+)
+
 group = parser.add_mutually_exclusive_group(required=True)
 group.add_argument("--test-file", type=str, help="Path to the SQL logic file", default='')
 group.add_argument(
@@ -72,7 +90,9 @@ def download_test_sql_folder(repo_url, base_folder="extension-test-files"):
     print(f"⬇️ Downloading test/sql from {repo_name}...")
 
     api_url = f"https://api.github.com/repos/duckdb/{repo_name}/contents/test/sql?ref=main"
-    GITHUB_TOKEN = os.environ["GITHUB_TOKEN"]
+    GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN")
+    if not GITHUB_TOKEN:
+        raise ValueError("GITHUB_TOKEN environment variable is not set.")
     headers = {"Accept": "application/vnd.github.v3+json", "Authorization": f"Bearer {GITHUB_TOKEN}"}
 
     download_directory_contents(api_url, target_folder, headers)
@@ -85,7 +105,7 @@ def batch_download_all_test_sql():
     with open(filename, "r") as f:
         content = f.read()
     urls = extract_git_urls(content)
-    if urls == []:
+    if not urls:
         print("No URLs found.")
     for url in urls:
         download_test_sql_folder(url)
@@ -112,32 +132,26 @@ def parse_test_file(filename):
         out: Optional[SQLLogicTest] = parser.parse(filename)
         if not out:
             raise SQLParserException(f"Test {filename} could not be parsed")
-    except:
+    except Exception:
         return []
     loop_count = 0
     statements = []
     for stmt in out.statements:
-        if type(stmt) is sqllogictest.statement.skip.Skip:
-            # mode skip - just skip entire test
+        if isinstance(stmt, sqllogictest.statement.skip.Skip):
             break
-        if type(stmt) is sqllogictest.statement.loop.Loop or type(stmt) is sqllogictest.statement.foreach.Foreach:
+        if isinstance(stmt, (sqllogictest.statement.loop.Loop, sqllogictest.statement.foreach.Foreach)):
             loop_count += 1
-        if type(stmt) is sqllogictest.statement.endloop.Endloop:
+        if isinstance(stmt, sqllogictest.statement.endloop.Endloop):
             loop_count -= 1
         if loop_count > 0:
-            # loops are ignored currently
             continue
-        if not (
-            type(stmt) is sqllogictest.statement.query.Query or type(stmt) is sqllogictest.statement.statement.Statement
-        ):
-            # only handle query and statement nodes for now
+        if not isinstance(stmt, (sqllogictest.statement.query.Query, sqllogictest.statement.statement.Statement)):
             continue
-        if type(stmt) is sqllogictest.statement.statement.Statement:
-            # skip expected errors
+        if isinstance(stmt, sqllogictest.statement.statement.Statement):
             if stmt.expected_result.type == sqllogictest.ExpectedResult.Type.ERROR:
                 if any(
-                    "parser error" in line.lower() or "syntax error" in line.lower()
-                    for line in stmt.expected_result.lines
+                        "parser error" in line.lower() or "syntax error" in line.lower()
+                        for line in stmt.expected_result.lines
                 ):
                     continue
                 continue
@@ -147,17 +161,43 @@ def parse_test_file(filename):
 
 
 def run_test_case(args_tuple):
-    i, file, shell, print_failing_only = args_tuple
+    i, file, shell, print_failing_only, mode, statement_type = args_tuple
     results = []
     if not print_failing_only:
-        print(f"Run test {i}: {file}")
+        print(f"Run test {i}: {file} (mode: {mode})")
 
-    statements = parse_test_file(file)
-    for statement in statements:
+    all_statements = parse_test_file(file)
+
+    # --- Filter statements by type if requested ---
+    statements_to_run = []
+    if statement_type:
+        for stmt in all_statements:
+            clean_stmt = stmt.strip()
+            if not clean_stmt:
+                continue
+            # Simple check of the first word to determine statement type
+            first_word = clean_stmt.split()[0].upper()
+            if first_word == statement_type.upper():
+                statements_to_run.append(stmt)
+    else:
+        statements_to_run = all_statements
+
+    if not statements_to_run:
+        return []
+
+    # --- Select the appropriate test function based on the mode ---
+    if mode == 'transformer':
+        # Assuming the new function is named 'check_peg_transformer'
+        test_function = 'check_peg_transformer'
+    else:
+        test_function = 'check_peg_parser'
+
+    for statement in statements_to_run:
         with tempfile.TemporaryDirectory() as tmpdir:
             peg_sql_path = os.path.join(tmpdir, 'peg_test.sql')
             with open(peg_sql_path, 'w') as f:
-                f.write(f'CALL check_peg_parser($TEST_PEG_PARSER${statement}$TEST_PEG_PARSER$);\n')
+                # Use the selected test function
+                f.write(f'CALL {test_function}($TEST_PEG_PARSER${statement}$TEST_PEG_PARSER$);\n')
 
             proc = subprocess.run([shell, '-init', peg_sql_path, '-c', '.exit'], capture_output=True)
             stderr = proc.stderr.decode('utf8')
@@ -187,28 +227,29 @@ if __name__ == "__main__":
         'test/sql/copy/s3/download_config.test',  # Unknown why this passes in SQLLogicTest
     }
     if args.all_tests:
-        # run all tests
         test_dir = os.path.join('test', 'sql')
         files = find_tests_recursive(test_dir, excluded_tests)
         if args.include_extensions:
             batch_download_all_test_sql()
             extension_files = find_tests_recursive('extension-test-files', {})
-            files = files + extension_files
+            files += extension_files
     elif len(args.test_list) > 0:
         with open(args.test_list, 'r') as f:
             files = [x.strip() for x in f.readlines() if x.strip() not in excluded_tests]
     else:
-        # run a single test
         files.append(args.test_file)
     files.sort()
 
     start = args.offset if args.offset is not None else 0
     end = start + args.count if args.count is not None else len(files)
-    work_items = [(i, files[i], args.shell, args.print_failing_only) for i in range(start, end)]
 
+    # --- Pass new arguments to the test runner ---
+    work_items = [
+        (i, files[i], args.shell, args.print_failing_only, args.mode, args.statement_type) for i in range(start, end)
+    ]
+
+    failed_test_list = []
     if not args.no_exit:
-        # Disable multiprocessing for --no-exit behavior
-        failed_test_list = []
         for item in work_items:
             res = run_test_case(item)
             if res:
@@ -220,7 +261,12 @@ if __name__ == "__main__":
         failed_test_list = [item for sublist in results for item in sublist]
 
     failed_tests = len(failed_test_list)
-    print("List of failed tests: ")
-    for test, statement in failed_test_list:
-        print(f"{test}\n{statement}\n\n")
-    print(f"Total of {failed_tests} out of {len(files)} failed ({round(failed_tests/len(files) * 100,2)}%). ")
+    total_tests_run = len(files)
+    if total_tests_run > 0:
+        print("\nList of failed tests: ")
+        for test, statement in failed_test_list:
+            print(f"{test}\n{statement}\n\n")
+        percentage_failed = round(failed_tests / total_tests_run * 100, 2)
+        print(f"Total of {failed_tests} out of {total_tests_run} failed ({percentage_failed}%).")
+    else:
+        print("No tests were run.")

@@ -11,6 +11,11 @@ PEGParserOverride::PEGParserOverride(unique_ptr<ParserOverrideOptions> options, 
 	factory = make_uniq<PEGTransformerFactory>();
 }
 
+PEGParserOverride::PEGParserOverride(ClientContext &context)
+	: ParserOverride(context) {
+	factory = make_uniq<PEGTransformerFactory>();
+}
+
 vector<unique_ptr<SQLStatement>> PEGParserOverride::Parse(const string &query) {
 	vector<MatcherToken> root_tokens;
 	string clean_sql;
@@ -25,9 +30,7 @@ vector<unique_ptr<SQLStatement>> PEGParserOverride::Parse(const string &query) {
 			if (tokenized_statement.empty()) {
 				continue;
 			}
-			// Printer::PrintF("Trying to transform: %s", query);
 			auto statement = factory->Transform(tokenizer.statements[0], "Statement");
-			// Printer::PrintF("Successfully transformed: %s", statement->ToString());
 			result.push_back(std::move(statement));
 		}
 		return result;
