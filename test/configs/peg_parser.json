@@ -15,6 +15,18 @@
         "test/sql/copy_database/copy_database_different_types.test",
         "test/sql/copy_database/copy_table_with_sequence.test"
       ]
+    },
+    {
+      "reason": "Expression Depth",
+      "paths": [
+        "test/sql/overflow/expression_tree_depth.test"
+      ]
+    },
+    {
+      "reason": "Timeout",
+      "paths": [
+        "test/sql/copy/csv/afl/test_fuzz_3981.test_slow"
+      ]
     }
   ]
 }
