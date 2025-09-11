@@ -1,3 +1,4 @@
+#include "ast/limit_percent_result.hpp"
 #include "ast/table_alias.hpp"
 #include "transformer/peg_transformer.hpp"
 #include "duckdb/parser/tableref/emptytableref.hpp"
@@ -18,7 +19,11 @@ unique_ptr<SQLStatement> PEGTransformerFactory::TransformSelectStatement(PEGTran
 	// SetOperationNode
 	// auto repeat_setop_select = transformer.Transform<unique_ptr<SelectStatement>>(list_pr.Child<RepeatParseResult>(1));
 	// vector<unique_ptr<ResultModifier>>
-	transformer.TransformOptional<vector<unique_ptr<ResultModifier>>>(list_pr, 2, select_statement->node->modifiers);
+	vector<unique_ptr<ResultModifier>> result_modifiers;
+	transformer.TransformOptional<vector<unique_ptr<ResultModifier>>>(list_pr, 2, result_modifiers);
+	for (auto &result_modifier : result_modifiers) {
+		select_statement->node->modifiers.push_back(std::move(result_modifier));
+	}
 	return select_statement;
 }
 
@@ -37,7 +42,7 @@ unique_ptr<SelectStatement> PEGTransformerFactory::TransformBaseSelect(PEGTransf
 	auto &list_pr = parse_result->Cast<ListParseResult>();
 	auto with_clause = list_pr.Child<OptionalParseResult>(0);
 	auto select_statement = transformer.Transform<unique_ptr<SelectStatement>>(list_pr.Child<ListParseResult>(1));
-	// auto modifiers = transformer.Transform<vector<unique_ptr<ResultModifier>>>(list_pr.Child<ListParseResult>(2));
+	transformer.TransformOptional<vector<unique_ptr<ResultModifier>>>(list_pr, 2, select_statement->node->modifiers);
 	return select_statement;
 }
 
@@ -487,30 +492,68 @@ vector<unique_ptr<ResultModifier>> PEGTransformerFactory::TransformResultModifie
 	vector<unique_ptr<ResultModifier>> result;
 	vector<OrderByNode> order_by;
 	transformer.TransformOptional<vector<OrderByNode>>(list_pr, 0, order_by);
-	unique_ptr<LimitModifier> limit_offset;
-	transformer.TransformOptional<unique_ptr<LimitModifier>>(list_pr, 0, limit_offset);
+	unique_ptr<ResultModifier> limit_offset;
+	transformer.TransformOptional<unique_ptr<ResultModifier>>(list_pr, 1, limit_offset);
 	if (limit_offset) {
 		result.push_back(std::move(limit_offset));
 	}
 	return result;
 }
 
-unique_ptr<LimitModifier> PEGTransformerFactory::TransformLimitOffsetClause(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+unique_ptr<ResultModifier> PEGTransformerFactory::TransformLimitOffsetClause(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
 	auto &list_pr = parse_result->Cast<ListParseResult>();
-	auto result = make_uniq<LimitModifier>();
-	transformer.TransformOptional<unique_ptr<ParsedExpression>>(list_pr, 0, result->limit);
-	transformer.TransformOptional<unique_ptr<ParsedExpression>>(list_pr, 1, result->offset);
+	LimitPercentResult limit_percent;
+	transformer.TransformOptional<LimitPercentResult>(list_pr, 0, limit_percent);
+	if (limit_percent.is_percent) {
+		auto result = make_uniq<LimitPercentModifier>();
+		result->limit = std::move(limit_percent.expression);
+		transformer.TransformOptional<unique_ptr<ParsedExpression>>(list_pr, 1, result->offset);
+		return result;
+	} else {
+		auto result = make_uniq<LimitModifier>();
+		if (limit_percent.expression) {
+			result->limit = std::move(limit_percent.expression);
+		}
+		transformer.TransformOptional<unique_ptr<ParsedExpression>>(list_pr, 1, result->offset);
+		if (!result->limit && !result->offset) {
+			return nullptr;
+		}
+		return result;
+	}
+}
+
+LimitPercentResult PEGTransformerFactory::TransformLimitClause(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	return transformer.Transform<LimitPercentResult>(list_pr.Child<ListParseResult>(1));
+}
+
+LimitPercentResult PEGTransformerFactory::TransformLimitValue(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	return transformer.Transform<LimitPercentResult>(list_pr.Child<ChoiceParseResult>(0).result);
+}
+
+LimitPercentResult PEGTransformerFactory::TransformLimitAll(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	LimitPercentResult result;
+	result.expression = make_uniq<StarExpression>();
+	result.is_percent = false;
 	return result;
 }
 
-unique_ptr<ParsedExpression> PEGTransformerFactory::TransformLimitClause(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+LimitPercentResult PEGTransformerFactory::TransformLimitLiteralPercent(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
 	auto &list_pr = parse_result->Cast<ListParseResult>();
-	return transformer.Transform<unique_ptr<ParsedExpression>>(list_pr.Child<ChoiceParseResult>(1).result);
+	LimitPercentResult result;
+	// TODO(Dtenwolde) transform number literal properly
+	result.expression = make_uniq<ConstantExpression>(Value(list_pr.Child<NumberParseResult>(0).number));
+	result.is_percent = true;
+	return result;
 }
 
-unique_ptr<ParsedExpression> PEGTransformerFactory::TransformLimitValue(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+LimitPercentResult PEGTransformerFactory::TransformLimitExpression(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
 	auto &list_pr = parse_result->Cast<ListParseResult>();
-	throw NotImplementedException("Rule 'LimitValue' has not been implemented yet");
+	LimitPercentResult result;
+	result.expression = transformer.Transform<unique_ptr<ParsedExpression>>(list_pr.Child<ListParseResult>(0));
+	result.is_percent = list_pr.Child<OptionalParseResult>(1).HasResult();
+	return result;
 }
 
 } // namespace duckdb
