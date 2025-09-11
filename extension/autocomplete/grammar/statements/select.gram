@@ -23,7 +23,7 @@ UsingKey <- 'USING'i 'KEY'i ColumnIdList
 Materialized <- 'NOT'i? 'MATERIALIZED'i
 WithClause <- 'WITH'i Recursive? List(WithStatement)
 Recursive <- 'RECURSIVE'i
-SelectClause <- 'SELECT'i DistinctClause? TargetList
+SelectClause <- ('SELECT'i / 'QUACK'i) DistinctClause? TargetList
 TargetList <- List(AliasedExpression)
 ColumnAliases <- Parens(List(ColIdOrString))
 

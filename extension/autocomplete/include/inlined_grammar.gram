@@ -1,7 +1,3 @@
-# internal definitions
-%whitespace <- [ \t\n\r]*
-List(D) <- D (',' D)* ','?
-Parens(D) <- '(' D ')'
 UnreservedKeyword <- 'ABORT'i /
 'ABSOLUTE'i /
 'ACCESS'i /
@@ -755,7 +751,7 @@ BySourceOrTarget <- 'BY'i ('SOURCE'i / 'TARGET'i)
 
 PragmaStatement <- 'PRAGMA'i (PragmaAssign / PragmaFunction)
 
-PragmaAssign <- SettingName '=' VariableList
+PragmaAssign <- SettingName '=' Expression
 PragmaFunction <- PragmaName PragmaParameters?
 PragmaParameters <- List(Expression)
 
@@ -839,6 +835,10 @@ GeneratedColumnType <- 'VIRTUAL'i / 'STORED'i
 
 CommitAction <- 'ON'i 'COMMIT'i 'PRESERVE'i 'ROWS'i
 
+# internal definitions
+%whitespace <- [ \t\n\r]*
+List(D) <- D (',' D)* ','?
+Parens(D) <- '(' D ')'
 CreateIndexStmt <- Unique? 'INDEX'i IfNotExists? IndexName? 'ON'i BaseTableName IndexType? Parens(List(IndexElement)) WithList?
 
 WithList <- 'WITH'i Parens(List(RelOption)) / Oids
@@ -951,7 +951,7 @@ UsingKey <- 'USING'i 'KEY'i ColumnIdList
 Materialized <- 'NOT'i? 'MATERIALIZED'i
 WithClause <- 'WITH'i Recursive? List(WithStatement)
 Recursive <- 'RECURSIVE'i
-SelectClause <- 'SELECT'i DistinctClause? TargetList
+SelectClause <- ('SELECT'i / 'QUACK'i) DistinctClause? TargetList
 TargetList <- List(AliasedExpression)
 ColumnAliases <- Parens(List(ColIdOrString))
 
