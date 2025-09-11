@@ -357,8 +357,11 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	REGISTER_TRANSFORM(TransformUpdateTarget);
 	REGISTER_TRANSFORM(TransformUpdateTargetNoAlias);
 	REGISTER_TRANSFORM(TransformUpdateTargetAlias);
-
 	REGISTER_TRANSFORM(TransformUpdateAlias);
+	REGISTER_TRANSFORM(TransformUpdateSetClause);
+	REGISTER_TRANSFORM(TransformUpdateSetElementList);
+	REGISTER_TRANSFORM(TransformUpdateSetElement);
+	REGISTER_TRANSFORM(TransformUpdateSetColumnListExpression);
 
 
 	// Manual registration for mismatched names or special cases

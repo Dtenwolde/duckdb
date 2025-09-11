@@ -14,6 +14,7 @@
 #include "ast/sequence_option.hpp"
 #include "ast/set_info.hpp"
 #include "ast/table_alias.hpp"
+#include "ast/update_set_element.hpp"
 #include "duckdb/parser/expression/window_expression.hpp"
 #include "duckdb/parser/parsed_data/create_type_info.hpp"
 #include "duckdb/parser/parsed_data/transaction_info.hpp"
@@ -480,6 +481,13 @@ private:
 	static unique_ptr<BaseTableRef> TransformUpdateTarget(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static unique_ptr<BaseTableRef> TransformUpdateTargetNoAlias(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static unique_ptr<BaseTableRef> TransformUpdateTargetAlias(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<UpdateSetInfo> TransformUpdateSetClause(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<UpdateSetInfo> TransformUpdateSetElementList(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<UpdateSetInfo> TransformUpdateSetColumnListExpression(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+
+	static UpdateSetElement TransformUpdateSetElement(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+
+
 
 	static string TransformUpdateAlias(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 

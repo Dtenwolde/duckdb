@@ -5,5 +5,7 @@ UpdateTargetNoAlias <- BaseTableName 'SET'i
 UpdateTargetAlias <- BaseTableName UpdateAlias? 'SET'i
 UpdateAlias <- 'AS'i? ColId
 
-UpdateSetClause <- List(UpdateSetElement) / (Parens(List(ColumnName)) '=' Expression)
+UpdateSetClause <- UpdateSetElementList / UpdateSetColumnListExpression
+UpdateSetElementList <- List(UpdateSetElement)
+UpdateSetColumnListExpression <- Parens(List(ColumnName)) '=' Expression
 UpdateSetElement <- ColumnName '=' Expression
