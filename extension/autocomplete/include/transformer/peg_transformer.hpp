@@ -476,7 +476,12 @@ private:
 	static OnConflictExpressionTarget TransformOnConflictExpressionTarget(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static vector<unique_ptr<ParsedExpression>> TransformReturningClause(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 
+	static unique_ptr<SQLStatement> TransformUpdateStatement(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<BaseTableRef> TransformUpdateTarget(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<BaseTableRef> TransformUpdateTargetNoAlias(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<BaseTableRef> TransformUpdateTargetAlias(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 
+	static string TransformUpdateAlias(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 
 	//! Operator
 	static ExpressionType TransformOperator(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);

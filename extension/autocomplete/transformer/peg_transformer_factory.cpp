@@ -353,6 +353,13 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	REGISTER_TRANSFORM(TransformOnConflictExpressionTarget);
 	REGISTER_TRANSFORM(TransformReturningClause);
 
+	REGISTER_TRANSFORM(TransformUpdateStatement);
+	REGISTER_TRANSFORM(TransformUpdateTarget);
+	REGISTER_TRANSFORM(TransformUpdateTargetNoAlias);
+	REGISTER_TRANSFORM(TransformUpdateTargetAlias);
+
+	REGISTER_TRANSFORM(TransformUpdateAlias);
+
 
 	// Manual registration for mismatched names or special cases
 	Register("PragmaName", &TransformIdentifierOrKeyword);
