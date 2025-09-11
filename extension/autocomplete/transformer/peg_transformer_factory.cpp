@@ -132,6 +132,8 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	REGISTER_TRANSFORM(TransformValuesClause);
 	REGISTER_TRANSFORM(TransformValuesExpressions);
 
+	REGISTER_TRANSFORM(TransformTableStatement);
+
 	REGISTER_TRANSFORM(TransformSelectClause);
 	REGISTER_TRANSFORM(TransformTargetList);
 	REGISTER_TRANSFORM(TransformAliasedExpression);
