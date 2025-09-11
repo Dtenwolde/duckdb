@@ -503,18 +503,25 @@ vector<unique_ptr<ResultModifier>> PEGTransformerFactory::TransformResultModifie
 unique_ptr<ResultModifier> PEGTransformerFactory::TransformLimitOffsetClause(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
 	auto &list_pr = parse_result->Cast<ListParseResult>();
 	LimitPercentResult limit_percent;
+	LimitPercentResult offset_percent;
 	transformer.TransformOptional<LimitPercentResult>(list_pr, 0, limit_percent);
+	transformer.TransformOptional<LimitPercentResult>(list_pr, 1, offset_percent);
+	if (offset_percent.is_percent) {
+		throw ParserException("Percentage for offsets are not supported.");
+	}
 	if (limit_percent.is_percent) {
 		auto result = make_uniq<LimitPercentModifier>();
 		result->limit = std::move(limit_percent.expression);
-		transformer.TransformOptional<unique_ptr<ParsedExpression>>(list_pr, 1, result->offset);
+		result->offset = std::move(offset_percent.expression);
 		return result;
 	} else {
 		auto result = make_uniq<LimitModifier>();
 		if (limit_percent.expression) {
 			result->limit = std::move(limit_percent.expression);
 		}
-		transformer.TransformOptional<unique_ptr<ParsedExpression>>(list_pr, 1, result->offset);
+		if (offset_percent.expression) {
+			result->offset = std::move(offset_percent.expression);
+		}
 		if (!result->limit && !result->offset) {
 			return nullptr;
 		}
@@ -555,5 +562,11 @@ LimitPercentResult PEGTransformerFactory::TransformLimitExpression(PEGTransforme
 	result.is_percent = list_pr.Child<OptionalParseResult>(1).HasResult();
 	return result;
 }
+
+LimitPercentResult PEGTransformerFactory::TransformOffsetClause(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	return transformer.Transform<LimitPercentResult>(list_pr.Child<ListParseResult>(1));
+}
+
 
 } // namespace duckdb

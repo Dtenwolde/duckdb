@@ -305,6 +305,8 @@ private:
 	static LimitPercentResult TransformLimitAll(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static LimitPercentResult TransformLimitLiteralPercent(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static LimitPercentResult TransformLimitExpression(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static LimitPercentResult TransformOffsetClause(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+
 
 
 	static unique_ptr<TableRef> TransformBaseTableRef(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
