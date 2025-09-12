@@ -207,6 +207,39 @@ bool PEGTransformerFactory::TransformCastOrTryCast(PEGTransformer &transformer, 
 	return StringUtil::Lower(choice_pr.result->Cast<KeywordParseResult>().keyword) == "try_cast";
 }
 
+unique_ptr<ParsedExpression> PEGTransformerFactory::TransformListExpression(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	bool is_array = list_pr.Child<OptionalParseResult>(0).HasResult();
+	auto bounded_list_or_select_pr = list_pr.Child<ListParseResult>(1);
+	auto choice = bounded_list_or_select_pr.Child<ChoiceParseResult>(0).result;
+	if (choice->name == "BoundedListExpression") {
+		auto list_expr = transformer.Transform<vector<unique_ptr<ParsedExpression>>>(choice);
+		if (!is_array) {
+			return make_uniq<FunctionExpression>(INVALID_CATALOG, "main", "list_value", std::move(list_expr));
+		} else {
+			throw NotImplementedException("Array is not yet supported for list expression");
+		}
+	} else if (choice->name == "SelectStatement") {
+		throw NotImplementedException("Select Statement inside a list expression is not yet supported");
+	} else {
+		throw ParserException("Unknown type encountered for ListExpression");
+	}
+}
+
+vector<unique_ptr<ParsedExpression>> PEGTransformerFactory::TransformBoundedListExpression(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	auto has_expr = list_pr.Child<OptionalParseResult>(1);
+	vector<unique_ptr<ParsedExpression>> list_children;
+	if (has_expr.HasResult()) {
+		auto expr_list = ExtractParseResultsFromList(has_expr.optional_result);
+		for (auto &expr : expr_list) {
+			list_children.push_back(transformer.Transform<unique_ptr<ParsedExpression>>(expr));
+		}
+	}
+	return list_children;
+}
+
+
 unique_ptr<ParsedExpression> PEGTransformerFactory::TransformFunctionExpression(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
 	// TODO(Dtenwolde) Not everything here is used yet.
 	auto &list_pr = parse_result->Cast<ListParseResult>();

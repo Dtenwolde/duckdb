@@ -16,6 +16,7 @@
 #include "ast/set_info.hpp"
 #include "ast/table_alias.hpp"
 #include "ast/update_set_element.hpp"
+#include "duckdb/parser/expression/function_expression.hpp"
 #include "duckdb/parser/expression/window_expression.hpp"
 #include "duckdb/parser/parsed_data/create_type_info.hpp"
 #include "duckdb/parser/parsed_data/transaction_info.hpp"
@@ -441,6 +442,10 @@ private:
 	static string TransformReservedFunctionName(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static QualifiedName TransformFunctionName(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static string TransformIdentifierOrKeyword(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+
+	static unique_ptr<ParsedExpression> TransformListExpression(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static vector<unique_ptr<ParsedExpression>> TransformBoundedListExpression(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+
 
 	static unique_ptr<WindowExpression> TransformOverClause(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static unique_ptr<WindowExpression> TransformWindowFrame(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);

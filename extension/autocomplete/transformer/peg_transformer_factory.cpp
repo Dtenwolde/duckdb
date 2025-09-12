@@ -311,6 +311,9 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	REGISTER_TRANSFORM(TransformWindowFrameNameContentsParens);
 	REGISTER_TRANSFORM(TransformWindowFrameContents);
 	REGISTER_TRANSFORM(TransformWindowPartition);
+	REGISTER_TRANSFORM(TransformListExpression);
+	REGISTER_TRANSFORM(TransformBoundedListExpression);
+
 
 	REGISTER_TRANSFORM(TransformOrderByClause);
 	REGISTER_TRANSFORM(TransformOrderByExpressions);

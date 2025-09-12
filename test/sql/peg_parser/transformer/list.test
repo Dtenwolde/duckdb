@@ -1,0 +1,11 @@
+# name: test/sql/peg_parser/transformer/create.test
+# description:
+# group: [transformer]
+
+require autocomplete
+
+statement ok
+call check_peg_transformer($$select []$$);
+
+statement ok
+call check_peg_transformer($$select [1,2,3]$$);

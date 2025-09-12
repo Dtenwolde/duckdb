@@ -11,6 +11,7 @@ from urllib.parse import urlparse
 from typing import Optional
 import csv
 from datetime import datetime
+from collections import Counter
 
 # --- Argument Parsing Setup ---
 parser = argparse.ArgumentParser(description="Test the PEG parser and transformer.")
@@ -216,7 +217,7 @@ def run_test_case(args_tuple):
                 print(f'-- STDERR --')
                 print(stderr)
 
-            results.append((file, statement))
+            results.append((file, statement, stderr))
             break
     return results
 
@@ -264,11 +265,20 @@ if __name__ == "__main__":
 
     failed_tests = len(failed_test_list)
     total_tests_run = len(files)
+    error_messages = []
+    for _, _, std_err_ in failed_test_list:
+        error_messages.append(std_err_)
+    error_counts = Counter(error_messages)
+    sorted_errors = error_counts.most_common(10)
     if total_tests_run > 0:
         # --- This part remains the same: print detailed failures to console ---
         print("\nList of failed tests: ")
-        for test, statement in failed_test_list:
-            print(f"{test}\n{statement}\n\n")
+        for test, statement, stderr_ in failed_test_list:
+            print(f"{test}\n{statement}\n{stderr_}\n\n")
+
+        print("--- Error Message Frequency ---")
+        for message, count in sorted_errors:
+            print(f"Count: {count} | Message: \"{message}\"")
 
         percentage_failed = round(failed_tests / total_tests_run * 100, 2)
         print(f"Total of {failed_tests} out of {total_tests_run} failed ({percentage_failed}%).")
