@@ -107,6 +107,7 @@ unique_ptr<SQLStatement> PEGTransformerFactory::TransformCopyTable(PEGTransforme
 		if (format_option != info->options.end()) {
 			info->format = format_option->second[0].GetValue<string>();
 			info->is_format_auto_detected = false;
+			info->options.erase(format_option);
 		}
 	}
 

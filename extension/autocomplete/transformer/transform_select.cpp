@@ -572,5 +572,10 @@ LimitPercentResult PEGTransformerFactory::TransformOffsetClause(PEGTransformer &
 	return transformer.Transform<LimitPercentResult>(list_pr.Child<ListParseResult>(1));
 }
 
+GroupByNode PEGTransformerFactory::TransformGroupByClause(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	throw NotImplementedException("Rule 'GroupByClause' has not been implemented yet");
+}
+
 
 } // namespace duckdb

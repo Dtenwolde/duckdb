@@ -297,6 +297,7 @@ private:
 	static unique_ptr<TableRef> TransformSubqueryReference(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 
 	static unique_ptr<ParsedExpression> TransformWhereClause(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static GroupByNode TransformGroupByClause(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static unique_ptr<ParsedExpression> TransformHavingClause(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static unique_ptr<ParsedExpression> TransformQualifyClause(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 
@@ -517,10 +518,21 @@ private:
 	static unique_ptr<DropStatement> TransformDropEntries(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static unique_ptr<DropStatement> TransformDropTable(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static CatalogType TransformTableOrView(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<DropStatement> TransformDropTableFunction(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<DropStatement> TransformDropFunction(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<DropStatement> TransformDropSchema(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static QualifiedName TransformQualifiedSchemaName(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<DropStatement> TransformDropIndex(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static QualifiedName TransformQualifiedIndexName(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<DropStatement> TransformDropSequence(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<DropStatement> TransformDropCollation(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<DropStatement> TransformDropType(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+
 
 
 	//! Operator
 	static ExpressionType TransformOperator(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static ExpressionType TransformConjunctionOperator(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 
 	//! Helper functions
 	static bool ExpressionIsEmptyStar(ParsedExpression &expr);

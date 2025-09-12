@@ -1,0 +1,8 @@
+# name: test/sql/peg_parser/transformer/create.test
+# description:
+# group: [transformer]
+
+require autocomplete
+
+statement ok
+call check_peg_transformer($$select table_name, column_name from duckdb_columns() where database_name = 'system' and schema_name = 'information_schema';$$);

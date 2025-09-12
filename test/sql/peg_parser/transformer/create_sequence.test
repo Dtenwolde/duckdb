@@ -10,3 +10,6 @@ call peg_parser();
 statement ok
 CREATE SEQUENCE seq
 
+statement ok
+CREATE TEMPORARY SEQUENCE seq2 MINVALUE 3 MAXVALUE 5 START WITH 4 CYCLE;
+

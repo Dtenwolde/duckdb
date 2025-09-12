@@ -132,6 +132,7 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	REGISTER_TRANSFORM(TransformSubqueryReference);
 
 	REGISTER_TRANSFORM(TransformWhereClause);
+	REGISTER_TRANSFORM(TransformGroupByClause);
 	REGISTER_TRANSFORM(TransformHavingClause);
 	REGISTER_TRANSFORM(TransformQualifyClause);
 
@@ -341,6 +342,8 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	REGISTER_TRANSFORM(TransformDottedIdentifier);
 
 	REGISTER_TRANSFORM(TransformOperator);
+	REGISTER_TRANSFORM(TransformConjunctionOperator);
+
 
 	REGISTER_TRANSFORM(TransformPrepareStatement);
 	REGISTER_TRANSFORM(TransformExecuteStatement);
@@ -386,6 +389,15 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	REGISTER_TRANSFORM(TransformDropEntries);
 	REGISTER_TRANSFORM(TransformDropTable);
 	REGISTER_TRANSFORM(TransformTableOrView);
+	REGISTER_TRANSFORM(TransformDropTableFunction);
+	REGISTER_TRANSFORM(TransformDropFunction);
+	REGISTER_TRANSFORM(TransformDropSchema);
+	REGISTER_TRANSFORM(TransformQualifiedSchemaName);
+	REGISTER_TRANSFORM(TransformDropIndex);
+	REGISTER_TRANSFORM(TransformQualifiedIndexName);
+	REGISTER_TRANSFORM(TransformDropSequence);
+	REGISTER_TRANSFORM(TransformDropCollation);
+	REGISTER_TRANSFORM(TransformDropType);
 
 
 
@@ -479,6 +491,9 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	RegisterEnum<OrderType>("AscendingOrder", OrderType::ASCENDING);
 	RegisterEnum<OrderByNullType>("NullsFirst", OrderByNullType::NULLS_FIRST);
 	RegisterEnum<OrderByNullType>("NullsLast", OrderByNullType::NULLS_LAST);
+
+	RegisterEnum<ExpressionType>("ConjunctionOr", ExpressionType::CONJUNCTION_OR);
+	RegisterEnum<ExpressionType>("ConjunctionAnd", ExpressionType::CONJUNCTION_AND);
 	}
 
 optional_ptr<ParseResult> PEGTransformerFactory::ExtractResultFromParens(optional_ptr<ParseResult> parse_result) {

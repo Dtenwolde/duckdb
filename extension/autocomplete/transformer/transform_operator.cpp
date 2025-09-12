@@ -12,4 +12,9 @@ ExpressionType PEGTransformerFactory::TransformOperator(PEGTransformer &transfor
 	return transformer.Transform<ExpressionType>(choice_pr.result);
 }
 
+ExpressionType PEGTransformerFactory::TransformConjunctionOperator(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	return transformer.TransformEnum<ExpressionType>(list_pr.Child<ChoiceParseResult>(0).result);
+}
+
 } // namespace duckdb

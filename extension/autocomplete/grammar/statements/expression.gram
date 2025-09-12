@@ -105,7 +105,9 @@ LikeOrSimilarTo <- 'LIKE'i / 'ILIKE'i / 'GLOB'i / ('SIMILAR'i 'TO'i)
 InOperator <- 'NOT'i? 'IN'i
 IsOperator <- 'IS'i 'NOT'i? DistinctFrom?
 DistinctFrom <- 'DISTINCT'i 'FROM'i
-ConjunctionOperator <- 'OR'i / 'AND'i
+ConjunctionOperator <- ConjunctionOr / ConjunctionAnd
+ConjunctionOr <- 'OR'i
+ConjunctionAnd <- 'AND'i
 ComparisonOperator <- '=' / '<=' / '>=' / '<' / '>' / '<>' / '!=' / '=='
 BetweenOperator <- 'NOT'i? 'BETWEEN'i
 CollateOperator <- 'COLLATE'i

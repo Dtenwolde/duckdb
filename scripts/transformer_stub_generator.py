@@ -71,6 +71,7 @@ if __name__ == "__main__":
         print("\nSUCCESS: All grammar rules have a corresponding transformer registration. Nothing to do.")
         exit(0)
 
+    print(f"\n{len(implemented_rules)} rules have already been implemented.")
     print(f"\nFound {len(missing_rules)} missing transformer functions. Generating stubs...\n")
 
     # 4. Generate the code snippets and write them to a file, grouped by rule
