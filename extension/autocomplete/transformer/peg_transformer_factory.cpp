@@ -313,6 +313,8 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	REGISTER_TRANSFORM(TransformWindowPartition);
 	REGISTER_TRANSFORM(TransformListExpression);
 	REGISTER_TRANSFORM(TransformBoundedListExpression);
+	REGISTER_TRANSFORM(TransformStructExpression);
+	REGISTER_TRANSFORM(TransformStructField);
 
 
 	REGISTER_TRANSFORM(TransformOrderByClause);

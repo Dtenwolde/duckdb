@@ -595,7 +595,7 @@ const char INLINED_PEG_GRAMMAR[] = {
 	"ListExpression <- 'ARRAY'i? (BoundedListExpression / SelectStatement)\n"
 	"BoundedListExpression <- '[' List(Expression)? ']'\n"
 	"StructExpression <- '{' List(StructField)? '}'\n"
-	"StructField <- Expression ':'i Expression\n"
+	"StructField <- ColIdOrString ':'i Expression\n"
 	"MapExpression <- 'MAP'i StructExpression\n"
 	"GroupingExpression <- GroupingOrGroupingId Parens(List(Expression))\n"
 	"GroupingOrGroupingId <- 'GROUPING'i / 'GROUPING_ID'i\n"

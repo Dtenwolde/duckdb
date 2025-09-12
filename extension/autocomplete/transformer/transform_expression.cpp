@@ -226,6 +226,31 @@ unique_ptr<ParsedExpression> PEGTransformerFactory::TransformListExpression(PEGT
 	}
 }
 
+unique_ptr<ParsedExpression> PEGTransformerFactory::TransformStructExpression(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	auto struct_children_pr = list_pr.Child<OptionalParseResult>(1);
+
+	auto func_name = "struct_pack";
+	vector<unique_ptr<ParsedExpression>> struct_children;
+	if (struct_children_pr.HasResult()) {
+		auto struct_children_list = ExtractParseResultsFromList(struct_children_pr.optional_result);
+		for (auto struct_child : struct_children_list) {
+			struct_children.push_back(transformer.Transform<unique_ptr<ParsedExpression>>(struct_child));
+		}
+	}
+
+	return make_uniq<FunctionExpression>(INVALID_CATALOG, "main", func_name, std::move(struct_children));
+
+}
+
+unique_ptr<ParsedExpression> PEGTransformerFactory::TransformStructField(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	auto alias = transformer.Transform<string>(list_pr.Child<ListParseResult>(0));
+	auto expr = transformer.Transform<unique_ptr<ParsedExpression>>(list_pr.Child<ListParseResult>(2));
+	expr->SetAlias(alias);
+	return expr;
+}
+
 vector<unique_ptr<ParsedExpression>> PEGTransformerFactory::TransformBoundedListExpression(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
 	auto &list_pr = parse_result->Cast<ListParseResult>();
 	auto has_expr = list_pr.Child<OptionalParseResult>(1);

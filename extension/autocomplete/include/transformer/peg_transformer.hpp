@@ -445,6 +445,8 @@ private:
 
 	static unique_ptr<ParsedExpression> TransformListExpression(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static vector<unique_ptr<ParsedExpression>> TransformBoundedListExpression(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<ParsedExpression> TransformStructExpression(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<ParsedExpression> TransformStructField(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 
 
 	static unique_ptr<WindowExpression> TransformOverClause(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
