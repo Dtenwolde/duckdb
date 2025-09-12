@@ -382,6 +382,12 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	REGISTER_TRANSFORM(TransformUpdateSetElement);
 	REGISTER_TRANSFORM(TransformUpdateSetColumnListExpression);
 
+	REGISTER_TRANSFORM(TransformDropStatement);
+	REGISTER_TRANSFORM(TransformDropEntries);
+	REGISTER_TRANSFORM(TransformDropTable);
+	REGISTER_TRANSFORM(TransformTableOrView);
+
+
 
 	// Manual registration for mismatched names or special cases
 	Register("PragmaName", &TransformIdentifierOrKeyword);
@@ -446,6 +452,7 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	RegisterEnum<CatalogType>("CommentMacroTable", CatalogType::TABLE_MACRO_ENTRY);
 	RegisterEnum<CatalogType>("CommentMacro", CatalogType::MACRO_ENTRY);
 	RegisterEnum<CatalogType>("CommentView", CatalogType::VIEW_ENTRY);
+	RegisterEnum<CatalogType>("MaterializedViewEntry", CatalogType::VIEW_ENTRY);
 	RegisterEnum<CatalogType>("CommentDatabase", CatalogType::DATABASE_ENTRY);
 	RegisterEnum<CatalogType>("CommentIndex", CatalogType::INDEX_ENTRY);
 	RegisterEnum<CatalogType>("CommentSchema", CatalogType::SCHEMA_ENTRY);

@@ -27,6 +27,7 @@
 #include "parser/peg_parser.hpp"
 #include "duckdb/storage/arena_allocator.hpp"
 #include "duckdb/parser/query_node/select_node.hpp"
+#include "duckdb/parser/statement/drop_statement.hpp"
 #include "duckdb/parser/statement/insert_statement.hpp"
 
 namespace duckdb {
@@ -511,6 +512,12 @@ private:
 
 
 	static string TransformUpdateAlias(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+
+	static unique_ptr<SQLStatement> TransformDropStatement(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<DropStatement> TransformDropEntries(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<DropStatement> TransformDropTable(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static CatalogType TransformTableOrView(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+
 
 	//! Operator
 	static ExpressionType TransformOperator(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
