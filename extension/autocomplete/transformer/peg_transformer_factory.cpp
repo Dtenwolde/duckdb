@@ -131,6 +131,7 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	REGISTER_TRANSFORM(TransformTableSubquery);
 	REGISTER_TRANSFORM(TransformSubqueryReference);
 
+
 	REGISTER_TRANSFORM(TransformWhereClause);
 	REGISTER_TRANSFORM(TransformGroupByClause);
 	REGISTER_TRANSFORM(TransformHavingClause);
@@ -298,6 +299,7 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	REGISTER_TRANSFORM(TransformCastExpression);
 	REGISTER_TRANSFORM(TransformCastOrTryCast);
 	REGISTER_TRANSFORM(TransformStarExpression);
+	REGISTER_TRANSFORM(TransformSubqueryExpression);
 	REGISTER_TRANSFORM(TransformPrefixExpression);
 	REGISTER_TRANSFORM(TransformFunctionExpression);
 	REGISTER_TRANSFORM(TransformFunctionIdentifier);

@@ -6,6 +6,7 @@
 #include "transformer/parse_result.hpp"
 #include "duckdb/parser/expression/cast_expression.hpp"
 #include "duckdb/parser/expression/window_expression.hpp"
+#include "duckdb/parser/expression/subquery_expression.hpp"
 
 namespace duckdb {
 
@@ -240,6 +241,34 @@ unique_ptr<ParsedExpression> PEGTransformerFactory::TransformStructExpression(PE
 	}
 
 	return make_uniq<FunctionExpression>(INVALID_CATALOG, "main", func_name, std::move(struct_children));
+
+}
+
+unique_ptr<ParsedExpression> PEGTransformerFactory::TransformSubqueryExpression(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	bool is_not = list_pr.Child<OptionalParseResult>(0).HasResult();
+	bool is_exists = list_pr.Child<OptionalParseResult>(1).HasResult();
+	auto subquery_reference = transformer.Transform<unique_ptr<TableRef>>(list_pr.Child<ListParseResult>(2));
+
+	auto result = make_uniq<SubqueryExpression>();
+	if (is_exists) {
+		result->subquery_type = SubqueryType::EXISTS;
+	} else {
+		result->subquery_type = SubqueryType::SCALAR;
+	}
+	auto select_statement = make_uniq<SelectStatement>();
+	auto select_node = make_uniq<SelectNode>();
+	select_node->select_list.push_back(make_uniq<StarExpression>());
+	select_node->from_table = std::move(subquery_reference);
+	select_statement->node = std::move(select_node);
+	result->subquery = std::move(select_statement);
+	if (is_not) {
+		vector<unique_ptr<ParsedExpression>> children;
+		children.push_back(std::move(result));
+		auto not_operator = make_uniq<OperatorExpression>(ExpressionType::OPERATOR_NOT, std::move(children));
+		return not_operator;
+	}
+	return result;
 
 }
 
