@@ -21,3 +21,9 @@ call check_peg_transformer($$SELECT 123 as column$$);
 
 statement ok
 call check_peg_transformer($$FROM foo WHERE filename is not null$$);
+
+statement ok
+call check_peg_transformer($$select case i when 1 then 2 else 3 end;$$);
+
+statement ok
+call check_peg_transformer($$FROM foo WHERE database_name IN ('s1', 's2');$$);

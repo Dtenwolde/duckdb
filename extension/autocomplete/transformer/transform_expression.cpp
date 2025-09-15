@@ -7,6 +7,7 @@
 #include "duckdb/parser/expression/cast_expression.hpp"
 #include "duckdb/parser/expression/window_expression.hpp"
 #include "duckdb/parser/expression/subquery_expression.hpp"
+#include "duckdb/parser/expression/case_expression.hpp"
 
 namespace duckdb {
 
@@ -381,6 +382,41 @@ unique_ptr<ParsedExpression> PEGTransformerFactory::TransformFunctionExpression(
 		qualified_function.name,
 		std::move(function_children));
 
+	return result;
+}
+
+unique_ptr<ParsedExpression> PEGTransformerFactory::TransformCaseExpression(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	auto result = make_uniq<CaseExpression>();
+	unique_ptr<ParsedExpression> opt_expr;
+	transformer.TransformOptional<unique_ptr<ParsedExpression>>(list_pr, 1, opt_expr);
+	transformer.TransformOptional<unique_ptr<ParsedExpression>>(list_pr, 3, result->else_expr);
+
+	auto cases_pr = list_pr.Child<RepeatParseResult>(2).children;
+	for (auto &case_pr : cases_pr) {
+		auto case_expr = transformer.Transform<CaseCheck>(case_pr);
+		CaseCheck new_case;
+		if (opt_expr) {
+			new_case.when_expr = make_uniq<ComparisonExpression>(ExpressionType::COMPARE_EQUAL, opt_expr->Copy(), std::move(case_expr.when_expr));
+		} else {
+			new_case.when_expr = std::move(case_expr.when_expr);
+		}
+		new_case.then_expr = std::move(case_expr.then_expr);
+		result->case_checks.push_back(std::move(new_case));
+	}
+	return result;
+}
+
+unique_ptr<ParsedExpression> PEGTransformerFactory::TransformCaseElse(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	return transformer.Transform<unique_ptr<ParsedExpression>>(list_pr.Child<ListParseResult>(1));
+}
+
+CaseCheck PEGTransformerFactory::TransformCaseWhenThen(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	CaseCheck result;
+	result.when_expr = transformer.Transform<unique_ptr<ParsedExpression>>(list_pr.Child<ListParseResult>(1));
+	result.then_expr = transformer.Transform<unique_ptr<ParsedExpression>>(list_pr.Child<ListParseResult>(3));
 	return result;
 }
 

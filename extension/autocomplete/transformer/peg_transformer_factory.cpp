@@ -301,8 +301,9 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	REGISTER_TRANSFORM(TransformStarExpression);
 	REGISTER_TRANSFORM(TransformSubqueryExpression);
 	REGISTER_TRANSFORM(TransformTypeLiteral);
-
-
+	REGISTER_TRANSFORM(TransformCaseExpression);
+	REGISTER_TRANSFORM(TransformCaseWhenThen);
+	REGISTER_TRANSFORM(TransformCaseElse);
 
 	REGISTER_TRANSFORM(TransformPrefixExpression);
 	REGISTER_TRANSFORM(TransformFunctionExpression);

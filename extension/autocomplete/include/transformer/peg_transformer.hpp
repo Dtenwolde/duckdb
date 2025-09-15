@@ -16,6 +16,7 @@
 #include "ast/set_info.hpp"
 #include "ast/table_alias.hpp"
 #include "ast/update_set_element.hpp"
+#include "duckdb/parser/expression/case_expression.hpp"
 #include "duckdb/parser/expression/function_expression.hpp"
 #include "duckdb/parser/expression/window_expression.hpp"
 #include "duckdb/parser/parsed_data/create_type_info.hpp"
@@ -440,6 +441,9 @@ private:
 	static unique_ptr<ParsedExpression> TransformFunctionExpression(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static unique_ptr<ParsedExpression> TransformSubqueryExpression(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static unique_ptr<ParsedExpression> TransformTypeLiteral(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<ParsedExpression> TransformCaseExpression(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static CaseCheck TransformCaseWhenThen(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<ParsedExpression> TransformCaseElse(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 
 
 	static QualifiedName TransformFunctionIdentifier(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
