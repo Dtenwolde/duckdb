@@ -200,6 +200,7 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	REGISTER_TRANSFORM(TransformSeqSetCycle);
 	REGISTER_TRANSFORM(TransformSeqSetIncrement);
 	REGISTER_TRANSFORM(TransformSeqSetMinMax);
+	REGISTER_TRANSFORM(TransformSeqMinOrMax);
 	REGISTER_TRANSFORM(TransformNoMinMax);
 	REGISTER_TRANSFORM(TransformSeqStartWith);
 	REGISTER_TRANSFORM(TransformSeqOwnedBy);

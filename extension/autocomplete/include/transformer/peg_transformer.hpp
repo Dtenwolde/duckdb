@@ -239,13 +239,15 @@ private:
 	static LogicalType TransformEnumStringLiteralList(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 
 	static unique_ptr<CreateStatement> TransformCreateSequenceStmt(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
-	static pair<string, SequenceOption> TransformSequenceOption(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
-	static pair<string, SequenceOption> TransformSeqSetCycle(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
-	static pair<string, SequenceOption> TransformSeqSetIncrement(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
-	static pair<string, SequenceOption> TransformSeqSetMinMax(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
-	static pair<string, SequenceOption> TransformNoMinMax(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
-	static pair<string, SequenceOption> TransformSeqStartWith(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
-	static pair<string, SequenceOption> TransformSeqOwnedBy(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static pair<string, unique_ptr<SequenceOption>> TransformSequenceOption(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static pair<string, unique_ptr<SequenceOption>> TransformSeqSetCycle(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static pair<string, unique_ptr<SequenceOption>> TransformSeqSetIncrement(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static pair<string, unique_ptr<SequenceOption>> TransformSeqSetMinMax(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static string TransformSeqMinOrMax(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+
+	static pair<string, unique_ptr<SequenceOption>> TransformNoMinMax(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static pair<string, unique_ptr<SequenceOption>> TransformSeqStartWith(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static pair<string, unique_ptr<SequenceOption>> TransformSeqOwnedBy(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 
 	static ColumnDefinition TransformColumnDefinition(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static LogicalType TransformTypeOrGenerated(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
