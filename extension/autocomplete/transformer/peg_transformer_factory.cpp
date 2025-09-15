@@ -353,6 +353,7 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	REGISTER_TRANSFORM(TransformIsOperator);
 	REGISTER_TRANSFORM(TransformLikeOperator);
 	REGISTER_TRANSFORM(TransformLikeOrSimilarTo);
+	REGISTER_TRANSFORM(TransformInOperator);
 
 	REGISTER_TRANSFORM(TransformPrepareStatement);
 	REGISTER_TRANSFORM(TransformExecuteStatement);

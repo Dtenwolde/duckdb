@@ -53,4 +53,13 @@ ExpressionType PEGTransformerFactory::TransformLikeOrSimilarTo(PEGTransformer &t
 	return transformer.TransformEnum<ExpressionType>(list_pr.Child<ChoiceParseResult>(0).result);
 }
 
+ExpressionType PEGTransformerFactory::TransformInOperator(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	auto is_not = list_pr.Child<OptionalParseResult>(0).HasResult();
+	if (is_not) {
+		return ExpressionType::COMPARE_NOT_IN;
+	}
+	return ExpressionType::COMPARE_IN;
+}
+
 } // namespace duckdb

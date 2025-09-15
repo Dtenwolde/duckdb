@@ -544,6 +544,7 @@ private:
 	static ExpressionType TransformIsOperator(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static ExpressionType TransformLikeOperator(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static ExpressionType TransformLikeOrSimilarTo(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static ExpressionType TransformInOperator(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 
 	//! Helper functions
 	static bool ExpressionIsEmptyStar(ParsedExpression &expr);
