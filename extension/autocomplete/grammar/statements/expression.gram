@@ -101,7 +101,11 @@ SingleExpression <-
 
 OperatorLiteral <- <[\+\-\*\/\%\^\<\>\=\~\!\@\&\|\`]+>
 LikeOperator <- 'NOT'i? LikeOrSimilarTo
-LikeOrSimilarTo <- 'LIKE'i / 'ILIKE'i / 'GLOB'i / ('SIMILAR'i 'TO'i)
+LikeOrSimilarTo <- LikeExpressionType / IlikeExpressionType / GlobExpressionType / SimilarToExpressionType
+LikeExpressionType <- 'LIKE'i
+IlikeExpressionType <- 'ILIKE'i
+GlobExpressionType <- 'GLOB'i
+SimilarToExpressionType <- 'SIMILAR'i 'TO'i
 InOperator <- 'NOT'i? 'IN'i
 IsOperator <- 'IS'i 'NOT'i? DistinctFrom?
 DistinctFrom <- 'DISTINCT'i 'FROM'i

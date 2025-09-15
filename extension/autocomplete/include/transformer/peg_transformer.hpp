@@ -441,6 +441,7 @@ private:
 	static unique_ptr<ParsedExpression> TransformSubqueryExpression(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static unique_ptr<ParsedExpression> TransformTypeLiteral(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 
+
 	static QualifiedName TransformFunctionIdentifier(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static QualifiedName TransformCatalogReservedSchemaFunctionName(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static QualifiedName TransformSchemaReservedFunctionName(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
@@ -536,6 +537,9 @@ private:
 	//! Operator
 	static ExpressionType TransformOperator(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static ExpressionType TransformConjunctionOperator(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static ExpressionType TransformIsOperator(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static ExpressionType TransformLikeOperator(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static ExpressionType TransformLikeOrSimilarTo(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 
 	//! Helper functions
 	static bool ExpressionIsEmptyStar(ParsedExpression &expr);

@@ -26,7 +26,7 @@ string PEGTransformerFactory::TransformIdentifierOrKeyword(PEGTransformer &trans
 				if (choice_pr.result->type == ParseResultType::KEYWORD) {
 					return choice_pr.result->Cast<KeywordParseResult>().keyword;
 				}
-				throw ParserException("Unexpected type encountered.");
+				return transformer.Transform<string>(choice_pr.result);
 			}
 			if (child->type == ParseResultType::IDENTIFIER) {
 				return child->Cast<IdentifierParseResult>().identifier;

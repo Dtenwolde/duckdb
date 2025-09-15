@@ -26,6 +26,10 @@ unique_ptr<ParsedExpression> PEGTransformerFactory::TransformExpression(PEGTrans
 				auto compare_expr = unique_ptr_cast<ParsedExpression, ComparisonExpression>(std::move(expr));
 				compare_expr->left = std::move(base_expr);
 				base_expr = std::move(compare_expr);
+			} else if (expr->expression_class == ExpressionClass::FUNCTION) {
+				auto func_expr = unique_ptr_cast<ParsedExpression, FunctionExpression>(std::move(expr));
+				func_expr->children.insert(func_expr->children.begin(), std::move(base_expr));
+				base_expr = std::move(func_expr);
 			} else {
 				base_expr = make_uniq<OperatorExpression>(expr->type, std::move(base_expr),
 															 std::move(expr));
@@ -43,6 +47,17 @@ PEGTransformerFactory::TransformRecursiveExpression(PEGTransformer &transformer,
 	auto operator_expr = transformer.Transform<ExpressionType>(list_pr.Child<ListParseResult>(0));
 	vector<unique_ptr<ParsedExpression>> expr_children;
 	auto right_expr = transformer.Transform<unique_ptr<ParsedExpression>>(list_pr.Child<ListParseResult>(1));
+
+	if (operator_expr >= ExpressionType::OPERATOR_LIKE && operator_expr <= ExpressionType::OPERATOR_GLOB) {
+		expr_children.push_back(transformer.Transform<unique_ptr<ParsedExpression>>(list_pr.Child<ListParseResult>(1)));
+		auto function_name = ExpressionTypeToString(operator_expr);
+		if (function_name == "~") {
+			function_name = "regexp_full_match";
+		} else if (function_name == "!~") {
+			throw NotImplementedException("NOT SIMILAR TO operator not implemented");
+		}
+		return make_uniq<FunctionExpression>(function_name, std::move(expr_children));
+	}
 	if (operator_expr != ExpressionType::INVALID) {
 		return make_uniq<ComparisonExpression>(operator_expr, nullptr, std::move(right_expr));
 	}

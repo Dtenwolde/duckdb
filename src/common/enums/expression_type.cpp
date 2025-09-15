@@ -149,6 +149,20 @@ string ExpressionTypeToString(ExpressionType type) {
 		return "ARROW";
 	case ExpressionType::BOUND_EXPANDED:
 		return "BOUND_EXPANDED";
+	case ExpressionType::OPERATOR_LIKE:
+		return "~~";
+	case ExpressionType::OPERATOR_NOT_LIKE:
+		return "!~~";
+	case ExpressionType::OPERATOR_ILIKE:
+		return "~~*";
+	case ExpressionType::OPERATOR_NOT_ILIKE:
+		return "!~~*";
+	case ExpressionType::OPERATOR_SIMILAR_TO:
+		return "~";
+	case ExpressionType::OPERATOR_NOT_SIMILAR_TO:
+		return "!~";
+	case ExpressionType::OPERATOR_GLOB:
+		return "~~~";
 	case ExpressionType::INVALID:
 		break;
 	}
@@ -333,6 +347,20 @@ ExpressionType OperatorToExpressionType(const string &op) {
 		return ExpressionType::COMPARE_LESSTHANOREQUALTO;
 	} else if (op == ">=") {
 		return ExpressionType::COMPARE_GREATERTHANOREQUALTO;
+	} else if (op == "~~") {
+		return ExpressionType::OPERATOR_LIKE;
+	} else if (op == "!~~") {
+		return ExpressionType::OPERATOR_NOT_LIKE;
+	} else if (op == "~~*") {
+		return ExpressionType::OPERATOR_ILIKE;
+	} else if (op == "!~~*") {
+		return ExpressionType::OPERATOR_NOT_ILIKE;
+	} else if (op == "~") {
+		return ExpressionType::OPERATOR_SIMILAR_TO;
+	} else if (op == "!~") {
+		return ExpressionType::OPERATOR_NOT_SIMILAR_TO;
+	} else if (op == "~~~") {
+		return ExpressionType::OPERATOR_GLOB;
 	}
 	return ExpressionType::INVALID;
 }

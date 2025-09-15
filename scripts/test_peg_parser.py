@@ -282,7 +282,6 @@ if __name__ == "__main__":
 
         percentage_failed = round(failed_tests / total_tests_run * 100, 2)
         print(f"Total of {failed_tests} out of {total_tests_run} failed ({percentage_failed}%).")
-
         # --- New section to append summary to a single CSV file ---
         try:
             filename = "test_summary.csv"

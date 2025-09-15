@@ -15,3 +15,9 @@ call check_peg_transformer($$SELECT bigint '1'$$);
 
 statement ok
 call check_peg_transformer($$SELECT foo '1'$$);
+
+statement ok
+call check_peg_transformer($$SELECT 123 as column$$);
+
+statement ok
+call check_peg_transformer($$FROM foo WHERE filename is not null$$);

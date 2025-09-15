@@ -301,6 +301,9 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	REGISTER_TRANSFORM(TransformStarExpression);
 	REGISTER_TRANSFORM(TransformSubqueryExpression);
 	REGISTER_TRANSFORM(TransformTypeLiteral);
+
+
+
 	REGISTER_TRANSFORM(TransformPrefixExpression);
 	REGISTER_TRANSFORM(TransformFunctionExpression);
 	REGISTER_TRANSFORM(TransformFunctionIdentifier);
@@ -346,7 +349,9 @@ PEGTransformerFactory::PEGTransformerFactory() {
 
 	REGISTER_TRANSFORM(TransformOperator);
 	REGISTER_TRANSFORM(TransformConjunctionOperator);
-
+	REGISTER_TRANSFORM(TransformIsOperator);
+	REGISTER_TRANSFORM(TransformLikeOperator);
+	REGISTER_TRANSFORM(TransformLikeOrSimilarTo);
 
 	REGISTER_TRANSFORM(TransformPrepareStatement);
 	REGISTER_TRANSFORM(TransformExecuteStatement);
@@ -497,6 +502,12 @@ PEGTransformerFactory::PEGTransformerFactory() {
 
 	RegisterEnum<ExpressionType>("ConjunctionOr", ExpressionType::CONJUNCTION_OR);
 	RegisterEnum<ExpressionType>("ConjunctionAnd", ExpressionType::CONJUNCTION_AND);
+
+
+	RegisterEnum<ExpressionType>("LikeExpressionType", ExpressionType::OPERATOR_LIKE);
+	RegisterEnum<ExpressionType>("IlikeExpressionType", ExpressionType::OPERATOR_ILIKE);
+	RegisterEnum<ExpressionType>("GlobExpressionType", ExpressionType::OPERATOR_GLOB);
+	RegisterEnum<ExpressionType>("SimilarToExpressionType", ExpressionType::OPERATOR_SIMILAR_TO);
 	}
 
 optional_ptr<ParseResult> PEGTransformerFactory::ExtractResultFromParens(optional_ptr<ParseResult> parse_result) {
