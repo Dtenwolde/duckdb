@@ -439,6 +439,8 @@ private:
 	                                                             optional_ptr<ParseResult> parse_result);
 	static unique_ptr<ParsedExpression> TransformFunctionExpression(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static unique_ptr<ParsedExpression> TransformSubqueryExpression(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<ParsedExpression> TransformTypeLiteral(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+
 	static QualifiedName TransformFunctionIdentifier(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static QualifiedName TransformCatalogReservedSchemaFunctionName(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static QualifiedName TransformSchemaReservedFunctionName(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);

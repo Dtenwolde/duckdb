@@ -300,6 +300,7 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	REGISTER_TRANSFORM(TransformCastOrTryCast);
 	REGISTER_TRANSFORM(TransformStarExpression);
 	REGISTER_TRANSFORM(TransformSubqueryExpression);
+	REGISTER_TRANSFORM(TransformTypeLiteral);
 	REGISTER_TRANSFORM(TransformPrefixExpression);
 	REGISTER_TRANSFORM(TransformFunctionExpression);
 	REGISTER_TRANSFORM(TransformFunctionIdentifier);
