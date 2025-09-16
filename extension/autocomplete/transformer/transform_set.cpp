@@ -3,12 +3,10 @@ namespace duckdb {
 
 unique_ptr<SQLStatement> PEGTransformerFactory::TransformUseStatement(PEGTransformer &transformer,
                                                                       optional_ptr<ParseResult> parse_result) {
-	// Rule: 'USE'i UseTarget
+	// Rule: 'USE'i !InvalidUseTarget UseTarget
 	auto &list_pr = parse_result->Cast<ListParseResult>();
-	auto &use_target_pr = list_pr.children[1];
 
-	QualifiedName qn = transformer.Transform<QualifiedName>(use_target_pr);
-
+	auto qn = transformer.Transform<QualifiedName>(list_pr.Child<ListParseResult>(2));
 	if (!qn.catalog.empty()) {
 		throw ParserException("Expected \"USE database\" or \"USE database.schema\"");
 	}
