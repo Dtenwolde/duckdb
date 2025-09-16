@@ -11,6 +11,7 @@ add_library_unity(
   transform_comment.cpp
   transform_common.cpp
   transform_copy.cpp
+  transform_create_index.cpp
   transform_create_schema.cpp
   transform_create_secret.cpp
   transform_create_sequence.cpp

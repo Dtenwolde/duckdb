@@ -1,0 +1,13 @@
+# name: test/sql/peg_parser/transformer/create.test
+# description:
+# group: [transformer]
+
+require autocomplete
+
+statement ok
+call check_peg_transformer($$CREATE INDEX i_index ON s.test(i);$$);
+
+statement ok
+call check_peg_transformer($$CREATE INDEX t0i0 ON t0_scan(c0 DESC);$$);
+
+

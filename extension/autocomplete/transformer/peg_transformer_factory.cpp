@@ -141,8 +141,6 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	REGISTER_TRANSFORM(TransformEmptyGroupingItem);
 	REGISTER_TRANSFORM(TransformCubeOrRollupClause);
 	REGISTER_TRANSFORM(TransformGroupingSetsClause);
-
-
 	REGISTER_TRANSFORM(TransformHavingClause);
 	REGISTER_TRANSFORM(TransformQualifyClause);
 
@@ -201,6 +199,13 @@ PEGTransformerFactory::PEGTransformerFactory() {
 
 	REGISTER_TRANSFORM(TransformCreateSecretStmt);
 	REGISTER_TRANSFORM(TransformSecretStorageSpecifier);
+
+	REGISTER_TRANSFORM(TransformCreateIndexStmt);
+	REGISTER_TRANSFORM(TransformIndexType);
+	REGISTER_TRANSFORM(TransformIndexElement);
+	REGISTER_TRANSFORM(TransformWithList);
+	REGISTER_TRANSFORM(TransformIndexName);
+
 
 	REGISTER_TRANSFORM(TransformCreateSchemaStmt);
 
