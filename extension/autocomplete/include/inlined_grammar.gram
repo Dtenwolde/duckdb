@@ -1042,7 +1042,8 @@ RepeatableSample <- 'REPEATABLE'i Parens(NumberLiteral)
 SampleCount <- Expression SampleUnit?
 SampleUnit <- '%' / 'PERCENT'i / 'ROWS'i
 
-GroupByExpressions <- GroupByList / 'ALL'i
+GroupByExpressions <- GroupByList / GroupByAll
+GroupByAll <- 'ALL'i
 GroupByList <- List(GroupByExpression)
 GroupByExpression <- EmptyGroupingItem / CubeOrRollupClause / GroupingSetsClause / Expression
 EmptyGroupingItem <- '(' ')'

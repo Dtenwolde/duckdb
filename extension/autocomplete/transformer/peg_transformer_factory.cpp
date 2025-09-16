@@ -134,6 +134,15 @@ PEGTransformerFactory::PEGTransformerFactory() {
 
 	REGISTER_TRANSFORM(TransformWhereClause);
 	REGISTER_TRANSFORM(TransformGroupByClause);
+	REGISTER_TRANSFORM(TransformGroupByExpressions);
+	REGISTER_TRANSFORM(TransformGroupByAll);
+    REGISTER_TRANSFORM(TransformGroupByList);
+	REGISTER_TRANSFORM(TransformGroupByExpression);
+	REGISTER_TRANSFORM(TransformEmptyGroupingItem);
+	REGISTER_TRANSFORM(TransformCubeOrRollupClause);
+	REGISTER_TRANSFORM(TransformGroupingSetsClause);
+
+
 	REGISTER_TRANSFORM(TransformHavingClause);
 	REGISTER_TRANSFORM(TransformQualifyClause);
 

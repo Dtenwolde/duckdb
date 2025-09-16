@@ -574,8 +574,48 @@ LimitPercentResult PEGTransformerFactory::TransformOffsetClause(PEGTransformer &
 
 GroupByNode PEGTransformerFactory::TransformGroupByClause(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
 	auto &list_pr = parse_result->Cast<ListParseResult>();
-	throw NotImplementedException("Rule 'GroupByClause' has not been implemented yet");
+	return transformer.Transform<GroupByNode>(list_pr.Child<ListParseResult>(2));
 }
 
+GroupByNode PEGTransformerFactory::TransformGroupByExpressions(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	return transformer.Transform<GroupByNode>(list_pr.Child<ChoiceParseResult>(0).result);
+}
+
+GroupByNode PEGTransformerFactory::TransformGroupByAll(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	GroupByNode result;
+	result.group_expressions.push_back(make_uniq<StarExpression>());
+	return result;
+}
+
+GroupByNode PEGTransformerFactory::TransformGroupByList(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	auto group_by_list = ExtractParseResultsFromList(list_pr.Child<ListParseResult>(0));
+	GroupByNode result;
+	for (auto group_by_expr : group_by_list) {
+		result.group_expressions.push_back(transformer.Transform<unique_ptr<ParsedExpression>>(group_by_expr));
+	}
+	return result;
+}
+
+unique_ptr<ParsedExpression> PEGTransformerFactory::TransformGroupByExpression(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	return transformer.Transform<unique_ptr<ParsedExpression>>(list_pr.Child<ChoiceParseResult>(0).result);
+}
+
+unique_ptr<ParsedExpression> PEGTransformerFactory::TransformEmptyGroupingItem(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	throw NotImplementedException("Rule 'EmptyGroupingItem' has not been implemented yet");
+}
+
+unique_ptr<ParsedExpression> PEGTransformerFactory::TransformCubeOrRollupClause(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	throw NotImplementedException("Rule 'CubeOrRollupClause' has not been implemented yet");
+}
+
+unique_ptr<ParsedExpression> PEGTransformerFactory::TransformGroupingSetsClause(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	throw NotImplementedException("Rule 'GroupingSetsClause' has not been implemented yet");
+}
 
 } // namespace duckdb

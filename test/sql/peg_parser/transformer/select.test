@@ -27,3 +27,9 @@ call check_peg_transformer($$select case i when 1 then 2 else 3 end;$$);
 
 statement ok
 call check_peg_transformer($$FROM foo WHERE database_name IN ('s1', 's2');$$);
+
+statement ok
+call check_peg_transformer($$SELECT ([1,2,3,4,5,6])[-9223372036854775808:5];$$);
+
+statement ok
+call check_peg_transformer($$FROM foo SELECT salary, max(salary) GROUP BY salary;$$);
