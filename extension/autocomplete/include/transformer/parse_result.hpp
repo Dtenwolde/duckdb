@@ -16,6 +16,7 @@ enum class ParseResultType : uint8_t {
 	OPTIONAL,
 	REPEAT,
 	CHOICE,
+	NEGATE,
 	EXPRESSION,
 	IDENTIFIER,
 	KEYWORD,
@@ -35,6 +36,8 @@ inline const char *ParseResultToString(ParseResultType type) {
 		return "OPTIONAL";
 	case ParseResultType::REPEAT:
 		return "REPEAT";
+	case ParseResultType::NEGATE:
+		return "NEGATE";
 	case ParseResultType::CHOICE:
 		return "CHOICE";
 	case ParseResultType::EXPRESSION:
@@ -238,6 +241,22 @@ struct OptionalParseResult : ParseResult {
 	}
 };
 
+
+struct NegateParseResult : ParseResult {
+	static constexpr ParseResultType TYPE = ParseResultType::NEGATE;
+
+	explicit NegateParseResult() : ParseResult(TYPE) {
+	}
+
+	void ToStringInternal(std::stringstream &ss, std::unordered_set<const ParseResult *> &visited,
+					  const std::string &indent, bool is_last) const override {
+		// A NegateParseResult represents a successful zero-width assertion.
+		// It never has a child result, so we don't need an "if/else" like in OptionalParseResult.
+		// We simply print a line indicating that the negation check was successful.
+		ss << indent << (is_last ? "└─" : "├─") << " " << ParseResultToString(type) << " [success]\n";
+	}
+};
+
 class ChoiceParseResult : public ParseResult {
 public:
 	static constexpr ParseResultType TYPE = ParseResultType::CHOICE;
@@ -312,4 +331,20 @@ public:
 		ss << ": " << operator_token << "\n";
 	}
 };
+
+class ErrorParseResult : public ParseResult {
+public:
+	static constexpr ParseResultType TYPE = ParseResultType::OPERATOR;
+
+	explicit ErrorParseResult(string error_message_p) : ParseResult(TYPE), error_message(std::move(error_message_p)) {
+	}
+	string error_message;
+
+	void ToStringInternal(std::stringstream &ss, std::unordered_set<const ParseResult *> &visited,
+						  const std::string &indent, bool is_last) const override {
+		ParseResult::ToStringInternal(ss, visited, indent, is_last);
+		ss << ": " << error_message << "\n";
+	}
+};
+
 } // namespace duckdb

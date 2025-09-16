@@ -18,7 +18,6 @@
 #endif
 
 namespace duckdb {
-// struct PEGParser;
 
 SuggestionType Matcher::AddSuggestion(MatchState &state) const {
 	auto entry = state.added_suggestions.find(*this);
@@ -378,6 +377,49 @@ private:
 	Matcher &element;
 };
 
+class NegateMatcher : public Matcher {
+public:
+	static constexpr MatcherType TYPE = MatcherType::NEGATE;
+
+public:
+	explicit NegateMatcher(Matcher &matcher_p) : Matcher(TYPE), matcher(matcher_p) {
+	}
+
+	MatchResultType Match(MatchState &state) const override {
+		MatchState child_state(state);
+		auto child_match = matcher.Match(child_state);
+		if (child_match != MatchResultType::SUCCESS) {
+			// The child succeeded, therefore the negate matcher failed.
+			return MatchResultType::FAIL;
+		}
+		// The child failed, therefore the negate matcher succeeded
+		return MatchResultType::SUCCESS;
+	}
+
+	optional_ptr<ParseResult> MatchParseResult(MatchState &state) const override {
+		MatchState child_state(state);
+		auto child_match = matcher.MatchParseResult(child_state);
+		if (child_match != nullptr) {
+			// did not succeed in matching - go back up (simply return a nullptr)
+			return nullptr;
+		}
+		// propagate the child state upwards
+		return state.allocator.Allocate(make_uniq<NegateParseResult>());
+	}
+
+	SuggestionType AddSuggestionInternal(MatchState &state) const override {
+		matcher.AddSuggestion(state);
+		return SuggestionType::OPTIONAL;
+	}
+
+	string ToString() const override {
+		return "!" + matcher.GetName();
+	}
+
+private:
+	Matcher &matcher;
+};
+
 class IdentifierMatcher : public Matcher {
 public:
 	static constexpr MatcherType TYPE = MatcherType::VARIABLE;
@@ -718,6 +760,39 @@ private:
 	}
 };
 
+// class ErrorMatcher : public Matcher {
+// public:
+// 	static constexpr MatcherType TYPE = MatcherType::ERROR;
+//
+// public:
+// 	explicit ErrorMatcher(const string &error_message_p) : Matcher(TYPE), error_message(error_message_p) {
+// 	}
+// 	string error_message;
+//
+// 	string ToString() const override {
+// 		return "ERROR";
+// 	}
+//
+// 	MatchResultType Match(MatchState &state) const override {
+// 		return MatchResultType::SUCCESS;
+// 	}
+//
+// 	optional_ptr<ParseResult> MatchParseResult(MatchState &state) const override {
+// 		if (state.token_index >= state.tokens.size()) {
+// 			return nullptr;
+// 		}
+// 		return state.allocator.Allocate(make_uniq<ErrorParseResult>(error_message));
+// 	}
+//
+// 	SuggestionType AddSuggestionInternal(MatchState &state) const override {
+// 		return SuggestionType::OPTIONAL;
+// 	}
+// private:
+// 	static bool MatchError(MatchState &state) {
+// 		return true;
+// 	}
+// };
+
 Matcher &MatcherAllocator::Allocate(unique_ptr<Matcher> matcher) {
 	auto &result = *matcher;
 	matchers.push_back(std::move(matcher));
@@ -749,6 +824,8 @@ private:
 	Matcher &Choice(vector<reference<Matcher>> matchers) const;
 	Matcher &Optional(Matcher &matcher) const;
 	Matcher &Repeat(Matcher &matcher) const;
+	Matcher &Negate(Matcher &matcher) const;
+	// Matcher &Error(const string &error_message) const;
 	Matcher &Variable() const;
 	Matcher &CatalogName() const;
 	Matcher &SchemaName() const;
@@ -771,12 +848,14 @@ private:
 
 	void AddKeywordOverride(const char *name, uint32_t score, char extra_char = ' ');
 	void AddRuleOverride(const char *name, Matcher &matcher);
+	// void AddErrorMessage(const char *name, const string &error_message);
 	Matcher &CreateMatcher(PEGParser &parser, string_t rule_name);
 	Matcher &CreateMatcher(PEGParser &parser, string_t rule_name, vector<reference<Matcher>> &parameters);
 
 private:
 	MatcherAllocator &allocator;
 	string_map_t<reference<Matcher>> matchers;
+	// string_map_t<string_t> error_messages;
 	case_insensitive_map_t<reference<Matcher>> keyword_overrides;
 };
 
@@ -807,6 +886,14 @@ Matcher &MatcherFactory::Optional(Matcher &matcher) const {
 Matcher &MatcherFactory::Repeat(Matcher &matcher) const {
 	return allocator.Allocate(make_uniq<RepeatMatcher>(matcher));
 }
+
+Matcher &MatcherFactory::Negate(Matcher &matcher) const {
+	return allocator.Allocate(make_uniq<NegateMatcher>(matcher));
+}
+
+// Matcher &MatcherFactory::Error(const string &error_message) const {
+// 	return allocator.Allocate(make_uniq<ErrorMatcher>(error_message));
+// }
 
 Matcher &MatcherFactory::Variable() const {
 	return allocator.Allocate(make_uniq<IdentifierMatcher>(SuggestionState::SUGGEST_VARIABLE));
@@ -904,11 +991,17 @@ public:
 	}
 
 	void AddMatcher(Matcher &matcher) {
+		Matcher *matcher_to_add = &matcher;
+		if (negate_next_matcher) {
+			matcher_to_add = &factory.Negate(matcher);
+			negate_next_matcher = false;
+		}
+
 		auto &root_matcher = matchers.back().matcher;
 		switch (root_matcher.Type()) {
 		case MatcherType::LIST: {
 			auto &root_list = root_matcher.Cast<ListMatcher>();
-			root_list.matchers.push_back(matcher);
+			root_list.matchers.push_back(*matcher_to_add);
 			break;
 		}
 		case MatcherType::CHOICE:
@@ -916,12 +1009,15 @@ public:
 			if (matchers.size() <= 1) {
 				throw InternalException("Choice matcher should never be the root in the matcher stack");
 			}
-			root_matcher.Cast<ChoiceMatcher>().matchers.push_back(matcher);
+			root_matcher.Cast<ChoiceMatcher>().matchers.push_back(*matcher_to_add);
 			matchers.pop_back();
 			break;
 		default:
 			throw InternalException("Cannot add matcher to root matcher of this type");
 		}
+	}
+	void NegateNext() {
+		negate_next_matcher = true;
 	}
 	void AddRootMatcher(Matcher &matcher) {
 		matchers.emplace_back(matcher);
@@ -971,6 +1067,7 @@ private:
 	PEGParser &parser;
 	MatcherFactory &factory;
 	vector<MatcherListEntry> matchers;
+	bool negate_next_matcher = false;
 };
 
 Matcher &MatcherFactory::CreateMatcher(PEGParser &parser, string_t rule_name, vector<reference<Matcher>> &parameters) {
@@ -1117,9 +1214,7 @@ Matcher &MatcherFactory::CreateMatcher(PEGParser &parser, string_t rule_name, ve
 				break;
 			}
 			case '!': {
-				// throw InternalException("NOT operator not supported in PEG grammar (found in rule %s)",
-				// rule_name.GetString());
-				// FIXME: we just ignore NOT operators here
+				list.NegateNext();
 				break;
 			}
 			default:
@@ -1150,6 +1245,10 @@ void MatcherFactory::AddRuleOverride(const char *name, Matcher &matcher) {
 	matchers.insert(make_pair(name, reference<Matcher>(matcher)));
 }
 
+// void MatcherFactory::AddErrorMessage(const char *name, const string &error_message) {
+// 	error_messages.insert(make_pair(name, error_message));
+// }
+
 Matcher &MatcherFactory::CreateMatcher(const char *grammar, const char *root_rule) {
 	// parse the grammar into a set of rules
 	PEGParser parser;
@@ -1179,6 +1278,8 @@ Matcher &MatcherFactory::CreateMatcher(const char *grammar, const char *root_rul
 	AddRuleOverride("NumberLiteral", NumberLiteral());
 	AddRuleOverride("StringLiteral", StringLiteral());
 	AddRuleOverride("OperatorLiteral", Operator());
+
+	// AddRuleOverride("InvalidUseTarget", Error("Expected \"CatalogName.SchemaName\" or \"SchemaName\""));
 
 	// now create the matchers for each of the rules recursively - starting at the root rule
 	return CreateMatcher(parser, root_rule);
