@@ -11,11 +11,12 @@ namespace duckdb {
 // --- PEG Parser ---
 
 enum class PEGTokenType {
-	LITERAL,       // literal token ('Keyword'i)
-	REFERENCE,     // reference token (Rule)
-	OPERATOR,      // operator token (/ or )
-	FUNCTION_CALL, // start of function call (i.e. Function(...))
-	REGEX          // regular expression ([ \t\n\r] or <[a-z_]i[a-z0-9_]i>)
+	LITERAL,		// literal token ('Keyword'i)
+	REFERENCE,		// reference token (Rule)
+	OPERATOR,		// operator token (/ or )
+	FUNCTION_CALL,	// start of function call (i.e. Function(...))
+	REGEX,          // regular expression ([ \t\n\r] or <[a-z_]i[a-z0-9_]i>)
+	ACTION_BLOCK	// Used for { Error message }
 };
 
 struct PEGToken {

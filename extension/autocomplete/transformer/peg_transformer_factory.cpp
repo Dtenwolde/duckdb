@@ -33,7 +33,10 @@ unique_ptr<SQLStatement> PEGTransformerFactory::Transform(vector<MatcherToken> &
 	auto end_time = std::chrono::high_resolution_clock::now();
 	// --- TIMING END ---
 	auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time);
-
+	if (match_result->type == ParseResultType::ERROR) {
+		auto error_match = match_result->Cast<ErrorParseResult>();
+		throw ParserException(error_match.error_message);
+	}
 	// Printer::PrintF("Parsing took: %lld µs\n", duration.count());
 	if (match_result == nullptr || state.token_index < state.tokens.size()) {
 		// TODO(dtenwolde) add error handling

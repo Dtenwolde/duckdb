@@ -1,3 +1,3 @@
-UseStatement <- 'USE'i UseTarget
-
+UseStatement <- 'USE'i (InvalidUseTargetWithError / UseTarget)
+InvalidUseTargetWithError <- CatalogName '.' SchemaName ('.' Identifier)+ { "Expected "USE database" or "USE database.schema"" }
 UseTarget <- (CatalogName '.' ReservedSchemaName) / SchemaName / CatalogName

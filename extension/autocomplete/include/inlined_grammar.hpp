@@ -1263,7 +1263,8 @@ const char INLINED_PEG_GRAMMAR[] = {
 	"AttachAlias <- 'AS'i ColId\n"
 	"AttachOptions <- Parens(GenericCopyOptionList)\n"
 	"DetachStatement <- 'DETACH'i Database? IfExists? CatalogName\n"
-	"UseStatement <- 'USE'i UseTarget\n"
+	"UseStatement <- 'USE'i (InvalidUseTargetWithError / UseTarget)\n"
+	"InvalidUseTargetWithError <- CatalogName '.' SchemaName ('.' Identifier)+ { \"Expected \"USE database\" or \"USE database.schema\"\" }\n"
 	"UseTarget <- (CatalogName '.' ReservedSchemaName) / SchemaName / CatalogName\n"
 	"CallStatement <- 'CALL'i TableFunctionName TableFunctionArguments\n"
 

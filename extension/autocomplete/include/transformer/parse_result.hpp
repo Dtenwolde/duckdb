@@ -17,6 +17,7 @@ enum class ParseResultType : uint8_t {
 	REPEAT,
 	CHOICE,
 	NEGATE,
+	ERROR,
 	EXPRESSION,
 	IDENTIFIER,
 	KEYWORD,
@@ -38,6 +39,8 @@ inline const char *ParseResultToString(ParseResultType type) {
 		return "REPEAT";
 	case ParseResultType::NEGATE:
 		return "NEGATE";
+	case ParseResultType::ERROR:
+		return "ERROR";
 	case ParseResultType::CHOICE:
 		return "CHOICE";
 	case ParseResultType::EXPRESSION:
@@ -334,7 +337,7 @@ public:
 
 class ErrorParseResult : public ParseResult {
 public:
-	static constexpr ParseResultType TYPE = ParseResultType::OPERATOR;
+	static constexpr ParseResultType TYPE = ParseResultType::ERROR;
 
 	explicit ErrorParseResult(string error_message_p) : ParseResult(TYPE), error_message(std::move(error_message_p)) {
 	}

@@ -110,6 +110,7 @@ void PEGParser::ParseRules(const char *grammar) {
 			// (1) a literal ('Keyword'i)
 			// (2) a rule reference (Rule)
 			// (3) an operator ( '(' '/' '?' '*' ')' '+')
+			// (4) an action block ({ "error message" })
 			in_or_clause = false;
 			if (grammar[c] == '\'') {
 				// parse literal
@@ -171,7 +172,33 @@ void PEGParser::ParseRules(const char *grammar) {
 				token.text = string(grammar + rule_start, c - rule_start);
 				token.type = PEGTokenType::REGEX;
 				rule.tokens.push_back(token);
-			} else if (IsPEGOperator(grammar[c])) {
+			} else if (grammar[c] == '{') {
+				c++;
+				while (grammar[c] && StringUtil::CharacterIsSpace(grammar[c])) {
+					c++;
+				}
+				idx_t block_start = c;
+				while (grammar[c]) {
+					if (grammar[c] == '{') {
+						throw InternalException("Nested action blocks are not supported.");
+					}
+					if (grammar[c] == '}') {
+						break;
+					}
+					c++;
+				}
+				idx_t block_end = c;
+				// Skip any whitespace at the end of the action block
+				while (block_end > block_start && StringUtil::CharacterIsSpace(grammar[block_end - 1])) {
+					block_end--;
+				}
+				PEGToken token;
+				token.text = string(grammar + block_start, block_end - block_start);
+				token.type = PEGTokenType::ACTION_BLOCK;
+				rule.tokens.push_back(token);
+				c++; // Skip closing '}'
+			}
+			else if (IsPEGOperator(grammar[c])) {
 				if (grammar[c] == '(') {
 					bracket_count++;
 				} else if (grammar[c] == ')') {
