@@ -427,6 +427,17 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	REGISTER_TRANSFORM(TransformDropCollation);
 	REGISTER_TRANSFORM(TransformDropType);
 
+	REGISTER_TRANSFORM(TransformAlterStatement);
+	REGISTER_TRANSFORM(TransformAlterOptions);
+	REGISTER_TRANSFORM(TransformAlterTableStmt);
+	REGISTER_TRANSFORM(TransformAlterTableOptions);
+	REGISTER_TRANSFORM(TransformAddColumn);
+	REGISTER_TRANSFORM(TransformDropColumn);
+	REGISTER_TRANSFORM(TransformNestedColumnName);
+	REGISTER_TRANSFORM(TransformAlterColumn);
+	REGISTER_TRANSFORM(TransformRenameColumn);
+	REGISTER_TRANSFORM(TransformRenameAlter);
+
 
 
 	// Manual registration for mismatched names or special cases
