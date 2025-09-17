@@ -152,12 +152,9 @@ def parse_test_file(filename):
             continue
         if isinstance(stmt, sqllogictest.statement.statement.Statement):
             if stmt.expected_result.type == sqllogictest.ExpectedResult.Type.ERROR:
-                if any(
-                        "parser error" in line.lower() or "syntax error" in line.lower()
-                        for line in stmt.expected_result.lines
-                ):
+                if any("parser error" in line.lower() or "syntax error" in line.lower() for line in stmt.expected_result.lines):
+                    print(f"Skipping: {' '.join(stmt.lines)}\n{stmt.expected_result.lines}\n")
                     continue
-                continue
         query = ' '.join(stmt.lines)
         statements.append(query)
     return statements
