@@ -1107,9 +1107,6 @@ Matcher &MatcherFactory::CreateMatcher(PEGParser &parser, string_t rule_name, ve
 	if (entry == parser.rules.end()) {
 		throw InternalException("Failed to create matcher for rule %s - rule is missing", rule_name.GetString());
 	}
-	if (entry->first == "InvalidUseTargetWithError") {
-		;
-	}
 	// create a matcher and cache it
 	// since matchers can be recursive we need to cache it prior to recursively constructing the other rules
 	auto &matcher = List();
