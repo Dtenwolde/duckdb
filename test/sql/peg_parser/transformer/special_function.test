@@ -1,0 +1,11 @@
+# name: test/sql/peg_parser/transformer/prepare.test
+# description:
+# group: [transformer]
+
+require autocomplete
+
+statement ok
+call check_peg_transformer($$FROM read_avro('test/bigdata.avro') SELECT SUM(columns(*))$$);
+
+statement ok
+call check_peg_transformer($$SELECT min(COLUMNS(*)), count(COLUMNS(*)) FROM numbers;$$);

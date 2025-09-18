@@ -567,5 +567,42 @@ unique_ptr<ParsedExpression> PEGTransformerFactory::TransformStarExpression(PEGT
 	return result;
 }
 
+unique_ptr<ParsedExpression> PEGTransformerFactory::TransformSpecialFunctionExpression(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	return transformer.Transform<unique_ptr<ParsedExpression>>(list_pr.Child<ChoiceParseResult>(0).result);
+}
+
+unique_ptr<ParsedExpression> PEGTransformerFactory::TransformCoalesceExpression(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	auto result = make_uniq<OperatorExpression>(ExpressionType::OPERATOR_COALESCE);
+	auto extract_parens = ExtractResultFromParens(list_pr.Child<ListParseResult>(1));
+	auto expr_list = ExtractParseResultsFromList(extract_parens);
+	for (auto expr : expr_list) {
+		result->children.push_back(transformer.Transform<unique_ptr<ParsedExpression>>(expr));
+	}
+	return result;
+}
+
+unique_ptr<ParsedExpression> PEGTransformerFactory::TransformUnpackExpression(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	auto extract_parens = ExtractResultFromParens(list_pr.Child<ListParseResult>(1));
+	auto result = make_uniq<OperatorExpression>(ExpressionType::OPERATOR_UNPACK);
+	result->children.push_back(transformer.Transform<unique_ptr<ParsedExpression>>(extract_parens));
+	return result;
+}
+
+unique_ptr<ParsedExpression> PEGTransformerFactory::TransformColumnsExpression(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+
+	auto result = make_uniq<StarExpression>();
+	auto expr = transformer.Transform<unique_ptr<ParsedExpression>>(ExtractResultFromParens(list_pr.Child<ListParseResult>(2)));
+	if (expr->GetExpressionType() == ExpressionType::STAR) {
+		result = unique_ptr_cast<ParsedExpression, StarExpression>(std::move(expr));
+	} else {
+		result->expr = std::move(expr);
+	}
+	result->columns = true;
+	return result;
+}
 
 } // namespace duckdb

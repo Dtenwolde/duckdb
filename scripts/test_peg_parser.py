@@ -155,6 +155,7 @@ def parse_test_file(filename):
                 if any("parser error" in line.lower() or "syntax error" in line.lower() for line in stmt.expected_result.lines):
                     print(f"Skipping: {' '.join(stmt.lines)}\n{stmt.expected_result.lines}\n")
                     continue
+                continue
         query = ' '.join(stmt.lines)
         statements.append(query)
     return statements

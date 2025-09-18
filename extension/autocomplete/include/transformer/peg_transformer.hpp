@@ -464,6 +464,11 @@ private:
 	static CaseCheck TransformCaseWhenThen(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static unique_ptr<ParsedExpression> TransformCaseElse(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 
+	static unique_ptr<ParsedExpression> TransformSpecialFunctionExpression(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<ParsedExpression> TransformCoalesceExpression(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<ParsedExpression> TransformUnpackExpression(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<ParsedExpression> TransformColumnsExpression(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+
 
 	static QualifiedName TransformFunctionIdentifier(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static QualifiedName TransformCatalogReservedSchemaFunctionName(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);

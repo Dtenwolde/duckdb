@@ -323,6 +323,12 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	REGISTER_TRANSFORM(TransformCaseWhenThen);
 	REGISTER_TRANSFORM(TransformCaseElse);
 
+	REGISTER_TRANSFORM(TransformSpecialFunctionExpression);
+	REGISTER_TRANSFORM(TransformCoalesceExpression);
+	REGISTER_TRANSFORM(TransformUnpackExpression);
+	REGISTER_TRANSFORM(TransformColumnsExpression);
+
+
 	REGISTER_TRANSFORM(TransformPrefixExpression);
 	REGISTER_TRANSFORM(TransformFunctionExpression);
 	REGISTER_TRANSFORM(TransformFunctionIdentifier);
