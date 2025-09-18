@@ -605,4 +605,24 @@ unique_ptr<ParsedExpression> PEGTransformerFactory::TransformColumnsExpression(P
 	return result;
 }
 
+unique_ptr<ParsedExpression> PEGTransformerFactory::TransformExtractExpression(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	throw NotImplementedException("Extract not implemented");
+}
+
+unique_ptr<ParsedExpression> PEGTransformerFactory::TransformLambdaExpression(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+
+	auto col_id_list = ExtractParseResultsFromList(list_pr.Child<ListParseResult>(1));
+	vector<string> parameters;
+	for (auto colid : col_id_list) {
+		parameters.push_back(transformer.Transform<string>(colid));
+	}
+	auto rhs_expr = transformer.Transform<unique_ptr<ParsedExpression>>(list_pr.Child<ListParseResult>(3));
+	auto result = make_uniq<LambdaExpression>(parameters, std::move(rhs_expr));
+	return result;
+}
+
+
+
 } // namespace duckdb

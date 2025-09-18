@@ -327,6 +327,8 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	REGISTER_TRANSFORM(TransformCoalesceExpression);
 	REGISTER_TRANSFORM(TransformUnpackExpression);
 	REGISTER_TRANSFORM(TransformColumnsExpression);
+	REGISTER_TRANSFORM(TransformExtractExpression);
+	REGISTER_TRANSFORM(TransformLambdaExpression);
 
 
 	REGISTER_TRANSFORM(TransformPrefixExpression);

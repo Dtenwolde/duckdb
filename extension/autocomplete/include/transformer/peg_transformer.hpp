@@ -468,6 +468,8 @@ private:
 	static unique_ptr<ParsedExpression> TransformCoalesceExpression(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static unique_ptr<ParsedExpression> TransformUnpackExpression(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static unique_ptr<ParsedExpression> TransformColumnsExpression(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<ParsedExpression> TransformExtractExpression(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<ParsedExpression> TransformLambdaExpression(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 
 
 	static QualifiedName TransformFunctionIdentifier(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);

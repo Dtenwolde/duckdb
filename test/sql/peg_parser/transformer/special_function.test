@@ -9,3 +9,6 @@ call check_peg_transformer($$FROM read_avro('test/bigdata.avro') SELECT SUM(colu
 
 statement ok
 call check_peg_transformer($$SELECT min(COLUMNS(*)), count(COLUMNS(*)) FROM numbers;$$);
+
+statement ok
+call check_peg_transformer($$SELECT list_filter([1, 3, 1, 5], lambda x, i: x > i);$$);
