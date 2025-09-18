@@ -5,6 +5,9 @@
 require autocomplete
 
 statement ok
+call check_peg_transformer($$SELECT COUNT(DISTINCT s) FROM test;$$);
+
+statement ok
 call check_peg_transformer($$SELECT FIRST(i ORDER BY id), FIRST(i) FILTER (id=4) FROM tbl$$);
 
 statement ok

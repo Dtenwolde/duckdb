@@ -469,6 +469,7 @@ private:
 	static CaseCheck TransformCaseWhenThen(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static unique_ptr<ParsedExpression> TransformCaseElse(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static unique_ptr<ParsedExpression> TransformFilterClause(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static bool TransformDistinctOrAll(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 
 
 	static unique_ptr<ParsedExpression> TransformSpecialFunctionExpression(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);

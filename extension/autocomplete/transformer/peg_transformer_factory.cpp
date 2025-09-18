@@ -358,6 +358,7 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	REGISTER_TRANSFORM(TransformStructExpression);
 	REGISTER_TRANSFORM(TransformStructField);
 	REGISTER_TRANSFORM(TransformFilterClause);
+	REGISTER_TRANSFORM(TransformDistinctOrAll);
 
 
 	REGISTER_TRANSFORM(TransformOrderByClause);

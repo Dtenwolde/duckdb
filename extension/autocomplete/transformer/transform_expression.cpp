@@ -319,11 +319,8 @@ unique_ptr<ParsedExpression> PEGTransformerFactory::TransformFunctionExpression(
 	auto &list_pr = parse_result->Cast<ListParseResult>();
 	auto qualified_function = transformer.Transform<QualifiedName>(list_pr.Child<ListParseResult>(0));
 	auto extract_parens = ExtractResultFromParens(list_pr.Child<ListParseResult>(1))->Cast<ListParseResult>();
-	auto distinct_or_all_opt = extract_parens.Child<OptionalParseResult>(0);
-	if (distinct_or_all_opt.HasResult()) {
-		// TODO(Dtenwolde)
-		throw NotImplementedException("Distinct or All has not yet been implemented");
-	}
+	bool distinct = false;
+	transformer.TransformOptional<bool>(extract_parens, 0, distinct);
 	auto function_arg_opt = extract_parens.Child<OptionalParseResult>(1);
 	vector<unique_ptr<ParsedExpression>> function_children;
 	if (function_arg_opt.HasResult()) {
@@ -370,6 +367,7 @@ unique_ptr<ParsedExpression> PEGTransformerFactory::TransformFunctionExpression(
 		qualified_function.name,
 		std::move(function_children));
 
+	result->distinct = distinct;
 	if (!order_by.empty()) {
 		auto order_by_modifier = make_uniq<OrderModifier>();
 		order_by_modifier->orders = std::move(order_by);
@@ -385,6 +383,12 @@ unique_ptr<ParsedExpression> PEGTransformerFactory::TransformFilterClause(PEGTra
 	auto &list_pr = parse_result->Cast<ListParseResult>();
 	auto nested_list = ExtractResultFromParens(list_pr.Child<ListParseResult>(1))->Cast<ListParseResult>();
 	return transformer.Transform<unique_ptr<ParsedExpression>>(nested_list.Child<ListParseResult>(1));
+}
+
+bool PEGTransformerFactory::TransformDistinctOrAll(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	auto choice_pr = list_pr.Child<ChoiceParseResult>(0).result;
+	return StringUtil::CIEquals(choice_pr->Cast<KeywordParseResult>().keyword, "distinct");
 }
 
 unique_ptr<ParsedExpression> PEGTransformerFactory::TransformCaseExpression(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
