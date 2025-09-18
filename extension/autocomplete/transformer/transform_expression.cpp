@@ -227,19 +227,11 @@ bool PEGTransformerFactory::TransformCastOrTryCast(PEGTransformer &transformer, 
 unique_ptr<ParsedExpression> PEGTransformerFactory::TransformListExpression(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
 	auto &list_pr = parse_result->Cast<ListParseResult>();
 	bool is_array = list_pr.Child<OptionalParseResult>(0).HasResult();
-	auto bounded_list_or_select_pr = list_pr.Child<ListParseResult>(1);
-	auto choice = bounded_list_or_select_pr.Child<ChoiceParseResult>(0).result;
-	if (choice->name == "BoundedListExpression") {
-		auto list_expr = transformer.Transform<vector<unique_ptr<ParsedExpression>>>(choice);
-		if (!is_array) {
-			return make_uniq<FunctionExpression>(INVALID_CATALOG, "main", "list_value", std::move(list_expr));
-		} else {
-			throw NotImplementedException("Array is not yet supported for list expression");
-		}
-	} else if (choice->name == "SelectStatement") {
-		throw NotImplementedException("Select Statement inside a list expression is not yet supported");
+	auto list_expr = transformer.Transform<vector<unique_ptr<ParsedExpression>>>(list_pr.Child<ListParseResult>(1));
+	if (!is_array) {
+		return make_uniq<FunctionExpression>(INVALID_CATALOG, "main", "list_value", std::move(list_expr));
 	} else {
-		throw ParserException("Unknown type encountered for ListExpression");
+		throw NotImplementedException("Array is not yet supported for list expression");
 	}
 }
 
@@ -346,10 +338,8 @@ unique_ptr<ParsedExpression> PEGTransformerFactory::TransformFunctionExpression(
 		function_children.clear();
 	}
 
-	auto order_by_opt = extract_parens.Child<OptionalParseResult>(2);
-	if (order_by_opt.HasResult()) {
-		throw NotImplementedException("Order by has not yet been implemented");
-	}
+	vector<OrderByNode> order_by;
+	transformer.TransformOptional<vector<OrderByNode>>(list_pr, 2, order_by);
 	auto ignore_nulls_opt = extract_parens.Child<OptionalParseResult>(3);
 	if (ignore_nulls_opt.HasResult()) {
 		throw NotImplementedException("Ignore nulls has not yet been implemented");
@@ -358,10 +348,8 @@ unique_ptr<ParsedExpression> PEGTransformerFactory::TransformFunctionExpression(
 	if (within_group_opt.HasResult()) {
 		throw NotImplementedException("Within group has not yet been implemented");
 	}
-	auto filter_opt = list_pr.Child<OptionalParseResult>(3);
-	if (filter_opt.HasResult()) {
-		throw NotImplementedException("Filter has not yet been implemented");
-	}
+	unique_ptr<ParsedExpression> filter_expr;
+	transformer.TransformOptional<unique_ptr<ParsedExpression>>(list_pr, 3, filter_expr);
 	auto export_opt = list_pr.Child<OptionalParseResult>(4);
 	if (export_opt.HasResult()) {
 		throw NotImplementedException("Export has not yet been implemented");
@@ -382,7 +370,21 @@ unique_ptr<ParsedExpression> PEGTransformerFactory::TransformFunctionExpression(
 		qualified_function.name,
 		std::move(function_children));
 
+	if (!order_by.empty()) {
+		auto order_by_modifier = make_uniq<OrderModifier>();
+		order_by_modifier->orders = std::move(order_by);
+		result->order_bys = std::move(order_by_modifier);
+	}
+	if (filter_expr) {
+		result->filter = std::move(filter_expr);
+	}
 	return result;
+}
+
+unique_ptr<ParsedExpression> PEGTransformerFactory::TransformFilterClause(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	auto nested_list = ExtractResultFromParens(list_pr.Child<ListParseResult>(1))->Cast<ListParseResult>();
+	return transformer.Transform<unique_ptr<ParsedExpression>>(nested_list.Child<ListParseResult>(1));
 }
 
 unique_ptr<ParsedExpression> PEGTransformerFactory::TransformCaseExpression(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {

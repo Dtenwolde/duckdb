@@ -57,7 +57,11 @@ unordered_map<string, Value> PEGTransformerFactory::TransformAttachOptions(PEGTr
 	auto generic_options = transformer.Transform<unordered_map<string, vector<Value>>>(generic_copy_option_list);
 	unordered_map<string, Value> option_result;
 	for (auto &option : generic_options) {
-		option_result[option.first] = option.second[0];
+		if (option.second.empty()) {
+			option_result[option.first] = Value(true);
+		} else {
+			option_result[option.first] = option.second[0];
+		}
 	}
 	return option_result;
 }

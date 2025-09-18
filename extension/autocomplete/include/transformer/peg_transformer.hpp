@@ -468,6 +468,8 @@ private:
 	static unique_ptr<ParsedExpression> TransformCaseExpression(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static CaseCheck TransformCaseWhenThen(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static unique_ptr<ParsedExpression> TransformCaseElse(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<ParsedExpression> TransformFilterClause(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+
 
 	static unique_ptr<ParsedExpression> TransformSpecialFunctionExpression(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static unique_ptr<ParsedExpression> TransformCoalesceExpression(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
@@ -569,6 +571,8 @@ private:
 	static unique_ptr<DropStatement> TransformDropSequence(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static unique_ptr<DropStatement> TransformDropCollation(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static unique_ptr<DropStatement> TransformDropType(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static bool TransformDropBehavior(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+
 
 	static unique_ptr<SQLStatement> TransformAlterStatement(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static unique_ptr<AlterInfo> TransformAlterOptions(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);

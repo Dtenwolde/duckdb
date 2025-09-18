@@ -132,7 +132,7 @@ QualifiedName PEGTransformerFactory::TransformQualifiedIndexName(PEGTransformer 
 	result.schema = INVALID_SCHEMA;
 	transformer.TransformOptional<string>(list_pr, 0, result.catalog);
 	transformer.TransformOptional<string>(list_pr, 1, result.schema);
-	result.name = list_pr.Child<IdentifierParseResult>(2).identifier;
+	result.name = transformer.Transform<string>(list_pr.Child<ListParseResult>(2));
 	return result;
 }
 
@@ -192,6 +192,13 @@ unique_ptr<DropStatement> PEGTransformerFactory::TransformDropType(PEGTransforme
 	result->info = std::move(info);
 	return result;
 }
+
+bool PEGTransformerFactory::TransformDropBehavior(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	auto choice_pr = list_pr.Child<ChoiceParseResult>(0).result;
+	return StringUtil::CIEquals(choice_pr->Cast<KeywordParseResult>().keyword, "cascade");
+}
+
 
 
 }

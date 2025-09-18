@@ -1,0 +1,11 @@
+# name: test/sql/peg_parser/transformer/prepare.test
+# description:
+# group: [transformer]
+
+require autocomplete
+
+statement ok
+call check_peg_transformer($$DROP SCHEMA IF EXISTS test_schema CASCADE$$);
+
+statement ok
+call check_peg_transformer($$DROP INDEX s.i_index;$$);

@@ -182,19 +182,7 @@ unique_ptr<MaterializedQueryResult> Command::ExecuteQuery(ExecuteContext &contex
 		return unique_ptr_cast<QueryResult, MaterializedQueryResult>(std::move(result));
 	}
 #else
-	auto peg_parser_check = connection->Query("CALL check_peg_parser($TEST_PEG_PARSER$" + context.sql_query + "$TEST_PEG_PARSER$);");
-	auto main_parse = connection->Query(context.sql_query);
-	if (peg_parser_check->HasError() && main_parse->HasError()) {
-		// Actually, maybe it's fine, syntax errors or so are still OK!
-		if (main_parse->GetErrorType() == ExceptionType::PARSER) {
-			Printer::PrintF("Both parsers failed with ParserException: %s", context.sql_query);
-		} else {
-			FAIL(peg_parser_check->GetError());
-		}
-	} else if (peg_parser_check->HasError() && !main_parse->HasError()) {
-		FAIL(peg_parser_check->GetError());
-	}
-	return main_parse;
+	return connection->Query(context.sql_query);
 #endif
 }
 

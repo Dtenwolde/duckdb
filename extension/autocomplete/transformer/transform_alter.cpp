@@ -45,10 +45,9 @@ unique_ptr<AlterInfo> PEGTransformerFactory::TransformAddColumn(PEGTransformer &
 
 unique_ptr<AlterInfo> PEGTransformerFactory::TransformDropColumn(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
 	auto &list_pr = parse_result->Cast<ListParseResult>();
-	string drop_behavior;
-	transformer.TransformOptional<string>(list_pr, 4, drop_behavior);
+	bool cascade = false;
+	transformer.TransformOptional<bool>(list_pr, 4, cascade);
 	bool if_exists = list_pr.Child<OptionalParseResult>(1).HasResult();
-	bool cascade = StringUtil::CIEquals(drop_behavior, "cascade");
 	auto nested_column = transformer.Transform<vector<string>>(list_pr.Child<ListParseResult>(3));
 	if (nested_column.size() == 1) {
 		auto result = make_uniq<RemoveColumnInfo>(AlterEntryData(), nested_column[0], if_exists, cascade);

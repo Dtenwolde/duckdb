@@ -33,7 +33,7 @@ unique_ptr<SQLStatement> PEGTransformerFactory::Transform(vector<MatcherToken> &
 	auto end_time = std::chrono::high_resolution_clock::now();
 	// --- TIMING END ---
 	auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time);
-	if (match_result->type == ParseResultType::ERROR) {
+	if (match_result && match_result->type == ParseResultType::ERROR) {
 		auto error_match = match_result->Cast<ErrorParseResult>();
 		throw ParserException(error_match.error_message);
 	}
@@ -54,7 +54,7 @@ unique_ptr<SQLStatement> PEGTransformerFactory::Transform(vector<MatcherToken> &
 		                      state.token_index, tokens[state.token_index].text, token_list);
 	}
 
-	Printer::Print(match_result->ToString());
+	// Printer::Print(match_result->ToString());
 	auto t_start_time = std::chrono::high_resolution_clock::now();
 	match_result->name = "Statement";
 	ArenaAllocator transformer_allocator(Allocator::DefaultAllocator());
@@ -357,6 +357,7 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	REGISTER_TRANSFORM(TransformBoundedListExpression);
 	REGISTER_TRANSFORM(TransformStructExpression);
 	REGISTER_TRANSFORM(TransformStructField);
+	REGISTER_TRANSFORM(TransformFilterClause);
 
 
 	REGISTER_TRANSFORM(TransformOrderByClause);
@@ -442,6 +443,7 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	REGISTER_TRANSFORM(TransformDropSequence);
 	REGISTER_TRANSFORM(TransformDropCollation);
 	REGISTER_TRANSFORM(TransformDropType);
+	REGISTER_TRANSFORM(TransformDropBehavior);
 
 	REGISTER_TRANSFORM(TransformAlterStatement);
 	REGISTER_TRANSFORM(TransformAlterOptions);
