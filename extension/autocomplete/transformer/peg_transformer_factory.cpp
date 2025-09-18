@@ -54,7 +54,7 @@ unique_ptr<SQLStatement> PEGTransformerFactory::Transform(vector<MatcherToken> &
 		                      state.token_index, tokens[state.token_index].text, token_list);
 	}
 
-	// Printer::Print(match_result->ToString());
+	Printer::Print(match_result->ToString());
 	auto t_start_time = std::chrono::high_resolution_clock::now();
 	match_result->name = "Statement";
 	ArenaAllocator transformer_allocator(Allocator::DefaultAllocator());
@@ -329,6 +329,9 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	REGISTER_TRANSFORM(TransformColumnsExpression);
 	REGISTER_TRANSFORM(TransformExtractExpression);
 	REGISTER_TRANSFORM(TransformLambdaExpression);
+	REGISTER_TRANSFORM(TransformNullIfExpression);
+	REGISTER_TRANSFORM(TransformRowExpression);
+	REGISTER_TRANSFORM(TransformPositionExpression);
 
 
 	REGISTER_TRANSFORM(TransformPrefixExpression);

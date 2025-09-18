@@ -692,7 +692,8 @@ ColumnsExpression <- '*'? 'COLUMNS'i Parens(Expression)
 ExtractExpression <- 'EXTRACT'i Parens(Expression 'FROM'i Expression)
 LambdaExpression <- 'LAMBDA'i List(ColIdOrString) ':' Expression
 NullIfExpression <- 'NULLIF'i Parens(Expression ',' Expression)
-PositionExpression <- 'POSITION'i Parens(Expression)
+PositionExpression <- 'POSITION'i Parens(PositionValues)
+PositionValues <- SingleExpression 'IN'i SingleExpression
 RowExpression <- 'ROW'i Parens(List(Expression))
 SubstringExpression <- 'SUBSTRING'i Parens(SubstringParameters / List(Expression))
 SubstringParameters <- Expression 'FROM'i NumberLiteral 'FOR'i NumberLiteral
