@@ -317,6 +317,11 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	REGISTER_TRANSFORM(TransformCastExpression);
 	REGISTER_TRANSFORM(TransformCastOrTryCast);
 	REGISTER_TRANSFORM(TransformStarExpression);
+	REGISTER_TRANSFORM(TransformExcludeList);
+	REGISTER_TRANSFORM(TransformExcludeNameList);
+	REGISTER_TRANSFORM(TransformSingleExcludeName);
+	REGISTER_TRANSFORM(TransformExcludeName);
+
 	REGISTER_TRANSFORM(TransformSubqueryExpression);
 	REGISTER_TRANSFORM(TransformTypeLiteral);
 	REGISTER_TRANSFORM(TransformCaseExpression);

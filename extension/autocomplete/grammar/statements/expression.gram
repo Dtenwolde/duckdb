@@ -24,7 +24,9 @@ CastExpression <- CastOrTryCast Parens(Expression 'AS'i Type)
 CastOrTryCast <- 'CAST'i / 'TRY_CAST'i
 
 StarExpression <- (ColId '.')* '*'i ExcludeList? ReplaceList? RenameList?
-ExcludeList <- 'EXCLUDE'i (Parens(List(ExcludeName)) / ExcludeName)
+ExcludeList <- 'EXCLUDE'i (ExcludeNameList / SingleExcludeName)
+ExcludeNameList <- Parens(List(ExcludeName))
+SingleExcludeName <- ExcludeName
 ExcludeName <- DottedIdentifier / ColIdOrString
 ReplaceList <- 'REPLACE'i (Parens(List(ReplaceEntry)) / ReplaceEntry)
 ReplaceEntry <- Expression 'AS'i ColumnReference
@@ -59,7 +61,7 @@ NotPrefixOperator <- 'NOT'i
 MinusPrefixOperator <- '-'i
 PlusPrefixOperator <- '+'i
 TildePrefixOperator <- '~'i
-ListExpression <- 'ARRAY'i? (BoundedListExpression / SelectStatement)
+ListExpression <- 'ARRAY'i? BoundedListExpression
 BoundedListExpression <- '[' List(Expression)? ']'
 StructExpression <- '{' List(StructField)? '}'
 StructField <- ColIdOrString ':'i Expression
@@ -153,8 +155,7 @@ ColumnsExpression <- '*'? 'COLUMNS'i Parens(Expression)
 ExtractExpression <- 'EXTRACT'i Parens(Expression 'FROM'i Expression)
 LambdaExpression <- 'LAMBDA'i List(ColIdOrString) ':' Expression
 NullIfExpression <- 'NULLIF'i Parens(Expression ',' Expression)
-PositionExpression <- 'POSITION'i Parens(PositionValues)
-PositionValues <- SingleExpression 'IN'i SingleExpression
+PositionExpression <- 'POSITION'i Parens(SingleExpression 'IN'i SingleExpression)
 RowExpression <- 'ROW'i Parens(List(Expression))
 SubstringExpression <- 'SUBSTRING'i Parens(SubstringParameters / List(Expression))
 SubstringParameters <- Expression 'FROM'i NumberLiteral 'FOR'i NumberLiteral

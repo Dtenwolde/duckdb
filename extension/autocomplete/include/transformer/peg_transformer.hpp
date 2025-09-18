@@ -451,6 +451,11 @@ private:
 	static unique_ptr<ParsedExpression> TransformPrefixExpression(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static string TransformPrefixOperator(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static unique_ptr<ParsedExpression> TransformStarExpression(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static qualified_column_set_t TransformExcludeList(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static qualified_column_set_t TransformExcludeNameList(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static qualified_column_set_t TransformSingleExcludeName(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static QualifiedColumnName TransformExcludeName(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+
 	static unique_ptr<ParsedExpression> TransformLiteralExpression(PEGTransformer &transformer,
 	                                                               optional_ptr<ParseResult> parse_result);
 	static unique_ptr<ParsedExpression> TransformCastExpression(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);

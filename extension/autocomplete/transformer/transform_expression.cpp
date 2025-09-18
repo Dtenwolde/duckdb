@@ -552,10 +552,7 @@ unique_ptr<ParsedExpression> PEGTransformerFactory::TransformStarExpression(PEGT
 	if (repeat_colid_opt.HasResult()) {
 		auto repeat_colid = repeat_colid_opt.optional_result->Cast<RepeatParseResult>();
 	}
-	auto exclude_list_opt = list_pr.Child<OptionalParseResult>(2);
-	if (exclude_list_opt.HasResult()) {
-		result->exclude_list = transformer.Transform<qualified_column_set_t>(exclude_list_opt.optional_result);
-	}
+	transformer.TransformOptional<qualified_column_set_t>(list_pr, 2, result->exclude_list);
 	auto replace_list_opt = list_pr.Child<OptionalParseResult>(3);
 	if (replace_list_opt.HasResult()) {
 		result->replace_list = transformer.Transform<case_insensitive_map_t<unique_ptr<ParsedExpression>>>(replace_list_opt.optional_result);
@@ -565,6 +562,50 @@ unique_ptr<ParsedExpression> PEGTransformerFactory::TransformStarExpression(PEGT
 		result->rename_list = transformer.Transform<qualified_column_map_t<string>>(rename_list_opt.optional_result);
 	}
 	return result;
+}
+
+qualified_column_set_t PEGTransformerFactory::TransformExcludeList(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	auto nested_list = list_pr.Child<ListParseResult>(1);
+	return transformer.Transform<qualified_column_set_t>(nested_list.Child<ChoiceParseResult>(0).result);
+}
+
+qualified_column_set_t PEGTransformerFactory::TransformExcludeNameList(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	auto extract_parens = ExtractResultFromParens(list_pr.Child<ListParseResult>(0));
+	auto exclude_name_list = ExtractParseResultsFromList(extract_parens);
+	qualified_column_set_t result;
+	for (auto exclude_name : exclude_name_list) {
+		result.insert(transformer.Transform<QualifiedColumnName>(exclude_name));
+	}
+	return result;
+}
+
+qualified_column_set_t PEGTransformerFactory::TransformSingleExcludeName(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	qualified_column_set_t result;
+	result.insert(transformer.Transform<QualifiedColumnName>(list_pr.Child<ListParseResult>(0)));
+	return result;
+}
+
+QualifiedColumnName PEGTransformerFactory::TransformExcludeName(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	auto choice_pr = list_pr.Child<ChoiceParseResult>(0).result;
+	vector<string> result;
+	if (choice_pr->name == "DottedIdentifier") {
+		result = transformer.Transform<vector<string>>(choice_pr);
+
+	} else if (choice_pr->name == "ColIdOrString") {
+		result.push_back(transformer.Transform<string>(choice_pr));
+	}
+	if (result.size() == 1) {
+		return QualifiedColumnName(result[0]);
+	} else if (result.size() == 2) {
+		return QualifiedColumnName(result[0], result[1]);
+	} else {
+		// TODO(Dtenwolde) Work on this some more.
+		throw ParserException("Unexpected amount for ExcludeName");
+	}
 }
 
 unique_ptr<ParsedExpression> PEGTransformerFactory::TransformSpecialFunctionExpression(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
