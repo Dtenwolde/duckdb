@@ -577,7 +577,8 @@ CaseWhenThen <- 'WHEN'i Expression 'THEN'i Expression
 CaseElse <- 'ELSE'i Expression
 TypeLiteral <- ColId StringLiteral
 IntervalLiteral <- 'INTERVAL'i IntervalParameter IntervalUnit?
-IntervalParameter <- StringLiteral / NumberLiteral / Parens(Expression)
+IntervalParameter <- StringLiteral / NumberLiteral / ParensExpression
+ParensExpression <- Parens(Expression)
 IntervalUnit <- ColId
 FrameClause <- Framing FrameExtent WindowExcludeClause?
 Framing <- 'ROWS'i / 'RANGE'i / 'GROUPS'i
@@ -1397,7 +1398,8 @@ MacroOrFunction <- 'MACRO'i / 'FUNCTION'i
 MacroDefinition <- Parens(MacroParameters?) 'AS'i (TableMacroDefinition / ScalarMacroDefinition)
 
 MacroParameters <- List(MacroParameter)
-MacroParameter <- NamedParameter / TypeFuncName
+MacroParameter <- NamedParameter / SimpleParameter
+SimpleParameter <- TypeFuncName
 
 ScalarMacroDefinition <- Expression
 TableMacroDefinition <- 'TABLE'i SelectStatement

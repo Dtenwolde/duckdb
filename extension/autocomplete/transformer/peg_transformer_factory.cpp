@@ -202,6 +202,15 @@ PEGTransformerFactory::PEGTransformerFactory() {
 
 	REGISTER_TRANSFORM(TransformCreateSecretStmt);
 	REGISTER_TRANSFORM(TransformSecretStorageSpecifier);
+	REGISTER_TRANSFORM(TransformSecretName);
+
+	REGISTER_TRANSFORM(TransformCreateMacroStmt);
+	REGISTER_TRANSFORM(TransformMacroDefinition);
+	REGISTER_TRANSFORM(TransformTableMacroDefinition);
+	REGISTER_TRANSFORM(TransformScalarMacroDefinition);
+	REGISTER_TRANSFORM(TransformMacroParameters);
+	REGISTER_TRANSFORM(TransformSimpleParameter);
+
 
 	REGISTER_TRANSFORM(TransformCreateIndexStmt);
 	REGISTER_TRANSFORM(TransformIndexType);
@@ -290,6 +299,9 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	REGISTER_TRANSFORM(TransformTableFunctionArguments);
 	REGISTER_TRANSFORM(TransformFunctionArgument);
 	REGISTER_TRANSFORM(TransformNamedParameter);
+	REGISTER_TRANSFORM(TransformTypeFuncName);
+	REGISTER_TRANSFORM(TransformMacroParameter);
+
 
 	REGISTER_TRANSFORM(TransformTruncateStatement);
 	REGISTER_TRANSFORM(TransformBaseTableName);
@@ -321,6 +333,8 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	REGISTER_TRANSFORM(TransformExcludeNameList);
 	REGISTER_TRANSFORM(TransformSingleExcludeName);
 	REGISTER_TRANSFORM(TransformExcludeName);
+	REGISTER_TRANSFORM(TransformIntervalLiteral);
+
 
 	REGISTER_TRANSFORM(TransformSubqueryExpression);
 	REGISTER_TRANSFORM(TransformTypeLiteral);

@@ -521,7 +521,11 @@ QualifiedName PEGTransformerFactory::TransformCatalogReservedSchemaFunctionName(
 	} else {
 		result.schema = INVALID_SCHEMA;
 	}
-	result.name = transformer.Transform<string>(list_pr.Child<ListParseResult>(2));
+	if (list_pr.children[2]->type == ParseResultType::IDENTIFIER) {
+		result.name = list_pr.Child<IdentifierParseResult>(2).identifier;;
+	} else {
+		result.name = transformer.Transform<string>(list_pr.Child<ListParseResult>(2));
+	}
 	return result;
 }
 
@@ -701,6 +705,16 @@ unique_ptr<ParsedExpression> PEGTransformerFactory::TransformPositionExpression(
 	results.push_back(transformer.Transform<unique_ptr<ParsedExpression>>(position_values.Child<ListParseResult>(2)));
 	results.push_back(transformer.Transform<unique_ptr<ParsedExpression>>(position_values.Child<ListParseResult>(0)));
 	return make_uniq<FunctionExpression>("position", std::move(results));
+}
+
+unique_ptr<ParsedExpression> PEGTransformerFactory::TransformIntervalLiteral(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	//! Should become a functionExpression
+	// \f "to_minutes"
+	auto parameter = transformer.Transform<unique_ptr<ParsedExpression>>(list_pr.Child<ListParseResult>(1));
+	string interval_unit;
+	transformer.TransformOptional<string>(list_pr, 2, interval_unit);
+	return parameter;
 }
 
 } // namespace duckdb

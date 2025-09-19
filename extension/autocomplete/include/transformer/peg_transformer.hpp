@@ -16,6 +16,7 @@
 #include "ast/set_info.hpp"
 #include "ast/table_alias.hpp"
 #include "ast/update_set_element.hpp"
+#include "duckdb/function/macro_function.hpp"
 #include "duckdb/parser/expression/case_expression.hpp"
 #include "duckdb/parser/expression/function_expression.hpp"
 #include "duckdb/parser/expression/window_expression.hpp"
@@ -249,6 +250,16 @@ private:
 	static pair<string, unique_ptr<SequenceOption>> TransformSeqStartWith(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static pair<string, unique_ptr<SequenceOption>> TransformSeqOwnedBy(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 
+	static unique_ptr<CreateStatement> TransformCreateMacroStmt(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<MacroFunction> TransformMacroDefinition(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<MacroFunction> TransformTableMacroDefinition(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<MacroFunction> TransformScalarMacroDefinition(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static vector<unique_ptr<ParsedExpression>> TransformMacroParameters(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<ParsedExpression> TransformMacroParameter(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<ParsedExpression> TransformSimpleParameter(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static string TransformTypeFuncName(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+
+
 	static ColumnDefinition TransformColumnDefinition(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static LogicalType TransformTypeOrGenerated(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 
@@ -355,6 +366,8 @@ private:
 
 	static unique_ptr<CreateStatement> TransformCreateSecretStmt(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static string TransformSecretStorageSpecifier(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static string TransformSecretName(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+
 
 	static unique_ptr<CreateStatement> TransformCreateIndexStmt(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static string TransformIndexType(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
@@ -455,6 +468,8 @@ private:
 	static qualified_column_set_t TransformExcludeNameList(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static qualified_column_set_t TransformSingleExcludeName(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static QualifiedColumnName TransformExcludeName(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<ParsedExpression> TransformIntervalLiteral(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+
 
 	static unique_ptr<ParsedExpression> TransformLiteralExpression(PEGTransformer &transformer,
 	                                                               optional_ptr<ParseResult> parse_result);

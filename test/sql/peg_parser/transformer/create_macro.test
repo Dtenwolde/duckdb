@@ -1,0 +1,11 @@
+# name: test/sql/peg_parser/transformer/create.test
+# description:
+# group: [transformer]
+
+require autocomplete
+
+statement ok
+call check_peg_transformer($$CREATE MACRO foo(a) AS TABLE SELECT a$$);
+
+statement ok
+call check_peg_transformer($$create macro foo(a,b) as a+b, (a) as a; $$);

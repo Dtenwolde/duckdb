@@ -1,0 +1,8 @@
+# name: test/sql/peg_parser/transformer/prepare.test
+# description:
+# group: [transformer]
+
+require autocomplete
+
+statement ok
+call check_peg_transformer($$SELECT t > (now()::TIMESTAMP - INTERVAL 1 MINUTE) FROM '__TEST_DIR__/test_timestamptz.xlsx';$$);

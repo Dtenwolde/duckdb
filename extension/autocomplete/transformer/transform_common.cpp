@@ -42,6 +42,11 @@ string PEGTransformerFactory::TransformIdentifier(PEGTransformer &transformer, o
 	return identifier_pr.identifier;
 }
 
+string PEGTransformerFactory::TransformSecretName(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	return transformer.Transform<string>(list_pr.Child<ListParseResult>(0));
+}
+
 LogicalType PEGTransformerFactory::TransformType(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
 	auto &list_pr = parse_result->Cast<ListParseResult>();
 	auto &type_pr = list_pr.Child<ListParseResult>(0);
