@@ -22,8 +22,8 @@ unique_ptr<SQLStatement> PEGTransformerFactory::TransformInsertStatement(PEGTran
 	transformer.TransformOptional<vector<string>>(list_pr, 6, result->columns);
 	auto insert_values = transformer.Transform<InsertValues>(list_pr.Child<ListParseResult>(7));
 	result->default_values = insert_values.default_values;
-	if (insert_values.sql_statement) {
-		result->select_statement = unique_ptr_cast<SQLStatement, SelectStatement>(std::move(insert_values.sql_statement));
+	if (insert_values.select_statement) {
+		result->select_statement = std::move(insert_values.select_statement);
 	}
 	transformer.TransformOptional<unique_ptr<OnConflictInfo>>(list_pr, 8, result->on_conflict_info);
 	if (result->on_conflict_info) {
@@ -83,11 +83,11 @@ InsertValues PEGTransformerFactory::TransformInsertValues(PEGTransformer &transf
 	auto choice_pr = list_pr.Child<ChoiceParseResult>(0);
 	if (choice_pr.result->name == "DefaultValues") {
 		result.default_values = true;
-		result.sql_statement = nullptr;
+		result.select_statement = nullptr;
 		return result;
-	} else if (choice_pr.result->name == "SelectStatement") {
+	} else if (choice_pr.result->name == "SelectStatementInternal") {
 		result.default_values = false;
-		result.sql_statement = transformer.Transform<unique_ptr<SQLStatement>>(choice_pr.result);
+		result.select_statement = transformer.Transform<unique_ptr<SelectStatement>>(choice_pr.result);
 		return result;
 	} else {
 		throw InternalException("Unexpected choice in InsertValues statement.");

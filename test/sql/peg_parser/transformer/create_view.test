@@ -5,6 +5,9 @@
 require autocomplete
 
 statement ok
+call check_peg_transformer($$CREATE VIEW t1_v AS (SELECT * FROM t1 LIMIT 0);$$);
+
+statement ok
 call check_peg_transformer($$CREATE VIEW test.v AS SELECT * FROM test.t;$$);
 
 statement ok

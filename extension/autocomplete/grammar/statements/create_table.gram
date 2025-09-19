@@ -8,7 +8,7 @@ TemporaryPersistent <- 'TEMPORARY'i
 
 CreateTableStmt <- 'TABLE'i IfNotExists? QualifiedName (CreateTableAs / CreateColumnList) CommitAction?
 
-CreateTableAs <- IdentifierList? 'AS'i SelectStatement WithData?
+CreateTableAs <- IdentifierList? 'AS'i SelectStatementInternal WithData?
 WithData <- 'WITH'i 'NO'i? 'DATA'i
 IdentifierList <- Parens(List(Identifier))
 CreateColumnList <- Parens(CreateTableColumnList)

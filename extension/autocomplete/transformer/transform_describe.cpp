@@ -14,11 +14,7 @@ unique_ptr<QueryNode> PEGTransformerFactory::TransformShowSelect(PEGTransformer 
 	auto &list_pr = parse_result->Cast<ListParseResult>();
 	auto result = make_uniq<ShowRef>();
 	result->show_type = transformer.Transform<ShowType>(list_pr.Child<ListParseResult>(0));
-	auto sql_statement = transformer.Transform<unique_ptr<SQLStatement>>(list_pr.Child<ListParseResult>(1));
-	if (sql_statement->type != StatementType::SELECT_STATEMENT) {
-		throw ParserException("Subquery needs a SELECT statement");
-	}
-	auto select_statement = unique_ptr_cast<SQLStatement, SelectStatement>(std::move(sql_statement));
+	auto select_statement = transformer.Transform<unique_ptr<SelectStatement>>(list_pr.Child<ListParseResult>(1));
 	result->query =	std::move(select_statement->node);
 	auto select_node = make_uniq<SelectNode>();
 	select_node->select_list.push_back(make_uniq<StarExpression>());

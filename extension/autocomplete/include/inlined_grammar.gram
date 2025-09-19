@@ -710,11 +710,11 @@ CreateSecretStmt <- 'SECRET'i IfNotExists? SecretName? SecretStorageSpecifier? P
 
 SecretStorageSpecifier <- 'IN'i Identifier
 
-CreateViewStmt <- 'RECURSIVE'i? 'VIEW'i IfNotExists? QualifiedName InsertColumnList? 'AS'i SelectStatement
+CreateViewStmt <- 'RECURSIVE'i? 'VIEW'i IfNotExists? QualifiedName InsertColumnList? 'AS'i SelectStatementInternal
 
 DescribeStatement <- ShowSelect / ShowAllTables / ShowQualifiedName
 
-ShowSelect <- ShowOrDescribeOrSummarize SelectStatement
+ShowSelect <- ShowOrDescribeOrSummarize SelectStatementInternal
 ShowAllTables <- ShowOrDescribe 'ALL'i 'TABLES'
 ShowQualifiedName <- ShowOrDescribeOrSummarize (BaseTableName / StringLiteral)?
 
@@ -781,7 +781,7 @@ TemporaryPersistent <- 'TEMPORARY'i
 
 CreateTableStmt <- 'TABLE'i IfNotExists? QualifiedName (CreateTableAs / CreateColumnList) CommitAction?
 
-CreateTableAs <- IdentifierList? 'AS'i SelectStatement WithData?
+CreateTableAs <- IdentifierList? 'AS'i SelectStatementInternal WithData?
 WithData <- 'WITH'i 'NO'i? 'DATA'i
 IdentifierList <- Parens(List(Identifier))
 CreateColumnList <- Parens(CreateTableColumnList)
@@ -924,7 +924,7 @@ InsertAlias <- 'AS'i Identifier
 ColumnList <- List(ColId)
 InsertColumnList <- Parens(ColumnList)
 
-InsertValues <- SelectStatement / DefaultValues
+InsertValues <- SelectStatementInternal / DefaultValues
 DefaultValues <- 'DEFAULT'i 'VALUES'i
 
 OnConflictClause <- 'ON'i 'CONFLICT'i OnConflictTarget? OnConflictAction
@@ -942,13 +942,13 @@ OnConflictNothing <- 'DO'i 'NOTHING'i
 ReturningClause <- 'RETURNING'i TargetList
 
 CreateSchemaStmt <- 'SCHEMA'i IfNotExists? QualifiedName
-SelectStatement <- SelectOrParens RepeatSetopSelect* ResultModifiers?
-
-RepeatSetopSelect <- SetOpClause SelectStatement
+SelectStatement <- SelectStatementInternal
+SelectStatementInternal <- SelectOrParens RepeatSetopSelect* ResultModifiers?
+RepeatSetopSelect <- SetOpClause SelectStatementInternal
 SetopClause <- ('UNION'i / 'EXCEPT'i / 'INTERSECT'i) DistinctOrAll? ByName?
 ByName <- 'BY'i 'NAME'i
 SelectOrParens <- BaseSelect / SelectParens
-SelectParens <- Parens(SelectStatement)
+SelectParens <- Parens(SelectStatementInternal)
 
 BaseSelect <- WithClause? SelectStatementType ResultModifiers?
 SelectStatementType <- OptionalParensSimpleSelect / ValuesClause / DescribeStatement / TableStatement / PivotStatement / UnpivotStatement
@@ -1055,7 +1055,7 @@ CubeOrRollupClause <- CubeOrRollup Parens(List(Expression))
 CubeOrRollup <- 'CUBE'i / 'ROLLUP'i
 GroupingSetsClause <- 'GROUPING'i 'SETS'i Parens(GroupByList)
 
-SubqueryReference <- Parens(SelectStatement)
+SubqueryReference <- Parens(SelectStatementInternal)
 
 OrderByExpression <- Expression DescOrAsc? NullsFirstOrLast?
 DescOrAsc <- DescendingOrder / AscendingOrder
@@ -1106,7 +1106,7 @@ DeleteUsingClause <- 'USING'i List(TableRef)
 
 CreateTypeStmt <- 'TYPE'i IfNotExists? QualifiedName 'AS'i CreateType
 CreateType <- EnumSelectType / EnumStringLiteralList / Type
-EnumSelectType <- 'ENUM'i Parens(SelectStatement)
+EnumSelectType <- 'ENUM'i Parens(SelectStatementInternal)
 EnumStringLiteralList <- 'ENUM'i Parens(List(StringLiteral))
 
 SetStatement <- 'SET'i (StandardAssignment / SetTimeZone)
@@ -1139,7 +1139,7 @@ CopyStatement <- 'COPY'i (CopyTable / CopySelect / CopyFromDatabase)
 CopyTable <- BaseTableName InsertColumnList? FromOrTo CopyFileName CopyOptions?
 FromOrTo <- 'FROM'i / 'TO'i
 
-CopySelect <- Parens(SelectStatement) 'TO'i CopyFileName CopyOptions?
+CopySelect <- Parens(SelectStatementInternal) 'TO'i CopyFileName CopyOptions?
 
 CopyFileName <- StringLiteral / IdentifierColId / Identifier
 IdentifierColId <- Identifier '.' ColId
@@ -1403,7 +1403,7 @@ MacroParameter <- NamedParameter / SimpleParameter
 SimpleParameter <- TypeFuncName
 
 ScalarMacroDefinition <- Expression
-TableMacroDefinition <- 'TABLE'i SelectStatement
+TableMacroDefinition <- 'TABLE'i SelectStatementInternal
 
 CommentStatement <- 'COMMENT'i 'ON'i CommentOnType DottedIdentifier 'IS'i CommentValue
 

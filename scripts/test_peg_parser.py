@@ -264,7 +264,8 @@ if __name__ == "__main__":
     total_tests_run = len(files)
     error_messages = defaultdict(list)
     for _, statement, std_err_ in failed_test_list:
-        error_messages[std_err_].append(statement)
+        first_line_of_error = std_err_.splitlines()[0]
+        error_messages[first_line_of_error].append(statement)
     sorted_errors = sorted(list((k, len(v), v) for k,v in error_messages.items()), key=lambda t:t[1], reverse=True)[:10]
     if total_tests_run > 0:
         # --- This part remains the same: print detailed failures to console ---

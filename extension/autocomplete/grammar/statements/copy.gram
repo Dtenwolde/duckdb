@@ -3,7 +3,7 @@ CopyStatement <- 'COPY'i (CopyTable / CopySelect / CopyFromDatabase)
 CopyTable <- BaseTableName InsertColumnList? FromOrTo CopyFileName CopyOptions?
 FromOrTo <- 'FROM'i / 'TO'i
 
-CopySelect <- Parens(SelectStatement) 'TO'i CopyFileName CopyOptions?
+CopySelect <- Parens(SelectStatementInternal) 'TO'i CopyFileName CopyOptions?
 
 CopyFileName <- StringLiteral / IdentifierColId / Identifier
 IdentifierColId <- Identifier '.' ColId

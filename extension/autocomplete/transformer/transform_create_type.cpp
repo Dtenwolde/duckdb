@@ -23,12 +23,7 @@ unique_ptr<CreateTypeInfo> PEGTransformerFactory::TransformCreateType(PEGTransfo
 	auto &list_pr = parse_result->Cast<ListParseResult>();
 	auto choice_pr = list_pr.Child<ChoiceParseResult>(0);
 	if (choice_pr.result->name == "EnumSelectType") {
-		auto sql_statement = transformer.Transform<unique_ptr<SQLStatement>>(choice_pr.result);
-		if (sql_statement->type != StatementType::SELECT_STATEMENT) {
-			throw ParserException("Subquery needs a SELECT statement");
-		}
-		auto select_statement = unique_ptr_cast<SQLStatement, SelectStatement>(std::move(sql_statement));
-		result->query = std::move(select_statement);
+		result->query = transformer.Transform<unique_ptr<SelectStatement>>(choice_pr.result);
 		result->type = LogicalType::INVALID;
 	} else {
 		result->type = transformer.Transform<LogicalType>(choice_pr.result);

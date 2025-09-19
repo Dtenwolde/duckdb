@@ -42,8 +42,7 @@ unique_ptr<MacroFunction> PEGTransformerFactory::TransformMacroDefinition(PEGTra
 unique_ptr<MacroFunction> PEGTransformerFactory::TransformTableMacroDefinition(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
 	auto &list_pr = parse_result->Cast<ListParseResult>();
 	auto result = make_uniq<TableMacroFunction>();
-	auto sql_statement = transformer.Transform<unique_ptr<SQLStatement>>(list_pr.Child<ListParseResult>(1));
-	auto select_statement = unique_ptr_cast<SQLStatement, SelectStatement>(std::move(sql_statement));
+	auto select_statement = transformer.Transform<unique_ptr<SelectStatement>>(list_pr.Child<ListParseResult>(1));
 	result->query_node = std::move(select_statement->node);
 	return result;
 }

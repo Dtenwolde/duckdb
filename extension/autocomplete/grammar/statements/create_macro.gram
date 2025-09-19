@@ -9,4 +9,4 @@ MacroParameter <- NamedParameter / SimpleParameter
 SimpleParameter <- TypeFuncName
 
 ScalarMacroDefinition <- Expression
-TableMacroDefinition <- 'TABLE'i SelectStatement
+TableMacroDefinition <- 'TABLE'i SelectStatementInternal

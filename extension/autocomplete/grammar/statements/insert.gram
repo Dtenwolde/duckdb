@@ -11,7 +11,7 @@ InsertAlias <- 'AS'i Identifier
 ColumnList <- List(ColId)
 InsertColumnList <- Parens(ColumnList)
 
-InsertValues <- SelectStatement / DefaultValues
+InsertValues <- SelectStatementInternal / DefaultValues
 DefaultValues <- 'DEFAULT'i 'VALUES'i
 
 OnConflictClause <- 'ON'i 'CONFLICT'i OnConflictTarget? OnConflictAction

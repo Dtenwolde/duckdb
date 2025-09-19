@@ -11,7 +11,12 @@
 
 namespace duckdb {
 
-unique_ptr<SQLStatement> PEGTransformerFactory::TransformSelectStatement(PEGTransformer &transformer,
+unique_ptr<SQLStatement> PEGTransformerFactory::TransformSelectStatement(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	return transformer.Transform<unique_ptr<SelectStatement>>(list_pr.Child<ListParseResult>(0));
+}
+
+unique_ptr<SelectStatement> PEGTransformerFactory::TransformSelectStatementInternal(PEGTransformer &transformer,
 																		 optional_ptr<ParseResult> parse_result) {
 	auto &list_pr = parse_result->Cast<ListParseResult>();
 
@@ -236,11 +241,7 @@ unique_ptr<TableRef> PEGTransformerFactory::TransformTableSubquery(PEGTransforme
 unique_ptr<TableRef> PEGTransformerFactory::TransformSubqueryReference(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
 	auto &list_pr = parse_result->Cast<ListParseResult>();
 	auto extract_parens = ExtractResultFromParens(list_pr.Child<ListParseResult>(0));
-	auto sql_statement = transformer.Transform<unique_ptr<SQLStatement>>(extract_parens);
-	if (sql_statement->type != StatementType::SELECT_STATEMENT) {
-		throw ParserException("Subquery needs a SELECT statement");
-	}
-	auto select_statement = unique_ptr_cast<SQLStatement, SelectStatement>(std::move(sql_statement));
+	auto select_statement = transformer.Transform<unique_ptr<SelectStatement>>(extract_parens);
 	auto subquery_ref = make_uniq<SubqueryRef>(std::move(select_statement));
 	return subquery_ref;
 }

@@ -1,10 +1,10 @@
-SelectStatement <- SelectOrParens RepeatSetopSelect* ResultModifiers?
-
-RepeatSetopSelect <- SetOpClause SelectStatement
+SelectStatement <- SelectStatementInternal
+SelectStatementInternal <- SelectOrParens RepeatSetopSelect* ResultModifiers?
+RepeatSetopSelect <- SetOpClause SelectStatementInternal
 SetopClause <- ('UNION'i / 'EXCEPT'i / 'INTERSECT'i) DistinctOrAll? ByName?
 ByName <- 'BY'i 'NAME'i
 SelectOrParens <- BaseSelect / SelectParens
-SelectParens <- Parens(SelectStatement)
+SelectParens <- Parens(SelectStatementInternal)
 
 BaseSelect <- WithClause? SelectStatementType ResultModifiers?
 SelectStatementType <- OptionalParensSimpleSelect / ValuesClause / DescribeStatement / TableStatement / PivotStatement / UnpivotStatement
@@ -111,7 +111,7 @@ CubeOrRollupClause <- CubeOrRollup Parens(List(Expression))
 CubeOrRollup <- 'CUBE'i / 'ROLLUP'i
 GroupingSetsClause <- 'GROUPING'i 'SETS'i Parens(GroupByList)
 
-SubqueryReference <- Parens(SelectStatement)
+SubqueryReference <- Parens(SelectStatementInternal)
 
 OrderByExpression <- Expression DescOrAsc? NullsFirstOrLast?
 DescOrAsc <- DescendingOrder / AscendingOrder

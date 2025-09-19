@@ -94,6 +94,7 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	REGISTER_TRANSFORM(TransformCopyOptions);
 
 	REGISTER_TRANSFORM(TransformSelectStatement);
+	REGISTER_TRANSFORM(TransformSelectStatementInternal);
 	REGISTER_TRANSFORM(TransformSelectOrParens);
 	REGISTER_TRANSFORM(TransformSelectParens);
 	REGISTER_TRANSFORM(TransformBaseSelect);

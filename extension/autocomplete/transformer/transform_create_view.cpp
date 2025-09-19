@@ -22,11 +22,7 @@ unique_ptr<CreateStatement> PEGTransformerFactory::TransformCreateViewStmt(PEGTr
 	info->schema = qualified_name.schema;
 	info->view_name = qualified_name.name;
 	info->aliases = column_list;
-	auto sql_statement = transformer.Transform<unique_ptr<SQLStatement>>(list_pr.Child<ListParseResult>(6));
-	if (sql_statement->type != StatementType::SELECT_STATEMENT) {
-		throw ParserException("Expected a select statement");
-	}
-	info->query = unique_ptr_cast<SQLStatement, SelectStatement>(std::move(sql_statement));
+	info->query = transformer.Transform<unique_ptr<SelectStatement>>(list_pr.Child<ListParseResult>(6));
 	result->info = std::move(info);
 	return result;
 }

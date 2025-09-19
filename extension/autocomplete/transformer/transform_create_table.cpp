@@ -76,7 +76,7 @@ CreateTableAs PEGTransformerFactory::TransformCreateTableAs(PEGTransformer &tran
 	auto &list_pr = parse_result->Cast<ListParseResult>();
 	CreateTableAs result;
 	transformer.TransformOptional<ColumnList>(list_pr, 0, result.column_names);
-	result.select_statement = unique_ptr_cast<SQLStatement, SelectStatement>(transformer.Transform<unique_ptr<SQLStatement>>(list_pr.Child<ListParseResult>(2)));
+	result.select_statement = transformer.Transform<unique_ptr<SelectStatement>>(list_pr.Child<ListParseResult>(2));
 	transformer.TransformOptional<bool>(list_pr, 3, result.with_data);
 	return result;
 }
