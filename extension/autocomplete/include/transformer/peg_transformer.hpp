@@ -11,7 +11,6 @@
 #include "ast/insert_values.hpp"
 #include "ast/limit_percent_result.hpp"
 #include "ast/on_conflict_expression_target.hpp"
-#include "ast/persist_type.hpp"
 #include "ast/prepared_parameter.hpp"
 #include "ast/sequence_option.hpp"
 #include "ast/set_info.hpp"
@@ -239,7 +238,7 @@ private:
 	                                                optional_ptr<ParseResult> parse_result);
 	static ColumnElements TransformCreateTableColumnList(PEGTransformer &transformer,
 	                                                     optional_ptr<ParseResult> parse_result);
-	static PersistType TransformTemporary(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static SecretPersistType TransformTemporary(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 
 	static unique_ptr<CreateStatement> TransformCreateSchemaStmt(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static unique_ptr<CreateStatement> TransformCreateViewStmt(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
@@ -605,6 +604,8 @@ private:
 	static unique_ptr<DropStatement> TransformDropCollation(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static unique_ptr<DropStatement> TransformDropType(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static bool TransformDropBehavior(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<DropStatement> TransformDropSecret(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static string TransformDropSecretStorage(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 
 
 	static unique_ptr<SQLStatement> TransformAlterStatement(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);

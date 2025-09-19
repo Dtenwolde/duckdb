@@ -9,3 +9,12 @@ call check_peg_transformer($$DROP SCHEMA IF EXISTS test_schema CASCADE$$);
 
 statement ok
 call check_peg_transformer($$DROP INDEX s.i_index;$$);
+
+statement ok
+call check_peg_transformer($$DROP SECRET IF EXISTS s3_cred$$);
+
+statement ok
+call check_peg_transformer($$DROP SECRET s1 FROM bogus;$$);
+
+statement ok
+call check_peg_transformer($$DROP TEMPORARY SECRET s3_cred$$);

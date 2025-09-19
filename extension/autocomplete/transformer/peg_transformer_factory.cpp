@@ -466,6 +466,9 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	REGISTER_TRANSFORM(TransformDropCollation);
 	REGISTER_TRANSFORM(TransformDropType);
 	REGISTER_TRANSFORM(TransformDropBehavior);
+	REGISTER_TRANSFORM(TransformDropSecret);
+	REGISTER_TRANSFORM(TransformDropSecretStorage);
+
 
 	REGISTER_TRANSFORM(TransformAlterStatement);
 	REGISTER_TRANSFORM(TransformAlterOptions);
@@ -533,9 +536,9 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	RegisterEnum<bool>("WithRule", true);
 	RegisterEnum<bool>("WithoutRule", false);
 
-	RegisterEnum<PersistType>("TempPersistent", PersistType::TEMPORARY);
-	RegisterEnum<PersistType>("TemporaryPersistent", PersistType::TEMPORARY);
-	RegisterEnum<PersistType>("Persistent", PersistType::PERSISTENT);
+	RegisterEnum<SecretPersistType>("TempPersistent", SecretPersistType::TEMPORARY);
+	RegisterEnum<SecretPersistType>("TemporaryPersistent", SecretPersistType::TEMPORARY);
+	RegisterEnum<SecretPersistType>("Persistent", SecretPersistType::PERSISTENT);
 
 	RegisterEnum<CatalogType>("CommentTable", CatalogType::TABLE_ENTRY);
 	RegisterEnum<CatalogType>("CommentSequence", CatalogType::SEQUENCE_ENTRY);

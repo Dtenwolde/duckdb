@@ -4,7 +4,6 @@
 #include "duckdb/parser/constraint.hpp"
 #include "ast/column_element.hpp"
 #include "ast/create_table_as.hpp"
-#include "ast/persist_type.hpp"
 #include "duckdb/parser/constraints/check_constraint.hpp"
 #include "duckdb/parser/constraints/foreign_key_constraint.hpp"
 #include "duckdb/parser/constraints/unique_constraint.hpp"
@@ -21,25 +20,19 @@ unique_ptr<SQLStatement> PEGTransformerFactory::TransformCreateStatement(PEGTran
 	}
 	result->info->on_conflict = replace ? OnCreateConflict::REPLACE_ON_CONFLICT : OnCreateConflict::ERROR_ON_CONFLICT;
 	auto temporary_pr = list_pr.Child<OptionalParseResult>(2);
-	PersistType persistent_type = temporary_pr.HasResult() ?
-		transformer.Transform<PersistType>(temporary_pr.optional_result) : PersistType::DEFAULT;
+	auto persistent_type = SecretPersistType::DEFAULT;
+	transformer.TransformOptional<SecretPersistType>(list_pr, 2, persistent_type);
 	if (result->info->TYPE == ParseInfoType::CREATE_SECRET_INFO) {
 		auto &secret_info = result->info->Cast<CreateSecretInfo>();
-		if (persistent_type == PersistType::TEMPORARY) {
-			secret_info.persist_type = SecretPersistType::TEMPORARY;
-		} else if (persistent_type == PersistType::PERSISTENT) {
-			secret_info.persist_type = SecretPersistType::PERSISTENT;
-		} else {
-			secret_info.persist_type = SecretPersistType::DEFAULT;
-		}
+		secret_info.persist_type = persistent_type;
 	}
-	result->info->temporary = persistent_type == PersistType::TEMPORARY;
+	result->info->temporary = persistent_type == SecretPersistType::TEMPORARY;
 	return std::move(result);
 }
 
-PersistType PEGTransformerFactory::TransformTemporary(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+SecretPersistType PEGTransformerFactory::TransformTemporary(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
 	auto &list_pr = parse_result->Cast<ListParseResult>();
-	return transformer.TransformEnum<PersistType>(list_pr.Child<ChoiceParseResult>(0).result);
+	return transformer.TransformEnum<SecretPersistType>(list_pr.Child<ChoiceParseResult>(0).result);
 }
 
 unique_ptr<CreateStatement>

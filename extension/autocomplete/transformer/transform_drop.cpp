@@ -199,6 +199,27 @@ bool PEGTransformerFactory::TransformDropBehavior(PEGTransformer &transformer, o
 	return StringUtil::CIEquals(choice_pr->Cast<KeywordParseResult>().keyword, "cascade");
 }
 
+unique_ptr<DropStatement> PEGTransformerFactory::TransformDropSecret(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	auto result = make_uniq<DropStatement>();
+	auto info = make_uniq<DropInfo>();
+	info->type = CatalogType::SECRET_ENTRY;
+	auto extra_drop_info = make_uniq<ExtraDropSecretInfo>();
+	extra_drop_info->persist_mode = SecretPersistType::DEFAULT;
+	transformer.TransformOptional<SecretPersistType>(list_pr, 0, extra_drop_info->persist_mode);
 
+	bool if_exists = list_pr.Child<OptionalParseResult>(2).HasResult();
+	info->if_not_found = if_exists ? OnEntryNotFound::RETURN_NULL : OnEntryNotFound::THROW_EXCEPTION;
+	info->name = transformer.Transform<string>(list_pr.Child<ListParseResult>(3));
+	transformer.TransformOptional<string>(list_pr, 4, extra_drop_info->secret_storage);
+	info->extra_drop_info = std::move(extra_drop_info);
+	result->info = std::move(info);
+	return result;
+}
+
+string PEGTransformerFactory::TransformDropSecretStorage(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	return list_pr.Child<IdentifierParseResult>(1).identifier;
+}
 
 }
