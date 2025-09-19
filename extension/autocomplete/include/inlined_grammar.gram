@@ -608,7 +608,8 @@ StructField <- ColIdOrString ':'i Expression
 MapExpression <- 'MAP'i StructExpression
 GroupingExpression <- GroupingOrGroupingId Parens(List(Expression))
 GroupingOrGroupingId <- 'GROUPING'i / 'GROUPING_ID'i
-Parameter <- '?' / NumberedParameter / ColLabelParameter
+Parameter <- QuestionMarkParameter / NumberedParameter / ColLabelParameter
+QuestionMarkParameter <- '?'
 NumberedParameter <- '$' NumberLiteral
 ColLabelParameter <- '$' ColLabel
 PositionalExpression <- '#' NumberLiteral

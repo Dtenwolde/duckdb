@@ -1,3 +1,4 @@
+#include "ast/prepared_parameter.hpp"
 #include "duckdb/common/operator/cast_operators.hpp"
 #include "duckdb/parser/expression/columnref_expression.hpp"
 #include "duckdb/parser/expression/comparison_expression.hpp"
@@ -8,6 +9,8 @@
 #include "duckdb/parser/expression/window_expression.hpp"
 #include "duckdb/parser/expression/subquery_expression.hpp"
 #include "duckdb/parser/expression/case_expression.hpp"
+#include "duckdb/parser/expression/parameter_expression.hpp"
+#include "duckdb/parser/expression/default_expression.hpp"
 
 namespace duckdb {
 
@@ -716,5 +719,64 @@ unique_ptr<ParsedExpression> PEGTransformerFactory::TransformIntervalLiteral(PEG
 	transformer.TransformOptional<string>(list_pr, 2, interval_unit);
 	return parameter;
 }
+
+unique_ptr<ParsedExpression> PEGTransformerFactory::TransformParameter(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	auto prepared_parameter = transformer.Transform<PreparedParameter>(list_pr.Child<ChoiceParseResult>(0).result);
+	idx_t known_param_index = DConstants::INVALID_INDEX;
+
+	transformer.GetParam(prepared_parameter.identifier, known_param_index, prepared_parameter.type);
+	if (known_param_index == DConstants::INVALID_INDEX) {
+		if (prepared_parameter.number != 0) {
+			known_param_index = prepared_parameter.number;
+		} else {
+			known_param_index = transformer.prepared_statement_parameter_index + 1;
+			if (prepared_parameter.identifier.empty()) {
+				prepared_parameter.identifier = StringUtil::Format("%d", known_param_index);
+			}
+		}
+
+		if (!transformer.named_parameter_map.count(prepared_parameter.identifier)) {
+			transformer.SetParam(prepared_parameter.identifier, known_param_index, prepared_parameter.type);
+		}
+	}
+	auto result = make_uniq<ParameterExpression>();
+	result->identifier = prepared_parameter.identifier;
+	auto new_param_count = MaxValue<idx_t>(transformer.prepared_statement_parameter_index, known_param_index);
+	transformer.prepared_statement_parameter_index = new_param_count;
+	return std::move(result);
+}
+
+PreparedParameter PEGTransformerFactory::TransformQuestionMarkParameter(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	PreparedParameter parameter;
+	parameter.type = PreparedParamType::AUTO_INCREMENT;
+	parameter.identifier = "0";
+	parameter.number = 0;
+	return parameter;
+}
+
+PreparedParameter PEGTransformerFactory::TransformNumberedParameter(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	auto number = transformer.Transform<Value>(list_pr.Child<ListParseResult>(1));
+	PreparedParameter parameter;
+	parameter.type = PreparedParamType::POSITIONAL;
+	parameter.identifier = StringUtil::Format("%d", number.GetValue<int64_t>());
+	parameter.number = number.GetValue<int64_t>();
+	return parameter;
+}
+
+PreparedParameter PEGTransformerFactory::TransformColLabelParameter(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	PreparedParameter parameter;
+	parameter.type = PreparedParamType::NAMED;
+	parameter.identifier = transformer.Transform<string>(list_pr.Child<ListParseResult>(1));
+	parameter.number = 0;
+	return parameter;
+}
+
+unique_ptr<ParsedExpression> PEGTransformerFactory::TransformDefaultExpression(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	return make_uniq<DefaultExpression>();
+}
+
 
 } // namespace duckdb

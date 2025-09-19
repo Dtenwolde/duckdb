@@ -1,0 +1,14 @@
+# name: test/sql/peg_parser/transformer/prepare.test
+# description: 
+# group: [transformer]
+
+require autocomplete
+
+statement ok
+call check_peg_transformer($$PREPARE v1 AS SELECT m=? FROM m;$$);
+
+statement ok
+call check_peg_transformer($$PREPARE v1 AS SELECT m=$1 FROM m;$$);
+
+statement ok
+call check_peg_transformer($$PREPARE v1 AS SELECT m=$a FROM m;$$);

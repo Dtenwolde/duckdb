@@ -335,6 +335,13 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	REGISTER_TRANSFORM(TransformExcludeName);
 	REGISTER_TRANSFORM(TransformIntervalLiteral);
 
+	REGISTER_TRANSFORM(TransformParameter);
+	REGISTER_TRANSFORM(TransformQuestionMarkParameter);
+	REGISTER_TRANSFORM(TransformNumberedParameter);
+	REGISTER_TRANSFORM(TransformColLabelParameter);
+
+	REGISTER_TRANSFORM(TransformDefaultExpression);
+
 
 	REGISTER_TRANSFORM(TransformSubqueryExpression);
 	REGISTER_TRANSFORM(TransformTypeLiteral);

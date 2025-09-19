@@ -12,6 +12,7 @@
 #include "ast/limit_percent_result.hpp"
 #include "ast/on_conflict_expression_target.hpp"
 #include "ast/persist_type.hpp"
+#include "ast/prepared_parameter.hpp"
 #include "ast/sequence_option.hpp"
 #include "ast/set_info.hpp"
 #include "ast/table_alias.hpp"
@@ -74,12 +75,21 @@ public:
 		return allocator.Make<T>(std::forward<Args>(args)...);
 	}
 
+	void ClearParameters();
+	static void ParamTypeCheck(PreparedParamType last_type, PreparedParamType new_type);
+	void SetParam(const string &name, idx_t index, PreparedParamType type);
+	bool GetParam(const string &name, idx_t &index, PreparedParamType type);
+
 public:
 	ArenaAllocator &allocator;
 	PEGTransformerState &state;
 	const case_insensitive_map_t<PEGRule> &grammar_rules;
 	const case_insensitive_map_t<AnyTransformFunction> &transform_functions;
 	const case_insensitive_map_t<unique_ptr<TransformEnumValue>> &enum_mappings;
+	case_insensitive_map_t<idx_t> named_parameter_map;
+	idx_t prepared_statement_parameter_index = 0;
+	PreparedParamType last_param_type = PreparedParamType::INVALID;
+
 };
 
 class PEGTransformerFactory {
@@ -319,6 +329,13 @@ private:
 	static unique_ptr<ParsedExpression> TransformEmptyGroupingItem(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static unique_ptr<ParsedExpression> TransformCubeOrRollupClause(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static unique_ptr<ParsedExpression> TransformGroupingSetsClause(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+
+	static unique_ptr<ParsedExpression> TransformParameter(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static PreparedParameter TransformQuestionMarkParameter(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static PreparedParameter TransformNumberedParameter(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static PreparedParameter TransformColLabelParameter(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+
+	static unique_ptr<ParsedExpression> TransformDefaultExpression(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 
 
 	static unique_ptr<ParsedExpression> TransformHavingClause(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
