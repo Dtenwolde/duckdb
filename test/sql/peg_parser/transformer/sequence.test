@@ -1,0 +1,8 @@
+# name: test/sql/peg_parser/transformer/prepare.test
+# description:
+# group: [transformer]
+
+require autocomplete
+
+statement ok
+call check_peg_transformer($$DROP SEQUENCE IF EXISTS s.seq$$);

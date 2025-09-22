@@ -256,6 +256,10 @@ private:
 	static pair<string, unique_ptr<SequenceOption>> TransformSeqSetIncrement(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static pair<string, unique_ptr<SequenceOption>> TransformSeqSetMinMax(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static string TransformSeqMinOrMax(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static QualifiedName TransformQualifiedSequenceName(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static string TransformSequenceName(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+
+
 
 	static pair<string, unique_ptr<SequenceOption>> TransformNoMinMax(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static pair<string, unique_ptr<SequenceOption>> TransformSeqStartWith(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);

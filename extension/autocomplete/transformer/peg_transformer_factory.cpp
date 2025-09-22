@@ -245,6 +245,9 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	REGISTER_TRANSFORM(TransformNoMinMax);
 	REGISTER_TRANSFORM(TransformSeqStartWith);
 	REGISTER_TRANSFORM(TransformSeqOwnedBy);
+	REGISTER_TRANSFORM(TransformQualifiedSequenceName);
+	REGISTER_TRANSFORM(TransformSequenceName);
+
 
 	REGISTER_TRANSFORM(TransformColumnDefinition);
 	REGISTER_TRANSFORM(TransformTypeOrGenerated);

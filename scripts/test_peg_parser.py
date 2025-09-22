@@ -262,10 +262,13 @@ if __name__ == "__main__":
 
     failed_tests = len(failed_test_list)
     total_tests_run = len(files)
+    error_types = defaultdict(int)
     error_messages = defaultdict(list)
     for _, statement, std_err_ in failed_test_list:
         first_line_of_error = std_err_.splitlines()[0]
+        type_of_error = first_line_of_error.split(":")
         error_messages[first_line_of_error].append(statement)
+        error_types[type_of_error[0]] += 1
     sorted_errors = sorted(list((k, len(v), v) for k,v in error_messages.items()), key=lambda t:t[1], reverse=True)[:10]
     if total_tests_run > 0:
         # --- This part remains the same: print detailed failures to console ---
@@ -279,7 +282,12 @@ if __name__ == "__main__":
             print(f"Example Query: {queries[0]}\n\n")
 
         percentage_failed = round(failed_tests / total_tests_run * 100, 2)
-        print(f"Total of {failed_tests} out of {total_tests_run} failed ({percentage_failed}%).")
+        print(f"Total of {failed_tests} out of {total_tests_run} failed ({percentage_failed}%).\n")
+
+        print("--- Error Message Type ---")
+        for error_type, count in error_types.items():
+            print(f"Type: {error_type} | Count: {count}")
+
         # --- New section to append summary to a single CSV file ---
         try:
             filename = "test_summary.csv"
