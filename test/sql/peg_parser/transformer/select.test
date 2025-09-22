@@ -5,6 +5,9 @@
 require autocomplete
 
 statement ok
+call check_peg_transformer($$SELECT list_transform([10], x -> sum(1) + x)$$);
+
+statement ok
 call check_peg_transformer($$SELECT file_row_number, filename.substring(-8,8), b, a from delta_scan('./data/generated/evolution_column_change/delta_lake') order by a$$);
 
 statement ok

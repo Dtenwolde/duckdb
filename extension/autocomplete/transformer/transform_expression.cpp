@@ -34,6 +34,10 @@ unique_ptr<ParsedExpression> PEGTransformerFactory::TransformExpression(PEGTrans
 				auto func_expr = unique_ptr_cast<ParsedExpression, FunctionExpression>(std::move(expr));
 				func_expr->children.insert(func_expr->children.begin(), std::move(base_expr));
 				base_expr = std::move(func_expr);
+			} else if (expr->expression_class == ExpressionClass::LAMBDA) {
+				auto lambda_expr = unique_ptr_cast<ParsedExpression, LambdaExpression>(std::move(expr));
+				lambda_expr->lhs = std::move(base_expr);
+				base_expr = std::move(lambda_expr);
 			} else {
 				base_expr = make_uniq<OperatorExpression>(expr->type, std::move(base_expr),
 															 std::move(expr));
@@ -62,12 +66,16 @@ PEGTransformerFactory::TransformRecursiveExpression(PEGTransformer &transformer,
 		}
 		return make_uniq<FunctionExpression>(function_name, std::move(expr_children));
 	}
+	if (operator_expr == ExpressionType::LAMBDA) {
+		return make_uniq<LambdaExpression>(nullptr, std::move(right_expr));
+	}
 	if (operator_expr != ExpressionType::INVALID) {
 		return make_uniq<ComparisonExpression>(operator_expr, nullptr, std::move(right_expr));
 	}
-	// Fall back to generic operator expression
-	expr_children.push_back(transformer.Transform<unique_ptr<ParsedExpression>>(list_pr.Child<ListParseResult>(1)));
-	return make_uniq<OperatorExpression>(operator_expr, std::move(expr_children));
+	expr_children.push_back(std::move(right_expr));
+	// Not a special expression, extract operator and make function expression
+	auto op = list_pr.Child<ListParseResult>(0).Child<ChoiceParseResult>(0).result->Cast<OperatorParseResult>().operator_token;
+	return make_uniq<FunctionExpression>(std::move(op), std::move(expr_children));
 }
 
 unique_ptr<ParsedExpression> PEGTransformerFactory::TransformBaseExpression(PEGTransformer &transformer,
@@ -676,6 +684,7 @@ unique_ptr<ParsedExpression> PEGTransformerFactory::TransformLambdaExpression(PE
 	auto result = make_uniq<LambdaExpression>(parameters, std::move(rhs_expr));
 	return result;
 }
+
 
 unique_ptr<ParsedExpression> PEGTransformerFactory::TransformNullIfExpression(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
 	auto &list_pr = parse_result->Cast<ListParseResult>();

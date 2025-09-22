@@ -370,6 +370,7 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	REGISTER_TRANSFORM(TransformColumnsExpression);
 	REGISTER_TRANSFORM(TransformExtractExpression);
 	REGISTER_TRANSFORM(TransformLambdaExpression);
+	REGISTER_TRANSFORM(TransformLambdaOperator);
 	REGISTER_TRANSFORM(TransformNullIfExpression);
 	REGISTER_TRANSFORM(TransformRowExpression);
 	REGISTER_TRANSFORM(TransformPositionExpression);

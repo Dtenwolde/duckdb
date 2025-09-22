@@ -62,4 +62,9 @@ ExpressionType PEGTransformerFactory::TransformInOperator(PEGTransformer &transf
 	return ExpressionType::COMPARE_IN;
 }
 
+
+ExpressionType PEGTransformerFactory::TransformLambdaOperator(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	return ExpressionType::LAMBDA;
+}
+
 } // namespace duckdb
