@@ -626,13 +626,13 @@ private:
 	static unique_ptr<SQLStatement> TransformAlterStatement(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static unique_ptr<AlterInfo> TransformAlterOptions(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static unique_ptr<AlterInfo> TransformAlterTableStmt(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
-	static unique_ptr<AlterInfo> TransformAlterTableOptions(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
-	static unique_ptr<AlterInfo> TransformAddColumn(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
-	static unique_ptr<AlterInfo> TransformDropColumn(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<AlterTableInfo> TransformAlterTableOptions(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<AlterTableInfo> TransformAddColumn(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<AlterTableInfo> TransformDropColumn(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static vector<string> TransformNestedColumnName(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
-	static unique_ptr<AlterInfo> TransformAlterColumn(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
-	static unique_ptr<AlterInfo> TransformRenameColumn(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
-	static unique_ptr<AlterInfo> TransformRenameAlter(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<AlterTableInfo> TransformAlterColumn(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<AlterTableInfo> TransformRenameColumn(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<AlterTableInfo> TransformRenameAlter(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static unique_ptr<AlterTableInfo> TransformAlterColumnEntry(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static unique_ptr<AlterTableInfo> TransformAddOrDropDefault(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static unique_ptr<AlterTableInfo> TransformAddDefault(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
@@ -641,6 +641,7 @@ private:
 	static string TransformDropOrSet(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static unique_ptr<AlterTableInfo> TransformAlterType(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static unique_ptr<ParsedExpression> TransformUsingExpression(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<AlterTableInfo> TransformAddConstraint(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 
 
 

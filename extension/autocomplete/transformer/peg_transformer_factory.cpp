@@ -503,6 +503,7 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	REGISTER_TRANSFORM(TransformDropOrSet);
 	REGISTER_TRANSFORM(TransformAlterType);
 	REGISTER_TRANSFORM(TransformUsingExpression);
+	REGISTER_TRANSFORM(TransformAddConstraint);
 
 
 
