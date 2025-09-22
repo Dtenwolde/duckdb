@@ -124,6 +124,20 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	REGISTER_TRANSFORM(TransformAtSpecifier);
 	REGISTER_TRANSFORM(TransformAtUnit);
 
+	REGISTER_TRANSFORM(TransformJoinOrPivot);
+	REGISTER_TRANSFORM(TransformJoinClause);
+	REGISTER_TRANSFORM(TransformRegularJoinClause);
+	REGISTER_TRANSFORM(TransformJoinWithoutOnClause);
+	REGISTER_TRANSFORM(TransformJoinQualifier);
+	REGISTER_TRANSFORM(TransformOnClause);
+    REGISTER_TRANSFORM(TransformUsingClause);
+	REGISTER_TRANSFORM(TransformJoinType);
+	REGISTER_TRANSFORM(TransformJoinPrefix);
+	REGISTER_TRANSFORM(TransformCrossJoinPrefix);
+	REGISTER_TRANSFORM(TransformNaturalJoinPrefix);
+	REGISTER_TRANSFORM(TransformPositionalJoinPrefix);
+
+
 	REGISTER_TRANSFORM(TransformFromClause);
 	REGISTER_TRANSFORM(TransformTableRef);
 	REGISTER_TRANSFORM(TransformInnerTableRef);
@@ -578,11 +592,17 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	RegisterEnum<ExpressionType>("ConjunctionOr", ExpressionType::CONJUNCTION_OR);
 	RegisterEnum<ExpressionType>("ConjunctionAnd", ExpressionType::CONJUNCTION_AND);
 
-
 	RegisterEnum<ExpressionType>("LikeExpressionType", ExpressionType::OPERATOR_LIKE);
 	RegisterEnum<ExpressionType>("IlikeExpressionType", ExpressionType::OPERATOR_ILIKE);
 	RegisterEnum<ExpressionType>("GlobExpressionType", ExpressionType::OPERATOR_GLOB);
 	RegisterEnum<ExpressionType>("SimilarToExpressionType", ExpressionType::OPERATOR_SIMILAR_TO);
+
+	RegisterEnum<JoinType>("FullJoin", JoinType::OUTER);
+	RegisterEnum<JoinType>("LeftJoin", JoinType::LEFT);
+	RegisterEnum<JoinType>("RightJoin", JoinType::RIGHT);
+	RegisterEnum<JoinType>("SemiJoin", JoinType::SEMI);
+	RegisterEnum<JoinType>("AntiJoin", JoinType::ANTI);
+	RegisterEnum<JoinType>("InnerJoin", JoinType::INNER);
 	}
 
 optional_ptr<ParseResult> PEGTransformerFactory::ExtractResultFromParens(optional_ptr<ParseResult> parse_result) {

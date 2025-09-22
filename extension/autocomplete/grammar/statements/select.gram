@@ -78,8 +78,17 @@ OnClause <- 'ON'i Expression
 UsingClause <- 'USING'i Parens(List(ColumnName))
 
 OuterJoinType <- 'FULL'i / 'LEFT'i / 'RIGHT'i
-JoinType <- (OuterJoinType 'OUTER'i?) / 'SEMI'i / 'ANTI'i / 'INNER'i
-JoinPrefix <- 'CROSS'i / ('NATURAL'i JoinType?) / 'POSITIONAL'i
+JoinType <- FullJoin / LeftJoin / RightJoin / SemiJoin / AntiJoin / InnerJoin
+JoinPrefix <- CrossJoinPrefix / NaturalJoinPrefix / PositionalJoinPrefix
+CrossJoinPrefix <- 'CROSS'i
+NaturalJoinPrefix <- 'NATURAL'i JoinType?
+PositionalJoinPrefix <- 'POSITIONAL'i
+FullJoin <- 'FULL'i 'OUTER'i?
+LeftJoin <- 'LEFT'i 'OUTER'i?
+RightJoin <- 'RIGHT'i 'OUTER'i?
+SemiJoin <- 'SEMI'i
+AntiJoin <- 'ANTI'i
+InnerJoin <- 'INNER'i
 
 FromClause <- 'FROM'i List(TableRef)
 WhereClause <- 'WHERE'i Expression

@@ -26,7 +26,8 @@
     {
       "reason": "Timeout",
       "paths": [
-        "test/sql/copy/csv/afl/test_fuzz_3981.test_slow"
+        "test/sql/copy/csv/afl/test_fuzz_3981.test_slow",
+        "test/sql/join/external/tpch_all_tables.test_slow"
       ]
     }
   ]

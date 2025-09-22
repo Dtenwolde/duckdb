@@ -1,3 +1,5 @@
+#include "ast/join_prefix.hpp"
+#include "ast/join_qualifier.hpp"
 #include "ast/limit_percent_result.hpp"
 #include "ast/table_alias.hpp"
 #include "transformer/peg_transformer.hpp"
@@ -8,6 +10,7 @@
 #include "duckdb/parser/tableref/subqueryref.hpp"
 #include "duckdb/parser/tableref/table_function_ref.hpp"
 #include "duckdb/parser/tableref/at_clause.hpp"
+#include "duckdb/parser/tableref/joinref.hpp"
 
 namespace duckdb {
 
@@ -138,7 +141,19 @@ unique_ptr<TableRef> PEGTransformerFactory::TransformTableRef(PEGTransformer &tr
 	auto &list_pr = parse_result->Cast<ListParseResult>();
 
 	auto inner_table_ref = transformer.Transform<unique_ptr<TableRef>>(list_pr.Child<ListParseResult>(0));
-	// auto join_or_pivot
+	auto join_or_pivot_opt = list_pr.Child<OptionalParseResult>(1);
+	if (join_or_pivot_opt.HasResult()) {
+		auto repeat_join_or_pivot = join_or_pivot_opt.optional_result->Cast<RepeatParseResult>();
+		for (auto join_or_pivot : repeat_join_or_pivot.children) {
+			auto transform_join_or_pivot = transformer.Transform<unique_ptr<TableRef>>(join_or_pivot);
+			if (transform_join_or_pivot->type == TableReferenceType::JOIN) {
+				auto join_ref = unique_ptr_cast<TableRef, JoinRef>(std::move(transform_join_or_pivot));
+				join_ref->left = std::move(inner_table_ref);
+				inner_table_ref = std::move(join_ref);
+			}
+		}
+	}
+
 	auto opt_table_alias = list_pr.Child<OptionalParseResult>(2);
 	if (opt_table_alias.HasResult()) {
 		auto table_alias = transformer.Transform<TableAlias>(opt_table_alias.optional_result);
@@ -146,6 +161,104 @@ unique_ptr<TableRef> PEGTransformerFactory::TransformTableRef(PEGTransformer &tr
 		inner_table_ref->column_name_alias = table_alias.column_name_alias;
 	}
 	return inner_table_ref;
+}
+
+unique_ptr<TableRef> PEGTransformerFactory::TransformJoinOrPivot(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	return transformer.Transform<unique_ptr<TableRef>>(list_pr.Child<ChoiceParseResult>(0).result);
+}
+
+unique_ptr<TableRef> PEGTransformerFactory::TransformJoinClause(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	return transformer.Transform<unique_ptr<TableRef>>(list_pr.Child<ChoiceParseResult>(0).result);
+}
+
+unique_ptr<TableRef> PEGTransformerFactory::TransformRegularJoinClause(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	auto result = make_uniq<JoinRef>();
+	auto asof = list_pr.Child<OptionalParseResult>(0);
+	if (asof.HasResult()) {
+		throw NotImplementedException("ASOF join not implemented");
+	}
+	auto join_type = JoinType::INNER;
+	transformer.TransformOptional<JoinType>(list_pr, 1, join_type);
+	result->type = join_type;
+	result->right = transformer.Transform<unique_ptr<TableRef>>(list_pr.Child<ListParseResult>(3));
+	auto join_qualifier = transformer.Transform<JoinQualifier>(list_pr.Child<ListParseResult>(4));
+	if (join_qualifier.on_clause) {
+		result->condition = std::move(join_qualifier.on_clause);
+	} else if (!join_qualifier.using_columns.empty()) {
+		result->using_columns = std::move(join_qualifier.using_columns);
+	} else {
+		throw InternalException("Invalid join qualifier found.");
+	}
+	return result;
+}
+
+JoinType PEGTransformerFactory::TransformJoinType(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	return transformer.TransformEnum<JoinType>(list_pr.Child<ChoiceParseResult>(0).result);
+}
+
+JoinQualifier PEGTransformerFactory::TransformJoinQualifier(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	return transformer.Transform<JoinQualifier>(list_pr.Child<ChoiceParseResult>(0).result);
+}
+
+JoinQualifier PEGTransformerFactory::TransformOnClause(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	JoinQualifier result;
+	result.on_clause = transformer.Transform<unique_ptr<ParsedExpression>>(list_pr.Child<ListParseResult>(1));
+	return result;
+}
+
+JoinQualifier PEGTransformerFactory::TransformUsingClause(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	JoinQualifier result;
+	auto extract_parens = ExtractResultFromParens(list_pr.Child<ListParseResult>(1));
+	auto column_list = ExtractParseResultsFromList(extract_parens);
+	for (auto column : column_list) {
+		result.using_columns.push_back(column->Cast<IdentifierParseResult>().identifier);
+	}
+	return result;
+}
+
+unique_ptr<TableRef> PEGTransformerFactory::TransformJoinWithoutOnClause(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	auto join_prefix = transformer.Transform<JoinPrefix>(list_pr.Child<ListParseResult>(0));
+	auto table_ref = transformer.Transform<unique_ptr<TableRef>>(list_pr.Child<ListParseResult>(2));
+	auto result = make_uniq<JoinRef>();
+	result->ref_type = join_prefix.ref_type;
+	result->type = join_prefix.join_type;
+	result->right = std::move(table_ref);
+	return result;
+}
+
+JoinPrefix PEGTransformerFactory::TransformJoinPrefix(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	return transformer.Transform<JoinPrefix>(list_pr.Child<ChoiceParseResult>(0).result);
+}
+
+JoinPrefix PEGTransformerFactory::TransformCrossJoinPrefix(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	JoinPrefix result;
+	result.ref_type = JoinRefType::CROSS;
+	result.join_type = JoinType::INNER;
+	return result;
+}
+
+JoinPrefix PEGTransformerFactory::TransformNaturalJoinPrefix(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	JoinPrefix result;
+	result.ref_type = JoinRefType::NATURAL;
+	transformer.TransformOptional<JoinType>(list_pr, 1, result.join_type);
+	return result;
+}
+
+JoinPrefix PEGTransformerFactory::TransformPositionalJoinPrefix(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	JoinPrefix result;
+	result.ref_type = JoinRefType::POSITIONAL;
+	result.join_type = JoinType::INNER;
+	return result;
 }
 
 unique_ptr<TableRef> PEGTransformerFactory::TransformInnerTableRef(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {

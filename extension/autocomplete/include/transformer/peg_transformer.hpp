@@ -9,6 +9,8 @@
 #include "ast/extension_repository_info.hpp"
 #include "ast/generic_copy_option.hpp"
 #include "ast/insert_values.hpp"
+#include "ast/join_prefix.hpp"
+#include "ast/join_qualifier.hpp"
 #include "ast/limit_percent_result.hpp"
 #include "ast/on_conflict_expression_target.hpp"
 #include "ast/prepared_parameter.hpp"
@@ -367,6 +369,18 @@ private:
 	static unique_ptr<AtClause> TransformAtSpecifier(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static string TransformAtUnit(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 
+	static unique_ptr<TableRef> TransformJoinOrPivot(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<TableRef> TransformJoinClause(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<TableRef> TransformRegularJoinClause(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<TableRef> TransformJoinWithoutOnClause(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static JoinQualifier TransformJoinQualifier(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static JoinQualifier TransformOnClause(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static JoinQualifier TransformUsingClause(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static JoinType TransformJoinType(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static JoinPrefix TransformJoinPrefix(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static JoinPrefix TransformCrossJoinPrefix(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static JoinPrefix TransformNaturalJoinPrefix(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static JoinPrefix TransformPositionalJoinPrefix(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 
 
 

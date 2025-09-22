@@ -1,0 +1,28 @@
+# name: test/sql/peg_parser/transformer/prepare.test
+# description:
+# group: [transformer]
+
+require autocomplete
+
+statement ok
+call check_peg_transformer($$from region right outer join nation on r_regionkey = n_regionkey;$$);
+
+statement ok
+call check_peg_transformer($$select l.context_id,
+    scope,
+    connection_id,
+    transaction_id,
+    query_id,
+    thread_id,
+    timestamp,
+    type,
+    log_level,
+    message
+from (select row_number() over () as rowid, * from duckdb_logs()) as l
+join duckdb_log_contexts() as c on l.context_id = c.context_id
+order by timestamp, l.rowid$$);
+
+statement ok
+call check_peg_transformer($$create table test as (     select case when r1 % 4 == 0 then NULL else 'thisisalongstring' || r1 end my_string,            case when r2 % 8 == 0 then NULL else {x: 'thisisalongstring' || r2} end my_struct,            case when r3 % 16 == 0 then NULL else ['thisisalongstring' || r3] end my_list     from (select * from range(128) r1(r1) order by random())     cross join (select * from range(128) r2(r2) order by random())     cross join (select * from range(128) r3(r3) order by random()) )$$);
+
+

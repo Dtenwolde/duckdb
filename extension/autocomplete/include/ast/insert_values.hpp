@@ -1,5 +1,4 @@
 #pragma once
-#include "duckdb/parser/sql_statement.hpp"
 
 namespace duckdb {
 struct InsertValues {
