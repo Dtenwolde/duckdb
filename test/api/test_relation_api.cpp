@@ -10,6 +10,17 @@
 using namespace duckdb;
 using namespace std;
 
+
+TEST_CASE("Test error messages", "[relation_api]") {
+	DuckDB db(nullptr);
+	Connection con(db);
+
+	auto res = con.Query("aaaaa");
+	if (res->HasError()) {
+		res->ThrowError();
+	}
+}
+
 TEST_CASE("Test simple relation API", "[relation_api]") {
 	DuckDB db(nullptr);
 	Connection con(db);
