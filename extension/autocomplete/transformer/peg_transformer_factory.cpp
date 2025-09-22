@@ -495,6 +495,14 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	REGISTER_TRANSFORM(TransformAlterColumn);
 	REGISTER_TRANSFORM(TransformRenameColumn);
 	REGISTER_TRANSFORM(TransformRenameAlter);
+	REGISTER_TRANSFORM(TransformAlterColumnEntry);
+	REGISTER_TRANSFORM(TransformAddOrDropDefault);
+	REGISTER_TRANSFORM(TransformAddDefault);
+	REGISTER_TRANSFORM(TransformDropDefault);
+	REGISTER_TRANSFORM(TransformChangeNullability);
+	REGISTER_TRANSFORM(TransformDropOrSet);
+	REGISTER_TRANSFORM(TransformAlterType);
+	REGISTER_TRANSFORM(TransformUsingExpression);
 
 
 

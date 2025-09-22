@@ -1,0 +1,14 @@
+# name: test/sql/peg_parser/transformer/prepare.test
+# description:
+# group: [transformer]
+
+require autocomplete
+
+statement ok
+call check_peg_transformer($$ALTER TABLE test ALTER COLUMN j DROP NOT NULL$$);
+
+statement ok
+call check_peg_transformer($$ALTER TABLE test ALTER t TYPE VARCHAR$$);
+
+statement ok
+call check_peg_transformer($$ALTER TABLE test ADD PRIMARY KEY (i, j);$$);

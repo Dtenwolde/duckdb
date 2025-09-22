@@ -25,7 +25,8 @@ AddOrDropDefault <- AddDefault / DropDefault
 AddDefault <- 'SET'i 'DEFAULT'i Expression
 DropDefault <- 'DROP'i 'DEFAULT'i
 
-ChangeNullability <- ('DROP'i / 'SET'i) 'NOT'i 'NULL'i
+ChangeNullability <- DropOrSet 'NOT'i 'NULL'i
+DropOrSet <- 'DROP'i / 'SET'i
 
 AlterType <- SetData? 'TYPE'i Type? UsingExpression?
 SetData <- 'SET'i 'DATA'i?
