@@ -67,4 +67,12 @@ ExpressionType PEGTransformerFactory::TransformLambdaOperator(PEGTransformer &tr
 	return ExpressionType::LAMBDA;
 }
 
+ExpressionType PEGTransformerFactory::TransformBetweenOperator(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	if (list_pr.Child<OptionalParseResult>(0).HasResult()) {
+		return ExpressionType::COMPARE_NOT_BETWEEN;
+	}
+	return ExpressionType::COMPARE_BETWEEN;
+}
+
 } // namespace duckdb

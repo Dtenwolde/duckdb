@@ -265,6 +265,9 @@ if __name__ == "__main__":
     error_types = defaultdict(int)
     error_messages = defaultdict(list)
     for _, statement, std_err_ in failed_test_list:
+        if (len(std_err_.splitlines()) == 0):
+            print(f"EMPTY ERROR MESSAGE for {statement}")
+            continue
         first_line_of_error = std_err_.splitlines()[0]
         type_of_error = first_line_of_error.split(":")
         error_messages[first_line_of_error].append(statement)
@@ -280,6 +283,12 @@ if __name__ == "__main__":
         for message, count, queries in sorted_errors:
             print(f"Count: {count} | Message: \"{message.strip()}\"")
             print(f"Example Query: {queries[0]}\n\n")
+
+        print("--- INTERNAL ERRORS ---")
+        for k,v in error_messages.items():
+            if "internal" in k.lower():
+                print(f"Message: \"{k}\"")
+                print(f"Example Query: {v}\n")
 
         percentage_failed = round(failed_tests / total_tests_run * 100, 2)
         print(f"Total of {failed_tests} out of {total_tests_run} failed ({percentage_failed}%).\n")

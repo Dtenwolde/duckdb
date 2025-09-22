@@ -11,6 +11,7 @@
 #include "duckdb/parser/expression/case_expression.hpp"
 #include "duckdb/parser/expression/parameter_expression.hpp"
 #include "duckdb/parser/expression/default_expression.hpp"
+#include "duckdb/parser/expression/between_expression.hpp"
 
 namespace duckdb {
 
@@ -38,6 +39,10 @@ unique_ptr<ParsedExpression> PEGTransformerFactory::TransformExpression(PEGTrans
 				auto lambda_expr = unique_ptr_cast<ParsedExpression, LambdaExpression>(std::move(expr));
 				lambda_expr->lhs = std::move(base_expr);
 				base_expr = std::move(lambda_expr);
+			} else if (expr->expression_class == ExpressionClass::BETWEEN) {
+				auto between_expr = unique_ptr_cast<ParsedExpression, BetweenExpression>(std::move(expr));
+				between_expr->input = std::move(base_expr);
+				base_expr = std::move(between_expr);
 			} else {
 				base_expr = make_uniq<OperatorExpression>(expr->type, std::move(base_expr),
 															 std::move(expr));
@@ -68,6 +73,13 @@ PEGTransformerFactory::TransformRecursiveExpression(PEGTransformer &transformer,
 	}
 	if (operator_expr == ExpressionType::LAMBDA) {
 		return make_uniq<LambdaExpression>(nullptr, std::move(right_expr));
+	}
+	if (operator_expr == ExpressionType::COMPARE_BETWEEN) {
+		auto compare_expr = unique_ptr_cast<ParsedExpression, ComparisonExpression>(std::move(right_expr));
+		return make_uniq<BetweenExpression>(nullptr, std::move(compare_expr->left), std::move(compare_expr->right));
+	}
+	if (operator_expr == ExpressionType::COMPARE_NOT_BETWEEN) {
+		throw NotImplementedException("Not between operator not implemented");
 	}
 	if (operator_expr != ExpressionType::INVALID) {
 		return make_uniq<ComparisonExpression>(operator_expr, nullptr, std::move(right_expr));
