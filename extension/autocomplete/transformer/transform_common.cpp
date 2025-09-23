@@ -329,8 +329,7 @@ LogicalType PEGTransformerFactory::TransformBitType(PEGTransformer &transformer,
 }
 
 LogicalType PEGTransformerFactory::TransformIntervalType(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
-	auto &list_pr = parse_result->Cast<ListParseResult>();
-	return transformer.Transform<LogicalType>(list_pr.Child<ChoiceParseResult>(0).result);
+	return LogicalType(LogicalTypeId::INTERVAL);
 }
 
 LogicalType PEGTransformerFactory::TransformIntervalInterval(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
@@ -343,15 +342,18 @@ LogicalType PEGTransformerFactory::TransformIntervalInterval(PEGTransformer &tra
 	}
 }
 
-LogicalType PEGTransformerFactory::TransformInterval(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
-	// TODO(Dtenwolde) I think we need to do more here, but I cannot figure it out at the moment.
-	// See transform_typename.cpp and interval_type.hpp
-	return LogicalType(LogicalTypeId::INTERVAL);
+DatePartSpecifier PEGTransformerFactory::TransformInterval(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	auto choice_pr = list_pr.Child<ChoiceParseResult>(0);
+	if (choice_pr.name == "DateTimeToDateTime") {
+		// TODO(Dtenwolde) make this error more specific
+		throw ParserException("Interval TO is not supported");
+	}
+	return transformer.TransformEnum<DatePartSpecifier>(choice_pr);
 }
 
 unique_ptr<ParsedExpression> PEGTransformerFactory::TransformNumberLiteral(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
-	auto &list_pr = parse_result->Cast<ListParseResult>();
-	auto literal_pr = list_pr.Child<NumberParseResult>(0);
+	auto literal_pr = parse_result->Cast<NumberParseResult>();
 	string_t str_val(literal_pr.number);
 	bool try_cast_as_integer = true;
 	bool try_cast_as_decimal = true;

@@ -576,10 +576,9 @@ CaseExpression <- 'CASE'i Expression? CaseWhenThen+ CaseElse? 'END'i
 CaseWhenThen <- 'WHEN'i Expression 'THEN'i Expression
 CaseElse <- 'ELSE'i Expression
 TypeLiteral <- ColId StringLiteral
-IntervalLiteral <- 'INTERVAL'i IntervalParameter IntervalUnit?
+IntervalLiteral <- 'INTERVAL'i IntervalParameter Interval?
 IntervalParameter <- StringLiteral / NumberLiteral / ParensExpression
 ParensExpression <- Parens(Expression)
-IntervalUnit <- ColId
 FrameClause <- Framing FrameExtent WindowExcludeClause?
 Framing <- 'ROWS'i / 'RANGE'i / 'GROUPS'i
 FrameExtent <- ('BETWEEN'i FrameBound 'AND'i FrameBound) / FrameBound
@@ -1362,6 +1361,9 @@ Interval <- YearKeyword /
     DecadeKeyword /
     CenturyKeyword /
     MillenniumKeyword /
+    DateTimeToDateTime
+
+DateTimeToDateTime <-
     (YearKeyword 'TO'i MonthKeyword) /
     (DayKeyword 'TO'i HourKeyword) /
     (DayKeyword 'TO'i MinuteKeyword) /

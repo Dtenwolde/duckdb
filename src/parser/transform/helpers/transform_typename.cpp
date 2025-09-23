@@ -234,7 +234,7 @@ LogicalType Transformer::TransformTypeNameInternal(duckdb_libpgquery::PGTypeName
 		if (modifiers.count > 1) {
 			throw ParserException("INTERVAL only supports a single modifier");
 		}
-		Printer::PrintF("%d %d %d", modifiers.width, modifiers.scale, modifiers.count);
+		Printer::PrintF("Interval modifiers: width: %d | scale: %d | count: %d", modifiers.width, modifiers.scale, modifiers.count);
 		modifiers.width = 0;
 		return LogicalType::INTERVAL;
 	case LogicalTypeId::BIT:

@@ -300,7 +300,7 @@ private:
 	static LogicalType TransformUnionType(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static LogicalType TransformIntervalType(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static LogicalType TransformIntervalInterval(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
-	static LogicalType TransformInterval(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static DatePartSpecifier TransformInterval(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static child_list_t<LogicalType> TransformColIdTypeList(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static std::pair<std::string, LogicalType> TransformColIdType(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static vector<string> TransformColumnIdList(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
@@ -507,6 +507,9 @@ private:
 	static qualified_column_set_t TransformSingleExcludeName(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static QualifiedColumnName TransformExcludeName(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static unique_ptr<ParsedExpression> TransformIntervalLiteral(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<ParsedExpression> TransformIntervalParameter(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<ParsedExpression> TransformParensExpression(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+
 
 
 	static unique_ptr<ParsedExpression> TransformLiteralExpression(PEGTransformer &transformer,
@@ -670,6 +673,8 @@ private:
 	static bool ExpressionIsEmptyStar(ParsedExpression &expr);
 	static optional_ptr<ParseResult> ExtractResultFromParens(optional_ptr<ParseResult> parse_result);
 	static vector<optional_ptr<ParseResult>> ExtractParseResultsFromList(optional_ptr<ParseResult> parse_result);
+
+	static LogicalType GetIntervalTargetType(DatePartSpecifier);
 
 	static string ExtractFormat(const string &file_path);
 	static QualifiedName StringToQualifiedName(vector<string> input);

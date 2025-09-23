@@ -92,6 +92,9 @@ Interval <- YearKeyword /
     DecadeKeyword /
     CenturyKeyword /
     MillenniumKeyword /
+    DateTimeToDateTime
+
+DateTimeToDateTime <-
     (YearKeyword 'TO'i MonthKeyword) /
     (DayKeyword 'TO'i HourKeyword) /
     (DayKeyword 'TO'i MinuteKeyword) /

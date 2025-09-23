@@ -352,6 +352,9 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	REGISTER_TRANSFORM(TransformSingleExcludeName);
 	REGISTER_TRANSFORM(TransformExcludeName);
 	REGISTER_TRANSFORM(TransformIntervalLiteral);
+	REGISTER_TRANSFORM(TransformIntervalParameter);
+	REGISTER_TRANSFORM(TransformParensExpression);
+
 
 	REGISTER_TRANSFORM(TransformParameter);
 	REGISTER_TRANSFORM(TransformQuestionMarkParameter);
@@ -691,6 +694,30 @@ QualifiedName PEGTransformerFactory::StringToQualifiedName(vector<string> input)
 		throw ParserException("Too many dots found.");
 	}
 	return result;
+}
+
+LogicalType PEGTransformerFactory::GetIntervalTargetType(DatePartSpecifier date_part) {
+	switch (date_part) {
+	case DatePartSpecifier::YEAR:
+	case DatePartSpecifier::MONTH:
+	case DatePartSpecifier::DAY:
+	case DatePartSpecifier::WEEK:
+	case DatePartSpecifier::QUARTER:
+	case DatePartSpecifier::DECADE:
+	case DatePartSpecifier::CENTURY:
+	case DatePartSpecifier::MILLENNIUM:
+		return LogicalType::INTEGER;
+	case DatePartSpecifier::HOUR:
+	case DatePartSpecifier::MINUTE:
+	case DatePartSpecifier::MICROSECONDS:
+		return LogicalType::BIGINT;
+	case DatePartSpecifier::MILLISECONDS:
+	case DatePartSpecifier::SECOND:
+		return LogicalType::DOUBLE;
+	default:
+		throw InternalException("Unsupported interval post-fix");
+	}
+
 }
 
 } // namespace duckdb
