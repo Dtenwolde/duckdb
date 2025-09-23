@@ -684,7 +684,8 @@ unique_ptr<ParsedExpression> PEGTransformerFactory::TransformIntervalLiteral(PEG
 	auto expr = transformer.Transform<unique_ptr<ParsedExpression>>(list_pr.Child<ListParseResult>(1));
 	auto func_name = DateTruncSimplificationRule::DatePartToFunc(interval_unit);
 	if (func_name.empty()) {
-		throw ParserException("Invalid interval unit %s", DatePartSpecifierToString(interval_unit));
+		expr = make_uniq<CastExpression>(LogicalType::INTERVAL, std::move(expr));
+		return expr;
 	}
 	LogicalType parse_type = LogicalType::DOUBLE;
 	expr = make_uniq<CastExpression>(parse_type, std::move(expr));
