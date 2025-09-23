@@ -5,6 +5,9 @@
 require autocomplete
 
 statement ok
+call check_peg_transformer($$CREATE TABLE decs(i DEC(), j DEC)$$);
+
+statement ok
 call peg_parser();
 
 statement ok

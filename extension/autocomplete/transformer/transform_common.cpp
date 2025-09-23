@@ -186,13 +186,23 @@ LogicalType PEGTransformerFactory::TransformDecimalType(PEGTransformer &transfor
 		if (type_modifiers.size() > 2) {
 			throw ParserException("A maximum of two modifiers is supported");
 		}
-		if (type_modifiers[0]->GetExpressionClass() != ExpressionClass::CONSTANT ||
-			type_modifiers[1]->GetExpressionClass() != ExpressionClass::CONSTANT) {
-			throw ParserException("Type modifiers must be a constant expression");
+		for (const auto& modifier : type_modifiers) {
+			if (modifier->GetExpressionClass() != ExpressionClass::CONSTANT) {
+				throw ParserException("Type modifiers must be a constant expression");
 			}
-		// Parsing of width and scale
-		width = type_modifiers[0]->Cast<ConstantExpression>().value.GetValue<uint8_t>();
-		scale = type_modifiers.size() == 2 ? type_modifiers[1]->Cast<ConstantExpression>().value.GetValue<uint8_t>() : 0;
+		}
+		switch (type_modifiers.size()) {
+		case 2:
+			scale = type_modifiers[1]->Cast<ConstantExpression>().value.GetValue<uint8_t>();
+			// Intentional fallthrough to also parse width
+		case 1:
+			width = type_modifiers[0]->Cast<ConstantExpression>().value.GetValue<uint8_t>();
+			break;
+		case 0:
+		default:
+			// No modifiers provided, so we just stick to the default values for width and scale.
+			break;
+		}
 	}
 	auto type_info = make_shared_ptr<DecimalTypeInfo>(width, scale);
 	return LogicalType(LogicalTypeId::DECIMAL, type_info);
@@ -215,7 +225,16 @@ vector<unique_ptr<ParsedExpression>> PEGTransformerFactory::TransformTypeModifie
 LogicalType PEGTransformerFactory::TransformSimpleType(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
 	auto &list_pr = parse_result->Cast<ListParseResult>();
 	auto qualified_type_or_character = list_pr.Child<ListParseResult>(0);
-	LogicalType result = transformer.Transform<LogicalType>(qualified_type_or_character.Child<ChoiceParseResult>(0).result);
+	auto type_or_character_pr = qualified_type_or_character.Child<ChoiceParseResult>(0).result;
+	LogicalType result;
+	if (type_or_character_pr->name == "QualifiedTypeName") {
+		auto qualified_type_name = transformer.Transform<QualifiedName>(type_or_character_pr);
+		result = LogicalType(TransformStringToLogicalTypeId(qualified_type_name.name));
+	} else if (type_or_character_pr->name == "CharacterType") {
+		result = transformer.Transform<LogicalType>(type_or_character_pr);
+	} else {
+		throw InternalException("Unexpected rule %s encountered in SimpleType", type_or_character_pr->name);
+	}
 	auto opt_modifiers = list_pr.Child<OptionalParseResult>(1);
 	vector<unique_ptr<ParsedExpression>> modifiers;
 	if (opt_modifiers.HasResult()) {
@@ -226,7 +245,7 @@ LogicalType PEGTransformerFactory::TransformSimpleType(PEGTransformer &transform
 }
 
 
-LogicalType PEGTransformerFactory::TransformQualifiedTypeName(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+QualifiedName PEGTransformerFactory::TransformQualifiedTypeName(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
 	// TODO(Dtenwolde) figure out what to do with qualified names
 	auto &list_pr = parse_result->Cast<ListParseResult>();
 	QualifiedName result;
@@ -244,7 +263,7 @@ LogicalType PEGTransformerFactory::TransformQualifiedTypeName(PEGTransformer &tr
 	} else {
 		result.name = transformer.Transform<string>(list_pr.Child<ListParseResult>(2));
 	}
-	return LogicalType(TransformStringToLogicalTypeId(result.name));
+	return result;
 
 }
 

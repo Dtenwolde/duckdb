@@ -5,6 +5,9 @@
 require autocomplete
 
 statement ok
+call check_peg_transformer($$DROP TYPE IF EXISTS mood$$);
+
+statement ok
 call check_peg_transformer($$DROP SCHEMA IF EXISTS test_schema CASCADE$$);
 
 statement ok

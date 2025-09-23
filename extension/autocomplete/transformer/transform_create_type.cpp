@@ -31,10 +31,10 @@ unique_ptr<CreateTypeInfo> PEGTransformerFactory::TransformCreateType(PEGTransfo
 	return result;
 }
 
-unique_ptr<SQLStatement> PEGTransformerFactory::TransformEnumSelectType(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+unique_ptr<SelectStatement> PEGTransformerFactory::TransformEnumSelectType(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
 	auto &list_pr = parse_result->Cast<ListParseResult>();
 	auto extract_parens = ExtractResultFromParens(list_pr.Child<ListParseResult>(1));
-	return transformer.Transform<unique_ptr<SQLStatement>>(extract_parens);
+	return transformer.Transform<unique_ptr<SelectStatement>>(extract_parens);
 }
 
 LogicalType PEGTransformerFactory::TransformEnumStringLiteralList(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {

@@ -66,7 +66,8 @@ vector<string> PEGTransformerFactory::TransformNestedColumnName(PEGTransformer &
 	if (opt_identifier.HasResult()) {
 		auto repeat_pr = opt_identifier.optional_result->Cast<RepeatParseResult>();
 		for (auto child : repeat_pr.children) {
-			result.push_back(child->Cast<IdentifierParseResult>().identifier + ".");
+			auto child_list = child->Cast<ListParseResult>();
+			result.push_back(child_list.Child<IdentifierParseResult>(0).identifier);
 		}
 	}
 	result.push_back(list_pr.Child<IdentifierParseResult>(1).identifier);

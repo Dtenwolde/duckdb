@@ -5,22 +5,19 @@
 require autocomplete
 
 statement ok
-call peg_parser();
+call check_peg_transformer($$CREATE TYPE type_int AS ENUM (SELECT 1);$$);
 
 statement ok
-CREATE TYPE main_int AS int32;
+call check_peg_transformer($$CREATE TYPE main_int AS int32;$$);
 
 statement ok
-CREATE SCHEMA test_schema;
+call check_peg_transformer($$CREATE SCHEMA test_schema;$$);
 
 statement ok
-CREATE TYPE test_schema.test_int AS int32;
+call check_peg_transformer($$CREATE TYPE test_schema.test_int AS int32;$$);
 
 statement ok
-CREATE TYPE bla AS ENUM ('Y', 'N');
+call check_peg_transformer($$CREATE TYPE bla AS ENUM ('Y', 'N');$$);
 
-statement error
-create type orderkey_enum as enum (Select (l_orderkey/4)::VARCHAR from lineitem);
-----
-Not implemented Error: Create TYPE using SelectStatement has not yet been implemented.
-
+statement ok
+call check_peg_transformer($$create type orderkey_enum as enum (Select (l_orderkey/4)::VARCHAR from lineitem);$$);

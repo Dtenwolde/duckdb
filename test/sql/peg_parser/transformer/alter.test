@@ -5,6 +5,9 @@
 require autocomplete
 
 statement ok
+call check_peg_transformer($$ALTER TABLE test DROP COLUMN s.element.j$$);
+
+statement ok
 call check_peg_transformer($$ALTER TABLE test ADD PRIMARY KEY (i, j);$$);
 
 statement ok

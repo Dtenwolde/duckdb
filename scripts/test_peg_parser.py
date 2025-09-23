@@ -288,7 +288,13 @@ if __name__ == "__main__":
         for k,v in error_messages.items():
             if "internal" in k.lower():
                 print(f"Message: \"{k}\"")
-                print(f"Example Query: {v}\n")
+                print(f"Queries: {v}\n")
+
+        print('--- INVALID INPUT ERRORS ---')
+        for k,v in error_messages.items():
+            if "invalid input" in k.lower():
+                print(f"Message: \"{k}\"")
+                print(f"Queries: {v}\n")
 
         percentage_failed = round(failed_tests / total_tests_run * 100, 2)
         print(f"Total of {failed_tests} out of {total_tests_run} failed ({percentage_failed}%).\n")

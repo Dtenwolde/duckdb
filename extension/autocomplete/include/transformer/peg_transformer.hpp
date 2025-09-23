@@ -246,7 +246,7 @@ private:
 	static unique_ptr<CreateStatement> TransformCreateViewStmt(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static unique_ptr<CreateStatement> TransformCreateTypeStmt(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static unique_ptr<CreateTypeInfo> TransformCreateType(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
-	static unique_ptr<SQLStatement> TransformEnumSelectType(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<SelectStatement> TransformEnumSelectType(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 
 	static LogicalType TransformEnumStringLiteralList(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 
@@ -440,7 +440,7 @@ private:
 	static LogicalType TransformDecimalType(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static vector<unique_ptr<ParsedExpression>> TransformTypeModifiers(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static LogicalType TransformSimpleType(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
-	static LogicalType TransformQualifiedTypeName(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static QualifiedName TransformQualifiedTypeName(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static LogicalType TransformCharacterType(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 
 	static GenericCopyOption TransformSpecializedOption(PEGTransformer &transformer,
