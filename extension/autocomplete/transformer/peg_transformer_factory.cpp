@@ -571,7 +571,7 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	RegisterEnum<DatePartSpecifier>("QuarterKeyword", DatePartSpecifier::QUARTER);
 	RegisterEnum<DatePartSpecifier>("DecadeKeyword", DatePartSpecifier::DECADE);
 	RegisterEnum<DatePartSpecifier>("CenturyKeyword", DatePartSpecifier::CENTURY);
-	RegisterEnum<DatePartSpecifier>("MilleniumKeyword", DatePartSpecifier::MILLENNIUM);
+	RegisterEnum<DatePartSpecifier>("MillenniumKeyword", DatePartSpecifier::MILLENNIUM);
 
 	RegisterEnum<LogicalTypeId>("TimeTypeId", LogicalTypeId::TIME);
 	RegisterEnum<LogicalTypeId>("TimestampTypeId", LogicalTypeId::TIMESTAMP);
