@@ -254,7 +254,7 @@ unique_ptr<ParsedExpression> PEGTransformerFactory::TransformListExpression(PEGT
 	if (!is_array) {
 		return make_uniq<FunctionExpression>(INVALID_CATALOG, "main", "list_value", std::move(list_expr));
 	} else {
-		throw NotImplementedException("Array is not yet supported for list expression");
+		return make_uniq<OperatorExpression>(ExpressionType::ARRAY_CONSTRUCTOR, std::move(list_expr));
 	}
 }
 

@@ -4,7 +4,8 @@
 
 require autocomplete
 
-
+statement ok
+call check_peg_transformer($$select ARRAY['this is', 'an array'];$$);
 
 statement ok
 call check_peg_transformer($$SELECT revenue FROM foo WHERE l_discount BETWEEN 5 AND 7$$);
