@@ -5,6 +5,9 @@
 require autocomplete
 
 statement ok
+call check_peg_transformer($$select extract(year from d);$$);
+
+statement ok
 call check_peg_transformer($$select ARRAY['this is', 'an array'];$$);
 
 statement ok

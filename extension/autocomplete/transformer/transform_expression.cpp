@@ -143,86 +143,14 @@ PEGTransformerFactory::TransformParenthesisExpression(PEGTransformer &transforme
 
 unique_ptr<ParsedExpression> PEGTransformerFactory::TransformLiteralExpression(PEGTransformer &transformer,
                                                                                optional_ptr<ParseResult> parse_result) {
-	// Rule: StringLiteral / NumberLiteral / 'NULL'i / 'TRUE'i / 'FALSE'i
+	// Rule: StringLiteral / NumberLiteral / ConstantLiteral
 	auto &choice_result = parse_result->Cast<ListParseResult>();
 	auto &matched_rule_result = choice_result.Child<ChoiceParseResult>(0);
 
 	if (matched_rule_result.name == "StringLiteral") {
-		auto &literal_pr = matched_rule_result.result->Cast<StringLiteralParseResult>();
-		return make_uniq<ConstantExpression>(Value(literal_pr.result));
+		return make_uniq<ConstantExpression>(Value(transformer.Transform<string>(matched_rule_result.result)));
 	}
-	if (matched_rule_result.name == "NumberLiteral") {
-		auto &literal_pr = matched_rule_result.result->Cast<NumberParseResult>();
-		string_t str_val(literal_pr.number);
-		bool try_cast_as_integer = true;
-		bool try_cast_as_decimal = true;
-		optional_idx decimal_position = optional_idx::Invalid();
-		idx_t num_underscores = 0;
-		idx_t num_integer_underscores = 0;
-		for (idx_t i = 0; i < str_val.GetSize(); i++) {
-			if (literal_pr.number[i] == '.') {
-				// decimal point: cast as either decimal or double
-				try_cast_as_integer = false;
-				decimal_position = i;
-			}
-			if (literal_pr.number[i] == 'e' || literal_pr.number[i] == 'E') {
-				// found exponent, cast as double
-				try_cast_as_integer = false;
-				try_cast_as_decimal = false;
-			}
-			if (literal_pr.number[i] == '_') {
-				num_underscores++;
-				if (!decimal_position.IsValid()) {
-					num_integer_underscores++;
-				}
-			}
-		}
-		if (try_cast_as_integer) {
-			int64_t bigint_value;
-			// try to cast as bigint first
-			if (TryCast::Operation<string_t, int64_t>(str_val, bigint_value)) {
-				// successfully cast to bigint: bigint value
-				return make_uniq<ConstantExpression>(Value::BIGINT(bigint_value));
-			}
-			hugeint_t hugeint_value;
-			// if that is not successful; try to cast as hugeint
-			if (TryCast::Operation<string_t, hugeint_t>(str_val, hugeint_value)) {
-				// successfully cast to bigint: bigint value
-				return make_uniq<ConstantExpression>(Value::HUGEINT(hugeint_value));
-			}
-			uhugeint_t uhugeint_value;
-			// if that is not successful; try to cast as uhugeint
-			if (TryCast::Operation<string_t, uhugeint_t>(str_val, uhugeint_value)) {
-				// successfully cast to bigint: bigint value
-				return make_uniq<ConstantExpression>(Value::UHUGEINT(uhugeint_value));
-			}
-		}
-		idx_t decimal_offset = literal_pr.number[0] == '-' ? 3 : 2;
-		if (try_cast_as_decimal && decimal_position.IsValid() &&
-		    str_val.GetSize() - num_underscores < Decimal::MAX_WIDTH_DECIMAL + decimal_offset) {
-			// figure out the width/scale based on the decimal position
-			auto width = NumericCast<uint8_t>(str_val.GetSize() - 1 - num_underscores);
-			auto scale = NumericCast<uint8_t>(width - decimal_position.GetIndex() + num_integer_underscores);
-			if (literal_pr.number[0] == '-') {
-				width--;
-			}
-			if (width <= Decimal::MAX_WIDTH_DECIMAL) {
-				// we can cast the value as a decimal
-				Value val = Value(str_val);
-				val = val.DefaultCastAs(LogicalType::DECIMAL(width, scale));
-				return make_uniq<ConstantExpression>(std::move(val));
-			}
-		}
-		// if there is a decimal or the value is too big to cast as either hugeint or bigint
-		double dbl_value = Cast::Operation<string_t, double>(str_val);
-		return make_uniq<ConstantExpression>(Value::DOUBLE(dbl_value));
-	}
-	if (matched_rule_result.name == "ConstantLiteral") {
-		auto &list_pr = matched_rule_result.result->Cast<ListParseResult>();
-		auto &constant_literal = list_pr.Child<ChoiceParseResult>(0);
-		return make_uniq<ConstantExpression>(transformer.TransformEnum<Value>(constant_literal.result));
-	}
-	throw ParserException("Unrecognized literal type in TransformLiteralExpression");
+	return transformer.Transform<unique_ptr<ParsedExpression>>(matched_rule_result.result);
 }
 
 unique_ptr<ParsedExpression> PEGTransformerFactory::TransformColumnReference(PEGTransformer &transformer,
@@ -693,12 +621,12 @@ unique_ptr<ParsedExpression> PEGTransformerFactory::TransformExtractArgument(PEG
 	auto choice_pr = list_pr.Child<ChoiceParseResult>(0).result;
 	if (choice_pr->type == ParseResultType::IDENTIFIER) {
 		return make_uniq<ConstantExpression>(Value(choice_pr->Cast<IdentifierParseResult>().identifier));
-	} else if (choice_pr->type == ParseResultType::STRING) {
-		return make_uniq<ConstantExpression>(Value(choice_pr->Cast<StringLiteralParseResult>().result);
-	} else {
-		auto date_part = transformer.TransformEnum<DatePartSpecifier>(choice_pr);
-		return make_uniq<ConstantExpression>(DatePartSpecifierToString(date_part));
 	}
+	if (choice_pr->type == ParseResultType::STRING) {
+		return make_uniq<ConstantExpression>(Value(choice_pr->Cast<StringLiteralParseResult>().result));
+	}
+	auto date_part = transformer.TransformEnum<DatePartSpecifier>(choice_pr);
+	return make_uniq<ConstantExpression>(DatePartSpecifierToString(date_part));
 }
 
 unique_ptr<ParsedExpression> PEGTransformerFactory::TransformLambdaExpression(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {

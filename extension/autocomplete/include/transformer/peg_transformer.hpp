@@ -475,6 +475,9 @@ private:
 	static string TransformIdentifierOrStringLiteral(PEGTransformer &transformer,
 	                                                 optional_ptr<ParseResult> parse_result);
 	static string TransformIdentifier(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<ParsedExpression> TransformNumberLiteral(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<ParsedExpression> TransformConstantLiteral(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+
 
 	// Intermediate transforms returning semantic values
 	static unique_ptr<SQLStatement> TransformStandardAssignment(PEGTransformer &transformer,
