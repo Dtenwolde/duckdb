@@ -163,14 +163,14 @@ unique_ptr<Constraint> PEGTransformerFactory::TransformTopPrimaryKeyConstraint(P
 
 unique_ptr<Constraint> PEGTransformerFactory::TransformTopUniqueConstraint(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
 	auto &list_pr = parse_result->Cast<ListParseResult>();
-	auto column_list = transformer.Transform<vector<string>>(list_pr.Child<ListParseResult>(2));
+	auto column_list = transformer.Transform<vector<string>>(list_pr.Child<ListParseResult>(1));
 	auto result = make_uniq<UniqueConstraint>(column_list, false);
 	return result;
 }
 
 unique_ptr<Constraint> PEGTransformerFactory::TransformCheckConstraint(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
 	auto &list_pr = parse_result->Cast<ListParseResult>();
-	auto extract_parens = ExtractResultFromParens(list_pr.Child<ListParseResult>(0));
+	auto extract_parens = ExtractResultFromParens(list_pr.Child<ListParseResult>(1));
 	auto check_expr = transformer.Transform<unique_ptr<ParsedExpression>>(extract_parens);
 	auto result = make_uniq<CheckConstraint>(std::move(check_expr));
 	return result;

@@ -104,7 +104,13 @@ GenericCopyOption PEGTransformerFactory::TransformGenericCopyOption(PEGTransform
 		} else if (expression->GetExpressionType() == ExpressionType::PLACEHOLDER) {
 			auto &op_expr = expression->Cast<OperatorExpression>();
 			for (auto &child : op_expr.children) {
-				copy_option.children.push_back(Value(child->Cast<ColumnRefExpression>().GetColumnName()));
+				if (child->GetExpressionClass() == ExpressionClass::CONSTANT) {
+					copy_option.children.push_back(Value(child->Cast<ConstantExpression>().value));
+				} else if (child->GetExpressionClass() == ExpressionClass::COLUMN_REF) {
+					copy_option.children.push_back(Value(child->Cast<ColumnRefExpression>().GetColumnName()));
+				} else {
+					throw InternalException("Unexpected expression type %s encountered for GenericCopyOption", ExpressionClassToString(child->GetExpressionClass()));
+				}
 			}
 		} else {
 			throw NotImplementedException("Unrecognized expression type %s",

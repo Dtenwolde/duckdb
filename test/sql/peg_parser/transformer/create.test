@@ -5,72 +5,71 @@
 require autocomplete
 
 statement ok
+call check_peg_transformer($$CREATE TABLE album(artistid INTEGER, albumname TEXT, albumcover TEXT, UNIQUE (artistid, albumname));$$);
+
+statement ok
 call check_peg_transformer($$CREATE TABLE decs(i DEC(), j DEC)$$);
 
 statement ok
-call peg_parser();
+call check_peg_transformer($$create table time_table (j time, k timestamp, l timestamp(1), m timestamp(6), n time with time zone, o time without time zone);$$);
 
 statement ok
-create table time_table (j time, k timestamp, l timestamp(1), m timestamp(6), n time with time zone, o time without time zone);
+call check_peg_transformer($$create table i6 (j interval months);$$);
 
 statement ok
-create table i6 (j interval months);
+call check_peg_transformer($$create table bla (j bigint[])$$);
 
 statement ok
-create table bla (j bigint[])
+call check_peg_transformer($$create or replace table bla (j bigint[1])$$);
 
 statement ok
-create or replace table bla (j bigint[1])
-
-statement ok
-create or replace table bla (j bigint[][][][][][])
+call check_peg_transformer($$create or replace table bla (j bigint[][][][][][])$$);
 
 statement error
-create or replace table bla (j bigint[0])
+call check_peg_transformer($$create or replace table bla (j bigint[0])$$);
 ----
 Parser Error: Arrays must have a size of at least 1
 
-statement ok
-CREATE TABLE tbl1 (u UNION(num INTEGER, str VARCHAR));
 
 statement ok
-CREATE TABLE t1 (s STRUCT(v VARCHAR, i INTEGER));
+call check_peg_transformer($$CREATE TABLE tbl1 (u UNION(num INTEGER, str VARCHAR));$$);
+
+statement ok
+call check_peg_transformer($$CREATE TABLE t1 (s STRUCT(v VARCHAR, i INTEGER));$$);
 
 statement error
-CREATE TABLE tbl (col MAP(INTEGER));
+call check_peg_transformer($$CREATE TABLE tbl (col MAP(INTEGER));$$);
 ----
-Map type needs exactly two entries, key and value type.
+Parser Error: Map type needs exactly two entries, key and value type.
 
 statement error
-CREATE TABLE tbl (col MAP(INTEGER, INTEGER, INTEGER));
+call check_peg_transformer($$CREATE TABLE tbl (col MAP(INTEGER, INTEGER, INTEGER));$$);
 ----
-Map type needs exactly two entries, key and value type.
+Parser Error: Map type needs exactly two entries, key and value type.
 
 statement ok
-CREATE TABLE tbl (col MAP(INTEGER, DOUBLE));
+call check_peg_transformer($$CREATE TABLE tbl (col MAP(INTEGER, DOUBLE));$$);
 
 statement ok
-create table boo (i bit);
+call check_peg_transformer($$create table boo (i bit);$$);
 
 statement ok
-CREATE TABLE foo (i bigint);
+call check_peg_transformer($$CREATE TABLE foo (i bigint);$$);
 
 statement ok
-create table foo2 (i float(32));
+call check_peg_transformer($$create table foo2 (i float(32));$$);
 
 statement ok
-create table foo3 (i decimal(2,1));
+call check_peg_transformer($$create table foo3 (i decimal(2,1));$$);
 
 statement ok
-create table foo4 (i dec(2,1));
+call check_peg_transformer($$create table foo4 (i dec(2,1));$$);
 
 statement ok
-create table foo5 (i numeric(2,1));
+call check_peg_transformer($$create table foo5 (i numeric(2,1));$$);
 
 statement ok
-create table foo6 (constraint boo primary key (i), i varchar);
+call check_peg_transformer($$create table foo6 (constraint boo primary key (i), i varchar);$$);
 
-statement error
-create or replace table foo (constraint boo foreign key (i) references j(i), i varchar);
-----
-Catalog Error: Table with name j does not exist!
+statement ok
+call check_peg_transformer($$create or replace table foo (constraint boo foreign key (i) references j(i), i varchar);$$);

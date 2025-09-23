@@ -4,49 +4,29 @@
 
 require autocomplete
 
-require tpch
+statement ok
+call check_peg_transformer($$COPY (FROM test) TO '__TEST_DIR__/data.csv.d' (FORMAT 'csv', COMPRESSION 'gzip', PARTITION_BY ('col0', 'col1'));$$);
 
 statement ok
-call peg_parser();
+call check_peg_transformer($$COPY FROM DATABASE encrypted_v2 TO unencrypted_v_1_2_0;$$);
 
-statement error
-COPY FROM DATABASE encrypted_v2 TO unencrypted_v_1_2_0;
-----
-Binder Error: Catalog "encrypted_v2" does not exist!
+statement ok
+call check_peg_transformer($$COPY FROM DATABASE encrypted_v2 TO unencrypted_v_1_2_0 (DATA);$$);
 
-statement error
-COPY FROM DATABASE encrypted_v2 TO unencrypted_v_1_2_0 (DATA);
-----
-Binder Error: Catalog "encrypted_v2" does not exist!
+statement ok
+call check_peg_transformer($$COPY FROM DATABASE encrypted_v2 TO unencrypted_v_1_2_0 (SCHEMA);$$);
 
-statement error
-COPY FROM DATABASE encrypted_v2 TO unencrypted_v_1_2_0 (SCHEMA);
-----
-Binder Error: Catalog "encrypted_v2" does not exist!
+statement ok
+call check_peg_transformer($$copy 'bla' to 'bla' binary;$$);
 
+statement ok
+call check_peg_transformer($$COPY lineitem to 's3://test-bucket/tpch-sf0_01/lineitem.parquet';$$);
 
-statement error
-copy 'bla' to 'bla' binary;
-----
-Catalog Error: Copy Function with name binary does not exist!
+statement ok
+call check_peg_transformer($$COPY lineitem TO lineitem.csv;$$);
 
-statement error
-COPY lineitem to 's3://test-bucket/tpch-sf0_01/lineitem.parquet';
-----
-Catalog Error: Table with name lineitem does not exist!
+statement ok
+call check_peg_transformer($$COPY lineitem (l_orderkey, l_partkey) TO lineitem.csv;$$);
 
-statement error
-COPY lineitem TO lineitem.csv;
-----
-Catalog Error: Table with name lineitem does not exist!
-
-statement error
-COPY lineitem (l_orderkey, l_partkey) TO lineitem.csv;
-----
-Catalog Error: Table with name lineitem does not exist!
-
-statement error
-copy 'bla' to 'bla' (format parquet, partition_by(season,director,aired));
-----
-Catalog Error: Table with name 'bla' does not exist!
-
+statement ok
+call check_peg_transformer($$copy 'bla' to 'bla' (format parquet, partition_by(season,director,aired));$$);
