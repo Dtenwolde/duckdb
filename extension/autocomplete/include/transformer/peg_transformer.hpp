@@ -510,6 +510,13 @@ private:
 	static unique_ptr<ParsedExpression> TransformIntervalParameter(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static unique_ptr<ParsedExpression> TransformParensExpression(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 
+	static unique_ptr<ParsedExpression> TransformIndirection(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<ParsedExpression> TransformCastOperator(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<ParsedExpression> TransformDotOperator(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<ParsedExpression> TransformSliceExpression(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static vector<unique_ptr<ParsedExpression>> TransformSliceBound(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<ParsedExpression> TransformNotNull(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
+	static unique_ptr<ParsedExpression> TransformPostfixOperator(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 
 
 	static unique_ptr<ParsedExpression> TransformLiteralExpression(PEGTransformer &transformer,

@@ -94,9 +94,70 @@ PEGTransformerFactory::TransformRecursiveExpression(PEGTransformer &transformer,
 unique_ptr<ParsedExpression> PEGTransformerFactory::TransformBaseExpression(PEGTransformer &transformer,
                                                                             optional_ptr<ParseResult> parse_result) {
 	auto &list_pr = parse_result->Cast<ListParseResult>();
-	auto &single_expr_pr = list_pr.children[0];
+	auto expr = transformer.Transform<unique_ptr<ParsedExpression>>(list_pr.Child<ListParseResult>(0));
+	auto indirection_opt = list_pr.Child<OptionalParseResult>(1);
+	if (indirection_opt.HasResult()) {
+		auto indirection_repeat = indirection_opt.optional_result->Cast<RepeatParseResult>();
+		for (auto child : indirection_repeat.children) {
+			auto indirection_expr = transformer.Transform<unique_ptr<ParsedExpression>>(child);
+			if (indirection_expr->GetExpressionClass() == ExpressionClass::CAST) {
+				auto cast_expr = unique_ptr_cast<ParsedExpression, CastExpression>(std::move(indirection_expr));
+				cast_expr->child = std::move(expr);
+				expr = std::move(cast_expr);
+			} else if (indirection_expr->GetExpressionClass() == ExpressionClass::OPERATOR) {
+				auto operator_expr = unique_ptr_cast<ParsedExpression, OperatorExpression>(std::move(indirection_expr));
+				operator_expr->children.push_back(std::move(expr));
+				expr = std::move(operator_expr);
+			} else if (indirection_expr->GetExpressionClass() == ExpressionClass::FUNCTION) {
+				auto function_expr = unique_ptr_cast<ParsedExpression, FunctionExpression>(std::move(indirection_expr));
+				function_expr->children.push_back(std::move(expr));
+				expr = std::move(function_expr);
+			}
+		}
+	}
 
-	return transformer.Transform<unique_ptr<ParsedExpression>>(single_expr_pr);
+	return expr;
+}
+
+unique_ptr<ParsedExpression> PEGTransformerFactory::TransformIndirection(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	return transformer.Transform<unique_ptr<ParsedExpression>>(list_pr.Child<ChoiceParseResult>(0).result);
+}
+
+unique_ptr<ParsedExpression> PEGTransformerFactory::TransformCastOperator(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	auto type = transformer.Transform<LogicalType>(list_pr.Child<ListParseResult>(1));
+	// We input a dummy constant expression but replace this later with the real expression that precedes this post-fix castOperator
+	return make_uniq<CastExpression>(type, make_uniq<ConstantExpression>(Value()));
+}
+
+unique_ptr<ParsedExpression> PEGTransformerFactory::TransformDotOperator(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	throw NotImplementedException("Rule 'DotOperator' has not been implemented yet");
+}
+
+unique_ptr<ParsedExpression> PEGTransformerFactory::TransformSliceExpression(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	auto slice_bound = transformer.Transform<vector<unique_ptr<ParsedExpression>>>(list_pr.Child<ListParseResult>(1));
+	// return make_uniq<OperatorExpression>(ExpressionType::ARRAY_SLICE)
+}
+
+vector<unique_ptr<ParsedExpression>> PEGTransformerFactory::TransformSliceBound(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	vector<unique_ptr<ParsedExpression>> slice_bounds;
+	auto first_slice_opt = list_pr.Child<OptionalParseResult>(0);
+	// TODO(Dtenwolde) Continue here
+
+}
+
+unique_ptr<ParsedExpression> PEGTransformerFactory::TransformNotNull(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	return make_uniq<OperatorExpression>(ExpressionType::OPERATOR_IS_NOT_NULL, nullptr);
+}
+
+unique_ptr<ParsedExpression> PEGTransformerFactory::TransformPostfixOperator(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	// Factorial
+	vector<unique_ptr<ParsedExpression>> expr_children;
+	return make_uniq<FunctionExpression>("factorial", std::move(expr_children));
 }
 
 unique_ptr<ParsedExpression> PEGTransformerFactory::TransformSingleExpression(PEGTransformer &transformer,

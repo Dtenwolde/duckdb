@@ -355,6 +355,13 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	REGISTER_TRANSFORM(TransformIntervalParameter);
 	REGISTER_TRANSFORM(TransformParensExpression);
 
+	REGISTER_TRANSFORM(TransformIndirection);
+	REGISTER_TRANSFORM(TransformCastOperator);
+	REGISTER_TRANSFORM(TransformDotOperator);
+	REGISTER_TRANSFORM(TransformSliceExpression);
+	REGISTER_TRANSFORM(TransformSliceBound);
+	REGISTER_TRANSFORM(TransformNotNull);
+	REGISTER_TRANSFORM(TransformPostfixOperator);
 
 	REGISTER_TRANSFORM(TransformParameter);
 	REGISTER_TRANSFORM(TransformQuestionMarkParameter);
