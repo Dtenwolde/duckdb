@@ -681,7 +681,24 @@ unique_ptr<ParsedExpression> PEGTransformerFactory::TransformColumnsExpression(P
 
 unique_ptr<ParsedExpression> PEGTransformerFactory::TransformExtractExpression(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
 	auto &list_pr = parse_result->Cast<ListParseResult>();
-	throw NotImplementedException("Extract not implemented");
+	auto extract_expressions = ExtractResultFromParens(list_pr.Child<ListParseResult>(1))->Cast<ListParseResult>();
+	vector<unique_ptr<ParsedExpression>> expr_children;
+	expr_children.push_back(transformer.Transform<unique_ptr<ParsedExpression>>(extract_expressions.Child<ListParseResult>(0)));
+	expr_children.push_back(transformer.Transform<unique_ptr<ParsedExpression>>(extract_expressions.Child<ListParseResult>(2)));
+	return make_uniq<FunctionExpression>(INVALID_CATALOG, "main", "date_part", std::move(expr_children));
+}
+
+unique_ptr<ParsedExpression> PEGTransformerFactory::TransformExtractArgument(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	auto choice_pr = list_pr.Child<ChoiceParseResult>(0).result;
+	if (choice_pr->type == ParseResultType::IDENTIFIER) {
+		return make_uniq<ConstantExpression>(Value(choice_pr->Cast<IdentifierParseResult>().identifier));
+	} else if (choice_pr->type == ParseResultType::STRING) {
+		return make_uniq<ConstantExpression>(Value(choice_pr->Cast<StringLiteralParseResult>().result);
+	} else {
+		auto date_part = transformer.TransformEnum<DatePartSpecifier>(choice_pr);
+		return make_uniq<ConstantExpression>(DatePartSpecifierToString(date_part));
+	}
 }
 
 unique_ptr<ParsedExpression> PEGTransformerFactory::TransformLambdaExpression(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {

@@ -372,6 +372,7 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	REGISTER_TRANSFORM(TransformUnpackExpression);
 	REGISTER_TRANSFORM(TransformColumnsExpression);
 	REGISTER_TRANSFORM(TransformExtractExpression);
+	REGISTER_TRANSFORM(TransformExtractArgument);
 	REGISTER_TRANSFORM(TransformLambdaExpression);
 	REGISTER_TRANSFORM(TransformLambdaOperator);
 	REGISTER_TRANSFORM(TransformNullIfExpression);
@@ -560,6 +561,17 @@ PEGTransformerFactory::PEGTransformerFactory() {
 
 	RegisterEnum<DatePartSpecifier>("YearKeyword", DatePartSpecifier::YEAR);
 	RegisterEnum<DatePartSpecifier>("MonthKeyword", DatePartSpecifier::MONTH);
+	RegisterEnum<DatePartSpecifier>("DayKeyword", DatePartSpecifier::DAY);
+	RegisterEnum<DatePartSpecifier>("HourKeyword", DatePartSpecifier::HOUR);
+	RegisterEnum<DatePartSpecifier>("MinuteKeyword", DatePartSpecifier::MINUTE);
+	RegisterEnum<DatePartSpecifier>("SecondKeyword", DatePartSpecifier::SECOND);
+	RegisterEnum<DatePartSpecifier>("MillisecondKeyword", DatePartSpecifier::MILLISECONDS);
+	RegisterEnum<DatePartSpecifier>("MicrosecondKeyword", DatePartSpecifier::MICROSECONDS);
+	RegisterEnum<DatePartSpecifier>("WeekKeyword", DatePartSpecifier::WEEK);
+	RegisterEnum<DatePartSpecifier>("QuarterKeyword", DatePartSpecifier::QUARTER);
+	RegisterEnum<DatePartSpecifier>("DecadeKeyword", DatePartSpecifier::DECADE);
+	RegisterEnum<DatePartSpecifier>("CenturyKeyword", DatePartSpecifier::CENTURY);
+	RegisterEnum<DatePartSpecifier>("MilleniumKeyword", DatePartSpecifier::MILLENNIUM);
 
 	RegisterEnum<LogicalTypeId>("TimeTypeId", LogicalTypeId::TIME);
 	RegisterEnum<LogicalTypeId>("TimestampTypeId", LogicalTypeId::TIMESTAMP);
