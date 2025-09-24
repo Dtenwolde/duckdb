@@ -147,6 +147,7 @@ vector<unique_ptr<ParsedExpression>> PEGTransformerFactory::TransformSliceBound(
 	vector<unique_ptr<ParsedExpression>> slice_bounds;
 	auto first_slice_opt = list_pr.Child<OptionalParseResult>(0);
 	// TODO(Dtenwolde) Continue here
+	throw NotImplementedException("Rule 'SliceBound' has not been implemented");
 
 }
 
