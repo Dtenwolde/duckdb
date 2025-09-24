@@ -54,3 +54,12 @@ call check_peg_transformer($$SELECT ([1,2,3,4,5,6])[-9223372036854775808:5];$$);
 
 statement ok
 call check_peg_transformer($$FROM foo SELECT salary, max(salary) GROUP BY salary;$$);
+
+statement ok
+call peg_parser()
+
+query III
+SELECT a, b, COUNT(*) FROM test GROUP BY a, b ORDER BY a, b;
+----
+11      30      138345
+13      22      138345

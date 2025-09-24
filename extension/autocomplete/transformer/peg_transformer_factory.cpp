@@ -360,6 +360,9 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	REGISTER_TRANSFORM(TransformDotOperator);
 	REGISTER_TRANSFORM(TransformSliceExpression);
 	REGISTER_TRANSFORM(TransformSliceBound);
+	REGISTER_TRANSFORM(TransformEndSliceBound);
+	REGISTER_TRANSFORM(TransformStepSliceBOund);
+
 	REGISTER_TRANSFORM(TransformNotNull);
 	REGISTER_TRANSFORM(TransformPostfixOperator);
 

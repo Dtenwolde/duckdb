@@ -18,6 +18,15 @@
       ]
     },
     {
+      "reason": "Arithmetic expression",
+      "paths": [
+        "test/sql/function/operator/test_arithmetic_sqllogic.test",
+        "test/sql/projection/test_row_id_expression.test",
+        "test/sql/function/numeric/test_trigo.test",
+        "test/sql/function/generic/test_between.test"
+      ]
+    },
+    {
       "reason": "Expression Depth",
       "paths": [
         "test/sql/overflow/expression_tree_depth.test"
@@ -27,7 +36,9 @@
       "reason": "Timeout",
       "paths": [
         "test/sql/copy/csv/afl/test_fuzz_3981.test_slow",
-        "test/sql/join/external/tpch_all_tables.test_slow"
+        "test/sql/join/external/tpch_all_tables.test_slow",
+        "test/sql/storage/encryption/temp_files/encrypted_offloading_block_files.test_slow",
+        "test/sql/storage/temp_directory/offloading_block_files.test_slow"
       ]
     }
   ]

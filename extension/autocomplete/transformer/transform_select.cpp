@@ -610,6 +610,11 @@ vector<unique_ptr<ResultModifier>> PEGTransformerFactory::TransformResultModifie
 	vector<unique_ptr<ResultModifier>> result;
 	vector<OrderByNode> order_by;
 	transformer.TransformOptional<vector<OrderByNode>>(list_pr, 0, order_by);
+	if (!order_by.empty()) {
+		auto order_modifier = make_uniq<OrderModifier>();
+		order_modifier->orders = std::move(order_by);
+		result.push_back(std::move(order_modifier));
+	}
 	unique_ptr<ResultModifier> limit_offset;
 	transformer.TransformOptional<unique_ptr<ResultModifier>>(list_pr, 1, limit_offset);
 	if (limit_offset) {
