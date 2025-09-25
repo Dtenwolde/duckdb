@@ -5,6 +5,9 @@
 require autocomplete
 
 statement ok
+call check_peg_transformer($$FROM iceberg_scan(my_datalake.default.pyspark_iceberg_table_v1)$$);
+
+statement ok
 call check_peg_transformer($$select extract(year from d);$$);
 
 statement ok

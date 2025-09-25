@@ -79,6 +79,7 @@ PEGTransformerFactory::TransformRecursiveExpression(PEGTransformer &transformer,
 		auto compare_expr = unique_ptr_cast<ParsedExpression, ComparisonExpression>(std::move(right_expr));
 		return make_uniq<BetweenExpression>(nullptr, std::move(compare_expr->left), std::move(compare_expr->right));
 	}
+
 	if (operator_expr == ExpressionType::COMPARE_NOT_BETWEEN) {
 		throw NotImplementedException("Not between operator not implemented");
 	}
@@ -113,6 +114,16 @@ unique_ptr<ParsedExpression> PEGTransformerFactory::TransformBaseExpression(PEGT
 				function_expr->children.push_back(std::move(expr));
 				expr = std::move(function_expr);
 			}
+			// else if (indirection_expr->GetExpressionClass() == ExpressionClass::CONSTANT) {
+			// 	auto const_expr = unique_ptr_cast<ParsedExpression, ConstantExpression>(std::move(indirection_expr));
+			// 	if (expr->GetExpressionClass() == ExpressionClass::COLUMN_REF) {
+			// 		auto col_ref = unique_ptr_cast<ParsedExpression, ColumnRefExpression>(std::move(expr));
+			// 		col_ref->column_names.push_back(const_expr->value.GetValue<string>());
+			// 		expr = std::move(col_ref);
+			// 	} else {
+			// 		throw NotImplementedException("Indirection expression unable to be appended to previous expression type %s", ExpressionClassToString(expr->GetExpressionClass()));
+			// 	}
+			// }
 		}
 	}
 
@@ -133,7 +144,17 @@ unique_ptr<ParsedExpression> PEGTransformerFactory::TransformCastOperator(PEGTra
 
 unique_ptr<ParsedExpression> PEGTransformerFactory::TransformDotOperator(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
 	auto &list_pr = parse_result->Cast<ListParseResult>();
-	throw NotImplementedException("Rule 'DotOperator' has not been implemented yet");
+	auto nested_list = list_pr.Child<ListParseResult>(1);
+	auto choice_pr = nested_list.Child<ChoiceParseResult>(0);
+	if (choice_pr.name == "ColLabel") {
+		return make_uniq<ConstantExpression>(transformer.Transform<string>(choice_pr.result));
+	}
+	if (choice_pr.name == "FunctionExpression") {
+		throw NotImplementedException("Not implemented FunctionExpression in DotOperator");
+		// return transformer.Transform<unique_ptr<ParsedExpression>>(choice_pr.result);
+	}
+	throw InternalException("Unexpected rule encountered in 'DotOperator'");
+
 }
 
 unique_ptr<ParsedExpression> PEGTransformerFactory::TransformSliceExpression(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result) {
