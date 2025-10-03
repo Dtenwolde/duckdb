@@ -17,7 +17,8 @@ enum class PEGTokenType {
 	REFERENCE,     // reference token (Rule)
 	OPERATOR,      // operator token (/ or )
 	FUNCTION_CALL, // start of function call (i.e. Function(...))
-	REGEX          // regular expression ([ \t\n\r] or <[a-z_]i[a-z0-9_]i>)
+	REGEX,          // regular expression ([ \t\n\r] or <[a-z_]i[a-z0-9_]i>)
+	ACTION_BLOCK	// Used for { Error message }
 };
 
 struct PEGToken {

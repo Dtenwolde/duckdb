@@ -1,5 +1,7 @@
 #include "parser/peg_parser.hpp"
 
+#include "duckdb/common/printer.hpp"
+
 namespace duckdb {
 
 void PEGParser::AddRule(string_t rule_name, PEGRule rule) {
@@ -29,6 +31,7 @@ void PEGParser::ParseRules(const char *grammar) {
 		if (parse_state == PEGParseState::RULE_DEFINITION && StringUtil::CharacterIsNewline(grammar[c]) &&
 		    bracket_count == 0 && !in_or_clause && !rule.tokens.empty()) {
 			// if we see a newline while we are parsing a rule definition we can complete the rule
+			Printer::PrintF("Added rule %s", rule_name.GetString());
 			AddRule(rule_name, std::move(rule));
 			rule_name = string_t();
 			rule.Clear();
@@ -57,6 +60,7 @@ void PEGParser::ParseRules(const char *grammar) {
 				throw InternalException("Failed to parse grammar - expected an alpha-numeric rule name (pos %d)", c);
 			}
 			rule_name = string_t(grammar + start_pos, c - start_pos);
+			Printer::PrintF("Found rule %s", rule_name.GetString());
 			rule.Clear();
 			parse_state = PEGParseState::RULE_SEPARATOR;
 			break;
@@ -150,6 +154,31 @@ void PEGParser::ParseRules(const char *grammar) {
 				token.text = string_t(grammar + rule_start, c - rule_start);
 				token.type = PEGTokenType::REGEX;
 				rule.tokens.push_back(token);
+			} else if (grammar[c] == '{') {
+				c++;
+				while (grammar[c] && StringUtil::CharacterIsSpace(grammar[c])) {
+					c++;
+				}
+				idx_t block_start = c;
+				while (grammar[c]) {
+					if (grammar[c] == '{') {
+						throw InternalException("Nested action blocks are not supported.");
+					}
+					if (grammar[c] == '}') {
+						break;
+					}
+					c++;
+				}
+				idx_t block_end = c;
+				// Skip any whitespace at the end of the action block
+				while (block_end > block_start && StringUtil::CharacterIsSpace(grammar[block_end - 1])) {
+					block_end--;
+				}
+				PEGToken token;
+				token.text = string(grammar + block_start, block_end - block_start);
+				token.type = PEGTokenType::ACTION_BLOCK;
+				rule.tokens.push_back(token);
+				c++; // Skip closing '}'
 			} else if (IsPEGOperator(grammar[c])) {
 				if (grammar[c] == '(') {
 					bracket_count++;
@@ -189,6 +218,7 @@ void PEGParser::ParseRules(const char *grammar) {
 		}
 		AddRule(rule_name, std::move(rule));
 	}
+	Printer::Print("Finished parsing all rules");
 }
 
 } // namespace duckdb

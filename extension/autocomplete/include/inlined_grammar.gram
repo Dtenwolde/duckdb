@@ -1342,9 +1342,8 @@ AttachOptions <- Parens(GenericCopyOptionList)
 
 DetachStatement <- 'DETACH' Database? IfExists? CatalogName
 
-UseStatement <- 'USE' UseTarget
-
+UseStatement <- 'USE' (InvalidUseTargetWithError / UseTarget)
+InvalidUseTargetWithError <- CatalogName '.' SchemaName ('.' Identifier)* { "Expected "USE database" or "USE database.schema"" }
 UseTarget <- (CatalogName '.' ReservedSchemaName) / SchemaName / CatalogName
-
 CallStatement <- 'CALL' TableFunctionName TableFunctionArguments
 

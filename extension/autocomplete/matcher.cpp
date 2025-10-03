@@ -151,6 +151,9 @@ public:
 			if (!child_result) {
 				return nullptr;
 			}
+			if (child_result->type == ParseResultType::ERROR) {
+				return child_result;
+			}
 			results.push_back(std::move(child_result));
 		}
 		state.token_index = list_state.token_index;
@@ -196,6 +199,9 @@ public:
 	MatchResultType Match(MatchState &state) const override {
 		MatchState child_state(state);
 		auto child_match = matcher.Match(child_state);
+		if (child_match == MatchResultType::ERROR) {
+			return MatchResultType::ERROR;
+		}
 		if (child_match == MatchResultType::FAIL) {
 			// did not succeed in matching - go back up (but return success anyway)
 			return MatchResultType::SUCCESS;
@@ -208,6 +214,9 @@ public:
 	optional_ptr<ParseResult> MatchParseResult(MatchState &state) const override {
 		MatchState child_state(state);
 		auto child_match = matcher.MatchParseResult(child_state);
+		if (child_match != nullptr && child_match->type == ParseResultType::ERROR) {
+			return child_match;
+		}
 		if (child_match == nullptr) {
 			// did not succeed in matching - go back up (simply return a nullptr)
 			return state.allocator.Allocate(make_uniq<OptionalParseResult>());
@@ -259,6 +268,9 @@ public:
 			auto child_result = matchers[i].get().MatchParseResult(choice_state);
 			if (child_result != nullptr) {
 				// we matched this child - propagate upwards
+				if (child_result->type == ParseResultType::ERROR) {
+					return child_result;
+				}
 				state.token_index = choice_state.token_index;
 				auto result = state.allocator.Allocate(make_uniq<ChoiceParseResult>(child_result, i));
 				return result;
@@ -321,11 +333,16 @@ public:
 
 			// now match the element again
 			child_match = element.Match(repeat_state);
-			if (child_match != MatchResultType::SUCCESS) {
-				// if we did not succeed we are done matching
-				return MatchResultType::SUCCESS;
+			if (child_match == MatchResultType::ERROR) {
+				// HARD FAIL: An error occurred in a subsequent match. Propagate it.
+				return MatchResultType::ERROR;
+			}
+			if (child_match == MatchResultType::FAIL) {
+				// SOFT FAIL: This is the normal end of the repetition. Break the loop.
+				break;
 			}
 		}
+		return MatchResultType::SUCCESS;
 	}
 
 	optional_ptr<ParseResult> MatchParseResult(MatchState &state) const override {
@@ -337,6 +354,10 @@ public:
 		if (!first_result) {
 			// The first match failed, so the whole repeat fails.
 			return nullptr;
+		}
+		if (first_result->type == ParseResultType::ERROR) {
+			// The first match was a HARD FAIL, so the whole repeat fails hard.
+			return first_result;
 		}
 		results.push_back(first_result);
 
@@ -355,6 +376,9 @@ public:
 			auto next_result = element.MatchParseResult(repeat_state);
 			if (!next_result) {
 				break;
+			}
+			if (next_result->type == ParseResultType::ERROR) {
+				return next_result;
 			}
 			results.push_back(next_result);
 		}
@@ -375,6 +399,50 @@ public:
 private:
 	Matcher &element;
 };
+
+class NegateMatcher : public Matcher {
+public:
+	static constexpr MatcherType TYPE = MatcherType::NEGATE;
+
+public:
+	explicit NegateMatcher(Matcher &matcher_p) : Matcher(TYPE), matcher(matcher_p) {
+	}
+
+	MatchResultType Match(MatchState &state) const override {
+		MatchState child_state(state);
+		auto child_match = matcher.Match(child_state);
+		if (child_match != MatchResultType::SUCCESS) {
+			// The child succeeded, therefore the negate matcher failed.
+			return MatchResultType::FAIL;
+		}
+		// The child failed, therefore the negate matcher succeeded
+		return MatchResultType::SUCCESS;
+	}
+
+	optional_ptr<ParseResult> MatchParseResult(MatchState &state) const override {
+		MatchState child_state(state);
+		auto child_match = matcher.MatchParseResult(child_state);
+		if (child_match != nullptr) {
+			// did not succeed in matching - go back up (simply return a nullptr)
+			return nullptr;
+		}
+		// propagate the child state upwards
+		return state.allocator.Allocate(make_uniq<NegateParseResult>());
+	}
+
+	SuggestionType AddSuggestionInternal(MatchState &state) const override {
+		matcher.AddSuggestion(state);
+		return SuggestionType::OPTIONAL;
+	}
+
+	string ToString() const override {
+		return "!" + matcher.GetName();
+	}
+
+private:
+	Matcher &matcher;
+};
+
 
 class IdentifierMatcher : public Matcher {
 public:
@@ -715,6 +783,36 @@ private:
 	}
 };
 
+class ErrorMatcher : public Matcher {
+public:
+	static constexpr MatcherType TYPE = MatcherType::ERROR;
+
+public:
+	explicit ErrorMatcher(const string &error_message_p) : Matcher(TYPE), error_message(error_message_p) {
+	}
+	string error_message;
+
+	string ToString() const override {
+		return "ERROR";
+	}
+
+	MatchResultType Match(MatchState &state) const override {
+		return MatchResultType::ERROR;
+	}
+
+	optional_ptr<ParseResult> MatchParseResult(MatchState &state) const override {
+		return state.allocator.Allocate(make_uniq<ErrorParseResult>(error_message));
+	}
+
+	SuggestionType AddSuggestionInternal(MatchState &state) const override {
+		return SuggestionType::OPTIONAL;
+	}
+private:
+	static bool MatchError(MatchState &state) {
+		return true;
+	}
+};
+
 Matcher &MatcherAllocator::Allocate(unique_ptr<Matcher> matcher) {
 	auto &result = *matcher;
 	matchers.push_back(std::move(matcher));
@@ -745,6 +843,8 @@ private:
 	Matcher &List(vector<reference<Matcher>> matchers) const;
 	Matcher &Choice(vector<reference<Matcher>> matchers) const;
 	Matcher &Optional(Matcher &matcher) const;
+	Matcher &Negate(Matcher &matcher) const;
+	Matcher &Error(const string &error_message) const;
 	Matcher &Repeat(Matcher &matcher) const;
 	Matcher &Variable() const;
 	Matcher &CatalogName() const;
@@ -802,6 +902,14 @@ Matcher &MatcherFactory::Optional(Matcher &matcher) const {
 
 Matcher &MatcherFactory::Repeat(Matcher &matcher) const {
 	return allocator.Allocate(make_uniq<RepeatMatcher>(matcher));
+}
+
+Matcher &MatcherFactory::Negate(Matcher &matcher) const {
+	return allocator.Allocate(make_uniq<NegateMatcher>(matcher));
+}
+
+Matcher &MatcherFactory::Error(const string &error_message) const {
+	return allocator.Allocate(make_uniq<ErrorMatcher>(error_message));
 }
 
 Matcher &MatcherFactory::Variable() const {
@@ -896,11 +1004,17 @@ public:
 	}
 
 	void AddMatcher(Matcher &matcher) {
+		reference<Matcher> matcher_to_add = matcher;
+		if (negate_next_matcher) {
+			matcher_to_add = factory.Negate(matcher);
+			negate_next_matcher = false;
+		}
+
 		auto &root_matcher = matchers.back().matcher;
 		switch (root_matcher.Type()) {
 		case MatcherType::LIST: {
 			auto &root_list = root_matcher.Cast<ListMatcher>();
-			root_list.matchers.push_back(matcher);
+			root_list.matchers.push_back(matcher_to_add);
 			break;
 		}
 		case MatcherType::CHOICE:
@@ -908,12 +1022,15 @@ public:
 			if (matchers.size() <= 1) {
 				throw InternalException("Choice matcher should never be the root in the matcher stack");
 			}
-			root_matcher.Cast<ChoiceMatcher>().matchers.push_back(matcher);
+			root_matcher.Cast<ChoiceMatcher>().matchers.push_back(matcher_to_add);
 			matchers.pop_back();
 			break;
 		default:
 			throw InternalException("Cannot add matcher to root matcher of this type");
 		}
+	}
+	void NegateNext() {
+		negate_next_matcher = true;
 	}
 	void AddRootMatcher(Matcher &matcher) {
 		matchers.emplace_back(matcher);
@@ -963,6 +1080,7 @@ private:
 	PEGParser &parser;
 	MatcherFactory &factory;
 	vector<MatcherListEntry> matchers;
+	bool negate_next_matcher = false;
 };
 
 Matcher &MatcherFactory::CreateMatcher(PEGParser &parser, string_t rule_name, vector<reference<Matcher>> &parameters) {
@@ -1020,6 +1138,18 @@ Matcher &MatcherFactory::CreateMatcher(PEGParser &parser, string_t rule_name, ve
 		case PEGTokenType::FUNCTION_CALL: {
 			// function call - get the name of the function
 			list.BeginFunction(token.text);
+			break;
+		}
+		case PEGTokenType::ACTION_BLOCK: {
+			string error_text = token.text.GetString();
+			size_t start = error_text.find_first_not_of(" \t\n\r");
+			size_t end = error_text.find_last_not_of(" \t\n\r");
+			if (start == string::npos || error_text[start] != '"' || error_text[end] != '"') {
+				throw InternalException("Action block in rule '%s' must contain a single quoted string.", rule_name.GetString());
+			}
+			string error_message = error_text.substr(start + 1, end - start - 1);
+			Printer::Print(error_message);
+			list.AddMatcher(Error(error_message));
 			break;
 		}
 		case PEGTokenType::OPERATOR: {
@@ -1081,9 +1211,7 @@ Matcher &MatcherFactory::CreateMatcher(PEGParser &parser, string_t rule_name, ve
 				break;
 			}
 			case '!': {
-				// throw InternalException("NOT operator not supported in PEG grammar (found in rule %s)",
-				// rule_name.GetString());
-				// FIXME: we just ignore NOT operators here
+				list.NegateNext();
 				break;
 			}
 			default:

@@ -67,7 +67,7 @@ struct AutoCompleteSuggestion {
 	idx_t pos;
 };
 
-enum class MatchResultType { SUCCESS, FAIL };
+enum class MatchResultType { SUCCESS, FAIL, ERROR };
 
 enum class SuggestionType { OPTIONAL, MANDATORY };
 
@@ -115,7 +115,7 @@ struct MatchState {
 	void AddSuggestion(MatcherSuggestion suggestion);
 };
 
-enum class MatcherType { KEYWORD, LIST, OPTIONAL, CHOICE, REPEAT, VARIABLE, STRING_LITERAL, NUMBER_LITERAL, OPERATOR };
+enum class MatcherType { KEYWORD, LIST, OPTIONAL, CHOICE, REPEAT, NEGATE, VARIABLE, STRING_LITERAL, NUMBER_LITERAL, OPERATOR, ERROR };
 
 class Matcher {
 public:
