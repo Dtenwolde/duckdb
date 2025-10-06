@@ -23,7 +23,7 @@ enum class PEGTokenType {
 
 struct PEGToken {
 	PEGTokenType type;
-	string_t text;
+	string text;
 };
 
 struct PEGRule {

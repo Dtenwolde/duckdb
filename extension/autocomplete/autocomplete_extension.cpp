@@ -700,7 +700,7 @@ public:
 
 		vector<unique_ptr<SQLStatement>> result;
 		try {
-			for (auto tokenized_statement : tokenizer.statements) {
+			for (const auto& tokenized_statement : tokenizer.statements) {
 				if (tokenized_statement.empty()) {
 					continue;
 				}
@@ -710,7 +710,7 @@ public:
 			}
 			return ParserOverrideResult(std::move(result));
 		} catch (const ParserException &) {
-			return ParserOverrideResult();
+			throw;
 		}
 	}
 };

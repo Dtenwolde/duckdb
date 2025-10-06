@@ -115,7 +115,7 @@ void PEGParser::ParseRules(const char *grammar) {
 					throw InternalException("Failed to parse grammar - did not find closing ' (pos %d)", c);
 				}
 				PEGToken token;
-				token.text = string_t(grammar + literal_start, c - literal_start);
+				token.text = string(grammar + literal_start, c - literal_start);
 				token.type = PEGTokenType::LITERAL;
 				rule.tokens.push_back(token);
 				c++;
@@ -126,7 +126,7 @@ void PEGParser::ParseRules(const char *grammar) {
 					c++;
 				}
 				PEGToken token;
-				token.text = string_t(grammar + rule_start, c - rule_start);
+				token.text = string(grammar + rule_start, c - rule_start);
 				if (grammar[c] == '(') {
 					// this is a function call
 					c++;
@@ -151,7 +151,7 @@ void PEGParser::ParseRules(const char *grammar) {
 				}
 				c++;
 				PEGToken token;
-				token.text = string_t(grammar + rule_start, c - rule_start);
+				token.text = string(grammar + rule_start, c - rule_start);
 				token.type = PEGTokenType::REGEX;
 				rule.tokens.push_back(token);
 			} else if (grammar[c] == '{') {
@@ -193,7 +193,7 @@ void PEGParser::ParseRules(const char *grammar) {
 				}
 				// operator - operators are always length 1
 				PEGToken token;
-				token.text = string_t(grammar + c, 1);
+				token.text = string(grammar + c, 1);
 				token.type = PEGTokenType::OPERATOR;
 				rule.tokens.push_back(token);
 				c++;

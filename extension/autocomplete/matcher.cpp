@@ -1121,7 +1121,7 @@ Matcher &MatcherFactory::CreateMatcher(PEGParser &parser, string_t rule_name, ve
 		switch (token.type) {
 		case PEGTokenType::LITERAL:
 			// literal - push the keyword
-			list.AddMatcher(Keyword(token.text.GetString()));
+			list.AddMatcher(Keyword(token.text));
 			break;
 		case PEGTokenType::REFERENCE: {
 			// check if we are referring to a keyword
@@ -1141,7 +1141,7 @@ Matcher &MatcherFactory::CreateMatcher(PEGParser &parser, string_t rule_name, ve
 			break;
 		}
 		case PEGTokenType::ACTION_BLOCK: {
-			string error_text = token.text.GetString();
+			string error_text = token.text;
 			size_t start = error_text.find_first_not_of(" \t\n\r");
 			size_t end = error_text.find_last_not_of(" \t\n\r");
 			if (start == string::npos || error_text[start] != '"' || error_text[end] != '"') {
@@ -1154,7 +1154,7 @@ Matcher &MatcherFactory::CreateMatcher(PEGParser &parser, string_t rule_name, ve
 		}
 		case PEGTokenType::OPERATOR: {
 			// tokens need to be one byte
-			auto op_type = token.text.GetData()[0];
+			auto op_type = token.text[0];
 			switch (op_type) {
 			case '?':
 			case '*': {

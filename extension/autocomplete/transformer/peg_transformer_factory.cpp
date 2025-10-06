@@ -23,6 +23,10 @@ unique_ptr<SQLStatement> PEGTransformerFactory::Transform(vector<MatcherToken> &
 	MatcherAllocator allocator;
 	auto &matcher = Matcher::RootMatcher(allocator);
 	auto match_result = matcher.MatchParseResult(state);
+	if (match_result && match_result->type == ParseResultType::ERROR) {
+		auto error_match = match_result->Cast<ErrorParseResult>();
+		throw ParserException(error_match.error_message);
+	}
 	if (match_result == nullptr || state.token_index < state.tokens.size()) {
 		// TODO(dtenwolde) add error handling
 		string token_list;
