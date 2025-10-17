@@ -34,6 +34,7 @@ unique_ptr<QueryNode> Transformer::TransformShow(duckdb_libpgquery::PGVariableSh
 			// describing a set (e.g. SHOW ALL TABLES) - push it in the table name
 			showref->table_name = stmt.set;
 		}
+
 	} else if (!stmt.relation->schemaname) {
 		// describing an unqualified relation - check if this is a "special" relation
 		string table_name = StringUtil::Lower(stmt.relation->relname);
