@@ -148,6 +148,9 @@ private:
 	unique_ptr<SQLStatement> TransformDrop(duckdb_libpgquery::PGDropStmt &stmt);
 	//! Transform a Postgres duckdb_libpgquery::T_PGInsertStmt node into a InsertStatement
 	unique_ptr<InsertStatement> TransformInsert(duckdb_libpgquery::PGInsertStmt &stmt);
+	InsertColumnOrder TransformColumnOrder(duckdb_libpgquery::PGInsertColumnOrder insert_column_order);
+
+	vector<string> TransformInsertColumns(duckdb_libpgquery::PGList &cols);
 
 	//! Transform a Postgres duckdb_libpgquery::T_PGOnConflictClause node into a OnConflictInfo
 	unique_ptr<OnConflictInfo> TransformOnConflictClause(duckdb_libpgquery::PGOnConflictClause *node,
@@ -196,6 +199,9 @@ private:
 	vector<PivotColumn> TransformPivotList(duckdb_libpgquery::PGList &list, bool is_pivot);
 	static bool TransformPivotInList(unique_ptr<ParsedExpression> &expr, PivotColumnEntry &entry,
 	                                 bool root_entry = true);
+
+	unique_ptr<SQLStatement> TransformMergeInto(duckdb_libpgquery::PGMergeIntoStmt &stmt);
+	unique_ptr<MergeIntoAction> TransformMergeIntoAction(duckdb_libpgquery::PGMatchAction &action);
 
 	//===--------------------------------------------------------------------===//
 	// SetStatement Transform
@@ -328,6 +334,9 @@ private:
 	//! Transform a VALUES list into a set of expressions
 	unique_ptr<TableRef> TransformValuesList(duckdb_libpgquery::PGList *list);
 
+	//! Transform using clause
+	vector<string> TransformUsingClause(duckdb_libpgquery::PGList &usingClause);
+
 	//! Transform a match clause (SQL/PGQ)
 	unique_ptr<TableRef> TransformMatch(duckdb_libpgquery::PGMatchClause &root);
 	//! Transform a SQL/PGQ duckdb_libpgquery::T_PGCreatePropertyGraphStmt node into a CreatePropertyGraphStatement
@@ -396,8 +405,6 @@ private:
 
 	unique_ptr<MacroFunction> TransformMacroFunction(duckdb_libpgquery::PGFunctionDefinition &function);
 
-	void ParseGenericOptionListEntry(case_insensitive_map_t<vector<Value>> &result_options, string &name,
-	                                 duckdb_libpgquery::PGNode *arg);
 	vector<string> TransformNameList(duckdb_libpgquery::PGList &list);
 
 public:
