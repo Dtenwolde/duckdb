@@ -184,11 +184,7 @@ bool TestConfiguration::TryParseOption(const string &name, const Value &value) {
 	auto &test_config = test_config_options[config_index.GetIndex()];
 	Value parameter;
 	string error_message;
-	try {
-		value.DefaultTryCastAs(test_config.type, parameter, &error_message);
-	} catch (std::exception &e) {
-		throw InvalidInputException(error_message);
-	}
+	value.DefaultTryCastAs(test_config.type, parameter, &error_message);
 	if (test_config.on_set_option) {
 		test_config.on_set_option(parameter);
 	}
