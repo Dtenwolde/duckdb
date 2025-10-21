@@ -182,7 +182,13 @@ bool TestConfiguration::TryParseOption(const string &name, const Value &value) {
 		return false;
 	}
 	auto &test_config = test_config_options[config_index.GetIndex()];
-	auto parameter = value.DefaultCastAs(test_config.type);
+	Value parameter;
+	string error_message;
+	try {
+		value.DefaultTryCastAs(test_config.type, parameter, &error_message);
+	} catch (std::exception &e) {
+		throw InvalidInputException(error_message);
+	}
 	if (test_config.on_set_option) {
 		test_config.on_set_option(parameter);
 	}
@@ -339,6 +345,10 @@ void TestConfiguration::LoadConfig(const string &config_path) {
 	// Convert to unordered_set<string> the list of tests to be skipped
 	auto entry = options.find("skip_tests");
 	if (entry != options.end()) {
+		if (entry->second.IsNull()) {
+			options.erase("skip_tests");
+			return;
+		}
 		auto skip_list_entry = ListValue::GetChildren(entry->second);
 		for (const auto &value : skip_list_entry) {
 			auto children = StructValue::GetChildren(value);

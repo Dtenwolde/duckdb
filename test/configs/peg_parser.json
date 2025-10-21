@@ -10,11 +10,6 @@
     {
       "reason": "SIGBUS",
       "paths": [
-        "test/sql/catalog/sequence/sequence_offset_increment.test",
-        "test/sql/upsert/insert_or_replace/returning_nothing.test",
-        "test/sql/copy_database/copy_database_different_types.test",
-        "test/sql/copy_database/copy_table_with_sequence.test",
-        "test/sql/join/external/external_join_many_duplicates.test_slow"
       ]
     },
     {
