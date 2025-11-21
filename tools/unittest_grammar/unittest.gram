@@ -1,0 +1,17 @@
+TestFile <- TestSection*
+TestSection <- TestHeader SQL_QUERY_BODY TestResult?
+TestHeader <- StatementHeader / QueryHeader / CommentLine
+
+StatementHeader <- StatementOk / StatementError
+StatementOk <- 'STATEMENT' 'OK'
+StatementError <- 'STATEMENT' 'ERROR'
+
+QueryHeader <- 'QUERY' ColumnResultType
+ColumnResultType <- Identifier
+
+SQL_QUERY_BODY <- Identifier*
+
+TestResult <- '----' ResultContent?
+
+ResultContent <- Identifier*
+CommentLine <- '#' Identifier*
