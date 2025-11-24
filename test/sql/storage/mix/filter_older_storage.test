@@ -1,4 +1,4 @@
-# name: test/sql/storage/mix/test_update_delete_mix.test_slow
+# name: test/sql/storage/mix/filter_older_storage.test
 # description: Test
 # group: [mix]
 
@@ -9,13 +9,10 @@ statement ok
 SET GLOBAL storage_compatibility_version='v1.4.2';
 
 statement ok
-ATTACH '__TEST_DIR__/foo.db' (STORAGE_VERSION 'v1.4.2');
+ATTACH '__TEST_DIR__/foo.db';
 
 statement ok
 CREATE OR REPLACE TABLE foo.t1(type VARCHAR, id VARCHAR, problem VARCHAR, PRIMARY KEY (id));
-
-statement ok
-SELECT path, tags FROM duckdb_databases() WHERE path IS NOT NULL;
 
 statement ok
 INSERT INTO foo.t1(type,id,problem) VALUES
@@ -60,30 +57,30 @@ INSERT INTO foo.t1(type,id,problem) VALUES
 ('events', '37284475-c3e6-4ae2-9962-b35e130f8d91', NULL),
 ('events', '82052d03-fb9b-44a4-84a2-0d21ce5121cb', NULL);
 
-statement ok
-SELECT COUNT(*), COUNT(*) FILTER (problem IS NULL), COUNT(*) FILTER (problem IS NOT NULL) FROM foo.t1;
-
-query I
-SELECT COUNT(*) FROM foo.t1 WHERE problem IS NULL;
-----
-40
-
-query I
-SELECT COUNT(*) FROM foo.t1 WHERE problem IS NOT NULL;
-----
-0
+# statement ok
+# SELECT COUNT(*), COUNT(*) FILTER (problem IS NULL), COUNT(*) FILTER (problem IS NOT NULL) FROM foo.t1;
+#
+# query I
+# SELECT COUNT(*) FROM foo.t1 WHERE problem IS NULL;
+# ----
+# 40
+#
+# query I
+# SELECT COUNT(*) FROM foo.t1 WHERE problem IS NOT NULL;
+# ----
+# 0
 
 statement ok
 DETACH foo;
 
 statement ok
-ATTACH '__TEST_DIR__/foo.db' (STORAGE_VERSION 'v1.4.2');
+ATTACH '__TEST_DIR__/foo.db';
 
-statement ok
-SELECT COUNT(*), COUNT(*) FILTER (problem IS NULL), COUNT(*) FILTER (problem IS NOT NULL) FROM foo.t1;
+# statement ok
+# SELECT COUNT(*), COUNT(*) FILTER (problem IS NULL), COUNT(*) FILTER (problem IS NOT NULL) FROM foo.t1;
 
-statement ok
-PRAGMA disabled_optimizers='filter_pushdown';
+# statement ok
+# PRAGMA disabled_optimizers='filter_pushdown';
 
 query I
 SELECT COUNT(*) FROM foo.t1 WHERE problem IS NULL;

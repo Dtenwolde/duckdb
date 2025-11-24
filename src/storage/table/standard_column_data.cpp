@@ -100,8 +100,11 @@ void StandardColumnData::Filter(TransactionData transaction, idx_t vector_index,
 		ColumnData::Filter(transaction, vector_index, state, result, sel, count, filter, filter_state);
 		return;
 	}
+	// Printer::PrintF("Filter 1 approved count: %d", count);
 	FilterVector(state, result, target_count, sel, count, filter, filter_state);
+	// Printer::PrintF("Filter 2 approved count: %d", count);
 	validity->FilterVector(state.child_states[0], result, target_count, sel, count, filter, filter_state);
+	// Printer::PrintF("Filter 3 approved count: %d", count);
 }
 
 void StandardColumnData::Select(TransactionData transaction, idx_t vector_index, ColumnScanState &state, Vector &result,
