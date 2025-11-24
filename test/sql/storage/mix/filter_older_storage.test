@@ -83,7 +83,7 @@ statement ok
 SELECT COUNT(*), COUNT(*) FILTER (problem IS NULL), COUNT(*) FILTER (problem IS NOT NULL) FROM foo.t1;
 
 statement ok
-PRAGMA disable_optimizer;
+PRAGMA disabled_optimizers='filter_pushdown';
 
 query I
 SELECT COUNT(*) FROM foo.t1 WHERE problem IS NULL;
