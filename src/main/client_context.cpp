@@ -782,6 +782,13 @@ unique_ptr<QueryResult> ClientContext::Execute(const string &query, shared_ptr<P
                                                case_insensitive_map_t<BoundParameterData> &values,
                                                QueryParameters query_parameters) {
 	PendingQueryParameters parameters;
+	// case_insensitive_map_t<BoundParameterData> variable_parameters;
+	// for (auto &param : statement->named_param_map) {
+	// 	auto variable_name = param.first;
+	// 	Value val;
+	// 	ClientConfig::GetConfig(*this).GetUserVariable(variable_name, val);
+	// 	variable_parameters.emplace(param.first, BoundParameterData(val));
+	// }
 	parameters.parameters = &values;
 	parameters.query_parameters = query_parameters;
 	return Execute(query, prepared, parameters);
@@ -791,24 +798,24 @@ unique_ptr<PendingQueryResult> ClientContext::PendingStatementInternal(ClientCon
                                                                        unique_ptr<SQLStatement> statement,
                                                                        const PendingQueryParameters &parameters) {
 	// prepare the query for execution
-	if (parameters.parameters) {
-		PreparedStatement::VerifyParameters(*parameters.parameters, statement->named_param_map);
-	}
+	// if (parameters.parameters) {
+		// PreparedStatement::VerifyParameters(*parameters.parameters, statement->named_param_map);
+	// }
 
 	auto prepared = CreatePreparedStatement(lock, query, std::move(statement), parameters,
 	                                        PreparedStatementMode::PREPARE_AND_EXECUTE);
 
 	idx_t parameter_count = !parameters.parameters ? 0 : parameters.parameters->size();
-	if (prepared->properties.parameter_count > 0 && parameter_count == 0) {
-		string error_message = StringUtil::Format("Expected %lld parameters, but none were supplied",
-		                                          prepared->properties.parameter_count);
-		return ErrorResult<PendingQueryResult>(InvalidInputException(error_message), query);
-	}
-	if (!prepared->properties.bound_all_parameters) {
-		return ErrorResult<PendingQueryResult>(InvalidInputException("Not all parameters were bound"), query);
-	}
+	// if (prepared->properties.parameter_count > 0 && parameter_count == 0) {
+	// 	string error_message = StringUtil::Format("Expected %lld parameters, but none were supplied",
+	// 	                                          prepared->properties.parameter_count);
+	// 	return ErrorResult<PendingQueryResult>(InvalidInputException(error_message), query);
+	// }
+	// if (!prepared->properties.bound_all_parameters) {
+	// 	return ErrorResult<PendingQueryResult>(InvalidInputException("Not all parameters were bound"), query);
+	// }
 	// execute the prepared statement
-	CheckIfPreparedStatementIsExecutable(*prepared);
+	// CheckIfPreparedStatementIsExecutable(*prepared);
 	return PendingPreparedStatementInternal(lock, std::move(prepared), parameters);
 }
 
@@ -992,6 +999,14 @@ unique_ptr<QueryResult> ClientContext::Query(const string &query, QueryParameter
 		auto &statement = statements[i];
 		bool is_last_statement = i + 1 == statements.size();
 		PendingQueryParameters parameters;
+		case_insensitive_map_t<BoundParameterData> variable_parameters;
+		for (auto &param : statement->named_param_map) {
+			auto variable_name = param.first;
+			Value val;
+			ClientConfig::GetConfig(*this).GetUserVariable(variable_name, val);
+			variable_parameters.emplace(param.first, BoundParameterData(val));
+			parameters.parameters = variable_parameters;
+		}
 		parameters.query_parameters = query_parameters;
 		if (!is_last_statement) {
 			parameters.query_parameters.output_type = QueryResultOutputType::FORCE_MATERIALIZED;
