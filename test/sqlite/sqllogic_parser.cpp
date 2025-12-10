@@ -1,5 +1,7 @@
 #include "sqllogic_parser.hpp"
 #include "catch.hpp"
+#include "mustache.hpp"
+#include <sstream>
 
 #include <fstream>
 
@@ -12,7 +14,13 @@ bool SQLLogicParser::OpenFile(const string &path) {
 	if (infile.bad() || infile.fail()) {
 		return false;
 	}
-
+	std::stringstream buffer;
+	buffer << infile.rdbuf();
+	string file_content = buffer.str();
+	kainjow::mustache::mustache tmpl(file_content);
+	string rendered_content = tmpl.render({"azure_requires", "require-env AZURE_AUTH_ENV 1"});
+	std::stringstream rendered_stream(rendered_content);
+	std::cout << rendered_stream.str() << std::endl;
 	string line;
 	while (std::getline(infile, line)) {
 		lines.push_back(StringUtil::Replace(line, "\r", ""));

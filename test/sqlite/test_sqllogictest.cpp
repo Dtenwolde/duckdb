@@ -6,7 +6,7 @@
 #include "sqllogic_test_runner.hpp"
 #include "test_helpers.hpp"
 #include "test_config.hpp"
-
+#include "mustache.hpp"
 #include <functional>
 #include <string>
 #include <system_error>
@@ -41,7 +41,6 @@ static void testRunner() {
 	const auto name = Catch::getResultCapture().getCurrentTestName();
 	const auto test_dir_path = TestDirectoryPath(); // can vary between tests, and does IO
 	auto &test_config = TestConfiguration::Get();
-
 	string initial_dbpath = test_config.GetInitialDBPath();
 	test_config.ProcessPath(initial_dbpath, name);
 	if (!initial_dbpath.empty()) {
@@ -255,20 +254,27 @@ void RegisterSqllogictests() {
 			}
 		}
 	});
+	// listFiles(*fs, "test", [&](const string &path) {
+	// 	if (endsWith(path, ".test") || endsWith(path, ".test_slow") || endsWith(path, ".test_coverage")) {
+	// 		// parse the name / group from the test
+	// 		REGISTER_TEST_CASE(testRunner<false>, StringUtil::Replace(path, "\\", "/"), ParseGroupFromPath(path));
+	// 	}
+	// });
+	//
+	// for (const auto &extension_test_path : ExtensionHelper::LoadedExtensionTestPaths()) {
+	// 	listFiles(*fs, extension_test_path, [&](const string &path) {
+	// 		if (endsWith(path, ".test") || endsWith(path, ".test_slow") || endsWith(path, ".test_coverage")) {
+	// 			auto fun = testRunner<false, true>;
+	// 			REGISTER_TEST_CASE(fun, StringUtil::Replace(path, "\\", "/"), ParseGroupFromPath(path));
+	// 		}
+	// 	});
+	// }
+
 	listFiles(*fs, "test", [&](const string &path) {
-		if (endsWith(path, ".test") || endsWith(path, ".test_slow") || endsWith(path, ".test_coverage")) {
+		if (endsWith(path, ".mustache")) {
 			// parse the name / group from the test
 			REGISTER_TEST_CASE(testRunner<false>, StringUtil::Replace(path, "\\", "/"), ParseGroupFromPath(path));
 		}
 	});
-
-	for (const auto &extension_test_path : ExtensionHelper::LoadedExtensionTestPaths()) {
-		listFiles(*fs, extension_test_path, [&](const string &path) {
-			if (endsWith(path, ".test") || endsWith(path, ".test_slow") || endsWith(path, ".test_coverage")) {
-				auto fun = testRunner<false, true>;
-				REGISTER_TEST_CASE(fun, StringUtil::Replace(path, "\\", "/"), ParseGroupFromPath(path));
-			}
-		});
-	}
 }
 } // namespace duckdb
