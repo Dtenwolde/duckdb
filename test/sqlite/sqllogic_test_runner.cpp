@@ -2,6 +2,7 @@
 #include "sqllogic_test_runner.hpp"
 
 #include "catch.hpp"
+#include "mustache.hpp"
 #include "duckdb/common/file_open_flags.hpp"
 #include "duckdb/common/virtual_file_system.hpp"
 #include "duckdb/main/extension/generated_extension_loader.hpp"
@@ -766,6 +767,10 @@ void SQLLogicTestRunner::ExecuteFile(string script) {
 
 	/* Loop over all records in the file */
 	while (parser.NextStatement()) {
+		kainjow::mustache::mustache try_replace = parser.lines[parser.current_line];
+		if (try_replace.is_valid()) {
+			parser.lines[parser.current_line] = try_replace.render({"azure_requires", "require-env AZURE_AUTH_ENV 1"});
+		}
 		// tokenize the current line
 		auto token = parser.Tokenize();
 
