@@ -1,0 +1,913 @@
+
+[0/3870] (0%): test/extension/autoloading_copy_function_target.test
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+unittest is a Catch v2.13.7 host application.
+Run with -? for options
+
+-------------------------------------------------------------------------------
+test/extension/autoloading_copy_function_target.test
+-------------------------------------------------------------------------------
+/Users/danieltenwolde/git/duckdb/test/sqlite/test_sqllogictest.cpp:212
+...............................................................................
+
+test/extension/autoloading_copy_function_target.test:11: FAILED:
+explicitly with message:
+  0
+
+
+[1/3870] (0%): test/extension/autoloading_copy_function.test
+[2/3870] (0%): test/extension/test_loadable_optimizer.test
+[3/3870] (0%): test/extension/install_extension.test
+[4/3870] (0%): test/extension/install_version.test
+[5/3870] (0%): test/extension/load_test_alias.test-------------------------------------------------------------------------------
+test/extension/load_test_alias.test
+-------------------------------------------------------------------------------
+/Users/danieltenwolde/git/duckdb/test/sqlite/test_sqllogictest.cpp:212
+...............................................................................
+
+test/extension/load_test_alias.test:17: FAILED:
+explicitly with message:
+  0
+
+
+[6/3870] (0%): test/extension/test_alias_point.test-------------------------------------------------------------------------------
+test/extension/test_alias_point.test
+-------------------------------------------------------------------------------
+/Users/danieltenwolde/git/duckdb/test/sqlite/test_sqllogictest.cpp:212
+...............................................................................
+
+test/extension/test_alias_point.test:17: FAILED:
+explicitly with message:
+  0
+
+
+[7/3870] (0%): test/extension/update_extensions_ci.test
+[8/3870] (0%): test/extension/test_custom_type_modifier_cast.test-------------------------------------------------------------------------------
+test/extension/test_custom_type_modifier_cast.test
+-------------------------------------------------------------------------------
+/Users/danieltenwolde/git/duckdb/test/sqlite/test_sqllogictest.cpp:212
+...............................................................................
+
+test/extension/test_custom_type_modifier_cast.test:17: FAILED:
+explicitly with message:
+  0
+
+
+[9/3870] (0%): test/extension/autoloading_types.test
+[10/3870] (0%): test/extension/loadable_parser_override.test
+[11/3870] (0%): test/extension/consistent_semicolon_extension_parse.test-------------------------------------------------------------------------------
+test/extension/consistent_semicolon_extension_parse.test
+-------------------------------------------------------------------------------
+/Users/danieltenwolde/git/duckdb/test/sqlite/test_sqllogictest.cpp:212
+...............................................................................
+
+test/extension/consistent_semicolon_extension_parse.test:8: FAILED:
+explicitly with message:
+  0
+
+
+[12/3870] (0%): test/extension/load_extension.test-------------------------------------------------------------------------------
+test/extension/load_extension.test
+-------------------------------------------------------------------------------
+/Users/danieltenwolde/git/duckdb/test/sqlite/test_sqllogictest.cpp:212
+...............................................................................
+
+test/extension/load_extension.test:24: FAILED:
+explicitly with message:
+  0
+
+
+[13/3870] (0%): test/extension/duckdb_extensions.test
+[14/3870] (0%): test/extension/update_extensions.test
+[15/3870] (0%): test/extension/load_error.test
+[16/3870] (0%): test/extension/autoloading_encodings.test
+[17/3870] (0%): test/extension/wrong_function_type.test-------------------------------------------------------------------------------
+test/extension/wrong_function_type.test
+-------------------------------------------------------------------------------
+/Users/danieltenwolde/git/duckdb/test/sqlite/test_sqllogictest.cpp:212
+...............................................................................
+
+test/extension/wrong_function_type.test:4: FAILED:
+explicitly with message:
+  0
+
+
+[18/3870] (0%): test/extension/concurrent_load_extension.test-------------------------------------------------------------------------------
+test/extension/concurrent_load_extension.test
+-------------------------------------------------------------------------------
+/Users/danieltenwolde/git/duckdb/test/sqlite/test_sqllogictest.cpp:212
+...............................................................................
+
+test/extension/concurrent_load_extension.test:16: FAILED:
+explicitly with message:
+  0
+
+
+[19/3870] (0%): test/extension/test_tags.test-------------------------------------------------------------------------------
+test/extension/test_tags.test
+-------------------------------------------------------------------------------
+/Users/danieltenwolde/git/duckdb/test/sqlite/test_sqllogictest.cpp:212
+...............................................................................
+
+test/extension/test_tags.test:17: FAILED:
+explicitly with message:
+  0
+
+
+[20/3870] (0%): test/optimizer/zonemaps.test-------------------------------------------------------------------------------
+test/optimizer/zonemaps.test
+-------------------------------------------------------------------------------
+/Users/danieltenwolde/git/duckdb/test/sqlite/test_sqllogictest.cpp:212
+...............................................................................
+
+test/optimizer/zonemaps.test:8: FAILED:
+explicitly with message:
+  0
+
+
+[21/3870] (0%): test/optimizer/statistics/statistics_try_cast.test-------------------------------------------------------------------------------
+test/optimizer/statistics/statistics_try_cast.test
+-------------------------------------------------------------------------------
+/Users/danieltenwolde/git/duckdb/test/sqlite/test_sqllogictest.cpp:212
+...............................................................................
+
+test/optimizer/statistics/statistics_try_cast.test:8: FAILED:
+explicitly with message:
+  0
+
+
+[22/3870] (0%): test/optimizer/statistics/statistics_numeric.test-------------------------------------------------------------------------------
+test/optimizer/statistics/statistics_numeric.test
+-------------------------------------------------------------------------------
+/Users/danieltenwolde/git/duckdb/test/sqlite/test_sqllogictest.cpp:212
+...............................................................................
+
+test/optimizer/statistics/statistics_numeric.test:8: FAILED:
+explicitly with message:
+  0
+
+
+[23/3870] (0%): test/optimizer/statistics/statistics_setop.test-------------------------------------------------------------------------------
+test/optimizer/statistics/statistics_setop.test
+-------------------------------------------------------------------------------
+/Users/danieltenwolde/git/duckdb/test/sqlite/test_sqllogictest.cpp:212
+...............................................................................
+
+test/optimizer/statistics/statistics_setop.test:5: FAILED:
+explicitly with message:
+  0
+
+
+[24/3870] (0%): test/optimizer/statistics/statistics_aggregate.test-------------------------------------------------------------------------------
+test/optimizer/statistics/statistics_aggregate.test
+-------------------------------------------------------------------------------
+/Users/danieltenwolde/git/duckdb/test/sqlite/test_sqllogictest.cpp:212
+...............................................................................
+
+test/optimizer/statistics/statistics_aggregate.test:8: FAILED:
+explicitly with message:
+  0
+
+
+[25/3870] (0%): test/optimizer/statistics/statistics_varchar.test-------------------------------------------------------------------------------
+test/optimizer/statistics/statistics_varchar.test
+-------------------------------------------------------------------------------
+/Users/danieltenwolde/git/duckdb/test/sqlite/test_sqllogictest.cpp:212
+...............................................................................
+
+test/optimizer/statistics/statistics_varchar.test:5: FAILED:
+explicitly with message:
+  0
+
+
+[26/3870] (0%): test/optimizer/statistics/statistics_struct.test-------------------------------------------------------------------------------
+test/optimizer/statistics/statistics_struct.test
+-------------------------------------------------------------------------------
+/Users/danieltenwolde/git/duckdb/test/sqlite/test_sqllogictest.cpp:212
+...............................................................................
+
+test/optimizer/statistics/statistics_struct.test:5: FAILED:
+explicitly with message:
+  0
+
+
+[27/3870] (0%): test/optimizer/statistics/statistics_is_null.test-------------------------------------------------------------------------------
+test/optimizer/statistics/statistics_is_null.test
+-------------------------------------------------------------------------------
+/Users/danieltenwolde/git/duckdb/test/sqlite/test_sqllogictest.cpp:212
+...............................................................................
+
+test/optimizer/statistics/statistics_is_null.test:8: FAILED:
+explicitly with message:
+  0
+
+
+[28/3870] (0%): test/optimizer/statistics/statistics_null_comparison.test-------------------------------------------------------------------------------
+test/optimizer/statistics/statistics_null_comparison.test
+-------------------------------------------------------------------------------
+/Users/danieltenwolde/git/duckdb/test/sqlite/test_sqllogictest.cpp:212
+...............................................................................
+
+test/optimizer/statistics/statistics_null_comparison.test:5: FAILED:
+explicitly with message:
+  0
+
+
+[29/3870] (0%): test/optimizer/statistics/statistics_join.test-------------------------------------------------------------------------------
+test/optimizer/statistics/statistics_join.test
+-------------------------------------------------------------------------------
+/Users/danieltenwolde/git/duckdb/test/sqlite/test_sqllogictest.cpp:212
+...............................................................................
+
+test/optimizer/statistics/statistics_join.test:5: FAILED:
+explicitly with message:
+  0
+
+
+[30/3870] (0%): test/optimizer/statistics/statistics_case.test-------------------------------------------------------------------------------
+test/optimizer/statistics/statistics_case.test
+-------------------------------------------------------------------------------
+/Users/danieltenwolde/git/duckdb/test/sqlite/test_sqllogictest.cpp:212
+...............................................................................
+
+test/optimizer/statistics/statistics_case.test:8: FAILED:
+explicitly with message:
+  0
+
+
+[31/3870] (0%): test/optimizer/statistics/statistics_join_null.test-------------------------------------------------------------------------------
+test/optimizer/statistics/statistics_join_null.test
+-------------------------------------------------------------------------------
+/Users/danieltenwolde/git/duckdb/test/sqlite/test_sqllogictest.cpp:212
+...............................................................................
+
+test/optimizer/statistics/statistics_join_null.test:5: FAILED:
+explicitly with message:
+  0
+
+
+[32/3870] (0%): test/optimizer/statistics/statistics_join_multicolumn.test-------------------------------------------------------------------------------
+test/optimizer/statistics/statistics_join_multicolumn.test
+-------------------------------------------------------------------------------
+/Users/danieltenwolde/git/duckdb/test/sqlite/test_sqllogictest.cpp:212
+...............................................................................
+
+test/optimizer/statistics/statistics_join_multicolumn.test:5: FAILED:
+explicitly with message:
+  0
+
+
+[33/3870] (0%): test/optimizer/statistics/statistics_coalesce.test-------------------------------------------------------------------------------
+test/optimizer/statistics/statistics_coalesce.test
+-------------------------------------------------------------------------------
+/Users/danieltenwolde/git/duckdb/test/sqlite/test_sqllogictest.cpp:212
+...............................................................................
+
+test/optimizer/statistics/statistics_coalesce.test:8: FAILED:
+explicitly with message:
+  0
+
+
+[34/3870] (0%): test/optimizer/statistics/statistics_filter_multicolumn.test-------------------------------------------------------------------------------
+test/optimizer/statistics/statistics_filter_multicolumn.test
+-------------------------------------------------------------------------------
+/Users/danieltenwolde/git/duckdb/test/sqlite/test_sqllogictest.cpp:212
+...............................................................................
+
+test/optimizer/statistics/statistics_filter_multicolumn.test:5: FAILED:
+explicitly with message:
+  0
+
+
+[35/3870] (0%): test/optimizer/statistics/statistics_between.test-------------------------------------------------------------------------------
+test/optimizer/statistics/statistics_between.test
+-------------------------------------------------------------------------------
+/Users/danieltenwolde/git/duckdb/test/sqlite/test_sqllogictest.cpp:212
+...............................................................................
+
+test/optimizer/statistics/statistics_between.test:5: FAILED:
+explicitly with message:
+  0
+
+
+[36/3870] (0%): test/optimizer/misc/test_count_and_sum.test-------------------------------------------------------------------------------
+test/optimizer/misc/test_count_and_sum.test
+-------------------------------------------------------------------------------
+/Users/danieltenwolde/git/duckdb/test/sqlite/test_sqllogictest.cpp:212
+...............................................................................
+
+test/optimizer/misc/test_count_and_sum.test:8: FAILED:
+explicitly with message:
+  0
+
+
+[37/3870] (0%): test/optimizer/regex_optimizer.test-------------------------------------------------------------------------------
+test/optimizer/regex_optimizer.test
+-------------------------------------------------------------------------------
+/Users/danieltenwolde/git/duckdb/test/sqlite/test_sqllogictest.cpp:212
+...............................................................................
+
+test/optimizer/regex_optimizer.test:5: FAILED:
+explicitly with message:
+  0
+
+
+[38/3870] (0%): test/optimizer/constant_folding.test-------------------------------------------------------------------------------
+test/optimizer/constant_folding.test
+-------------------------------------------------------------------------------
+/Users/danieltenwolde/git/duckdb/test/sqlite/test_sqllogictest.cpp:212
+...............................................................................
+
+test/optimizer/constant_folding.test:5: FAILED:
+explicitly with message:
+  0
+
+
+[39/3870] (1%): test/optimizer/using_optimizer.test-------------------------------------------------------------------------------
+test/optimizer/using_optimizer.test
+-------------------------------------------------------------------------------
+/Users/danieltenwolde/git/duckdb/test/sqlite/test_sqllogictest.cpp:212
+...............................................................................
+
+test/optimizer/using_optimizer.test:8: FAILED:
+explicitly with message:
+  0
+
+
+[40/3870] (1%): test/optimizer/conjunction_simplification.test-------------------------------------------------------------------------------
+test/optimizer/conjunction_simplification.test
+-------------------------------------------------------------------------------
+/Users/danieltenwolde/git/duckdb/test/sqlite/test_sqllogictest.cpp:212
+...............................................................................
+
+test/optimizer/conjunction_simplification.test:5: FAILED:
+explicitly with message:
+  0
+
+
+[41/3870] (1%): test/optimizer/csv_pushdown.test-------------------------------------------------------------------------------
+test/optimizer/csv_pushdown.test
+-------------------------------------------------------------------------------
+/Users/danieltenwolde/git/duckdb/test/sqlite/test_sqllogictest.cpp:212
+...............................................................................
+
+test/optimizer/csv_pushdown.test:6: FAILED:
+explicitly with message:
+  0
+
+
+[42/3870] (1%): test/optimizer/limit_pushdown.test-------------------------------------------------------------------------------
+test/optimizer/limit_pushdown.test
+-------------------------------------------------------------------------------
+/Users/danieltenwolde/git/duckdb/test/sqlite/test_sqllogictest.cpp:212
+...............................................................................
+
+test/optimizer/limit_pushdown.test:5: FAILED:
+explicitly with message:
+  0
+
+
+[43/3870] (1%): test/optimizer/pushdown/issue_18603.test-------------------------------------------------------------------------------
+test/optimizer/pushdown/issue_18603.test
+-------------------------------------------------------------------------------
+/Users/danieltenwolde/git/duckdb/test/sqlite/test_sqllogictest.cpp:212
+...............................................................................
+
+test/optimizer/pushdown/issue_18603.test:8: FAILED:
+explicitly with message:
+  0
+
+
+[44/3870] (1%): test/optimizer/pushdown/parquet_or_pushdown.test
+[45/3870] (1%): test/optimizer/pushdown/distinct_from_pushdown.test-------------------------------------------------------------------------------
+test/optimizer/pushdown/distinct_from_pushdown.test
+-------------------------------------------------------------------------------
+/Users/danieltenwolde/git/duckdb/test/sqlite/test_sqllogictest.cpp:212
+...............................................................................
+
+test/optimizer/pushdown/distinct_from_pushdown.test:5: FAILED:
+explicitly with message:
+  0
+
+
+[46/3870] (1%): test/optimizer/pushdown/pushdown_unnest_into_cte.test-------------------------------------------------------------------------------
+test/optimizer/pushdown/pushdown_unnest_into_cte.test
+-------------------------------------------------------------------------------
+/Users/danieltenwolde/git/duckdb/test/sqlite/test_sqllogictest.cpp:212
+...............................................................................
+
+test/optimizer/pushdown/pushdown_unnest_into_cte.test:5: FAILED:
+explicitly with message:
+  0
+
+
+[47/3870] (1%): test/optimizer/pushdown/issue_16104.test-------------------------------------------------------------------------------
+test/optimizer/pushdown/issue_16104.test
+-------------------------------------------------------------------------------
+/Users/danieltenwolde/git/duckdb/test/sqlite/test_sqllogictest.cpp:212
+...............................................................................
+
+test/optimizer/pushdown/issue_16104.test:8: FAILED:
+explicitly with message:
+  0
+
+
+[48/3870] (1%): test/optimizer/pushdown/issue_16671.test-------------------------------------------------------------------------------
+test/optimizer/pushdown/issue_16671.test
+-------------------------------------------------------------------------------
+/Users/danieltenwolde/git/duckdb/test/sqlite/test_sqllogictest.cpp:212
+...............................................................................
+
+test/optimizer/pushdown/issue_16671.test:10: FAILED:
+explicitly with message:
+  0
+
+
+[49/3870] (1%): test/optimizer/pushdown/filter_cannot_pushdown.test-------------------------------------------------------------------------------
+test/optimizer/pushdown/filter_cannot_pushdown.test
+-------------------------------------------------------------------------------
+/Users/danieltenwolde/git/duckdb/test/sqlite/test_sqllogictest.cpp:212
+...............................................................................
+
+test/optimizer/pushdown/filter_cannot_pushdown.test:10: FAILED:
+explicitly with message:
+  0
+
+
+[50/3870] (1%): test/optimizer/pushdown/no_mark_to_semi_if_mark_index_is_projected.test-------------------------------------------------------------------------------
+test/optimizer/pushdown/no_mark_to_semi_if_mark_index_is_projected.test
+-------------------------------------------------------------------------------
+/Users/danieltenwolde/git/duckdb/test/sqlite/test_sqllogictest.cpp:212
+...............................................................................
+
+test/optimizer/pushdown/no_mark_to_semi_if_mark_index_is_projected.test:5: FAILED:
+explicitly with message:
+  0
+
+
+[51/3870] (1%): test/optimizer/pushdown/issue_18202.test-------------------------------------------------------------------------------
+test/optimizer/pushdown/issue_18202.test
+-------------------------------------------------------------------------------
+/Users/danieltenwolde/git/duckdb/test/sqlite/test_sqllogictest.cpp:212
+...............................................................................
+
+test/optimizer/pushdown/issue_18202.test:5: FAILED:
+explicitly with message:
+  0
+
+
+[52/3870] (1%): test/optimizer/pushdown/pushdown_in_to_parquet.test
+[53/3870] (1%): test/optimizer/pushdown/issue_18653.test-------------------------------------------------------------------------------
+test/optimizer/pushdown/issue_18653.test
+-------------------------------------------------------------------------------
+/Users/danieltenwolde/git/duckdb/test/sqlite/test_sqllogictest.cpp:212
+...............................................................................
+
+test/optimizer/pushdown/issue_18653.test:8: FAILED:
+explicitly with message:
+  0
+
+
+[54/3870] (1%): test/optimizer/pushdown/pushdown_filter_on_coalesced_equal_outer_join_keys.test-------------------------------------------------------------------------------
+test/optimizer/pushdown/pushdown_filter_on_coalesced_equal_outer_join_keys.test
+-------------------------------------------------------------------------------
+/Users/danieltenwolde/git/duckdb/test/sqlite/test_sqllogictest.cpp:212
+...............................................................................
+
+test/optimizer/pushdown/pushdown_filter_on_coalesced_equal_outer_join_keys.test:9: FAILED:
+explicitly with message:
+  0
+
+
+[55/3870] (1%): test/optimizer/pushdown/test_pushdown_cte_group_by_all.test-------------------------------------------------------------------------------
+test/optimizer/pushdown/test_pushdown_cte_group_by_all.test
+-------------------------------------------------------------------------------
+/Users/danieltenwolde/git/duckdb/test/sqlite/test_sqllogictest.cpp:212
+...............................................................................
+
+test/optimizer/pushdown/test_pushdown_cte_group_by_all.test:5: FAILED:
+explicitly with message:
+  0
+
+
+[56/3870] (1%): test/optimizer/pushdown/issue_16863.test-------------------------------------------------------------------------------
+test/optimizer/pushdown/issue_16863.test
+-------------------------------------------------------------------------------
+/Users/danieltenwolde/git/duckdb/test/sqlite/test_sqllogictest.cpp:212
+...............................................................................
+
+test/optimizer/pushdown/issue_16863.test:5: FAILED:
+explicitly with message:
+  0
+
+
+[57/3870] (1%): test/optimizer/pushdown/timestamp_to_date_pushdown.test-------------------------------------------------------------------------------
+test/optimizer/pushdown/timestamp_to_date_pushdown.test
+-------------------------------------------------------------------------------
+/Users/danieltenwolde/git/duckdb/test/sqlite/test_sqllogictest.cpp:212
+...............................................................................
+
+test/optimizer/pushdown/timestamp_to_date_pushdown.test:12: FAILED:
+explicitly with message:
+  0
+
+
+[58/3870] (1%): test/optimizer/pushdown/pushdown_after_statistics.test-------------------------------------------------------------------------------
+test/optimizer/pushdown/pushdown_after_statistics.test
+-------------------------------------------------------------------------------
+/Users/danieltenwolde/git/duckdb/test/sqlite/test_sqllogictest.cpp:212
+...............................................................................
+
+test/optimizer/pushdown/pushdown_after_statistics.test:9: FAILED:
+explicitly with message:
+  0
+
+
+[59/3870] (1%): test/optimizer/pushdown/table_filter_pushdown.test-------------------------------------------------------------------------------
+test/optimizer/pushdown/table_filter_pushdown.test
+-------------------------------------------------------------------------------
+/Users/danieltenwolde/git/duckdb/test/sqlite/test_sqllogictest.cpp:212
+...............................................................................
+
+test/optimizer/pushdown/table_filter_pushdown.test:5: FAILED:
+explicitly with message:
+  0
+
+
+[60/3870] (1%): test/optimizer/pushdown/table_or_pushdown.test-------------------------------------------------------------------------------
+test/optimizer/pushdown/table_or_pushdown.test
+-------------------------------------------------------------------------------
+/Users/danieltenwolde/git/duckdb/test/sqlite/test_sqllogictest.cpp:212
+...............................................................................
+
+test/optimizer/pushdown/table_or_pushdown.test:5: FAILED:
+explicitly with message:
+  0
+
+
+[61/3870] (1%): test/optimizer/pushdown/filters_on_limit_optimizer.test-------------------------------------------------------------------------------
+test/optimizer/pushdown/filters_on_limit_optimizer.test
+-------------------------------------------------------------------------------
+/Users/danieltenwolde/git/duckdb/test/sqlite/test_sqllogictest.cpp:212
+...............................................................................
+
+test/optimizer/pushdown/filters_on_limit_optimizer.test:8: FAILED:
+explicitly with message:
+  0
+
+
+[62/3870] (1%): test/optimizer/pushdown/pushdown_window_partition_filter.test-------------------------------------------------------------------------------
+test/optimizer/pushdown/pushdown_window_partition_filter.test
+-------------------------------------------------------------------------------
+/Users/danieltenwolde/git/duckdb/test/sqlite/test_sqllogictest.cpp:212
+...............................................................................
+
+test/optimizer/pushdown/pushdown_window_partition_filter.test:5: FAILED:
+explicitly with message:
+  0
+
+
+[63/3870] (1%): test/optimizer/pushdown/join_filter_pushdown.test-------------------------------------------------------------------------------
+test/optimizer/pushdown/join_filter_pushdown.test
+-------------------------------------------------------------------------------
+/Users/danieltenwolde/git/duckdb/test/sqlite/test_sqllogictest.cpp:212
+...............................................................................
+
+test/optimizer/pushdown/join_filter_pushdown.test:5: FAILED:
+explicitly with message:
+  0
+
+
+[64/3870] (1%): test/optimizer/pushdown/test_constant_or_null_pushdown.test-------------------------------------------------------------------------------
+test/optimizer/pushdown/test_constant_or_null_pushdown.test
+-------------------------------------------------------------------------------
+/Users/danieltenwolde/git/duckdb/test/sqlite/test_sqllogictest.cpp:212
+...............................................................................
+
+test/optimizer/pushdown/test_constant_or_null_pushdown.test:5: FAILED:
+explicitly with message:
+  0
+
+
+[65/3870] (1%): test/optimizer/pushdown/issue_17042.test-------------------------------------------------------------------------------
+test/optimizer/pushdown/issue_17042.test
+-------------------------------------------------------------------------------
+/Users/danieltenwolde/git/duckdb/test/sqlite/test_sqllogictest.cpp:212
+...............................................................................
+
+test/optimizer/pushdown/issue_17042.test:8: FAILED:
+explicitly with message:
+  0
+
+
+[66/3870] (1%): test/optimizer/case_simplification.test-------------------------------------------------------------------------------
+test/optimizer/case_simplification.test
+-------------------------------------------------------------------------------
+/Users/danieltenwolde/git/duckdb/test/sqlite/test_sqllogictest.cpp:212
+...............................................................................
+
+test/optimizer/case_simplification.test:5: FAILED:
+explicitly with message:
+  0
+
+
+[67/3870] (1%): test/optimizer/reported_bugs/in_vs_where.test-------------------------------------------------------------------------------
+test/optimizer/reported_bugs/in_vs_where.test
+-------------------------------------------------------------------------------
+/Users/danieltenwolde/git/duckdb/test/sqlite/test_sqllogictest.cpp:212
+...............................................................................
+
+test/optimizer/reported_bugs/in_vs_where.test:5: FAILED:
+explicitly with message:
+  0
+
+
+[68/3870] (1%): test/optimizer/topn/topn_optimizer.test-------------------------------------------------------------------------------
+test/optimizer/topn/topn_optimizer.test
+-------------------------------------------------------------------------------
+/Users/danieltenwolde/git/duckdb/test/sqlite/test_sqllogictest.cpp:212
+...............................................................................
+
+test/optimizer/topn/topn_optimizer.test:5: FAILED:
+explicitly with message:
+  0
+
+
+[69/3870] (1%): test/optimizer/topn/complex_top_n.test-------------------------------------------------------------------------------
+test/optimizer/topn/complex_top_n.test
+-------------------------------------------------------------------------------
+/Users/danieltenwolde/git/duckdb/test/sqlite/test_sqllogictest.cpp:212
+...............................................................................
+
+/Users/danieltenwolde/git/duckdb/test/sqlite/sqllogic_parser.cpp:119: FAILED:
+explicitly with message:
+  test/optimizer/topn/complex_top_n.test:7: Failed to set seed: Not implemented
+  Error: Parser override has not yet implemented this transformer rule.
+  Original error: No transformer function found for rule 'SelectStatement'
+
+
+[70/3870] (1%): test/optimizer/regex_optimizer_coverage.test-------------------------------------------------------------------------------
+test/optimizer/regex_optimizer_coverage.test
+-------------------------------------------------------------------------------
+/Users/danieltenwolde/git/duckdb/test/sqlite/test_sqllogictest.cpp:212
+...............................................................................
+
+test/optimizer/regex_optimizer_coverage.test:5: FAILED:
+explicitly with message:
+  0
+
+
+[71/3870] (1%): test/optimizer/optimize_unsigned_vs_signed_ints.test-------------------------------------------------------------------------------
+test/optimizer/optimize_unsigned_vs_signed_ints.test
+-------------------------------------------------------------------------------
+/Users/danieltenwolde/git/duckdb/test/sqlite/test_sqllogictest.cpp:212
+...............................................................................
+
+test/optimizer/optimize_unsigned_vs_signed_ints.test:5: FAILED:
+explicitly with message:
+  0
+
+
+[72/3870] (1%): test/optimizer/column_lifetime_analyzer/summary_column_lifetime.test-------------------------------------------------------------------------------
+test/optimizer/column_lifetime_analyzer/summary_column_lifetime.test
+-------------------------------------------------------------------------------
+/Users/danieltenwolde/git/duckdb/test/sqlite/test_sqllogictest.cpp:212
+...............................................................................
+
+test/optimizer/column_lifetime_analyzer/summary_column_lifetime.test:5: FAILED:
+explicitly with message:
+  0
+
+
+[73/3870] (1%): test/optimizer/column_lifetime_analyzer/must_visit_operator_expressions_first.test-------------------------------------------------------------------------------
+test/optimizer/column_lifetime_analyzer/must_visit_operator_expressions_first.
+test
+-------------------------------------------------------------------------------
+/Users/danieltenwolde/git/duckdb/test/sqlite/test_sqllogictest.cpp:212
+...............................................................................
+
+test/optimizer/column_lifetime_analyzer/must_visit_operator_expressions_first.test:5: FAILED:
+explicitly with message:
+  0
+
+
+[74/3870] (1%): test/optimizer/column_lifetime_analyzer/no_unnecessary_projections.test-------------------------------------------------------------------------------
+test/optimizer/column_lifetime_analyzer/no_unnecessary_projections.test
+-------------------------------------------------------------------------------
+/Users/danieltenwolde/git/duckdb/test/sqlite/test_sqllogictest.cpp:212
+...............................................................................
+
+test/optimizer/column_lifetime_analyzer/no_unnecessary_projections.test:5: FAILED:
+explicitly with message:
+  0
+
+
+[75/3870] (1%): test/optimizer/test_try_cast_decimal.test-------------------------------------------------------------------------------
+test/optimizer/test_try_cast_decimal.test
+-------------------------------------------------------------------------------
+/Users/danieltenwolde/git/duckdb/test/sqlite/test_sqllogictest.cpp:212
+...............................................................................
+
+test/optimizer/test_try_cast_decimal.test:8: FAILED:
+explicitly with message:
+  0
+
+
+[76/3870] (1%): test/optimizer/stats_non_numeric_cast.test-------------------------------------------------------------------------------
+test/optimizer/stats_non_numeric_cast.test
+-------------------------------------------------------------------------------
+/Users/danieltenwolde/git/duckdb/test/sqlite/test_sqllogictest.cpp:212
+...............................................................................
+
+test/optimizer/stats_non_numeric_cast.test:8: FAILED:
+explicitly with message:
+  0
+
+
+[77/3870] (1%): test/optimizer/distributivity_rule.test-------------------------------------------------------------------------------
+test/optimizer/distributivity_rule.test
+-------------------------------------------------------------------------------
+/Users/danieltenwolde/git/duckdb/test/sqlite/test_sqllogictest.cpp:212
+...............................................................................
+
+test/optimizer/distributivity_rule.test:5: FAILED:
+explicitly with message:
+  0
+
+
+[78/3870] (2%): test/optimizer/unused_columns/deliver_child_columns.test-------------------------------------------------------------------------------
+test/optimizer/unused_columns/deliver_child_columns.test
+-------------------------------------------------------------------------------
+/Users/danieltenwolde/git/duckdb/test/sqlite/test_sqllogictest.cpp:212
+...............................................................................
+
+test/optimizer/unused_columns/deliver_child_columns.test:10: FAILED:
+explicitly with message:
+  0
+
+
+[79/3870] (2%): test/optimizer/unused_columns/distinct_on_projection_pushdown.test-------------------------------------------------------------------------------
+test/optimizer/unused_columns/distinct_on_projection_pushdown.test
+-------------------------------------------------------------------------------
+/Users/danieltenwolde/git/duckdb/test/sqlite/test_sqllogictest.cpp:212
+...............................................................................
+
+test/optimizer/unused_columns/distinct_on_projection_pushdown.test:5: FAILED:
+explicitly with message:
+  0
+
+
+[80/3870] (2%): test/optimizer/test_sum_rewrite.test-------------------------------------------------------------------------------
+test/optimizer/test_sum_rewrite.test
+-------------------------------------------------------------------------------
+/Users/danieltenwolde/git/duckdb/test/sqlite/test_sqllogictest.cpp:212
+...............................................................................
+
+test/optimizer/test_sum_rewrite.test:5: FAILED:
+explicitly with message:
+  0
+
+
+[81/3870] (2%): test/optimizer/timestamp_comparisons.test-------------------------------------------------------------------------------
+test/optimizer/timestamp_comparisons.test
+-------------------------------------------------------------------------------
+/Users/danieltenwolde/git/duckdb/test/sqlite/test_sqllogictest.cpp:212
+...............................................................................
+
+test/optimizer/timestamp_comparisons.test:7: FAILED:
+explicitly with message:
+  0
+
+
+[82/3870] (2%): test/optimizer/compare_blob.test
+[83/3870] (2%): test/optimizer/eager_aggregate_execution.test-------------------------------------------------------------------------------
+test/optimizer/eager_aggregate_execution.test
+-------------------------------------------------------------------------------
+/Users/danieltenwolde/git/duckdb/test/sqlite/test_sqllogictest.cpp:212
+...............................................................................
+
+test/optimizer/eager_aggregate_execution.test:14: FAILED:
+explicitly with message:
+  0
+
+
+[84/3870] (2%): test/optimizer/constant_order_normalization.test-------------------------------------------------------------------------------
+test/optimizer/constant_order_normalization.test
+-------------------------------------------------------------------------------
+/Users/danieltenwolde/git/duckdb/test/sqlite/test_sqllogictest.cpp:212
+...............................................................................
+
+test/optimizer/constant_order_normalization.test:5: FAILED:
+explicitly with message:
+  0
+
+
+[85/3870] (2%): test/optimizer/join_elimination.test-------------------------------------------------------------------------------
+test/optimizer/join_elimination.test
+-------------------------------------------------------------------------------
+/Users/danieltenwolde/git/duckdb/test/sqlite/test_sqllogictest.cpp:212
+...............................................................................
+
+test/optimizer/join_elimination.test:8: FAILED:
+explicitly with message:
+  0
+
+
+[86/3870] (2%): test/optimizer/cte_inlining.test-------------------------------------------------------------------------------
+test/optimizer/cte_inlining.test
+-------------------------------------------------------------------------------
+/Users/danieltenwolde/git/duckdb/test/sqlite/test_sqllogictest.cpp:212
+...............................................................................
+
+test/optimizer/cte_inlining.test:9: FAILED:
+explicitly with message:
+  0
+
+
+[87/3870] (2%): test/optimizer/remove_unused_filter_column.test
+[88/3870] (2%): test/optimizer/index_optimizer.test-------------------------------------------------------------------------------
+test/optimizer/index_optimizer.test
+-------------------------------------------------------------------------------
+/Users/danieltenwolde/git/duckdb/test/sqlite/test_sqllogictest.cpp:212
+...............................................................................
+
+test/optimizer/index_optimizer.test:5: FAILED:
+explicitly with message:
+  0
+
+
+[89/3870] (2%): test/optimizer/estimated_cardinalities_through_struct_extract.test
+[90/3870] (2%): test/optimizer/move_constants.test-------------------------------------------------------------------------------
+test/optimizer/move_constants.test
+-------------------------------------------------------------------------------
+/Users/danieltenwolde/git/duckdb/test/sqlite/test_sqllogictest.cpp:212
+...............................................................................
+
+test/optimizer/move_constants.test:5: FAILED:
+explicitly with message:
+  0
+
+
+[91/3870] (2%): test/optimizer/union_exclude.test-------------------------------------------------------------------------------
+test/optimizer/union_exclude.test
+-------------------------------------------------------------------------------
+/Users/danieltenwolde/git/duckdb/test/sqlite/test_sqllogictest.cpp:212
+...............................................................................
+
+test/optimizer/union_exclude.test:5: FAILED:
+explicitly with message:
+  0
+
+
+[92/3870] (2%): test/optimizer/deliminator.test
+[93/3870] (2%): test/optimizer/issue_12181.test-------------------------------------------------------------------------------
+test/optimizer/issue_12181.test
+-------------------------------------------------------------------------------
+/Users/danieltenwolde/git/duckdb/test/sqlite/test_sqllogictest.cpp:212
+...............................................................................
+
+test/optimizer/issue_12181.test:5: FAILED:
+explicitly with message:
+  0
+
+
+[94/3870] (2%): test/optimizer/ordered_aggregate.test-------------------------------------------------------------------------------
+test/optimizer/ordered_aggregate.test
+-------------------------------------------------------------------------------
+/Users/danieltenwolde/git/duckdb/test/sqlite/test_sqllogictest.cpp:212
+...............................................................................
+
+test/optimizer/ordered_aggregate.test:5: FAILED:
+explicitly with message:
+  0
+
+
+[95/3870] (2%): test/optimizer/filter_pushdown/filter_pushdown_into_subquery.test-------------------------------------------------------------------------------
+test/optimizer/filter_pushdown/filter_pushdown_into_subquery.test
+-------------------------------------------------------------------------------
+/Users/danieltenwolde/git/duckdb/test/sqlite/test_sqllogictest.cpp:212
+...............................................................................
+
+test/optimizer/filter_pushdown/filter_pushdown_into_subquery.test:8: FAILED:
+explicitly with message:
+  0
+
+
+[96/3870] (2%): test/optimizer/column_binding_error.test
+[97/3870] (2%): test/optimizer/eager_aggregate_execution_parquet.test-------------------------------------------------------------------------------
+test/optimizer/eager_aggregate_execution_parquet.test
+-------------------------------------------------------------------------------
+/Users/danieltenwolde/git/duckdb/test/sqlite/test_sqllogictest.cpp:212
+...............................................................................
+
+test/optimizer/eager_aggregate_execution_parquet.test:7: FAILED:
+explicitly with message:
+  0
+
+
+[98/3870] (2%): test/optimizer/pullup_filters.test-------------------------------------------------------------------------------
+test/optimizer/pullup_filters.test
+-------------------------------------------------------------------------------
+/Users/danieltenwolde/git/duckdb/test/sqlite/test_sqllogictest.cpp:212
+...............................................................................
+

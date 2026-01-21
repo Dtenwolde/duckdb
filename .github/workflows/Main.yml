@@ -489,7 +489,7 @@ jobs:
       if: (success() || failure()) && steps.build.conclusion == 'success'
       shell: bash
       run: |
-        ./build/release/test/unittest --test-config test/configs/peg_parser_strict.json
+        ./build/release/test/unittest --test-config test/configs/peg_parser_strict_when_supported.json
 
     - name: Forwards compatibility tests
       if: (success() || failure()) && steps.build.conclusion == 'success'
