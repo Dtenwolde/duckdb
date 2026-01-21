@@ -491,6 +491,12 @@ jobs:
       run: |
         ./build/release/test/unittest --test-config test/configs/peg_parser_strict_when_supported.json
 
+    - name: Test PEG parser on strict mode
+      if: (success() || failure()) && steps.build.conclusion == 'success'
+      shell: bash
+      run: |
+        ./build/release/test/unittest --test-config test/configs/peg_parser_strict.json
+
     - name: Forwards compatibility tests
       if: (success() || failure()) && steps.build.conclusion == 'success'
       shell: bash
