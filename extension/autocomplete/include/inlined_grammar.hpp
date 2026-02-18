@@ -1291,7 +1291,7 @@ const char INLINED_PEG_GRAMMAR[] = {
 	"CopyTable <- BaseTableName InsertColumnList? FromOrTo CopyFileName CopyOptions?\n"
 	"FromOrTo <- 'FROM' / 'TO'\n"
 	"CopySelect <- Parens(SelectStatementInternal) 'TO' CopyFileName CopyOptions?\n"
-	"CopyFileName <- Expression / StringLiteral / Identifier / (Identifier '.' ColId)\n"
+	"CopyFileName <- Parameter / ParensExpression / StringLiteral / Identifier / (Identifier '.' ColId)\n"
 	"CopyOptions <- 'WITH'? GenericCopyOptionList / SpecializedOptionList\n"
 	"SpecializedOptionList <- SpecializedOption*\n"
 	"SpecializedOption <- SingleOption / NullAsOption / DelimiterAsOption / EscapeAsOption /\n"
