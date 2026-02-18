@@ -174,6 +174,9 @@ public:
 	DistinctType distinct_type;
 	//! list of distinct on targets
 	vector<unique_ptr<Expression>> target_distincts;
+	//! DISTINCT ON column names that could not be resolved at prepare-time (e.g. post-UNNEST struct field names).
+	//! These are resolved against the final output column names in BindModifiers.
+	vector<string> unresolved_distinct_names;
 };
 
 } // namespace duckdb

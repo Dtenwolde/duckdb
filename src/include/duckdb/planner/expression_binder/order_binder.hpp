@@ -40,10 +40,13 @@ public:
 	//! Sets the query component, for error messages
 	void SetQueryComponent(string component = string());
 
+	//! Returns the index into the SELECT list that this expression refers to, or invalid if not resolvable
+	//! as an alias, positional reference, or exact SELECT-list expression match.
+	optional_idx TryGetProjectionReference(ParsedExpression &expr) const;
+
 private:
 	unique_ptr<Expression> CreateProjectionReference(ParsedExpression &expr, const idx_t index);
 	unique_ptr<Expression> BindConstant(ParsedExpression &expr);
-	optional_idx TryGetProjectionReference(ParsedExpression &expr) const;
 
 private:
 	vector<reference<Binder>> binders;

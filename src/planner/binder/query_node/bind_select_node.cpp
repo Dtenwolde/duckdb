@@ -147,6 +147,42 @@ void Binder::PrepareModifiers(OrderBinder &order_binder, QueryNode &statement, B
 				vector<unique_ptr<ParsedExpression>> target_list;
 				order_binders[0].get().ExpandStarExpression(std::move(distinct_on_target), target_list);
 				for (auto &target : target_list) {
+					// For DISTINCT ON: detect unqualified column refs that cannot be resolved
+					// as an alias or SELECT-list expression, and are also not FROM-clause columns.
+					// These may be post-UNNEST struct field names (e.g. DISTINCT ON (m1) after
+					// UNNEST(struct{m1,m2})). Defer them to BindModifiers for name-based resolution.
+					if (bound_distinct->distinct_type == DistinctType::DISTINCT_ON &&
+					    target->GetExpressionClass() == ExpressionClass::COLUMN_REF) {
+						auto &colref = target->Cast<ColumnRefExpression>();
+						if (!colref.IsQualified()) {
+							auto index = order_binder.TryGetProjectionReference(*target);
+							if (!index.IsValid()) {
+								// Not resolvable as alias/positional/projection ref.
+								// Check whether it is a FROM-clause column by trying to qualify it.
+								// If it remains unqualified it is not a FROM-clause column (e.g. a
+								// post-UNNEST struct field name) and must be deferred.
+								auto copy = target->Copy();
+								bool is_from_column = false;
+								try {
+									ExpressionBinder::QualifyColumnNames(*this, copy);
+									if (copy->GetExpressionClass() == ExpressionClass::COLUMN_REF) {
+										is_from_column = copy->Cast<ColumnRefExpression>().IsQualified();
+									} else {
+										// Resolved to something other than a plain column ref (e.g. struct pack)
+										is_from_column = true;
+									}
+								} catch (BinderException &) {
+									// Ambiguous column name — treat as FROM-clause so the normal path
+									// can report the proper error.
+									is_from_column = true;
+								}
+								if (!is_from_column) {
+									bound_distinct->unresolved_distinct_names.push_back(colref.GetColumnName());
+									continue;
+								}
+							}
+						}
+					}
 					auto expr = BindOrderExpression(order_binder, std::move(target));
 					if (!expr) {
 						continue;
@@ -325,11 +361,43 @@ void Binder::BindModifiers(BoundQueryNode &result, idx_t table_index, const vect
 		switch (bound_mod->type) {
 		case ResultModifierType::DISTINCT_MODIFIER: {
 			auto &distinct = bound_mod->Cast<BoundDistinctModifier>();
-			// set types of distinct targets
-			for (auto &expr : distinct.target_distincts) {
-				expr = FinalizeBindOrderExpression(std::move(expr), table_index, names, sql_types, bind_state);
-				if (!expr) {
-					throw InternalException("DISTINCT ON ORDER BY ALL not supported");
+			if (distinct.distinct_type == DistinctType::DISTINCT) {
+				// For plain DISTINCT (not DISTINCT ON), generate targets for all final output columns.
+				// This correctly handles UNNEST(struct) which expands a single pre-binding column
+				// into multiple post-binding columns.
+				// We use names.size() (the actual SELECT output columns) rather than sql_types.size(),
+				// because sql_types also contains extra ORDER BY columns that are not in the SELECT list
+				// and should not affect DISTINCT deduplication.
+				distinct.target_distincts.clear();
+				for (idx_t i = 0; i < names.size(); i++) {
+					auto expr = make_uniq<BoundColumnRefExpression>(sql_types[i], ColumnBinding(table_index, i));
+					expr->SetAlias(names[i]);
+					distinct.target_distincts.push_back(std::move(expr));
+				}
+			} else {
+				// DISTINCT ON: finalize targets with proper index remapping.
+				for (auto &expr : distinct.target_distincts) {
+					expr = FinalizeBindOrderExpression(std::move(expr), table_index, names, sql_types, bind_state);
+					if (!expr) {
+						throw InternalException("DISTINCT ON ORDER BY ALL not supported");
+					}
+				}
+				// Resolve names that were deferred in PrepareModifiers (post-UNNEST struct field names).
+				for (auto &col_name : distinct.unresolved_distinct_names) {
+					idx_t found_idx = names.size(); // sentinel for "not found"
+					for (idx_t i = 0; i < names.size(); i++) {
+						if (StringUtil::CIEquals(names[i], col_name)) {
+							found_idx = i;
+							break;
+						}
+					}
+					if (found_idx == names.size()) {
+						throw BinderException("DISTINCT ON column \"%s\" not found in SELECT list", col_name);
+					}
+					auto expr = make_uniq<BoundColumnRefExpression>(sql_types[found_idx],
+					                                                ColumnBinding(table_index, found_idx));
+					expr->SetAlias(names[found_idx]);
+					distinct.target_distincts.push_back(std::move(expr));
 				}
 			}
 			for (auto &expr : distinct.target_distincts) {
