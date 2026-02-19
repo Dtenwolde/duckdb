@@ -198,6 +198,15 @@ public:
 	static void AddPivotEntry(PEGTransformer &transformer, string enum_name, unique_ptr<SelectNode> base,
 	                          unique_ptr<ParsedExpression> column, unique_ptr<QueryNode> subquery, bool has_parameters);
 	static Value GetConstantExpressionValue(unique_ptr<ParsedExpression> &expr);
+	static void AddToMultiStatement(const unique_ptr<MultiStatement> &multi_statement,
+	                                unique_ptr<AlterInfo> alter_info);
+	static void AddUpdateToMultiStatement(const unique_ptr<MultiStatement> &multi_statement, const string &column_name,
+	                                      const AlterEntryData &table_data,
+	                                      const unique_ptr<ParsedExpression> &original_expression);
+	static unique_ptr<MultiStatement> TransformAndMaterializeAlter(AlterEntryData &data,
+	                                                               unique_ptr<AlterInfo> info_with_null_placeholder,
+	                                                               const string &column_name,
+	                                                               unique_ptr<ParsedExpression> expression);
 
 	// Registration methods
 	void RegisterAlter();
