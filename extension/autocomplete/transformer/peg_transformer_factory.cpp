@@ -679,6 +679,8 @@ void PEGTransformerFactory::RegisterSelect() {
 	REGISTER_TRANSFORM(TransformColIdExpression);
 	REGISTER_TRANSFORM(TransformExpressionOptIdentifier);
 	REGISTER_TRANSFORM(TransformTableAlias);
+	REGISTER_TRANSFORM(TransformTableAliasAs);
+	REGISTER_TRANSFORM(TransformTableAliasWithoutAs);
 	REGISTER_TRANSFORM(TransformColumnAliases);
 	REGISTER_TRANSFORM(TransformNamedParameter);
 	REGISTER_TRANSFORM(TransformTableRef);

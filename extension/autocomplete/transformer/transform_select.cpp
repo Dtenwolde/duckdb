@@ -516,13 +516,25 @@ PEGTransformerFactory::TransformExpressionOptIdentifier(PEGTransformer &transfor
 TableAlias PEGTransformerFactory::TransformTableAlias(PEGTransformer &transformer,
                                                       optional_ptr<ParseResult> parse_result) {
 	auto &list_pr = parse_result->Cast<ListParseResult>();
+	return transformer.Transform<TableAlias>(list_pr.Child<ChoiceParseResult>(0).result);
+}
+
+TableAlias PEGTransformerFactory::TransformTableAliasAs(PEGTransformer &transformer,
+                                                        optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
 	TableAlias result;
 	auto qualified_name = transformer.Transform<QualifiedName>(list_pr.Child<ListParseResult>(1));
 	result.name = qualified_name.name;
-	auto opt_column_aliases = list_pr.Child<OptionalParseResult>(2);
-	if (opt_column_aliases.HasResult()) {
-		result.column_name_alias = transformer.Transform<vector<string>>(opt_column_aliases.optional_result);
-	}
+	transformer.TransformOptional<vector<string>>(list_pr, 2, result.column_name_alias);
+	return result;
+}
+
+TableAlias PEGTransformerFactory::TransformTableAliasWithoutAs(PEGTransformer &transformer,
+                                                               optional_ptr<ParseResult> parse_result) {
+	auto &list_pr = parse_result->Cast<ListParseResult>();
+	TableAlias result;
+	result.name = list_pr.Child<IdentifierParseResult>(0).identifier;
+	transformer.TransformOptional<vector<string>>(list_pr, 1, result.column_name_alias);
 	return result;
 }
 
