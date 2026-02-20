@@ -81,13 +81,6 @@ int64_t PEGTransformerFactory::TransformArrayBounds(PEGTransformer &transformer,
 	return transformer.Transform<int64_t>(list_pr.Child<ChoiceParseResult>(0).result);
 }
 
-int64_t PEGTransformerFactory::TransformArrayKeyword(PEGTransformer &transformer,
-                                                     optional_ptr<ParseResult> parse_result) {
-	// ArrayKeyword <- 'ARRAY'i
-	// Empty array so we return -1 to signify it's a list
-	return -1;
-}
-
 int64_t PEGTransformerFactory::TransformSquareBracketsArray(PEGTransformer &transformer,
                                                             optional_ptr<ParseResult> parse_result) {
 	auto &list_pr = parse_result->Cast<ListParseResult>();

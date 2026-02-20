@@ -205,16 +205,6 @@ unique_ptr<ParsedExpression> PEGTransformerFactory::TransformCopyFileName(PEGTra
 	return make_uniq<ConstantExpression>(Value(file_name));
 }
 
-string PEGTransformerFactory::TransformIdentifierColId(PEGTransformer &transformer,
-                                                       optional_ptr<ParseResult> parse_result) {
-	auto &list_pr = parse_result->Cast<ListParseResult>();
-	string result;
-	result += list_pr.Child<IdentifierParseResult>(0).name;
-	result += ".";
-	result += transformer.Transform<string>(list_pr.Child<ListParseResult>(2));
-	return result;
-}
-
 vector<GenericCopyOption> PEGTransformerFactory::TransformCopyOptions(PEGTransformer &transformer,
                                                                       optional_ptr<ParseResult> parse_result) {
 	// CopyOptions <- 'WITH'? GenericCopyOptionList / SpecializedOptions

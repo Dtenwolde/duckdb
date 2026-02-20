@@ -406,17 +406,6 @@ QualifiedName PEGTransformerFactory::TransformQualifiedName(PEGTransformer &tran
 	return transformer.Transform<QualifiedName>(list_pr.Child<ChoiceParseResult>(0).result);
 }
 
-QualifiedName
-PEGTransformerFactory::TransformCatalogReservedSchemaIdentifierOrStringLiteral(PEGTransformer &transformer,
-                                                                               optional_ptr<ParseResult> parse_result) {
-	QualifiedName result;
-	auto &list_pr = parse_result->Cast<ListParseResult>();
-	result.catalog = transformer.Transform<string>(list_pr.Child<ListParseResult>(0));
-	result.schema = transformer.Transform<string>(list_pr.Child<ListParseResult>(1));
-	result.name = transformer.Transform<string>(list_pr.Child<ListParseResult>(2));
-	return result;
-}
-
 QualifiedName PEGTransformerFactory::TransformCatalogReservedSchemaIdentifier(PEGTransformer &transformer,
                                                                               optional_ptr<ParseResult> parse_result) {
 	QualifiedName result;
@@ -446,17 +435,6 @@ string PEGTransformerFactory::TransformReservedIdentifierOrStringLiteral(PEGTran
 		return choice_pr.result->Cast<IdentifierParseResult>().identifier;
 	}
 	return transformer.Transform<string>(choice_pr.result);
-}
-
-QualifiedName
-PEGTransformerFactory::TransformTableNameIdentifierOrStringLiteral(PEGTransformer &transformer,
-                                                                   optional_ptr<ParseResult> parse_result) {
-	QualifiedName result;
-	auto &list_pr = parse_result->Cast<ListParseResult>();
-	result.catalog = INVALID_CATALOG;
-	result.schema = INVALID_SCHEMA;
-	result.name = transformer.Transform<string>(list_pr.Child<ListParseResult>(0));
-	return result;
 }
 
 unique_ptr<ParsedExpression> PEGTransformerFactory::TransformWhereClause(PEGTransformer &transformer,
@@ -634,39 +612,6 @@ void PEGTransformerFactory::GetValueFromExpression(unique_ptr<ParsedExpression> 
 				GetValueFromExpression(col, result);
 			}
 		}
-	}
-}
-
-bool PEGTransformerFactory::TransformPivotInList(unique_ptr<ParsedExpression> &expr, PivotColumnEntry &entry) {
-	switch (expr->GetExpressionType()) {
-	case ExpressionType::COLUMN_REF: {
-		auto &colref = expr->Cast<ColumnRefExpression>();
-		if (colref.IsQualified()) {
-			throw ParserException(expr->GetQueryLocation(), "PIVOT IN list cannot contain qualified column references");
-		}
-		entry.values.emplace_back(colref.GetColumnName());
-		return true;
-	}
-	case ExpressionType::FUNCTION: {
-		auto &function = expr->Cast<FunctionExpression>();
-		if (function.function_name != "row") {
-			return false;
-		}
-		for (auto &child : function.children) {
-			if (!TransformPivotInList(child, entry)) {
-				return false;
-			}
-		}
-		return true;
-	}
-	default: {
-		Value val;
-		if (!ConstructConstantFromExpression(*expr, val)) {
-			return false;
-		}
-		entry.values.push_back(std::move(val));
-		return true;
-	}
 	}
 }
 

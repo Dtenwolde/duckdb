@@ -1528,61 +1528,9 @@ unique_ptr<ParsedExpression> PEGTransformerFactory::TransformSingleExpression(PE
 	return transformer.Transform<unique_ptr<ParsedExpression>>(list_pr.Child<ChoiceParseResult>(0).result);
 }
 
-ExpressionType PEGTransformerFactory::TransformOperator(PEGTransformer &transformer,
-                                                        optional_ptr<ParseResult> parse_result) {
-	auto &list_pr = parse_result->Cast<ListParseResult>();
-	auto &choice_pr = list_pr.Child<ChoiceParseResult>(0);
-	if (choice_pr.result->type == ParseResultType::OPERATOR) {
-		return OperatorToExpressionType(choice_pr.result->Cast<OperatorParseResult>().operator_token);
-	}
-	return transformer.Transform<ExpressionType>(choice_pr.result);
-}
-
-ExpressionType PEGTransformerFactory::TransformConjunctionOperator(PEGTransformer &transformer,
-                                                                   optional_ptr<ParseResult> parse_result) {
-	auto &list_pr = parse_result->Cast<ListParseResult>();
-	return transformer.TransformEnum<ExpressionType>(list_pr.Child<ChoiceParseResult>(0).result);
-}
-
-ExpressionType PEGTransformerFactory::TransformIsOperator(PEGTransformer &transformer,
-                                                          optional_ptr<ParseResult> parse_result) {
-	auto &list_pr = parse_result->Cast<ListParseResult>();
-	bool is_not = list_pr.Child<OptionalParseResult>(1).HasResult();
-	bool is_distinct = list_pr.Child<OptionalParseResult>(2).HasResult();
-	if (is_distinct && is_not) {
-		return ExpressionType::COMPARE_NOT_DISTINCT_FROM;
-	}
-	if (is_distinct) {
-		return ExpressionType::COMPARE_DISTINCT_FROM;
-	}
-	if (is_not) {
-		return ExpressionType::OPERATOR_IS_NOT_NULL;
-	}
-	return ExpressionType::OPERATOR_IS_NULL;
-}
-
-ExpressionType PEGTransformerFactory::TransformInOperator(PEGTransformer &transformer,
-                                                          optional_ptr<ParseResult> parse_result) {
-	auto &list_pr = parse_result->Cast<ListParseResult>();
-	auto is_not = list_pr.Child<OptionalParseResult>(0).HasResult();
-	if (is_not) {
-		return ExpressionType::COMPARE_NOT_IN;
-	}
-	return ExpressionType::COMPARE_IN;
-}
-
 ExpressionType PEGTransformerFactory::TransformLambdaOperator(PEGTransformer &transformer,
                                                               optional_ptr<ParseResult> parse_result) {
 	return ExpressionType::LAMBDA;
-}
-
-ExpressionType PEGTransformerFactory::TransformBetweenOperator(PEGTransformer &transformer,
-                                                               optional_ptr<ParseResult> parse_result) {
-	auto &list_pr = parse_result->Cast<ListParseResult>();
-	if (list_pr.Child<OptionalParseResult>(0).HasResult()) {
-		return ExpressionType::COMPARE_NOT_BETWEEN;
-	}
-	return ExpressionType::COMPARE_BETWEEN;
 }
 
 unique_ptr<ParsedExpression> PEGTransformerFactory::TransformIndirection(PEGTransformer &transformer,

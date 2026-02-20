@@ -147,7 +147,6 @@ void PEGTransformerFactory::RegisterCommon() {
 	REGISTER_TRANSFORM(TransformStringLiteral);
 	REGISTER_TRANSFORM(TransformType);
 	REGISTER_TRANSFORM(TransformArrayBounds);
-	REGISTER_TRANSFORM(TransformArrayKeyword);
 	REGISTER_TRANSFORM(TransformSquareBracketsArray);
 	REGISTER_TRANSFORM(TransformTimeType);
 	REGISTER_TRANSFORM(TransformTimeZone);
@@ -187,7 +186,6 @@ void PEGTransformerFactory::RegisterCopy() {
 	REGISTER_TRANSFORM(TransformCopyTable);
 	REGISTER_TRANSFORM(TransformFromOrTo);
 	REGISTER_TRANSFORM(TransformCopyFileName);
-	REGISTER_TRANSFORM(TransformIdentifierColId);
 	REGISTER_TRANSFORM(TransformCopyOptions);
 	REGISTER_TRANSFORM(TransformSpecializedOptionList);
 	REGISTER_TRANSFORM(TransformSpecializedOption);
@@ -454,11 +452,6 @@ void PEGTransformerFactory::RegisterExpression() {
 	REGISTER_TRANSFORM(TransformFunctionIdentifier);
 	REGISTER_TRANSFORM(TransformSchemaReservedFunctionName);
 	REGISTER_TRANSFORM(TransformCatalogReservedSchemaFunctionName);
-	REGISTER_TRANSFORM(TransformOperator);
-	REGISTER_TRANSFORM(TransformConjunctionOperator);
-	REGISTER_TRANSFORM(TransformIsOperator);
-	REGISTER_TRANSFORM(TransformInOperator);
-	REGISTER_TRANSFORM(TransformBetweenOperator);
 	REGISTER_TRANSFORM(TransformParenthesisExpression);
 	REGISTER_TRANSFORM(TransformIndirection);
 	REGISTER_TRANSFORM(TransformCastOperator);
@@ -666,11 +659,9 @@ void PEGTransformerFactory::RegisterSelect() {
 	REGISTER_TRANSFORM(TransformSchemaQualification);
 	REGISTER_TRANSFORM(TransformCatalogQualification);
 	REGISTER_TRANSFORM(TransformQualifiedName);
-	REGISTER_TRANSFORM(TransformCatalogReservedSchemaIdentifierOrStringLiteral);
 	REGISTER_TRANSFORM(TransformCatalogReservedSchemaIdentifier);
 	REGISTER_TRANSFORM(TransformSchemaReservedIdentifierOrStringLiteral);
 	REGISTER_TRANSFORM(TransformReservedIdentifierOrStringLiteral);
-	REGISTER_TRANSFORM(TransformTableNameIdentifierOrStringLiteral);
 	REGISTER_TRANSFORM(TransformWhereClause);
 
 	REGISTER_TRANSFORM(TransformTargetList);

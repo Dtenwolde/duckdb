@@ -428,7 +428,6 @@ private:
 	static bool TransformFromOrTo(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static unique_ptr<ParsedExpression> TransformCopyFileName(PEGTransformer &transformer,
 	                                                          optional_ptr<ParseResult> parse_result);
-	static string TransformIdentifierColId(PEGTransformer &transformer, optional_ptr<ParseResult> parse_result);
 	static vector<GenericCopyOption> TransformCopyOptions(PEGTransformer &transformer,
 	                                                      optional_ptr<ParseResult> parse_result);
 	static vector<GenericCopyOption> TransformSpecializedOptionList(PEGTransformer &transformer,

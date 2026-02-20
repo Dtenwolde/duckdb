@@ -22,7 +22,15 @@ fi
 python "$GRAMMAR_FILE" --grammar-file
 python "$GRAMMAR_FILE"
 
-echo "Successfully build PEG grammar files"
+echo "Successfully built PEG grammar files"
+
+# Transformer coverage check (warnings only, non-blocking)
+TRANSFORMER_SCRIPT="scripts/generate_peg_transformer.py"
+if [[ -f "$TRANSFORMER_SCRIPT" ]]; then
+  echo ""
+  echo "--- Transformer Coverage Check ---"
+  python "$TRANSFORMER_SCRIPT" -s || true
+fi
 
 # Deactivate virtual environment
 deactivate
