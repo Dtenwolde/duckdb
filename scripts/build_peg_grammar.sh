@@ -29,7 +29,7 @@ TRANSFORMER_SCRIPT="scripts/generate_peg_transformer.py"
 if [[ -f "$TRANSFORMER_SCRIPT" ]]; then
   echo ""
   echo "--- Transformer Coverage Check ---"
-  python "$TRANSFORMER_SCRIPT" -s || true
+  python "$TRANSFORMER_SCRIPT" -q || true
 fi
 
 # Deactivate virtual environment
