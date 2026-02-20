@@ -112,7 +112,6 @@ with open(output_path, "w") as f:
     f.write("} // namespace duckdb\n")
 
 
-
 def filename_to_upper_camel(file):
     name, _ = os.path.splitext(file)  # column_name_keywords
     parts = name.split("_")  # ['column', 'name', 'keywords']
@@ -171,11 +170,11 @@ def pos_to_file_line(pos, file_offsets, grammar_text):
             break
         filename = name
         file_start = offset
-    line = grammar_text[file_start:pos].count('\n') + 1
+    line = grammar_text[file_start:pos].count("\n") + 1
     return filename, line
 
 
-def parse_peg_grammar(grammar_text):
+def parse_peg_grammar(grammar_text, file_offsets):
     """Parse PEG grammar text into a dict of rule_name -> (tokens, parameters, start_pos).
     Mirrors PEGParser::ParseRules() from peg_parser.cpp.
     Returns dict mapping rule_name to {'tokens': [...], 'parameters': [...], 'start_pos': int}.
@@ -192,6 +191,10 @@ def parse_peg_grammar(grammar_text):
     in_or_clause = False
     c = 0
     length = len(grammar)
+
+    def loc(pos):
+        filename, line = pos_to_file_line(pos, file_offsets, grammar)
+        return f"{filename}:{line}"
 
     while c < length:
         ch = grammar[c]
@@ -211,8 +214,14 @@ def parse_peg_grammar(grammar_text):
             and len(tokens) > 0
         ):
             if rule_name in rules:
-                raise RuntimeError(f"Duplicate rule name '{rule_name}'")
-            rules[rule_name] = {"tokens": list(tokens), "parameters": list(parameters), "start_pos": rule_start_pos}
+                raise RuntimeError(
+                    f"{loc(rule_start_pos)}: Duplicate rule name '{rule_name}'"
+                )
+            rules[rule_name] = {
+                "tokens": list(tokens),
+                "parameters": list(parameters),
+                "start_pos": rule_start_pos,
+            }
             rule_name = None
             tokens = []
             parameters = []
@@ -232,7 +241,7 @@ def parse_peg_grammar(grammar_text):
             while c < length and grammar[c].isalnum():
                 c += 1
             if c == start:
-                raise RuntimeError(f"Expected alphanumeric rule name at position {c}")
+                raise RuntimeError(f"{loc(c)}: Expected alphanumeric rule name")
             rule_name = grammar[start:c]
             rule_start_pos = start
             tokens = []
@@ -244,7 +253,7 @@ def parse_peg_grammar(grammar_text):
                 # Parse parameter
                 if parameters:
                     raise RuntimeError(
-                        f"Multiple parameter lists in rule '{rule_name}' at position {c}"
+                        f"{loc(c)}: Multiple parameter lists in rule '{rule_name}'"
                     )
                 c += 1
                 param_start = c
@@ -252,18 +261,18 @@ def parse_peg_grammar(grammar_text):
                     c += 1
                 if c == param_start:
                     raise RuntimeError(
-                        f"Expected parameter name in rule '{rule_name}' at position {c}"
+                        f"{loc(c)}: Expected parameter name in rule '{rule_name}'"
                     )
                 parameters.append(grammar[param_start:c])
                 if c >= length or grammar[c] != ")":
                     raise RuntimeError(
-                        f"Expected closing ')' for parameter in rule '{rule_name}' at position {c}"
+                        f"{loc(c)}: Expected closing ')' for parameter in rule '{rule_name}'"
                     )
                 c += 1
             else:
                 if c + 1 >= length or grammar[c] != "<" or grammar[c + 1] != "-":
                     raise RuntimeError(
-                        f"Expected '<-' after rule name '{rule_name}' at position {c}"
+                        f"{loc(c)}: Expected '<-' after rule name '{rule_name}'"
                     )
                 c += 2
                 state = PEGParseState.RULE_DEFINITION
@@ -280,13 +289,13 @@ def parse_peg_grammar(grammar_text):
                     c += 1
                 if c >= length:
                     raise RuntimeError(
-                        f"Unclosed quote in rule '{rule_name}' starting at position {lit_start - 1}"
+                        f"{loc(lit_start - 1)}: Unclosed quote in rule '{rule_name}'"
                     )
                 tokens.append((PEGTokenType.LITERAL, grammar[lit_start:c]))
                 c += 1
                 if c < length and grammar[c] == "i":
                     raise RuntimeError(
-                        f"Unexpected 'i' suffix on literal in rule '{rule_name}'"
+                        f"{loc(c)}: Unexpected 'i' suffix on literal in rule '{rule_name}'"
                     )
             elif ch.isalnum():
                 # Reference or function call
@@ -312,7 +321,7 @@ def parse_peg_grammar(grammar_text):
                         c += 1
                 if c >= length:
                     raise RuntimeError(
-                        f"Unclosed '{ch}' in rule '{rule_name}' at position {regex_start}"
+                        f"{loc(regex_start)}: Unclosed '{ch}' in rule '{rule_name}'"
                     )
                 c += 1
                 tokens.append((PEGTokenType.REGEX, grammar[regex_start:c]))
@@ -322,7 +331,7 @@ def parse_peg_grammar(grammar_text):
                 elif ch == ")":
                     if bracket_count == 0:
                         raise RuntimeError(
-                            f"Unbalanced ')' in rule '{rule_name}' at position {c}"
+                            f"{loc(c)}: Unbalanced ')' in rule '{rule_name}'"
                         )
                     bracket_count -= 1
                 elif ch == "/":
@@ -331,7 +340,7 @@ def parse_peg_grammar(grammar_text):
                 c += 1
             else:
                 raise RuntimeError(
-                    f"Unrecognized character '{ch}' in rule '{rule_name}' at position {c}"
+                    f"{loc(c)}: Unrecognized character '{ch}' in rule '{rule_name}'"
                 )
 
         if c >= length:
@@ -339,13 +348,21 @@ def parse_peg_grammar(grammar_text):
 
     # Handle final rule
     if state == PEGParseState.RULE_SEPARATOR:
-        raise RuntimeError(f"Rule '{rule_name}' does not have a definition")
+        raise RuntimeError(
+            f"{loc(rule_start_pos)}: Rule '{rule_name}' does not have a definition"
+        )
     if state == PEGParseState.RULE_DEFINITION:
         if not tokens:
-            raise RuntimeError(f"Rule '{rule_name}' is empty")
+            raise RuntimeError(f"{loc(rule_start_pos)}: Rule '{rule_name}' is empty")
         if rule_name in rules:
-            raise RuntimeError(f"Duplicate rule name '{rule_name}'")
-        rules[rule_name] = {"tokens": list(tokens), "parameters": list(parameters), "start_pos": rule_start_pos}
+            raise RuntimeError(
+                f"{loc(rule_start_pos)}: Duplicate rule name '{rule_name}'"
+            )
+        rules[rule_name] = {
+            "tokens": list(tokens),
+            "parameters": list(parameters),
+            "start_pos": rule_start_pos,
+        }
 
     return rules
 
@@ -411,7 +428,7 @@ def validate_grammar(grammar_text, file_offsets):
     """Run all grammar validation phases. Exits on fatal errors."""
     # Phase 1: Parse
     try:
-        rules = parse_peg_grammar(grammar_text)
+        rules = parse_peg_grammar(grammar_text, file_offsets)
     except RuntimeError as e:
         print(f"Grammar syntax error: {e}", file=sys.stderr)
         sys.exit(1)
