@@ -9,5 +9,4 @@ Unique <- 'UNIQUE'
 IndexType <- 'USING' Identifier
 RelOption <- DottedIdentifier ('=' DefArg)?
 DefArg <- ReservedKeyword / StringLiteral / NumberLiteral / NoneLiteral
-ReservedKeywordValue <- ReservedKeyword
 NoneLiteral <- 'NONE'

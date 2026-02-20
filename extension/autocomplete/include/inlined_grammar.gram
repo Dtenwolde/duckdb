@@ -132,7 +132,6 @@ ColIdTypeList <- Parens(List(ColIdType))
 MapType <- 'MAP' Parens(List(Type))
 ColIdType <- ColId Type
 ArrayBounds <- SquareBracketsArray / 'ARRAY'
-ArrayKeyword <- 'ARRAY'
 SquareBracketsArray <- '[' NumberLiteral? ']'
 TimeType <- TimeOrTimestamp TypeModifiers? TimeZone?
 TimeOrTimestamp <- TimeTypeId / TimestampTypeId
@@ -1105,8 +1104,8 @@ Unique <- 'UNIQUE'
 IndexType <- 'USING' Identifier
 RelOption <- DottedIdentifier ('=' DefArg)?
 DefArg <- ReservedKeyword / StringLiteral / NumberLiteral / NoneLiteral
-ReservedKeywordValue <- ReservedKeyword
 NoneLiteral <- 'NONE'
+
 LoadStatement <- 'LOAD' ColIdOrString
 InstallStatement <- 'FORCE'? 'INSTALL' IdentifierOrStringLiteral FromSource? VersionNumber?
 FromSource <- 'FROM' (Identifier / StringLiteral)
