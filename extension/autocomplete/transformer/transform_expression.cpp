@@ -15,6 +15,8 @@
 #include "duckdb/parser/tableref/subqueryref.hpp"
 #include "duckdb/parser/tableref/emptytableref.hpp"
 #include "duckdb/parser/parsed_expression_iterator.hpp"
+#include "keyword_helper.hpp"
+#include "duckdb/common/string_util.hpp"
 
 namespace duckdb {
 
@@ -62,12 +64,16 @@ unique_ptr<SQLStatement> PEGTransformerFactory::TransformExpressionStatement(PEG
 				select_node->from_table = make_uniq<BaseTableRef>(table_description);
 			}
 		} else {
-			throw ParserException("Unqualified table name (%s) are not supported within an expression statement, use "
-			                      "\"schema.table\" instead.",
-			                      col_expr.GetColumnName());
-			// auto base_table = make_uniq<BaseTableRef>();
-			// base_table->table_name = col_expr.GetColumnName();
-			// select_node->from_table = std::move(base_table);
+			// Check if this looks like a mistyped reserved keyword
+			auto &keyword_helper = PEGKeywordHelper::Instance();
+			auto keyword_matches = keyword_helper.FindReservedKeywordsByPrefix(col_expr.GetColumnName());
+			if (!keyword_matches.empty()) {
+				throw ParserException("Unrecognized statement \"%s\". Did you mean \"%s\"?", col_expr.GetColumnName(),
+				                      StringUtil::Join(keyword_matches, "\" or \""));
+			}
+			auto base_table = make_uniq<BaseTableRef>();
+			base_table->table_name = col_expr.GetColumnName();
+			select_node->from_table = std::move(base_table);
 		}
 		select_node->select_list.push_back(make_uniq<StarExpression>());
 	} else {
