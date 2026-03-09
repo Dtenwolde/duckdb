@@ -11,25 +11,10 @@ PEGKeywordHelper::PEGKeywordHelper() {
 }
 
 bool PEGKeywordHelper::KeywordCategoryType(const std::string &text, const PEGKeywordCategory type) const {
-	switch (type) {
-	case PEGKeywordCategory::KEYWORD_RESERVED: {
-		auto it = reserved_keyword_map.find(text);
-		return it != reserved_keyword_map.end();
-	}
-	case PEGKeywordCategory::KEYWORD_UNRESERVED: {
-		auto it = unreserved_keyword_map.find(text);
-		return it != unreserved_keyword_map.end();
-	}
-	case PEGKeywordCategory::KEYWORD_TYPE_FUNC: {
-		auto it = typefunc_keyword_map.find(text);
-		return it != typefunc_keyword_map.end();
-	}
-	case PEGKeywordCategory::KEYWORD_COL_NAME: {
-		auto it = colname_keyword_map.find(text);
-		return it != colname_keyword_map.end();
-	}
-	default:
+	auto it = keyword_map.find(text);
+	if (it == keyword_map.end()) {
 		return false;
 	}
+	return (it->second & CategoryToBitmask(type)) != 0;
 }
 } // namespace duckdb

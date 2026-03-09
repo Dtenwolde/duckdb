@@ -18,19 +18,35 @@ public:
 	bool KeywordCategoryType(const string &text, PEGKeywordCategory type) const;
 	void InitializeKeywordMaps();
 	bool IsKeyword(const string &text) {
-		if (reserved_keyword_map.count(text) != 0 || unreserved_keyword_map.count(text) != 0 ||
-		    colname_keyword_map.count(text) != 0 || typefunc_keyword_map.count(text) != 0) {
-			return true;
-		}
-		return false;
-	};
+		return keyword_map.count(text) != 0;
+	}
+	void AddKeyword(const string &text, PEGKeywordCategory category) {
+		keyword_map[text] |= CategoryToBitmask(category);
+	}
 
 private:
+	static constexpr uint8_t KW_RESERVED = 1 << 0;
+	static constexpr uint8_t KW_UNRESERVED = 1 << 1;
+	static constexpr uint8_t KW_TYPE_FUNC = 1 << 2;
+	static constexpr uint8_t KW_COL_NAME = 1 << 3;
+
+	static uint8_t CategoryToBitmask(PEGKeywordCategory category) {
+		switch (category) {
+		case PEGKeywordCategory::KEYWORD_RESERVED:
+			return KW_RESERVED;
+		case PEGKeywordCategory::KEYWORD_UNRESERVED:
+			return KW_UNRESERVED;
+		case PEGKeywordCategory::KEYWORD_TYPE_FUNC:
+			return KW_TYPE_FUNC;
+		case PEGKeywordCategory::KEYWORD_COL_NAME:
+			return KW_COL_NAME;
+		default:
+			return 0;
+		}
+	}
+
 	PEGKeywordHelper();
 	bool initialized;
-	case_insensitive_set_t reserved_keyword_map;
-	case_insensitive_set_t unreserved_keyword_map;
-	case_insensitive_set_t colname_keyword_map;
-	case_insensitive_set_t typefunc_keyword_map;
+	case_insensitive_map_t<uint8_t> keyword_map;
 };
 } // namespace duckdb
