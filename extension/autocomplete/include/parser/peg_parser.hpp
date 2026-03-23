@@ -39,8 +39,11 @@ struct PEGParser {
 public:
 	void ParseRules(const char *grammar);
 	void AddRule(string_t rule_name, PEGRule rule);
+	void ApplyExtensionRules();
+	void MergeInto(PEGParser &base) const;
 
 	case_insensitive_map_t<PEGRule> rules;
+	vector<pair<string, PEGRule>> extension_rules; // Used for <-/ if multiple extensions want to extend a certain rule
 };
 
 enum class PEGParseState {

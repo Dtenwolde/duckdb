@@ -15,6 +15,7 @@ void PEGParser::ParseRules(const char *grammar) {
 	PEGRule rule;
 	PEGParseState parse_state = PEGParseState::RULE_NAME;
 	idx_t bracket_count = 0;
+	bool extension_rule = false;
 	bool in_or_clause = false;
 	// look for the rules
 	idx_t c = 0;
@@ -86,6 +87,10 @@ void PEGParser::ParseRules(const char *grammar) {
 					throw InternalException("Failed to parse grammar - expected a rule definition (<-) (pos %d)", c);
 				}
 				c += 2;
+				if (grammar[c] == '/') {
+					extension_rule = true;
+					c++;
+				}
 				parse_state = PEGParseState::RULE_DEFINITION;
 			}
 			break;
@@ -191,7 +196,11 @@ void PEGParser::ParseRules(const char *grammar) {
 		if (rule.tokens.empty()) {
 			throw InternalException("Failed to parse grammar - rule %s is empty", rule_name.GetString());
 		}
-		AddRule(rule_name, std::move(rule));
+		if (extension_rule) {
+			extension_rules.push_back({rule_name.GetString(), std::move(rule)});
+		} else {
+			AddRule(rule_name, std::move(rule));
+		}
 	}
 }
 
