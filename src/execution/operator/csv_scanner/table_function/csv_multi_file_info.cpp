@@ -3,8 +3,10 @@
 #include "duckdb/execution/operator/csv_scanner/global_csv_state.hpp"
 #include "duckdb/execution/operator/csv_scanner/sniffer/csv_sniffer.hpp"
 #include "duckdb/execution/operator/csv_scanner/csv_buffer.hpp"
+#include "duckdb/execution/operator/csv_scanner/csv_pipe_manager.hpp"
 #include "duckdb/execution/operator/persistent/csv_rejects_table.hpp"
 #include "duckdb/common/bind_helpers.hpp"
+#include "duckdb/main/client_context.hpp"
 
 namespace duckdb {
 
@@ -75,7 +77,21 @@ CSVSchema CSVSchemaDiscovery::SchemaDiscovery(ClientContext &context, shared_ptr
 	idx_t current_file = 0;
 	options.file_path = file_paths[current_file].path;
 
-	buffer_manager = make_shared_ptr<CSVBufferManager>(context, options, options.file_path, false);
+	// For pipe files (e.g. /dev/stdin), BindSummarize may bind the same query twice: once to
+	// discover column names/types, and again for actual execution. Since a pipe can only be read
+	// once, we cache the buffer manager in CSVPipeManager so the second bind can reuse the
+	// already-read data instead of finding an empty pipe.
+	auto pipe_mgr = context.registered_state->GetOrCreate<CSVPipeManager>("csv_pipe_manager");
+	auto existing_it = pipe_mgr->buffer_managers.find(options.file_path);
+	if (existing_it != pipe_mgr->buffer_managers.end()) {
+		buffer_manager = existing_it->second;
+		pipe_mgr->buffer_managers.erase(existing_it);
+	} else {
+		buffer_manager = make_shared_ptr<CSVBufferManager>(context, options, options.file_path, false);
+		if (buffer_manager->file_handle->IsPipe()) {
+			pipe_mgr->buffer_managers[options.file_path] = buffer_manager;
+		}
+	}
 	idx_t only_header_or_empty_files = 0;
 
 	{

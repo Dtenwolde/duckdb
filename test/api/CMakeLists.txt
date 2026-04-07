@@ -40,7 +40,8 @@ set(TEST_API_OBJECTS
     test_buffer_pool_eviction.cpp)
 
 if(NOT WIN32)
-  set(TEST_API_OBJECTS ${TEST_API_OBJECTS} test_read_only.cpp)
+  set(TEST_API_OBJECTS ${TEST_API_OBJECTS} test_read_only.cpp
+      test_csv_pipe_summarize.cpp)
 endif()
 
 if(DUCKDB_EXTENSION_TPCH_SHOULD_LINK)
