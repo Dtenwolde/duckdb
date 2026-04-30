@@ -735,7 +735,8 @@ CastExpression <- CastOrTryCast Parens(Expression 'AS' Type)
 CastOrTryCast <- 'CAST' / 'TRY_CAST'
 
 StarExpression <- (ColId '.')* '*' ExcludeList? ReplaceList? RenameList?
-ExcludeList <- 'EXCLUDE' ExcludeNameList / ExcludeNameSingle
+ExcludeList <- ExcludeOrExcept ExcludeNameList / ExcludeNameSingle
+ExcludeOrExcept <- 'EXCLUDE' / 'EXCEPT'
 ExcludeNameList <- Parens(List(ExcludeName))
 ExcludeNameSingle <- ExcludeName
 ExcludeName <- DottedIdentifier / ColIdOrString
@@ -754,7 +755,7 @@ CaseWhenThen <- 'WHEN' Expression 'THEN' Expression
 CaseElse <- 'ELSE' Expression
 TypeLiteral <- ColId StringLiteral
 IntervalLiteral <- 'INTERVAL' IntervalParameter Interval?
-IntervalParameter <- StringLiteral / NumberLiteral / ParensExpression
+IntervalParameter <- StringLiteral / NumberLiteral / Expression
 FrameClause <- Framing FrameExtent WindowExcludeClause?
 Framing <- 'ROWS' / 'RANGE' / 'GROUPS'
 FrameExtent <- BetweenFrameExtent / SingleFrameExtent
