@@ -138,22 +138,22 @@ static unique_ptr<FunctionData> ListZipBind(BindScalarFunctionInput &input) {
 	// The last argument could be a flag to be set if we want a minimal list or a maximal list
 	idx_t size = arguments.size();
 	if (size == 0) {
-		throw BinderException("Provide at least one argument to " + bound_function.name);
+		throw BinderException("Provide at least one argument to " + bound_function.GetName());
 	}
-	if (arguments[size - 1]->return_type.id() == LogicalTypeId::BOOLEAN) {
+	if (arguments[size - 1]->GetReturnType().id() == LogicalTypeId::BOOLEAN) {
 		if (--size == 0) {
-			throw BinderException("Provide at least one list argument to " + bound_function.name);
+			throw BinderException("Provide at least one list argument to " + bound_function.GetName());
 		}
 	}
 
 	case_insensitive_set_t struct_names;
 	for (idx_t i = 0; i < size; i++) {
 		auto &child = arguments[i];
-		switch (child->return_type.id()) {
+		switch (child->GetReturnType().id()) {
 		case LogicalTypeId::LIST:
 		case LogicalTypeId::ARRAY:
 			child = BoundCastExpression::AddArrayCastToList(context, std::move(child));
-			struct_children.push_back(make_pair(string(), ListType::GetChildType(child->return_type)));
+			struct_children.push_back(make_pair(string(), ListType::GetChildType(child->GetReturnType())));
 			break;
 		case LogicalTypeId::SQLNULL:
 			struct_children.push_back(make_pair(string(), LogicalTypeId::SQLNULL));

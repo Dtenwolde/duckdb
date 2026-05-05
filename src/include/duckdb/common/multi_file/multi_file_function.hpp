@@ -9,6 +9,7 @@
 #pragma once
 
 #include "duckdb/common/multi_file/multi_file_reader.hpp"
+#include "duckdb/common/vector/flat_vector.hpp"
 #include "duckdb/function/table_function.hpp"
 #include "duckdb/function/copy_function.hpp"
 #include "duckdb/common/exception/conversion_exception.hpp"
@@ -284,6 +285,16 @@ public:
 
 			auto &current_reader_data = *global_state.readers[current_file_index];
 			if (current_reader_data.file_state == MultiFileFileState::UNOPENED) {
+				// skip the file if pre-open-knowable filters already rule it out
+				if (!current_reader_data.union_data &&
+				    MultiFileReader::CanSkipFileFromFilters(
+				        context, current_reader_data.file_to_be_opened, current_file_index, bind_data.file_options,
+				        bind_data.reader_bind, global_state.column_indexes, global_state.filters)) {
+					current_reader_data.file_state = MultiFileFileState::SKIPPED;
+					//! Intentionally do not increase 'i'
+					continue;
+				}
+
 				current_reader_data.file_state = MultiFileFileState::OPENING;
 				// Get pointer to file mutex before unlocking
 				auto &current_file_lock = *current_reader_data.file_mutex;
@@ -378,7 +389,7 @@ public:
 			if (cast_entry != reader.cast_map.end()) {
 				intermediate_chunk_types.push_back(cast_entry->second);
 			} else if (expr_entry != reader.expression_map.end()) {
-				intermediate_chunk_types.push_back(expr_entry->second->return_type);
+				intermediate_chunk_types.push_back(expr_entry->second->GetReturnType());
 			} else {
 				auto &col = local_columns[local_id];
 				intermediate_chunk_types.push_back(col.type);
@@ -644,6 +655,7 @@ public:
 				bind_data.multi_file_reader->FinalizeChunk(context, bind_data, *data.reader, *data.reader_data,
 				                                           scan_chunk, output, data.executor,
 				                                           gstate.multi_file_reader_state);
+				output.SetChildCardinality(output.size());
 			}
 			if (res.GetResultType() == AsyncResultType::HAVE_MORE_OUTPUT) {
 				// Loop back to the same block

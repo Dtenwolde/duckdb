@@ -1,0 +1,11 @@
+diff --git a/src/aws_extension.cpp b/src/aws_extension.cpp
+--- a/src/aws_extension.cpp
++++ b/src/aws_extension.cpp
+@@ -112,7 +112,7 @@ static void LoadAWSCredentialsFun(ClientContext &context, TableFunctionInput &da
+ 	output.SetValue(3, 0, load_result.set_region.empty() ? Value(nullptr) : load_result.set_region);
+
+-	output.SetCardinality(1);
++	output.SetChildCardinality(1);
+
+ 	data.finished = true;
+ }

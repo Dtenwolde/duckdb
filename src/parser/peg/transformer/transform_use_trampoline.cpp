@@ -7,14 +7,14 @@ namespace duckdb {
 void PEGTransformerFactory::T_TransformStatement(PEGTransformer &t, TransformerStackFrame &frame) {
 	auto &choice_pr = frame.parse_result->Cast<ListParseResult>().Child<ChoiceParseResult>(0);
 	unique_ptr<SQLStatement> result;
-	if (!t.PushAndAwait<unique_ptr<SQLStatement>>(frame, choice_pr.GetResult(), result)) {
-		return;
-	}
+	// if (!t.PushAndAwait<unique_ptr<SQLStatement>>(frame, choice_pr.GetResult(), result)) {
+	// 	return;
+	// }
 	if (!t.named_parameter_map.empty()) {
 		result->named_param_map = t.named_parameter_map;
 	}
-	t.SetParentResult(t.MakeStatementResult(std::move(result)));
-	t.PopFrame();
+	// t.SetParentResult(t.MakeStatementResult(std::move(result)));
+	// t.PopFrame();
 }
 
 // UseStatement <- 'USE' UseTarget
@@ -22,9 +22,9 @@ void PEGTransformerFactory::T_TransformUseStatement(PEGTransformer &t, Transform
 	auto &list_pr = frame.parse_result->Cast<ListParseResult>();
 	QualifiedName qn;
 	// child 0 is 'USE' keyword, child 1 is UseTarget
-	if (!t.PushAndAwait<QualifiedName>(frame, list_pr.GetChild(1), qn)) {
-		return;
-	}
+	// if (!t.PushAndAwait<QualifiedName>(frame, list_pr.GetChild(1), qn)) {
+	// 	return;
+	// }
 
 	string value_str;
 	if (IsInvalidSchema(qn.schema)) {
@@ -36,7 +36,7 @@ void PEGTransformerFactory::T_TransformUseStatement(PEGTransformer &t, Transform
 
 	auto value_expr = make_uniq<ConstantExpression>(Value(value_str));
 	auto stmt = make_uniq<SetVariableStatement>("schema", std::move(value_expr), SetScope::AUTOMATIC);
-	t.SetParentResult(t.MakeStatementResult(std::move(stmt)));
+	// t.SetParentResult(t.MakeStatementResult(std::move(stmt)));
 	t.PopFrame();
 }
 
@@ -47,14 +47,14 @@ void PEGTransformerFactory::T_TransformUseTarget(PEGTransformer &t, TransformerS
 	if (choice_pr.GetResult().type == ParseResultType::IDENTIFIER) {
 		QualifiedName result;
 		result.name = choice_pr.GetResult().Cast<IdentifierParseResult>().identifier;
-		t.SetParentResult(MakeResult<QualifiedName>(std::move(result)));
+		// t.SetParentResult(MakeResult<QualifiedName>(std::move(result)));
 		t.PopFrame();
 		return;
 	}
 
-	if (!t.PushAndForward(frame, choice_pr.GetResult())) {
-		return;
-	}
+	// if (!t.PushAndForward(frame, choice_pr.GetResult())) {
+	// 	return;
+	// }
 }
 
 // UseTargetCatalogSchema <- CatalogName '.' ReservedSchemaName ('.' Identifier)*
@@ -70,7 +70,7 @@ void PEGTransformerFactory::T_TransformUseTargetCatalogSchema(PEGTransformer &t,
 	result.catalog = INVALID_CATALOG;
 	result.schema = catalog;
 	result.name = schema;
-	t.SetParentResult(MakeResult<QualifiedName>(std::move(result)));
+	// t.SetParentResult(MakeResult<QualifiedName>(std::move(result)));
 	t.PopFrame();
 }
 

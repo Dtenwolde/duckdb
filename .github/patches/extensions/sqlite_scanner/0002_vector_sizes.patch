@@ -1,0 +1,63 @@
+diff --git a/src/sqlite_scanner.cpp b/src/sqlite_scanner.cpp
+index 49239a2..f54f052 100644
+--- a/src/sqlite_scanner.cpp
++++ b/src/sqlite_scanner.cpp
+@@ -255,14 +255,14 @@ static void SqliteScan(ClientContext &context, TableFunctionInput &data, DataChu
+ 		idx_t out_idx = 0;
+ 		while (true) {
+ 			if (out_idx == STANDARD_VECTOR_SIZE) {
+-				output.SetCardinality(out_idx);
++				output.SetChildCardinality(out_idx);
+ 				return;
+ 			}
+ 			auto &stmt = state.stmt;
+ 			auto has_more = stmt.Step();
+ 			if (!has_more) {
+ 				state.done = true;
+-				output.SetCardinality(out_idx);
++				output.SetChildCardinality(out_idx);
+ 				break;
+ 			}
+ 			state.scan_count++;
+diff --git a/src/storage/sqlite_delete.cpp b/src/storage/sqlite_delete.cpp
+index 2409c46..4190a65 100644
+--- a/src/storage/sqlite_delete.cpp
++++ b/src/storage/sqlite_delete.cpp
+@@ -78,8 +78,8 @@ SourceResultType SQLiteDelete::GetDataInternal(ExecutionContext &context, DataCh
+ 		insert_gstate.delete_count = insert_gstate.rowids.size();
+ 		insert_gstate.delete_done = true;
+ 	}
+-	chunk.SetCardinality(1);
+ 	chunk.SetValue(0, 0, Value::BIGINT(insert_gstate.delete_count));
++	chunk.SetChildCardinality(1);
+ 
+ 	return SourceResultType::FINISHED;
+ }
+diff --git a/src/storage/sqlite_insert.cpp b/src/storage/sqlite_insert.cpp
+index 95c4e39..decdaaa 100644
+--- a/src/storage/sqlite_insert.cpp
++++ b/src/storage/sqlite_insert.cpp
+@@ -120,8 +120,8 @@ SinkResultType SQLiteInsert::Sink(ExecutionContext &context, DataChunk &chunk, O
+ //===--------------------------------------------------------------------===//
+ SourceResultType SQLiteInsert::GetDataInternal(ExecutionContext &context, DataChunk &chunk, OperatorSourceInput &input) const {
+ 	auto &insert_gstate = sink_state->Cast<SQLiteInsertGlobalState>();
+-	chunk.SetCardinality(1);
+ 	chunk.SetValue(0, 0, Value::BIGINT(insert_gstate.insert_count));
++	chunk.SetChildCardinality(1);
+ 
+ 	return SourceResultType::FINISHED;
+ }
+diff --git a/src/storage/sqlite_update.cpp b/src/storage/sqlite_update.cpp
+index 565c185..10cc740 100644
+--- a/src/storage/sqlite_update.cpp
++++ b/src/storage/sqlite_update.cpp
+@@ -83,8 +83,8 @@ SinkResultType SQLiteUpdate::Sink(ExecutionContext &context, DataChunk &chunk, O
+ //===--------------------------------------------------------------------===//
+ SourceResultType SQLiteUpdate::GetDataInternal(ExecutionContext &context, DataChunk &chunk, OperatorSourceInput &input) const {
+ 	auto &insert_gstate = sink_state->Cast<SQLiteUpdateGlobalState>();
+-	chunk.SetCardinality(1);
+ 	chunk.SetValue(0, 0, Value::BIGINT(insert_gstate.update_count));
++	chunk.SetChildCardinality(1);
+ 
+ 	return SourceResultType::FINISHED;
+ }

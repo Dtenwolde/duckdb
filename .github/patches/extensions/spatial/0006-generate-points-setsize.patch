@@ -1,0 +1,13 @@
+diff --git a/src/spatial/modules/main/spatial_functions_table.cpp b/src/spatial/modules/main/spatial_functions_table.cpp
+index 6dfb537..1007356 100644
+--- a/src/spatial/modules/main/spatial_functions_table.cpp
++++ b/src/spatial/modules/main/spatial_functions_table.cpp
+@@ -96,7 +96,7 @@ struct ST_GeneratePoints {
+ 
+ 			state.current_idx++;
+ 		}
+-		output.SetCardinality(chunk_size);
++		output.SetChildCardinality(chunk_size);
+ 	}
+ 
+ 	//------------------------------------------------------------------------------------------------------------------

@@ -1808,4 +1808,5 @@ string PEGTransformerFactory::TransformSchemaQualification(PEGTransformer &trans
 // 	return optional_idx(const_expr.value.GetValue<idx_t>());
 // }
 
+
 } // namespace duckdb

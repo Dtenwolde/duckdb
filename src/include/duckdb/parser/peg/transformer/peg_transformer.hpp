@@ -135,75 +135,23 @@ public:
 	}
 
 	template <typename T>
-	T TransformTrampoline(ParseResult &pr) {
-		PushFrame(pr);
+	T TransformTrampoline(ParseResult &pr, TransformerStackFrame &base_result) {
+		PushFrame(pr, base_result);
 		while (!frame_stack.empty()) {
 			auto &top = frame_stack.back();
 			auto it = trampoline_functions.find(top.parse_result->name);
-			if (it == trampoline_functions.end()) {
-				// Rule not yet ported: fall back to the old recursive path
-				auto old_it = transform_functions.find(top.parse_result->name);
-				if (old_it == transform_functions.end()) {
-					throw NotImplementedException("No trampoline function found for rule '%s'",
-					                              top.parse_result->name);
-				}
-				auto result = old_it->second(*this, *top.parse_result);
-				SetParentResult(std::move(result));
-				PopFrame();
-				continue;
-			}
 			it->second(*this, top);
 		}
 		return CastResult<T>(std::move(root_result));
 	}
 
-	void PushFrame(ParseResult &pr) {
-		frame_stack.emplace_back(pr);
+	void PushFrame(ParseResult &pr, TransformerStackFrame &parent) {
+		frame_stack.emplace_back(pr, parent);
 	}
 
 	void PopFrame() {
 		D_ASSERT(!frame_stack.empty());
 		frame_stack.pop_back();
-	}
-
-	void SetParentResult(unique_ptr<TransformResultValue> result) {
-		D_ASSERT(!frame_stack.empty());
-		if (frame_stack.size() >= 2) {
-			frame_stack[frame_stack.size() - 2].child_result = std::move(result);
-		} else {
-			root_result = std::move(result);
-		}
-	}
-
-	// Push child on first visit; on second visit extract child_result into `out` and return true.
-	// Returns false (and pushes) on first visit so the caller can `return` immediately.
-	template <typename T>
-	bool PushAndAwait(TransformerStackFrame &frame, ParseResult &child, T &out) {
-		if (!frame.child_result) {
-			PushFrame(child);
-			return false;
-		}
-		out = CastResult<T>(std::move(frame.child_result));
-		return true;
-	}
-
-	// Pure-forward variant: push child on first visit; on second visit forward child_result to
-	// parent unchanged (no cast/re-wrap). Calls SetParentResult + PopFrame itself, so the caller
-	// needs nothing after `if (!t.PushAndForward(frame, child)) return;`.
-	bool PushAndForward(TransformerStackFrame &frame, ParseResult &child) {
-		if (!frame.child_result) {
-			PushFrame(child);
-			return false;
-		}
-		SetParentResult(std::move(frame.child_result));
-		PopFrame();
-		return true;
-	}
-
-	// Wraps stmt as MakeResult<unique_ptr<SQLStatement>>, converting at the call site so that
-	// passing a unique_ptr<DerivedStatement> is a compile-time upcast rather than a type mismatch.
-	static unique_ptr<TransformResultValue> MakeStatementResult(unique_ptr<SQLStatement> stmt) {
-		return MakeResult<unique_ptr<SQLStatement>>(std::move(stmt));
 	}
 
 	template <class FUNC>
@@ -294,12 +242,11 @@ public:
 
 class PEGTransformerFactory {
 public:
-	static PEGTransformerFactory &GetInstance();
 	explicit PEGTransformerFactory();
 
 	//! Helper functions
-	static vector<unique_ptr<SQLStatement>> Transform(vector<MatcherToken> &tokens, ParserOptions &options,
-	                                                  Matcher &root_matcher);
+	vector<unique_ptr<SQLStatement>> Transform(vector<MatcherToken> &tokens, ParserOptions &options,
+	                                           Matcher &root_matcher);
 	static ParseResult &ExtractResultFromParens(ParseResult &parse_result);
 	static vector<reference<ParseResult>> ExtractParseResultsFromList(ParseResult &parse_result);
 	static bool ExpressionIsEmptyStar(ParsedExpression &expr);
@@ -374,12 +321,6 @@ public:
 	void RegisterUse();
 	void PopulateTrampolineFunctions(PEGTransformer &transformer);
 
-	// Register a trampoline that pushes list[choice_idx] choice result and forwards unchanged.
-	static void RegisterChoiceForwardingTrampoline(PEGTransformer &transformer, const string &rule_name,
-	                                               idx_t choice_idx = 0);
-	// Register a trampoline that pushes list[child_idx] and forwards the result unchanged.
-	static void RegisterChildForwardingTrampoline(PEGTransformer &transformer, const string &rule_name,
-	                                              idx_t child_idx);
 	// void RegisterVacuum();
 	void RegisterKeywordsAndIdentifiers();
 	void RegisterEnums();
@@ -1324,9 +1265,11 @@ private:
 	// ParseResult &parse_result);
 
 	// transaction.gram - trampoline versions
+	static void T_TransformTransactionStatement(PEGTransformer &transformer, TransformerStackFrame &frame);
 	static void T_TransformBeginTransaction(PEGTransformer &transformer, TransformerStackFrame &frame);
 	static void T_TransformCommitTransaction(PEGTransformer &transformer, TransformerStackFrame &frame);
 	static void T_TransformRollbackTransaction(PEGTransformer &transformer, TransformerStackFrame &frame);
+	static void T_TransformReadOrWrite(PEGTransformer &transformer, TransformerStackFrame &frame);
 	static void T_TransformReadOnlyOrReadWrite(PEGTransformer &transformer, TransformerStackFrame &frame);
 	//
 	// // update.gram

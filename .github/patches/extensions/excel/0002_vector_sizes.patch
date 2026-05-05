@@ -1,0 +1,13 @@
+diff --git a/src/excel/xlsx/read_xlsx.cpp b/src/excel/xlsx/read_xlsx.cpp
+index a634e65..0af289f 100644
+--- a/src/excel/xlsx/read_xlsx.cpp
++++ b/src/excel/xlsx/read_xlsx.cpp
+@@ -708,7 +708,7 @@ static void Execute(ClientContext &context, TableFunctionInput &data, DataChunk
+ 			TryCastFromString(gstate, options.ignore_errors, col_idx, context, target_col);
+ 		}
+ 	}
+-	output.SetCardinality(row_count);
++	output.SetChildCardinality(row_count);
+ 
+ 	output.Verify();
+ }

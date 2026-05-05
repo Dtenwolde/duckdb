@@ -30,7 +30,9 @@ unique_ptr<SQLStatement> PEGTransformerFactory::TransformStatement(PEGTransforme
 static unique_ptr<SQLStatement> ExtractAndTransformStatement(PEGTransformer &transformer,
                                                              const vector<MatcherToken> &tokens, ParseResult &stmt_pr,
                                                              optional_idx terminator_offset) {
-	auto stmt = transformer.TransformTrampoline<unique_ptr<SQLStatement>>(stmt_pr);
+	TransformerStackFrame result_frame(stmt_pr);
+	auto stmt = transformer.TransformTrampoline<unique_ptr<SQLStatement>>(stmt_pr, result_frame);
+
 
 	if (!transformer.named_parameter_map.empty()) {
 		stmt->named_param_map = transformer.named_parameter_map;
@@ -104,10 +106,8 @@ vector<unique_ptr<SQLStatement>> PEGTransformerFactory::Transform(vector<Matcher
 
 	ArenaAllocator transformer_allocator(Allocator::DefaultAllocator());
 	PEGTransformerState transformer_state(tokens);
-	auto &factory = GetInstance();
-	PEGTransformer transformer(transformer_allocator, transformer_state, factory.sql_transform_functions,
-	                           factory.parser.rules, factory.enum_mappings, options);
-	factory.PopulateTrampolineFunctions(transformer);
+	PEGTransformer transformer(transformer_allocator, transformer_state, sql_transform_functions, parser.rules,
+	                           enum_mappings, options);
 
 	vector<unique_ptr<SQLStatement>> result;
 	optional_ptr<ParseResult> current_stmt;
@@ -148,10 +148,6 @@ vector<unique_ptr<SQLStatement>> PEGTransformerFactory::Transform(vector<Matcher
 
 #define REGISTER_TRANSFORM(FUNCTION) Register(string(#FUNCTION).substr(9), &FUNCTION)
 
-PEGTransformerFactory &PEGTransformerFactory::GetInstance() {
-	static PEGTransformerFactory instance;
-	return instance;
-}
 
 // void PEGTransformerFactory::RegisterAlter() {
 // 	// alter.gram
@@ -743,7 +739,7 @@ void PEGTransformerFactory::RegisterCommon() {
 // 	// prepare.gram
 // 	REGISTER_TRANSFORM(TransformPrepareStatement);
 // }
-//
+
 void PEGTransformerFactory::RegisterSelect() {
 	// 	// select.gram
 	// 	REGISTER_TRANSFORM(TransformSelectStatement);
@@ -1106,25 +1102,6 @@ void PEGTransformerFactory::RegisterEnums() {
 
 #define REGISTER_TRAMPOLINE(FUNCTION) transformer.RegisterTrampoline(string(#FUNCTION).substr(11), &FUNCTION)
 
-void PEGTransformerFactory::RegisterChoiceForwardingTrampoline(PEGTransformer &transformer,
-                                                               const string &rule_name, idx_t choice_idx) {
-	transformer.RegisterTrampoline(rule_name, [choice_idx](PEGTransformer &t, TransformerStackFrame &frame) {
-		auto &choice_pr = frame.parse_result->Cast<ListParseResult>().Child<ChoiceParseResult>(choice_idx);
-		if (!t.PushAndForward(frame, choice_pr.GetResult())) {
-			return;
-		}
-	});
-}
-
-void PEGTransformerFactory::RegisterChildForwardingTrampoline(PEGTransformer &transformer,
-                                                              const string &rule_name, idx_t child_idx) {
-	transformer.RegisterTrampoline(rule_name, [child_idx](PEGTransformer &t, TransformerStackFrame &frame) {
-		if (!t.PushAndForward(frame, frame.parse_result->Cast<ListParseResult>().GetChild(child_idx))) {
-			return;
-		}
-	});
-}
-
 void PEGTransformerFactory::PopulateTrampolineFunctions(PEGTransformer &transformer) {
 	REGISTER_TRAMPOLINE(T_TransformStatement);
 	// use.gram
@@ -1132,11 +1109,11 @@ void PEGTransformerFactory::PopulateTrampolineFunctions(PEGTransformer &transfor
 	REGISTER_TRAMPOLINE(T_TransformUseTarget);
 	REGISTER_TRAMPOLINE(T_TransformUseTargetCatalogSchema);
 	// transaction.gram
-	RegisterChoiceForwardingTrampoline(transformer, "TransactionStatement");
+	REGISTER_TRAMPOLINE(T_TransformTransactionStatement);
 	REGISTER_TRAMPOLINE(T_TransformBeginTransaction);
 	REGISTER_TRAMPOLINE(T_TransformCommitTransaction);
 	REGISTER_TRAMPOLINE(T_TransformRollbackTransaction);
-	RegisterChildForwardingTrampoline(transformer, "ReadOrWrite", 1);
+	REGISTER_TRAMPOLINE(T_TransformReadOrWrite);
 	REGISTER_TRAMPOLINE(T_TransformReadOnlyOrReadWrite);
 }
 

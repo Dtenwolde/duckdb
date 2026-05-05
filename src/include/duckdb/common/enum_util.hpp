@@ -162,6 +162,8 @@ enum class DatePartSpecifier : uint8_t;
 
 enum class DebugInitialize : uint8_t;
 
+enum class DebugStatementVerification : uint8_t;
+
 enum class DebugVectorVerification : uint8_t;
 
 enum class DecimalBitWidth : uint8_t;
@@ -299,6 +301,8 @@ enum class MetaPipelineType : uint8_t;
 enum class MetricGroup : uint8_t;
 
 enum class MetricType : uint8_t;
+
+enum class Monotonicity : uint8_t;
 
 enum class MultiFileColumnMappingMode : uint8_t;
 
@@ -464,6 +468,8 @@ enum class TableColumnType : uint8_t;
 
 enum class TableFilterType : uint8_t;
 
+enum class TableFunctionParallelism : uint8_t;
+
 enum class TablePartitionInfo : uint8_t;
 
 enum class TableReferenceType : uint8_t;
@@ -513,8 +519,6 @@ enum class VariantValueType : uint8_t;
 enum class VectorBufferType : uint8_t;
 
 enum class VectorType : uint8_t;
-
-enum class VerificationType : uint8_t;
 
 enum class VerifyExistenceType : uint8_t;
 
@@ -727,6 +731,9 @@ template<>
 const char* EnumUtil::ToChars<DebugInitialize>(DebugInitialize value);
 
 template<>
+const char* EnumUtil::ToChars<DebugStatementVerification>(DebugStatementVerification value);
+
+template<>
 const char* EnumUtil::ToChars<DebugVectorVerification>(DebugVectorVerification value);
 
 template<>
@@ -932,6 +939,9 @@ const char* EnumUtil::ToChars<MetricGroup>(MetricGroup value);
 
 template<>
 const char* EnumUtil::ToChars<MetricType>(MetricType value);
+
+template<>
+const char* EnumUtil::ToChars<Monotonicity>(Monotonicity value);
 
 template<>
 const char* EnumUtil::ToChars<MultiFileColumnMappingMode>(MultiFileColumnMappingMode value);
@@ -1180,6 +1190,9 @@ template<>
 const char* EnumUtil::ToChars<TableFilterType>(TableFilterType value);
 
 template<>
+const char* EnumUtil::ToChars<TableFunctionParallelism>(TableFunctionParallelism value);
+
+template<>
 const char* EnumUtil::ToChars<TablePartitionInfo>(TablePartitionInfo value);
 
 template<>
@@ -1253,9 +1266,6 @@ const char* EnumUtil::ToChars<VectorBufferType>(VectorBufferType value);
 
 template<>
 const char* EnumUtil::ToChars<VectorType>(VectorType value);
-
-template<>
-const char* EnumUtil::ToChars<VerificationType>(VerificationType value);
 
 template<>
 const char* EnumUtil::ToChars<VerifyExistenceType>(VerifyExistenceType value);
@@ -1475,6 +1485,9 @@ template<>
 DebugInitialize EnumUtil::FromString<DebugInitialize>(const char *value);
 
 template<>
+DebugStatementVerification EnumUtil::FromString<DebugStatementVerification>(const char *value);
+
+template<>
 DebugVectorVerification EnumUtil::FromString<DebugVectorVerification>(const char *value);
 
 template<>
@@ -1680,6 +1693,9 @@ MetricGroup EnumUtil::FromString<MetricGroup>(const char *value);
 
 template<>
 MetricType EnumUtil::FromString<MetricType>(const char *value);
+
+template<>
+Monotonicity EnumUtil::FromString<Monotonicity>(const char *value);
 
 template<>
 MultiFileColumnMappingMode EnumUtil::FromString<MultiFileColumnMappingMode>(const char *value);
@@ -1928,6 +1944,9 @@ template<>
 TableFilterType EnumUtil::FromString<TableFilterType>(const char *value);
 
 template<>
+TableFunctionParallelism EnumUtil::FromString<TableFunctionParallelism>(const char *value);
+
+template<>
 TablePartitionInfo EnumUtil::FromString<TablePartitionInfo>(const char *value);
 
 template<>
@@ -2001,9 +2020,6 @@ VectorBufferType EnumUtil::FromString<VectorBufferType>(const char *value);
 
 template<>
 VectorType EnumUtil::FromString<VectorType>(const char *value);
-
-template<>
-VerificationType EnumUtil::FromString<VerificationType>(const char *value);
 
 template<>
 VerifyExistenceType EnumUtil::FromString<VerifyExistenceType>(const char *value);
