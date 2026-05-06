@@ -3,74 +3,84 @@
 
 namespace duckdb {
 
-// TransactionStatement <- BeginTransaction / CommitTransaction / RollbackTransaction
+// TransactionStatement <- BeginTransaction / RollbackTransaction / CommitTransaction
 void PEGTransformerFactory::T_TransformTransactionStatement(PEGTransformer &t, TransformerStackFrame &frame) {
 	auto &choice_pr = frame.parse_result->Cast<ListParseResult>().Child<ChoiceParseResult>(0);
-	// if (!frame.child_result) {
-	// 	t.PushFrame(choice_pr.GetResult(), frame);
-	// 	return;
-	// }
-	// t.SetParentResult(std::move(frame.child_result));
-	// t.PopFrame();
+	t.PushFrame(choice_pr.GetResult(), frame);
+	frame.state = TransformState::WAITING;
 }
 
-// ReadOrWrite <- 'READ' ReadOnlyOrReadWrite
-void PEGTransformerFactory::T_TransformReadOrWrite(PEGTransformer &t, TransformerStackFrame &frame) {
-	auto &list_pr = frame.parse_result->Cast<ListParseResult>();
-	// if (!frame.child_result) {
-	// 	t.PushFrame(list_pr.GetChild(1), frame);
-	// 	return;
-	// }
-	// t.SetParentResult(std::move(frame.child_result));
-	// t.PopFrame();
+void PEGTransformerFactory::R_TransformTransactionStatement(PEGTransformer &t, TransformerStackFrame &frame) {
+	auto &choice_pr = frame.parse_result->Cast<ListParseResult>().Child<ChoiceParseResult>(0);
+	const auto &chosen_name = choice_pr.GetResult().name;
+	frame.SetParentResult(std::move(frame.child_results[chosen_name]));
+	t.PopFrame();
 }
 
 // BeginTransaction <- StartOrBegin Transaction? ReadOrWrite?
 void PEGTransformerFactory::T_TransformBeginTransaction(PEGTransformer &t, TransformerStackFrame &frame) {
 	auto &list_pr = frame.parse_result->Cast<ListParseResult>();
-	auto &read_or_write = list_pr.Child<OptionalParseResult>(2);
+	auto &rw_opt = list_pr.Child<OptionalParseResult>(2);
+	if (rw_opt.HasResult()) {
+		t.PushFrame(rw_opt.GetResult(), frame);
+	}
+	frame.state = TransformState::WAITING;
+}
 
-	// if (!frame.child_result) {
-	// 	if (!read_or_write.HasResult()) {
-	// 		// Leaf: plain BEGIN/START with no modifier
-	// 		auto info = make_uniq<TransactionInfo>(TransactionType::BEGIN_TRANSACTION);
-	// 		info->modifier = TransactionModifierType::TRANSACTION_DEFAULT_MODIFIER;
-	// 		t.SetParentResult(t.MakeStatementResult(make_uniq<TransactionStatement>(std::move(info))));
-	// 		t.PopFrame();
-	// 		return;
-	// 	}
-	// 	// Push ReadOrWrite to resolve the modifier
-	// 	t.PushFrame(read_or_write.GetResult());
-	// 	return;
-	// }
-	// // Second visit: got modifier from ReadOrWrite
-	// auto modifier = CastResult<TransactionModifierType>(std::move(frame.child_result));
-	// auto info = make_uniq<TransactionInfo>(TransactionType::BEGIN_TRANSACTION);
-	// info->modifier = modifier;
-	// t.SetParentResult(t.MakeStatementResult(make_uniq<TransactionStatement>(std::move(info))));
-	// t.PopFrame();
+void PEGTransformerFactory::R_TransformBeginTransaction(PEGTransformer &t, TransformerStackFrame &frame) {
+	auto info = make_uniq<TransactionInfo>(TransactionType::BEGIN_TRANSACTION);
+	auto it = frame.child_results.find("ReadOrWrite");
+	if (it != frame.child_results.end()) {
+		info->modifier = CastResult<TransactionModifierType>(std::move(it->second));
+	} else {
+		info->modifier = TransactionModifierType::TRANSACTION_DEFAULT_MODIFIER;
+	}
+	frame.SetParentResult(MakeResult<unique_ptr<SQLStatement>>(make_uniq<TransactionStatement>(std::move(info))));
+	t.PopFrame();
 }
 
 // CommitTransaction <- CommitOrEnd Transaction?
 void PEGTransformerFactory::T_TransformCommitTransaction(PEGTransformer &t, TransformerStackFrame &frame) {
-	// t.SetParentResult(
-	//     t.MakeStatementResult(make_uniq<TransactionStatement>(make_uniq<TransactionInfo>(TransactionType::COMMIT))));
-	// t.PopFrame();
+	frame.state = TransformState::WAITING;
+}
+
+void PEGTransformerFactory::R_TransformCommitTransaction(PEGTransformer &t, TransformerStackFrame &frame) {
+	frame.SetParentResult(MakeResult<unique_ptr<SQLStatement>>(
+	    make_uniq<TransactionStatement>(make_uniq<TransactionInfo>(TransactionType::COMMIT))));
+	t.PopFrame();
 }
 
 // RollbackTransaction <- AbortOrRollback Transaction?
 void PEGTransformerFactory::T_TransformRollbackTransaction(PEGTransformer &t, TransformerStackFrame &frame) {
-	// t.SetParentResult(
-	//     t.MakeStatementResult(make_uniq<TransactionStatement>(make_uniq<TransactionInfo>(TransactionType::ROLLBACK))));
-	// t.PopFrame();
+	frame.state = TransformState::WAITING;
 }
 
-// ReadOnlyOrReadWrite <- ReadOnly / ReadWrite  (enum dispatch -- no child Transform calls)
-void PEGTransformerFactory::T_TransformReadOnlyOrReadWrite(PEGTransformer &t, TransformerStackFrame &frame) {
+void PEGTransformerFactory::R_TransformRollbackTransaction(PEGTransformer &t, TransformerStackFrame &frame) {
+	frame.SetParentResult(MakeResult<unique_ptr<SQLStatement>>(
+	    make_uniq<TransactionStatement>(make_uniq<TransactionInfo>(TransactionType::ROLLBACK))));
+	t.PopFrame();
+}
+
+// ReadOrWrite <- 'READ' ReadOnlyOrReadWrite
+void PEGTransformerFactory::T_TransformReadOrWrite(PEGTransformer &t, TransformerStackFrame &frame) {
 	auto &list_pr = frame.parse_result->Cast<ListParseResult>();
-	// auto modifier = t.TransformEnum<TransactionModifierType>(list_pr.Child<ChoiceParseResult>(0).GetResult());
-	// t.SetParentResult(MakeResult<TransactionModifierType>(modifier));
-	// t.PopFrame();
+	t.PushFrame(list_pr.GetChild(1), frame);
+	frame.state = TransformState::WAITING;
+}
+
+void PEGTransformerFactory::R_TransformReadOrWrite(PEGTransformer &t, TransformerStackFrame &frame) {
+	auto modifier = CastResult<TransactionModifierType>(std::move(frame.child_results["ReadOnlyOrReadWrite"]));
+	frame.SetParentResult(MakeResult<TransactionModifierType>(modifier));
+	t.PopFrame();
+}
+
+// ReadOnlyOrReadWrite <- ReadOnly / ReadWrite  (leaf -- resolved in Init, never enters WAITING)
+void PEGTransformerFactory::T_TransformReadOnlyOrReadWrite(PEGTransformer &t, TransformerStackFrame &frame) {
+	auto &choice_pr = frame.parse_result->Cast<ListParseResult>().Child<ChoiceParseResult>(0);
+	auto modifier = (choice_pr.GetResult().name == "ReadOnly") ? TransactionModifierType::TRANSACTION_READ_ONLY
+	                                                           : TransactionModifierType::TRANSACTION_READ_WRITE;
+	frame.SetParentResult(MakeResult<TransactionModifierType>(modifier));
+	t.PopFrame();
 }
 
 } // namespace duckdb

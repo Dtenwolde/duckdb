@@ -6,6 +6,15 @@ namespace duckdb {
 
 struct TransformResultValue {
 	virtual ~TransformResultValue() = default;
+
+	template <class TARGET>
+	TARGET &Cast() {
+		auto *result = dynamic_cast<TARGET *>(this);
+		if (!result) {
+			throw InternalException("Failed to cast TransformResultValue to %s", typeid(TARGET).name());
+		}
+		return *result;
+	}
 };
 
 template <class T>
@@ -14,5 +23,10 @@ struct TypedTransformResult : public TransformResultValue {
 	}
 	T value;
 };
+
+struct RepeatTransformResultValue : public TransformResultValue {
+	vector<unique_ptr<TransformResultValue>> values;
+};
+
 
 } // namespace duckdb

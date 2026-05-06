@@ -30,9 +30,7 @@ unique_ptr<SQLStatement> PEGTransformerFactory::TransformStatement(PEGTransforme
 static unique_ptr<SQLStatement> ExtractAndTransformStatement(PEGTransformer &transformer,
                                                              const vector<MatcherToken> &tokens, ParseResult &stmt_pr,
                                                              optional_idx terminator_offset) {
-	TransformerStackFrame result_frame(stmt_pr);
-	auto stmt = transformer.TransformTrampoline<unique_ptr<SQLStatement>>(stmt_pr, result_frame);
-
+	auto stmt = transformer.TransformTrampoline<unique_ptr<SQLStatement>>(stmt_pr);
 
 	if (!transformer.named_parameter_map.empty()) {
 		stmt->named_param_map = transformer.named_parameter_map;
@@ -108,6 +106,7 @@ vector<unique_ptr<SQLStatement>> PEGTransformerFactory::Transform(vector<Matcher
 	PEGTransformerState transformer_state(tokens);
 	PEGTransformer transformer(transformer_allocator, transformer_state, sql_transform_functions, parser.rules,
 	                           enum_mappings, options);
+	PopulateTrampolineFunctions(transformer);
 
 	vector<unique_ptr<SQLStatement>> result;
 	optional_ptr<ParseResult> current_stmt;
@@ -1100,21 +1099,28 @@ void PEGTransformerFactory::RegisterEnums() {
 	RegisterEnum<bool>("ExcludeNulls", false);
 }
 
-#define REGISTER_TRAMPOLINE(FUNCTION) transformer.RegisterTrampoline(string(#FUNCTION).substr(11), &FUNCTION)
+#define REGISTER_INIT(FUNCTION)   transformer.RegisterInitTrampoline(string(#FUNCTION).substr(11), &FUNCTION)
+#define REGISTER_RESULT(FUNCTION) transformer.RegisterResultTrampoline(string(#FUNCTION).substr(11), &FUNCTION)
 
 void PEGTransformerFactory::PopulateTrampolineFunctions(PEGTransformer &transformer) {
-	REGISTER_TRAMPOLINE(T_TransformStatement);
+	REGISTER_INIT(T_TransformStatement);
+	REGISTER_RESULT(R_TransformStatement);
 	// use.gram
-	REGISTER_TRAMPOLINE(T_TransformUseStatement);
-	REGISTER_TRAMPOLINE(T_TransformUseTarget);
-	REGISTER_TRAMPOLINE(T_TransformUseTargetCatalogSchema);
+	REGISTER_INIT(T_TransformUseStatement);
+	REGISTER_INIT(T_TransformUseTarget);
+	REGISTER_INIT(T_TransformUseTargetCatalogSchema);
 	// transaction.gram
-	REGISTER_TRAMPOLINE(T_TransformTransactionStatement);
-	REGISTER_TRAMPOLINE(T_TransformBeginTransaction);
-	REGISTER_TRAMPOLINE(T_TransformCommitTransaction);
-	REGISTER_TRAMPOLINE(T_TransformRollbackTransaction);
-	REGISTER_TRAMPOLINE(T_TransformReadOrWrite);
-	REGISTER_TRAMPOLINE(T_TransformReadOnlyOrReadWrite);
+	REGISTER_INIT(T_TransformTransactionStatement);
+	REGISTER_RESULT(R_TransformTransactionStatement);
+	REGISTER_INIT(T_TransformBeginTransaction);
+	REGISTER_RESULT(R_TransformBeginTransaction);
+	REGISTER_INIT(T_TransformCommitTransaction);
+	REGISTER_RESULT(R_TransformCommitTransaction);
+	REGISTER_INIT(T_TransformRollbackTransaction);
+	REGISTER_RESULT(R_TransformRollbackTransaction);
+	REGISTER_INIT(T_TransformReadOrWrite);
+	REGISTER_RESULT(R_TransformReadOrWrite);
+	REGISTER_INIT(T_TransformReadOnlyOrReadWrite);
 }
 
 PEGTransformerFactory::PEGTransformerFactory() {

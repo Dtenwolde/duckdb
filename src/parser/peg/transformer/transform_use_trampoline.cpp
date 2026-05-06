@@ -6,15 +6,15 @@ namespace duckdb {
 // Statement <- ... (choice of all statement types)
 void PEGTransformerFactory::T_TransformStatement(PEGTransformer &t, TransformerStackFrame &frame) {
 	auto &choice_pr = frame.parse_result->Cast<ListParseResult>().Child<ChoiceParseResult>(0);
-	unique_ptr<SQLStatement> result;
-	// if (!t.PushAndAwait<unique_ptr<SQLStatement>>(frame, choice_pr.GetResult(), result)) {
-	// 	return;
-	// }
-	if (!t.named_parameter_map.empty()) {
-		result->named_param_map = t.named_parameter_map;
-	}
-	// t.SetParentResult(t.MakeStatementResult(std::move(result)));
-	// t.PopFrame();
+	t.PushFrame(choice_pr.GetResult(), frame);
+	frame.state = TransformState::WAITING;
+}
+
+void PEGTransformerFactory::R_TransformStatement(PEGTransformer &t, TransformerStackFrame &frame) {
+	auto &choice_pr = frame.parse_result->Cast<ListParseResult>().Child<ChoiceParseResult>(0);
+	const auto &chosen_name = choice_pr.GetResult().name;
+	frame.SetParentResult(std::move(frame.child_results[chosen_name]));
+	t.PopFrame();
 }
 
 // UseStatement <- 'USE' UseTarget

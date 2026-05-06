@@ -135,18 +135,31 @@ public:
 	}
 
 	template <typename T>
-	T TransformTrampoline(ParseResult &pr, TransformerStackFrame &base_result) {
-		PushFrame(pr, base_result);
+	T TransformTrampoline(ParseResult &pr) {
+		TransformerStackFrame root_frame(pr);
+		PushFrame(pr, root_frame);
 		while (!frame_stack.empty()) {
-			auto &top = frame_stack.back();
-			auto it = trampoline_functions.find(top.parse_result->name);
-			it->second(*this, top);
+			auto &top = frame_stack.back().get();
+			const auto &name = top.parse_result->name;
+			if (top.state == TransformState::INITIALIZING) {
+				auto it = init_trampoline_functions.find(name);
+				if (it == init_trampoline_functions.end()) {
+					throw NotImplementedException("No init trampoline for rule '%s'", name);
+				}
+				it->second(*this, top);
+			} else {
+				auto it = result_trampoline_functions.find(name);
+				if (it == result_trampoline_functions.end()) {
+					throw NotImplementedException("No result trampoline for rule '%s'", name);
+				}
+				it->second(*this, top);
+			}
 		}
-		return CastResult<T>(std::move(root_result));
+		return CastResult<T>(std::move(root_frame.child_results.begin()->second));
 	}
 
 	void PushFrame(ParseResult &pr, TransformerStackFrame &parent) {
-		frame_stack.emplace_back(pr, parent);
+		frame_stack.push_back(reference<TransformerStackFrame>(*allocator.Make<TransformerStackFrame>(pr, parent)));
 	}
 
 	void PopFrame() {
@@ -155,8 +168,13 @@ public:
 	}
 
 	template <class FUNC>
-	void RegisterTrampoline(const string &rule_name, FUNC function) {
-		trampoline_functions[rule_name] = function;
+	void RegisterInitTrampoline(const string &rule_name, FUNC function) {
+		init_trampoline_functions[rule_name] = function;
+	}
+
+	template <class FUNC>
+	void RegisterResultTrampoline(const string &rule_name, FUNC function) {
+		result_trampoline_functions[rule_name] = function;
 	}
 
 	// Make overloads return raw pointers, as ownership is handled by the ArenaAllocator.
@@ -211,9 +229,9 @@ public:
 	case_insensitive_map_t<idx_t> named_parameter_map;
 
 	// Trampoline state
-	case_insensitive_map_t<TrampolineFunction> trampoline_functions;
-	vector<TransformerStackFrame> frame_stack;
-	unique_ptr<TransformResultValue> root_result;
+	case_insensitive_map_t<TrampolineFunction> init_trampoline_functions;
+	case_insensitive_map_t<TrampolineFunction> result_trampoline_functions;
+	vector<reference<TransformerStackFrame>> frame_stack;
 	idx_t prepared_statement_parameter_index = 0;
 	PreparedParamType last_param_type = PreparedParamType::INVALID;
 
@@ -1266,10 +1284,15 @@ private:
 
 	// transaction.gram - trampoline versions
 	static void T_TransformTransactionStatement(PEGTransformer &transformer, TransformerStackFrame &frame);
+	static void R_TransformTransactionStatement(PEGTransformer &transformer, TransformerStackFrame &frame);
 	static void T_TransformBeginTransaction(PEGTransformer &transformer, TransformerStackFrame &frame);
+	static void R_TransformBeginTransaction(PEGTransformer &transformer, TransformerStackFrame &frame);
 	static void T_TransformCommitTransaction(PEGTransformer &transformer, TransformerStackFrame &frame);
+	static void R_TransformCommitTransaction(PEGTransformer &transformer, TransformerStackFrame &frame);
 	static void T_TransformRollbackTransaction(PEGTransformer &transformer, TransformerStackFrame &frame);
+	static void R_TransformRollbackTransaction(PEGTransformer &transformer, TransformerStackFrame &frame);
 	static void T_TransformReadOrWrite(PEGTransformer &transformer, TransformerStackFrame &frame);
+	static void R_TransformReadOrWrite(PEGTransformer &transformer, TransformerStackFrame &frame);
 	static void T_TransformReadOnlyOrReadWrite(PEGTransformer &transformer, TransformerStackFrame &frame);
 	//
 	// // update.gram
@@ -1293,6 +1316,7 @@ private:
 
 	// use.gram - trampoline versions
 	static void T_TransformStatement(PEGTransformer &transformer, TransformerStackFrame &frame);
+	static void R_TransformStatement(PEGTransformer &transformer, TransformerStackFrame &frame);
 	static void T_TransformUseStatement(PEGTransformer &transformer, TransformerStackFrame &frame);
 	static void T_TransformUseTarget(PEGTransformer &transformer, TransformerStackFrame &frame);
 	static void T_TransformUseTargetCatalogSchema(PEGTransformer &transformer, TransformerStackFrame &frame);
