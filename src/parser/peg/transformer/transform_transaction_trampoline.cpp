@@ -5,12 +5,14 @@ namespace duckdb {
 
 // TransactionStatement <- BeginTransaction / RollbackTransaction / CommitTransaction
 void PEGTransformerFactory::T_TransformTransactionStatement(PEGTransformer &t, TransformerStackFrame &current) {
-	auto &choice_pr = current.parse_result->Cast<ListParseResult>().Child<ChoiceParseResult>(0);
+	auto &list_pr = current.parse_result->Cast<ListParseResult>();
+	auto &choice_pr = list_pr.Child<ChoiceParseResult>(0);
 	t.PushChoiceFrame(choice_pr, current);
 }
 
 void PEGTransformerFactory::R_TransformTransactionStatement(PEGTransformer &t, TransformerStackFrame &frame) {
-	auto &choice_pr = frame.parse_result->Cast<ListParseResult>().Child<ChoiceParseResult>(0);
+	auto &list_pr = frame.parse_result->Cast<ListParseResult>();
+	auto &choice_pr = list_pr.Child<ChoiceParseResult>(0);
 	auto results = frame.GetChoiceResult(choice_pr);
 	frame.SetParentResult(std::move(results[0]));
 }
