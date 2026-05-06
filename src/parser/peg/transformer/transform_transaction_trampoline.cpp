@@ -29,12 +29,7 @@ void PEGTransformerFactory::T_TransformBeginTransaction(PEGTransformer &t, Trans
 
 void PEGTransformerFactory::R_TransformBeginTransaction(PEGTransformer &t, TransformerStackFrame &frame) {
 	auto info = make_uniq<TransactionInfo>(TransactionType::BEGIN_TRANSACTION);
-	auto it = frame.child_results.find("ReadOrWrite");
-	if (it != frame.child_results.end()) {
-		info->modifier = CastResult<TransactionModifierType>(std::move(it->second));
-	} else {
-		info->modifier = TransactionModifierType::TRANSACTION_DEFAULT_MODIFIER;
-	}
+	info->modifier = frame.GetOptionalResult("ReadOrWrite", TransactionModifierType::TRANSACTION_DEFAULT_MODIFIER);
 	frame.SetParentResult(MakeResult<unique_ptr<SQLStatement>>(make_uniq<TransactionStatement>(std::move(info))));
 	t.PopFrame();
 }

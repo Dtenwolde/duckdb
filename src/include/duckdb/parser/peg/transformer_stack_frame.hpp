@@ -39,6 +39,15 @@ struct TransformerStackFrame {
 	TransformerStackFrame(ParseResult &parse_result_p, TransformerStackFrame &parent_frame_p)
 	    : parse_result(&parse_result_p), parent_frame(&parent_frame_p) {
 	}
+	template <typename T>
+	T GetOptionalResult(const string &key, T default_value) {
+		auto it = child_results.find(key);
+		if (it == child_results.end()) {
+			return std::move(default_value);
+		}
+		return CastResult<T>(std::move(it->second));
+	}
+
 	void SetParentResult(unique_ptr<TransformResultValue> result) {
 		D_ASSERT(parent_frame);
 		auto &slot = parent_frame->child_results[parse_result->name];
