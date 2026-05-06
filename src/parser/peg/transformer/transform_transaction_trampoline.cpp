@@ -5,15 +5,12 @@ namespace duckdb {
 
 // TransactionStatement <- BeginTransaction / RollbackTransaction / CommitTransaction
 void PEGTransformerFactory::T_TransformTransactionStatement(PEGTransformer &t, TransformerStackFrame &frame) {
-	auto &choice_pr = frame.parse_result->Cast<ListParseResult>().Child<ChoiceParseResult>(0);
-	t.PushFrame(choice_pr.GetResult(), frame);
-	frame.state = TransformState::WAITING;
+	t.PushChoiceFrame(frame.parse_result->Cast<ListParseResult>().Child<ChoiceParseResult>(0), frame);
 }
 
 void PEGTransformerFactory::R_TransformTransactionStatement(PEGTransformer &t, TransformerStackFrame &frame) {
 	auto &choice_pr = frame.parse_result->Cast<ListParseResult>().Child<ChoiceParseResult>(0);
-	const auto &chosen_name = choice_pr.GetResult().name;
-	frame.SetParentResult(std::move(frame.child_results[chosen_name]));
+	frame.SetParentResult(frame.GetChoiceResult(choice_pr));
 	t.PopFrame();
 }
 
@@ -21,7 +18,6 @@ void PEGTransformerFactory::R_TransformTransactionStatement(PEGTransformer &t, T
 void PEGTransformerFactory::T_TransformBeginTransaction(PEGTransformer &t, TransformerStackFrame &frame) {
 	auto &list_pr = frame.parse_result->Cast<ListParseResult>();
 	t.PushOptionalFrame(list_pr.Child<OptionalParseResult>(2), frame);
-	frame.state = TransformState::WAITING;
 }
 
 void PEGTransformerFactory::R_TransformBeginTransaction(PEGTransformer &t, TransformerStackFrame &frame) {
@@ -33,7 +29,6 @@ void PEGTransformerFactory::R_TransformBeginTransaction(PEGTransformer &t, Trans
 
 // CommitTransaction <- CommitOrEnd Transaction?
 void PEGTransformerFactory::T_TransformCommitTransaction(PEGTransformer &t, TransformerStackFrame &frame) {
-	frame.state = TransformState::WAITING;
 }
 
 void PEGTransformerFactory::R_TransformCommitTransaction(PEGTransformer &t, TransformerStackFrame &frame) {
@@ -44,7 +39,6 @@ void PEGTransformerFactory::R_TransformCommitTransaction(PEGTransformer &t, Tran
 
 // RollbackTransaction <- AbortOrRollback Transaction?
 void PEGTransformerFactory::T_TransformRollbackTransaction(PEGTransformer &t, TransformerStackFrame &frame) {
-	frame.state = TransformState::WAITING;
 }
 
 void PEGTransformerFactory::R_TransformRollbackTransaction(PEGTransformer &t, TransformerStackFrame &frame) {
@@ -57,7 +51,6 @@ void PEGTransformerFactory::R_TransformRollbackTransaction(PEGTransformer &t, Tr
 void PEGTransformerFactory::T_TransformReadOrWrite(PEGTransformer &t, TransformerStackFrame &frame) {
 	auto &list_pr = frame.parse_result->Cast<ListParseResult>();
 	t.PushFrame(list_pr.GetChild(1), frame);
-	frame.state = TransformState::WAITING;
 }
 
 void PEGTransformerFactory::R_TransformReadOrWrite(PEGTransformer &t, TransformerStackFrame &frame) {

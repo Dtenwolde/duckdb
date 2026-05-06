@@ -39,6 +39,10 @@ struct TransformerStackFrame {
 	TransformerStackFrame(ParseResult &parse_result_p, TransformerStackFrame &parent_frame_p)
 	    : parse_result(&parse_result_p), parent_frame(&parent_frame_p) {
 	}
+	unique_ptr<TransformResultValue> GetChoiceResult(ChoiceParseResult &choice) {
+		return std::move(child_results[choice.GetResult().name]);
+	}
+
 	template <typename T>
 	T GetOptionalResult(const string &key, T default_value) {
 		auto it = child_results.find(key);

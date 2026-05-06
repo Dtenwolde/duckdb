@@ -147,6 +147,7 @@ public:
 					throw NotImplementedException("No init trampoline for rule '%s'", name);
 				}
 				it->second(*this, top);
+				top.state = TransformState::WAITING;
 			} else {
 				auto it = result_trampoline_functions.find(name);
 				if (it == result_trampoline_functions.end()) {
@@ -160,6 +161,10 @@ public:
 
 	void PushFrame(ParseResult &pr, TransformerStackFrame &parent) {
 		frame_stack.push_back(reference<TransformerStackFrame>(*allocator.Make<TransformerStackFrame>(pr, parent)));
+	}
+
+	void PushChoiceFrame(ChoiceParseResult &choice, TransformerStackFrame &parent) {
+		PushFrame(choice.GetResult(), parent);
 	}
 
 	void PushOptionalFrame(OptionalParseResult &opt, TransformerStackFrame &parent) {

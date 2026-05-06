@@ -6,14 +6,12 @@ namespace duckdb {
 // Statement <- ... (choice of all statement types)
 void PEGTransformerFactory::T_TransformStatement(PEGTransformer &t, TransformerStackFrame &frame) {
 	auto &choice_pr = frame.parse_result->Cast<ListParseResult>().Child<ChoiceParseResult>(0);
-	t.PushFrame(choice_pr.GetResult(), frame);
-	frame.state = TransformState::WAITING;
+	t.PushChoiceFrame(choice_pr, frame);
 }
 
 void PEGTransformerFactory::R_TransformStatement(PEGTransformer &t, TransformerStackFrame &frame) {
 	auto &choice_pr = frame.parse_result->Cast<ListParseResult>().Child<ChoiceParseResult>(0);
-	const auto &chosen_name = choice_pr.GetResult().name;
-	frame.SetParentResult(std::move(frame.child_results[chosen_name]));
+	frame.SetParentResult(frame.GetChoiceResult(choice_pr));
 	t.PopFrame();
 }
 
