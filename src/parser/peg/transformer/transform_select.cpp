@@ -596,9 +596,9 @@ string PEGTransformerFactory::TransformSchemaQualification(PEGTransformer &trans
 // //! This distinguishes PEG right-recursion (has entries) from parenthesized joins (no entries).
 // //! Navigation: JoinOrPivot → Choice → JoinClause → Choice → JoinWithoutOnClause → child(2)=TableRef →
 // child(1)=Optional static bool RHSTableRefHasJoinOrPivot(ParseResult &join_or_pivot_pr) { 	auto &jop_list =
-// join_or_pivot_pr.Cast<ListParseResult>(); 	auto &jop_choice = jop_list.Child<ChoiceParseResult>(0); 	auto &join_clause
-// = jop_choice.GetResult().Cast<ListParseResult>(); 	auto &jc_choice = join_clause.Child<ChoiceParseResult>(0); 	auto
-// &join_impl = jc_choice.GetResult().Cast<ListParseResult>();
+// join_or_pivot_pr.Cast<ListParseResult>(); 	auto &jop_choice = jop_list.Child<ChoiceParseResult>(0); 	auto
+// &join_clause = jop_choice.GetResult().Cast<ListParseResult>(); 	auto &jc_choice =
+// join_clause.Child<ChoiceParseResult>(0); 	auto &join_impl = jc_choice.GetResult().Cast<ListParseResult>();
 // 	// For JoinWithoutOnClause the TableRef is at index 2
 // 	auto &table_ref = join_impl.Child<ListParseResult>(2);
 // 	return table_ref.Child<OptionalParseResult>(1).HasResult();
@@ -915,9 +915,8 @@ string PEGTransformerFactory::TransformSchemaQualification(PEGTransformer &trans
 // }
 //
 // JoinPrefix PEGTransformerFactory::TransformNaturalJoinPrefix(PEGTransformer &transformer, ParseResult &parse_result)
-// { 	auto &list_pr = parse_result.Cast<ListParseResult>(); 	JoinPrefix result; 	result.ref_type = JoinRefType::NATURAL;
-// 	transformer.TransformOptional<JoinType>(list_pr, 1, result.join_type);
-// 	return result;
+// { 	auto &list_pr = parse_result.Cast<ListParseResult>(); 	JoinPrefix result; 	result.ref_type =
+// JoinRefType::NATURAL; 	transformer.TransformOptional<JoinType>(list_pr, 1, result.join_type); 	return result;
 // }
 //
 // JoinPrefix PEGTransformerFactory::TransformPositionalJoinPrefix(PEGTransformer &transformer,
@@ -1200,9 +1199,9 @@ string PEGTransformerFactory::TransformSchemaQualification(PEGTransformer &trans
 // }
 //
 // vector<OrderByNode> PEGTransformerFactory::TransformOrderByAll(PEGTransformer &transformer, ParseResult
-// &parse_result) { 	auto &list_pr = parse_result.Cast<ListParseResult>(); 	vector<OrderByNode> result; 	auto order_type =
-// OrderType::ORDER_DEFAULT; 	auto &order_type_pr = list_pr.Child<OptionalParseResult>(1); 	if (order_type_pr.HasResult())
-// { 		order_type = transformer.Transform<OrderType>(order_type_pr.GetResult());
+// &parse_result) { 	auto &list_pr = parse_result.Cast<ListParseResult>(); 	vector<OrderByNode> result; 	auto order_type
+// = OrderType::ORDER_DEFAULT; 	auto &order_type_pr = list_pr.Child<OptionalParseResult>(1); 	if
+// (order_type_pr.HasResult()) { 		order_type = transformer.Transform<OrderType>(order_type_pr.GetResult());
 // 	}
 // 	auto order_by_null_type = OrderByNullType::ORDER_DEFAULT;
 // 	auto &order_by_null_pr = list_pr.Child<OptionalParseResult>(2);
@@ -1218,8 +1217,8 @@ string PEGTransformerFactory::TransformSchemaQualification(PEGTransformer &trans
 // OrderByNode PEGTransformerFactory::TransformOrderByExpression(PEGTransformer &transformer, ParseResult &parse_result)
 // { 	auto &list_pr = parse_result.Cast<ListParseResult>(); 	auto expr =
 // transformer.Transform<unique_ptr<ParsedExpression>>(list_pr.Child<ListParseResult>(0)); 	auto order_type =
-// OrderType::ORDER_DEFAULT; 	transformer.TransformOptional<OrderType>(list_pr, 1, order_type); 	auto order_by_null_type =
-// OrderByNullType::ORDER_DEFAULT; 	transformer.TransformOptional<OrderByNullType>(list_pr, 2, order_by_null_type);
+// OrderType::ORDER_DEFAULT; 	transformer.TransformOptional<OrderType>(list_pr, 1, order_type); 	auto order_by_null_type
+// = OrderByNullType::ORDER_DEFAULT; 	transformer.TransformOptional<OrderByNullType>(list_pr, 2, order_by_null_type);
 // 	return OrderByNode(order_type, order_by_null_type, std::move(expr));
 // }
 //
@@ -1658,8 +1657,9 @@ string PEGTransformerFactory::TransformSchemaQualification(PEGTransformer &trans
 // }
 //
 // LimitPercentResult PEGTransformerFactory::TransformOffsetValue(PEGTransformer &transformer, ParseResult
-// &parse_result) { 	auto &list_pr = parse_result.Cast<ListParseResult>(); 	LimitPercentResult result; 	result.expression =
-// transformer.Transform<unique_ptr<ParsedExpression>>(list_pr.Child<ListParseResult>(0)); 	return result;
+// &parse_result) { 	auto &list_pr = parse_result.Cast<ListParseResult>(); 	LimitPercentResult result;
+// result.expression = transformer.Transform<unique_ptr<ParsedExpression>>(list_pr.Child<ListParseResult>(0)); 	return
+// result;
 // }
 //
 // unique_ptr<ParsedExpression> PEGTransformerFactory::TransformQualifyClause(PEGTransformer &transformer,
@@ -1807,6 +1807,5 @@ string PEGTransformerFactory::TransformSchemaQualification(PEGTransformer &trans
 // 	auto const_expr = expr->Cast<ConstantExpression>();
 // 	return optional_idx(const_expr.value.GetValue<idx_t>());
 // }
-
 
 } // namespace duckdb

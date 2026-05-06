@@ -12,7 +12,6 @@ void PEGTransformerFactory::T_TransformStatement(PEGTransformer &t, TransformerS
 void PEGTransformerFactory::R_TransformStatement(PEGTransformer &t, TransformerStackFrame &frame) {
 	auto &choice_pr = frame.parse_result->Cast<ListParseResult>().Child<ChoiceParseResult>(0);
 	frame.SetParentResult(frame.GetChoiceResult(choice_pr));
-	t.PopFrame();
 }
 
 // UseStatement <- 'USE' UseTarget

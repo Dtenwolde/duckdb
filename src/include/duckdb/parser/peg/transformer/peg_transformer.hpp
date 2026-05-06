@@ -154,6 +154,7 @@ public:
 					throw NotImplementedException("No result trampoline for rule '%s'", name);
 				}
 				it->second(*this, top);
+				PopFrame();
 			}
 		}
 		return CastResult<T>(std::move(root_frame.child_results.begin()->second));
@@ -1305,6 +1306,7 @@ private:
 	static void T_TransformReadOrWrite(PEGTransformer &transformer, TransformerStackFrame &frame);
 	static void R_TransformReadOrWrite(PEGTransformer &transformer, TransformerStackFrame &frame);
 	static void T_TransformReadOnlyOrReadWrite(PEGTransformer &transformer, TransformerStackFrame &frame);
+	static void R_TransformReadOnlyOrReadWrite(PEGTransformer &transformer, TransformerStackFrame &frame);
 	//
 	// // update.gram
 	// static unique_ptr<SQLStatement> TransformUpdateStatement(PEGTransformer &transformer, ParseResult &parse_result);

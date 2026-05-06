@@ -25,15 +25,11 @@ vector<T> CastRepeatResult(unique_ptr<TransformResultValue> result) {
 	return out;
 }
 
-enum TransformState {
-	INITIALIZING,
-	WAITING
-};
+enum TransformState { INITIALIZING, WAITING };
 
 struct TransformerStackFrame {
 	// Root frame: no parent
-	explicit TransformerStackFrame(ParseResult &parse_result_p)
-	    : parse_result(&parse_result_p), parent_frame(nullptr) {
+	explicit TransformerStackFrame(ParseResult &parse_result_p) : parse_result(&parse_result_p), parent_frame(nullptr) {
 	}
 	// Child frame: has parent
 	TransformerStackFrame(ParseResult &parse_result_p, TransformerStackFrame &parent_frame_p)
@@ -64,8 +60,9 @@ struct TransformerStackFrame {
 
 	ParseResult *parse_result;
 	optional_ptr<TransformerStackFrame> parent_frame;
-	InsertionOrderPreservingMap<unique_ptr<TransformResultValue>> child_results; // null = first visit, non-null = re-entry
+	InsertionOrderPreservingMap<unique_ptr<TransformResultValue>>
+	    child_results; // null = first visit, non-null = re-entry
 	TransformState state = INITIALIZING;
 };
 
-}
+} // namespace duckdb

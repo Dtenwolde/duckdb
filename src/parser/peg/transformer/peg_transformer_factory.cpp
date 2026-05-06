@@ -147,7 +147,6 @@ vector<unique_ptr<SQLStatement>> PEGTransformerFactory::Transform(vector<Matcher
 
 #define REGISTER_TRANSFORM(FUNCTION) Register(string(#FUNCTION).substr(9), &FUNCTION)
 
-
 // void PEGTransformerFactory::RegisterAlter() {
 // 	// alter.gram
 // 	REGISTER_TRANSFORM(TransformAlterStatement);
@@ -1121,6 +1120,7 @@ void PEGTransformerFactory::PopulateTrampolineFunctions(PEGTransformer &transfor
 	REGISTER_INIT(T_TransformReadOrWrite);
 	REGISTER_RESULT(R_TransformReadOrWrite);
 	REGISTER_INIT(T_TransformReadOnlyOrReadWrite);
+	REGISTER_RESULT(R_TransformReadOnlyOrReadWrite);
 }
 
 PEGTransformerFactory::PEGTransformerFactory() {

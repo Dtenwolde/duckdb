@@ -28,5 +28,4 @@ struct RepeatTransformResultValue : public TransformResultValue {
 	vector<unique_ptr<TransformResultValue>> values;
 };
 
-
 } // namespace duckdb
