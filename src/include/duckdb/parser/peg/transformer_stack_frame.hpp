@@ -14,19 +14,11 @@ T CastResult(unique_ptr<TransformResultValue> result) {
 	return std::move(result->Cast<TypedTransformResult<T>>().value);
 }
 
-template <typename T>
-vector<T> CastRepeatResult(unique_ptr<TransformResultValue> result) {
-	auto &repeat = result->Cast<RepeatTransformResultValue>();
-	vector<T> out;
-	out.reserve(repeat.values.size());
-	for (auto &item : repeat.values) {
-		out.push_back(CastResult<T>(std::move(item)));
-	}
-	return out;
-}
 
 enum TransformState { INITIALIZING, WAITING };
 
+// Anonymous stack frame
+// Add stack frame print for crashes
 struct TransformerStackFrame {
 	// Root frame: no parent
 	explicit TransformerStackFrame(ParseResult &parse_result_p) : parse_result(&parse_result_p), parent_frame(nullptr) {
@@ -35,7 +27,7 @@ struct TransformerStackFrame {
 	TransformerStackFrame(ParseResult &parse_result_p, TransformerStackFrame &parent_frame_p)
 	    : parse_result(&parse_result_p), parent_frame(&parent_frame_p) {
 	}
-	unique_ptr<TransformResultValue> GetChoiceResult(ChoiceParseResult &choice) {
+	vector<unique_ptr<TransformResultValue>> GetChoiceResult(ChoiceParseResult &choice) {
 		return std::move(child_results[choice.GetResult().name]);
 	}
 
@@ -45,23 +37,20 @@ struct TransformerStackFrame {
 		if (it == child_results.end()) {
 			return std::move(default_value);
 		}
-		return CastResult<T>(std::move(it->second));
+		D_ASSERT(it->second.size() == 1);
+		return CastResult<T>(std::move(it->second[0]));
 	}
 
 	void SetParentResult(unique_ptr<TransformResultValue> result) {
 		D_ASSERT(parent_frame);
 		auto &slot = parent_frame->child_results[parse_result->name];
-		if (slot) {
-			slot->Cast<RepeatTransformResultValue>().values.push_back(std::move(result));
-		} else {
-			slot = std::move(result);
-		}
+		slot.push_back(std::move(result));
 	}
 
 	ParseResult *parse_result;
 	optional_ptr<TransformerStackFrame> parent_frame;
-	InsertionOrderPreservingMap<unique_ptr<TransformResultValue>>
-	    child_results; // null = first visit, non-null = re-entry
+	InsertionOrderPreservingMap<vector<unique_ptr<TransformResultValue>>>
+	    child_results;
 	TransformState state = INITIALIZING;
 };
 

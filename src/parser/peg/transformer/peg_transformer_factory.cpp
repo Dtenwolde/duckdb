@@ -30,7 +30,7 @@ unique_ptr<SQLStatement> PEGTransformerFactory::TransformStatement(PEGTransforme
 static unique_ptr<SQLStatement> ExtractAndTransformStatement(PEGTransformer &transformer,
                                                              const vector<MatcherToken> &tokens, ParseResult &stmt_pr,
                                                              optional_idx terminator_offset) {
-	auto stmt = transformer.TransformTrampoline<unique_ptr<SQLStatement>>(stmt_pr);
+	auto stmt = transformer.TransformTrampoline(stmt_pr);
 
 	if (!transformer.named_parameter_map.empty()) {
 		stmt->named_param_map = transformer.named_parameter_map;
@@ -1106,8 +1106,11 @@ void PEGTransformerFactory::PopulateTrampolineFunctions(PEGTransformer &transfor
 	REGISTER_RESULT(R_TransformStatement);
 	// use.gram
 	REGISTER_INIT(T_TransformUseStatement);
+	REGISTER_RESULT(R_TransformUseStatement);
 	REGISTER_INIT(T_TransformUseTarget);
+	REGISTER_RESULT(R_TransformUseTarget);
 	REGISTER_INIT(T_TransformUseTargetCatalogSchema);
+	REGISTER_RESULT(R_TransformUseTargetCatalogSchema);
 	// transaction.gram
 	REGISTER_INIT(T_TransformTransactionStatement);
 	REGISTER_RESULT(R_TransformTransactionStatement);

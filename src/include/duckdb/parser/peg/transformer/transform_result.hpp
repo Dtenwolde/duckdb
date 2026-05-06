@@ -24,8 +24,4 @@ struct TypedTransformResult : public TransformResultValue {
 	T value;
 };
 
-struct RepeatTransformResultValue : public TransformResultValue {
-	vector<unique_ptr<TransformResultValue>> values;
-};
-
 } // namespace duckdb

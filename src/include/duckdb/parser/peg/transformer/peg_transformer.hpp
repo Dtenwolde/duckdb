@@ -134,8 +134,7 @@ public:
 		}
 	}
 
-	template <typename T>
-	T TransformTrampoline(ParseResult &pr) {
+	unique_ptr<SQLStatement> TransformTrampoline(ParseResult &pr) {
 		TransformerStackFrame root_frame(pr);
 		PushFrame(pr, root_frame);
 		while (!frame_stack.empty()) {
@@ -157,7 +156,7 @@ public:
 				PopFrame();
 			}
 		}
-		return CastResult<T>(std::move(root_frame.child_results.begin()->second));
+		return CastResult<unique_ptr<SQLStatement>>(std::move(root_frame.child_results.begin()->second[0]));
 	}
 
 	void PushFrame(ParseResult &pr, TransformerStackFrame &parent) {
@@ -1295,17 +1294,17 @@ private:
 	// ParseResult &parse_result);
 
 	// transaction.gram - trampoline versions
-	static void T_TransformTransactionStatement(PEGTransformer &transformer, TransformerStackFrame &frame);
+	static void T_TransformTransactionStatement(PEGTransformer &transformer, TransformerStackFrame &current);
 	static void R_TransformTransactionStatement(PEGTransformer &transformer, TransformerStackFrame &frame);
-	static void T_TransformBeginTransaction(PEGTransformer &transformer, TransformerStackFrame &frame);
+	static void T_TransformBeginTransaction(PEGTransformer &transformer, TransformerStackFrame &current);
 	static void R_TransformBeginTransaction(PEGTransformer &transformer, TransformerStackFrame &frame);
-	static void T_TransformCommitTransaction(PEGTransformer &transformer, TransformerStackFrame &frame);
+	static void T_TransformCommitTransaction(PEGTransformer &transformer, TransformerStackFrame &current);
 	static void R_TransformCommitTransaction(PEGTransformer &transformer, TransformerStackFrame &frame);
-	static void T_TransformRollbackTransaction(PEGTransformer &transformer, TransformerStackFrame &frame);
+	static void T_TransformRollbackTransaction(PEGTransformer &transformer, TransformerStackFrame &current);
 	static void R_TransformRollbackTransaction(PEGTransformer &transformer, TransformerStackFrame &frame);
-	static void T_TransformReadOrWrite(PEGTransformer &transformer, TransformerStackFrame &frame);
+	static void T_TransformReadOrWrite(PEGTransformer &transformer, TransformerStackFrame &current);
 	static void R_TransformReadOrWrite(PEGTransformer &transformer, TransformerStackFrame &frame);
-	static void T_TransformReadOnlyOrReadWrite(PEGTransformer &transformer, TransformerStackFrame &frame);
+	static void T_TransformReadOnlyOrReadWrite(PEGTransformer &transformer, TransformerStackFrame &current);
 	static void R_TransformReadOnlyOrReadWrite(PEGTransformer &transformer, TransformerStackFrame &frame);
 	//
 	// // update.gram
@@ -1328,11 +1327,14 @@ private:
 	static QualifiedName TransformUseTargetCatalogSchema(PEGTransformer &transformer, ParseResult &parse_result);
 
 	// use.gram - trampoline versions
-	static void T_TransformStatement(PEGTransformer &transformer, TransformerStackFrame &frame);
+	static void T_TransformStatement(PEGTransformer &transformer, TransformerStackFrame &current);
 	static void R_TransformStatement(PEGTransformer &transformer, TransformerStackFrame &frame);
-	static void T_TransformUseStatement(PEGTransformer &transformer, TransformerStackFrame &frame);
-	static void T_TransformUseTarget(PEGTransformer &transformer, TransformerStackFrame &frame);
-	static void T_TransformUseTargetCatalogSchema(PEGTransformer &transformer, TransformerStackFrame &frame);
+	static void T_TransformUseStatement(PEGTransformer &transformer, TransformerStackFrame &current);
+	static void R_TransformUseStatement(PEGTransformer &transformer, TransformerStackFrame &frame);
+	static void T_TransformUseTarget(PEGTransformer &transformer, TransformerStackFrame &current);
+	static void R_TransformUseTarget(PEGTransformer &transformer, TransformerStackFrame &frame);
+	static void T_TransformUseTargetCatalogSchema(PEGTransformer &transformer, TransformerStackFrame &current);
+	static void R_TransformUseTargetCatalogSchema(PEGTransformer &transformer, TransformerStackFrame &frame);
 
 	// // vacuum.gram
 	// static unique_ptr<SQLStatement> TransformVacuumStatement(PEGTransformer &transformer, ParseResult &parse_result);
