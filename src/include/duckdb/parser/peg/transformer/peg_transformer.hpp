@@ -162,6 +162,12 @@ public:
 		frame_stack.push_back(reference<TransformerStackFrame>(*allocator.Make<TransformerStackFrame>(pr, parent)));
 	}
 
+	void PushOptionalFrame(OptionalParseResult &opt, TransformerStackFrame &parent) {
+		if (opt.HasResult()) {
+			PushFrame(opt.GetResult(), parent);
+		}
+	}
+
 	void PopFrame() {
 		D_ASSERT(!frame_stack.empty());
 		frame_stack.pop_back();

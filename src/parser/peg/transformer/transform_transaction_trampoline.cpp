@@ -20,10 +20,7 @@ void PEGTransformerFactory::R_TransformTransactionStatement(PEGTransformer &t, T
 // BeginTransaction <- StartOrBegin Transaction? ReadOrWrite?
 void PEGTransformerFactory::T_TransformBeginTransaction(PEGTransformer &t, TransformerStackFrame &frame) {
 	auto &list_pr = frame.parse_result->Cast<ListParseResult>();
-	auto &rw_opt = list_pr.Child<OptionalParseResult>(2);
-	if (rw_opt.HasResult()) {
-		t.PushFrame(rw_opt.GetResult(), frame);
-	}
+	t.PushOptionalFrame(list_pr.Child<OptionalParseResult>(2), frame);
 	frame.state = TransformState::WAITING;
 }
 
@@ -69,7 +66,7 @@ void PEGTransformerFactory::R_TransformReadOrWrite(PEGTransformer &t, Transforme
 	t.PopFrame();
 }
 
-// ReadOnlyOrReadWrite <- ReadOnly / ReadWrite  (leaf -- resolved in Init, never enters WAITING)
+// ReadOnlyOrReadWrite <- ReadOnly / ReadWrite
 void PEGTransformerFactory::T_TransformReadOnlyOrReadWrite(PEGTransformer &t, TransformerStackFrame &frame) {
 	auto &choice_pr = frame.parse_result->Cast<ListParseResult>().Child<ChoiceParseResult>(0);
 	auto modifier = (choice_pr.GetResult().name == "ReadOnly") ? TransactionModifierType::TRANSACTION_READ_ONLY
