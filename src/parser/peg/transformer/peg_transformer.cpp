@@ -7,6 +7,56 @@
 
 namespace duckdb {
 
+TransformStackFrame::TransformStackFrame(idx_t frame_index_p, ParseResult &parse_result_p,
+                                         const TransformFrameOps &ops_p, idx_t parent_p, idx_t parent_slot_p)
+    : frame_index(frame_index_p), parse_result(parse_result_p), ops(ops_p), parent(parent_p),
+      parent_slot(parent_slot_p) {
+}
+
+TransformStack::TransformStack(PEGTransformer &transformer) : transformer(transformer) {
+}
+
+void TransformStack::PushFrameInternal(ParseResult &parse_result, const TransformFrameOps &ops, idx_t parent,
+                                       idx_t parent_slot) {
+	auto frame_index = frames.size();
+	frames.emplace_back(frame_index, parse_result, ops, parent, parent_slot);
+	frame_stack.push_back(frame_index);
+}
+
+void TransformStack::PushFrame(ParseResult &parse_result, const TransformFrameOps &ops, TransformStackFrame &parent,
+                               idx_t parent_slot) {
+	PushFrameInternal(parse_result, ops, parent.frame_index, parent_slot);
+}
+
+void TransformStack::PushFrame(ParseResult &parse_result, const TransformFrameOps &ops, idx_t parent_frame_index,
+                               idx_t parent_slot) {
+	PushFrameInternal(parse_result, ops, parent_frame_index, parent_slot);
+}
+
+unique_ptr<TransformResultValue> TransformStack::Execute(ParseResult &parse_result, const TransformFrameOps &ops) {
+	frames.clear();
+	frame_stack.clear();
+	PushFrameInternal(parse_result, ops, DConstants::INVALID_INDEX, DConstants::INVALID_INDEX);
+
+	while (!frame_stack.empty()) {
+		auto frame_index = frame_stack.back();
+		auto &frame = frames[frame_index];
+		if (frame.state == TransformFrameState::INITIALIZE) {
+			frame.state = TransformFrameState::WAITING;
+			frame.ops.Initialize(transformer, *this, frame);
+			continue;
+		}
+
+		auto result = frame.ops.Finalize(transformer, frame);
+		frame_stack.pop_back();
+		if (frame.parent == DConstants::INVALID_INDEX) {
+			return result;
+		}
+		frames[frame.parent].child_results[frame.parent_slot] = std::move(result);
+	}
+	throw InternalException("Transformer stack finished without a result");
+}
+
 void PEGTransformer::ParamTypeCheck(PreparedParamType last_type, PreparedParamType new_type) {
 	// Mixing positional/auto-increment and named parameters is not supported
 	if (last_type == PreparedParamType::INVALID) {

@@ -11,3 +11,11 @@ ATTACH ':memory:' as "my""db";
 
 statement ok
 USE "my""db";
+
+statement ok
+USE "my""db".main;
+
+statement error
+USE "my""db".main.extra;
+----
+Parser Error: Expected "USE database" or "USE database.schema"

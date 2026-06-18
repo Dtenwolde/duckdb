@@ -86,6 +86,63 @@ struct PEGTransformerState {
 	idx_t token_index;
 };
 
+class PEGTransformer;
+class TransformStack;
+
+enum class TransformFrameState : uint8_t { INITIALIZE, WAITING };
+
+struct TransformStackFrame;
+
+struct TransformFrameOps {
+	const char *name;
+	void (*Initialize)(PEGTransformer &, TransformStack &, TransformStackFrame &);
+	unique_ptr<TransformResultValue> (*Finalize)(PEGTransformer &, TransformStackFrame &);
+};
+
+struct TransformStackFrame {
+	TransformStackFrame(idx_t frame_index_p, ParseResult &parse_result_p, const TransformFrameOps &ops_p,
+	                    idx_t parent_p, idx_t parent_slot_p);
+
+	template <class T>
+	T TakeResult(idx_t child_index) {
+		if (child_index >= child_results.size() || !child_results[child_index]) {
+			throw InternalException("Missing trampoline child result for rule '%s'", parse_result.name);
+		}
+		auto *typed_result = dynamic_cast<TypedTransformResult<T> *>(child_results[child_index].get());
+		if (!typed_result) {
+			throw InternalException("Unexpected trampoline child result type for rule '%s'", parse_result.name);
+		}
+		return std::move(typed_result->value);
+	}
+
+	idx_t frame_index;
+	ParseResult &parse_result;
+	const TransformFrameOps &ops;
+	idx_t parent;
+	idx_t parent_slot;
+	TransformFrameState state = TransformFrameState::INITIALIZE;
+	vector<unique_ptr<TransformResultValue>> child_results;
+};
+
+class TransformStack {
+public:
+	explicit TransformStack(PEGTransformer &transformer);
+
+	unique_ptr<TransformResultValue> Execute(ParseResult &parse_result, const TransformFrameOps &ops);
+	void PushFrame(ParseResult &parse_result, const TransformFrameOps &ops, TransformStackFrame &parent,
+	               idx_t parent_slot);
+	void PushFrame(ParseResult &parse_result, const TransformFrameOps &ops, idx_t parent_frame_index,
+	               idx_t parent_slot);
+
+private:
+	void PushFrameInternal(ParseResult &parse_result, const TransformFrameOps &ops, idx_t parent, idx_t parent_slot);
+
+private:
+	PEGTransformer &transformer;
+	vector<TransformStackFrame> frames;
+	vector<idx_t> frame_stack;
+};
+
 class PEGTransformer {
 public:
 	using AnyTransformFunction = std::function<unique_ptr<TransformResultValue>(PEGTransformer &, ParseResult &)>;
@@ -3762,24 +3819,50 @@ private:
 	                                                                               ParseResult &parse_result);
 	static string TransformUpdateSetColumnTarget(PEGTransformer &transformer, const Identifier &column_name,
 	                                             const optional<vector<Identifier>> &dot_identifier);
+	static const TransformFrameOps USE_STATEMENT_OPS;
+	static const TransformFrameOps USE_TARGET_OPS;
+	static const TransformFrameOps SCHEMA_NAME_AS_USE_TARGET_OPS;
+	static const TransformFrameOps CATALOG_NAME_AS_USE_TARGET_OPS;
+	static const TransformFrameOps USE_TARGET_CATALOG_SCHEMA_OPS;
+	static const TransformFrameOps DOT_IDENTIFIER_OPS;
 	static unique_ptr<TransformResultValue> TransformUseStatementInternal(PEGTransformer &transformer,
 	                                                                      ParseResult &parse_result);
+	static void InitializeUseStatement(PEGTransformer &transformer, TransformStack &stack, TransformStackFrame &frame);
+	static unique_ptr<TransformResultValue> FinalizeUseStatement(PEGTransformer &transformer,
+	                                                             TransformStackFrame &frame);
 	static unique_ptr<SQLStatement> TransformUseStatement(PEGTransformer &transformer, const QualifiedName &use_target);
 	static unique_ptr<TransformResultValue> TransformUseTargetInternal(PEGTransformer &transformer,
 	                                                                   ParseResult &parse_result);
+	static void InitializeUseTarget(PEGTransformer &transformer, TransformStack &stack, TransformStackFrame &frame);
+	static unique_ptr<TransformResultValue> FinalizeUseTarget(PEGTransformer &transformer, TransformStackFrame &frame);
 	static unique_ptr<TransformResultValue> TransformSchemaNameAsUseTargetInternal(PEGTransformer &transformer,
 	                                                                               ParseResult &parse_result);
+	static void InitializeSchemaNameAsUseTarget(PEGTransformer &transformer, TransformStack &stack,
+	                                            TransformStackFrame &frame);
+	static unique_ptr<TransformResultValue> FinalizeSchemaNameAsUseTarget(PEGTransformer &transformer,
+	                                                                      TransformStackFrame &frame);
 	static QualifiedName TransformSchemaNameAsUseTarget(PEGTransformer &transformer, const Identifier &schema_name);
 	static unique_ptr<TransformResultValue> TransformCatalogNameAsUseTargetInternal(PEGTransformer &transformer,
 	                                                                                ParseResult &parse_result);
+	static void InitializeCatalogNameAsUseTarget(PEGTransformer &transformer, TransformStack &stack,
+	                                             TransformStackFrame &frame);
+	static unique_ptr<TransformResultValue> FinalizeCatalogNameAsUseTarget(PEGTransformer &transformer,
+	                                                                       TransformStackFrame &frame);
 	static QualifiedName TransformCatalogNameAsUseTarget(PEGTransformer &transformer, const Identifier &catalog_name);
 	static unique_ptr<TransformResultValue> TransformUseTargetCatalogSchemaInternal(PEGTransformer &transformer,
 	                                                                                ParseResult &parse_result);
+	static void InitializeUseTargetCatalogSchema(PEGTransformer &transformer, TransformStack &stack,
+	                                             TransformStackFrame &frame);
+	static unique_ptr<TransformResultValue> FinalizeUseTargetCatalogSchema(PEGTransformer &transformer,
+	                                                                       TransformStackFrame &frame);
 	static QualifiedName TransformUseTargetCatalogSchema(PEGTransformer &transformer, const Identifier &catalog_name,
 	                                                     const Identifier &reserved_schema_name,
 	                                                     const optional<vector<Identifier>> &dot_identifier);
 	static unique_ptr<TransformResultValue> TransformDotIdentifierInternal(PEGTransformer &transformer,
 	                                                                       ParseResult &parse_result);
+	static void InitializeDotIdentifier(PEGTransformer &transformer, TransformStack &stack, TransformStackFrame &frame);
+	static unique_ptr<TransformResultValue> FinalizeDotIdentifier(PEGTransformer &transformer,
+	                                                              TransformStackFrame &frame);
 	static Identifier TransformDotIdentifier(PEGTransformer &transformer, const Identifier &identifier);
 	static unique_ptr<TransformResultValue> TransformVacuumStatementInternal(PEGTransformer &transformer,
 	                                                                         ParseResult &parse_result);
