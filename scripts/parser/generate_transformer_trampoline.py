@@ -27,15 +27,20 @@ statements_dir = peg_dir / "grammar" / "statements"
 type_dir = scripts_dir / "parser"
 transformer_header = src_dir / "include" / "duckdb" / "parser" / "peg" / "transformer" / "peg_transformer.hpp"
 transformer_source = peg_dir / "transformer" / "transform_generated.cpp"
+transformer_trampoline_source = peg_dir / "transformer" / "transform_generated_trampoline.cpp"
 
-# Pilot scope: TransformStatement is currently hand-written and creates the stack
-# for converted statement alternatives. Generated use.gram Internal functions
-# remain compatibility entrypoints while both backends coexist.
-ROOT_RULES = set()
+TRAMPOLINE_GRAMMARS = ["checkpoint.gram", "use.gram"]
 
 
 @dataclass
 class StackChild:
+    parse_expr: str
+    rule_name: str
+    slot_idx: int
+
+
+@dataclass
+class OptionalStackChild:
     parse_expr: str
     rule_name: str
     slot_idx: int
@@ -48,6 +53,7 @@ class RepeatStackChild:
     var_name: str
     cpp_type: str
     by_value: bool
+    optional: bool
 
 
 @dataclass
@@ -84,10 +90,6 @@ def finalize_name(rule_name):
     return f"Finalize{rule_name}"
 
 
-def internal_name(rule_name):
-    return f"Transform{rule_name}Internal"
-
-
 def box_result(return_type, by_value):
     result_expr = "std::move(result)" if by_value else "result"
     return f"\treturn make_uniq<TypedTransformResult<{return_type}>>({result_expr});"
@@ -117,20 +119,30 @@ def ensure_sequence(ast):
 
 
 def sequence_stack_children(sequence, rules, rule_types):
-    stack_children = []
-    repeat_child = None
-    static_slot = 0
+    children = []
 
     for child_idx, child in enumerate(sequence.children):
         if isinstance(child, ReferenceNode) and is_transformer_rule(child.name, rules, rule_types):
-            stack_children.append(
+            children.append(
                 StackChild(
                     parse_expr=f"list_pr.GetChild({child_idx})",
                     rule_name=child.name,
-                    slot_idx=static_slot,
+                    slot_idx=0,
                 )
             )
-            static_slot += 1
+            continue
+        if (
+            isinstance(child, OptionalNode)
+            and isinstance(child.child, ReferenceNode)
+            and is_transformer_rule(child.child.name, rules, rule_types)
+        ):
+            children.append(
+                OptionalStackChild(
+                    parse_expr=f"list_pr.GetChild({child_idx})",
+                    rule_name=child.child.name,
+                    slot_idx=0,
+                )
+            )
             continue
         if (
             isinstance(child, OptionalNode)
@@ -145,11 +157,27 @@ def sequence_stack_children(sequence, rules, rule_types):
                 var_name=to_snake_case(child_rule),
                 cpp_type=rule_type(child_rule, rule_types),
                 by_value=rule_by_value(child_rule, rule_types),
+                optional=True,
             )
+            children.append(repeat_child)
+            continue
+        if (
+            isinstance(child, RepeatNode)
+            and isinstance(child.child, ReferenceNode)
+            and is_transformer_rule(child.child.name, rules, rule_types)
+        ):
+            child_rule = child.child.name
+            repeat_child = RepeatStackChild(
+                parse_expr=f"list_pr.GetChild({child_idx})",
+                rule_name=child_rule,
+                var_name=to_snake_case(child_rule),
+                cpp_type=rule_type(child_rule, rule_types),
+                by_value=rule_by_value(child_rule, rule_types),
+                optional=False,
+            )
+            children.append(repeat_child)
 
-    if stack_children and repeat_child:
-        raise NotImplementedError("mixed static and repeated stack children are not supported yet")
-    return stack_children, repeat_child
+    return children
 
 
 def generate_ops_definition(rule_name):
@@ -193,14 +221,9 @@ def format_cpp_args(args):
     return formatted
 
 
-def generate_rule_declarations(rule_name, ast, rules, rule_types, identifier_override_rules):
-    return_type = rule_type(rule_name, rule_types)
-    lines = [
+def generate_trampoline_rule_declarations(rule_name):
+    return [
         f"\tstatic const TransformFrameOps {ops_name(rule_name)};",
-        declaration_line(
-            f"static unique_ptr<TransformResultValue> {internal_name(rule_name)}"
-            f"(PEGTransformer &transformer, ParseResult &parse_result)"
-        ),
         declaration_line(
             f"static void {initialize_name(rule_name)}"
             f"(PEGTransformer &transformer, TransformStack &stack, TransformStackFrame &frame)"
@@ -210,11 +233,6 @@ def generate_rule_declarations(rule_name, ast, rules, rule_types, identifier_ove
             f"(PEGTransformer &transformer, TransformStackFrame &frame)"
         ),
     ]
-    if not is_pure_reference_choice(ast):
-        args = sequence_finalize_args(ensure_sequence(ast), rules, rule_types, identifier_override_rules)
-        semantic_args = ["PEGTransformer &transformer"] + format_cpp_args(args)
-        lines.append(declaration_line(f"static {return_type} Transform{rule_name}({', '.join(semantic_args)})"))
-    return lines
 
 
 def generate_choice_initialize(rule_name, ast, rules, rule_types):
@@ -230,67 +248,132 @@ def generate_choice_initialize(rule_name, ast, rules, rule_types):
         "\tauto &choice_pr = list_pr.Child<ChoiceParseResult>(0);",
         "\tframe.child_results.resize(1);",
         "\tauto &choice_result = choice_pr.GetResult();",
+        "\tauto &trampoline_ops = GeneratedTrampolineOps();",
+        "\tauto entry = trampoline_ops.find(choice_result.name);",
+        "\tD_ASSERT(entry != trampoline_ops.end());",
+        "\tstack.PushFrame(choice_result, *entry->second, frame, 0);",
+        "}",
     ]
-    for idx, alternative in enumerate(alternatives):
-        prefix = "\tif" if idx == 0 else "\t} else if"
-        lines.extend(
-            [
-                f'{prefix} (choice_result.name == "{alternative}") {{',
-                f"\t\tstack.PushFrame(choice_result, {child_ops(alternative)}, frame, 0);",
-            ]
-        )
-    lines.extend(
-        [
-            "\t} else {",
-            f'\t\tthrow InternalException("Unexpected {rule_name} alternative \'%s\'", choice_result.name);',
-            "\t}",
-            "}",
-        ]
-    )
     return "\n".join(lines)
 
 
 def generate_sequence_initialize(rule_name, ast, rules, rule_types):
     sequence = ensure_sequence(ast)
-    stack_children, repeat_child = sequence_stack_children(sequence, rules, rule_types)
+    stack_children = sequence_stack_children(sequence, rules, rule_types)
     lines = [
         f"void PEGTransformerFactory::{initialize_name(rule_name)}(PEGTransformer &transformer, TransformStack &stack,",
         "                                                TransformStackFrame &frame) {",
     ]
-    if not stack_children and repeat_child is None:
+    if not stack_children:
         lines.append("}")
         return "\n".join(lines)
 
-    lines.append("\tauto &list_pr = frame.parse_result.Cast<ListParseResult>();")
-    if stack_children:
-        lines.append(f"\tframe.child_results.resize({len(stack_children)});")
-        for child in reversed(stack_children):
-            lines.append(
-                f"\tstack.PushFrame({child.parse_expr}, {child_ops(child.rule_name)}, frame, {child.slot_idx});"
+    lines.extend(
+        [
+            "\tauto &list_pr = frame.parse_result.Cast<ListParseResult>();",
+            "\tidx_t child_result_count = 0;",
+        ]
+    )
+    for child_idx, child in enumerate(stack_children):
+        if isinstance(child, StackChild):
+            lines.append("\tchild_result_count++;")
+            continue
+        if isinstance(child, OptionalStackChild):
+            var_name = f"{to_snake_case(child.rule_name)}_opt_{child_idx}"
+            lines.extend(
+                [
+                    f"\tauto &{var_name} = {child.parse_expr}.Cast<OptionalParseResult>();",
+                    f"\tif ({var_name}.HasResult()) {{",
+                    "\t\tchild_result_count++;",
+                    "\t}",
+                ]
             )
-    if repeat_child is not None:
-        lines.extend(
-            [
-                f"\tauto &{repeat_child.var_name}_opt = {repeat_child.parse_expr}.Cast<OptionalParseResult>();",
-                f"\tif (!{repeat_child.var_name}_opt.HasResult()) {{",
-                "\t\treturn;",
-                "\t}",
-                (
-                    f"\tauto &{repeat_child.var_name}_repeat = "
-                    f"{repeat_child.var_name}_opt.GetResult().Cast<RepeatParseResult>();"
-                ),
-                f"\tauto {repeat_child.var_name}_children = {repeat_child.var_name}_repeat.GetChildren();",
-                f"\tframe.child_results.resize({repeat_child.var_name}_children.size());",
-                "\tauto parent_frame_index = frame.frame_index;",
-                f"\tfor (idx_t child_idx = {repeat_child.var_name}_children.size(); child_idx > 0; child_idx--) {{",
-                "\t\tauto result_idx = child_idx - 1;",
-                (
-                    f"\t\tstack.PushFrame({repeat_child.var_name}_children[result_idx].get(), "
-                    f"{child_ops(repeat_child.rule_name)}, parent_frame_index, result_idx);"
-                ),
-                "\t}",
-            ]
-        )
+            continue
+        if isinstance(child, RepeatStackChild):
+            repeat_var = f"{child.var_name}_repeat_{child_idx}"
+            children_var = f"{child.var_name}_children_{child_idx}"
+            if child.optional:
+                opt_var = f"{child.var_name}_opt_{child_idx}"
+                lines.extend(
+                    [
+                        f"\tauto &{opt_var} = {child.parse_expr}.Cast<OptionalParseResult>();",
+                        f"\tif ({opt_var}.HasResult()) {{",
+                        f"\t\tauto &{repeat_var} = {opt_var}.GetResult().Cast<RepeatParseResult>();",
+                        f"\t\tchild_result_count += {repeat_var}.GetChildren().size();",
+                        "\t}",
+                    ]
+                )
+            else:
+                lines.extend(
+                    [
+                        f"\tauto &{repeat_var} = {child.parse_expr}.Cast<RepeatParseResult>();",
+                        f"\tchild_result_count += {repeat_var}.GetChildren().size();",
+                    ]
+                )
+            continue
+    lines.extend(
+        [
+            "\tframe.child_results.resize(child_result_count);",
+            "\tauto parent_frame_index = frame.frame_index;",
+            "\tidx_t child_slot = 0;",
+        ]
+    )
+    for child_idx, child in enumerate(stack_children):
+        if isinstance(child, StackChild):
+            lines.extend(
+                [
+                    f"\tstack.PushFrame({child.parse_expr}, {child_ops(child.rule_name)}, parent_frame_index, child_slot);",
+                    "\tchild_slot++;",
+                ]
+            )
+            continue
+        if isinstance(child, OptionalStackChild):
+            var_name = f"{to_snake_case(child.rule_name)}_opt_{child_idx}"
+            lines.extend(
+                [
+                    f"\tif ({var_name}.HasResult()) {{",
+                    f"\t\tstack.PushFrame({var_name}.GetResult(), {child_ops(child.rule_name)}, parent_frame_index, child_slot);",
+                    "\t\tchild_slot++;",
+                    "\t}",
+                ]
+            )
+            continue
+        if isinstance(child, RepeatStackChild):
+            repeat_var = f"{child.var_name}_repeat_{child_idx}"
+            children_var = f"{child.var_name}_children_{child_idx}"
+            if child.optional:
+                opt_var = f"{child.var_name}_opt_{child_idx}"
+                lines.extend(
+                    [
+                        f"\tif ({opt_var}.HasResult()) {{",
+                        f"\t\tauto &{repeat_var} = {opt_var}.GetResult().Cast<RepeatParseResult>();",
+                        f"\t\tauto {children_var} = {repeat_var}.GetChildren();",
+                        f"\t\tfor (idx_t child_idx = {children_var}.size(); child_idx > 0; child_idx--) {{",
+                        "\t\t\tauto result_idx = child_idx - 1;",
+                        (
+                            f"\t\t\tstack.PushFrame({children_var}[result_idx].get(), {child_ops(child.rule_name)}, "
+                            "parent_frame_index, child_slot + result_idx);"
+                        ),
+                        "\t\t}",
+                        f"\t\tchild_slot += {children_var}.size();",
+                        "\t}",
+                    ]
+                )
+            else:
+                lines.extend(
+                    [
+                        f"\tauto {children_var} = {repeat_var}.GetChildren();",
+                        f"\tfor (idx_t child_idx = {children_var}.size(); child_idx > 0; child_idx--) {{",
+                        "\t\tauto result_idx = child_idx - 1;",
+                        (
+                            f"\t\tstack.PushFrame({children_var}[result_idx].get(), {child_ops(child.rule_name)}, "
+                            "parent_frame_index, child_slot + result_idx);"
+                        ),
+                        "\t}",
+                        f"\tchild_slot += {children_var}.size();",
+                    ]
+                )
+            continue
     lines.append("}")
     return "\n".join(lines)
 
@@ -303,7 +386,8 @@ def generate_initialize(rule_name, ast, rules, rule_types):
 
 def sequence_finalize_args(sequence, rules, rule_types, identifier_override_rules):
     args = []
-    stack_slot = 0
+    stack_slot_expr = "child_slot"
+    needs_child_slot = False
     for child_idx, child in enumerate(sequence.children):
         if isinstance(child, LiteralNode):
             continue
@@ -325,6 +409,7 @@ def sequence_finalize_args(sequence, rules, rule_types, identifier_override_rule
                 )
                 continue
             if is_transformer_rule(child.name, rules, rule_types):
+                needs_child_slot = True
                 var_name = to_snake_case(child.name)
                 args.append(
                     FinalizeArg(
@@ -334,12 +419,56 @@ def sequence_finalize_args(sequence, rules, rule_types, identifier_override_rule
                         lines=[
                             (
                                 f"\tauto {var_name} = "
-                                f"frame.TakeResult<{rule_type(child.name, rule_types)}>({stack_slot});"
-                            )
+                                f"frame.TakeResult<{rule_type(child.name, rule_types)}>({stack_slot_expr});"
+                            ),
+                            "\tchild_slot++;",
                         ],
                     )
                 )
-                stack_slot += 1
+                continue
+        if isinstance(child, OptionalNode) and isinstance(child.child, ReferenceNode):
+            if child.child.name in identifier_override_rules:
+                var_name = to_snake_case(child.child.name)
+                args.append(
+                    FinalizeArg(
+                        var_name=var_name,
+                        cpp_type=f"optional<Identifier>",
+                        by_value=False,
+                        lines=[
+                            f"\toptional<Identifier> {var_name} {{}};",
+                            f"\tauto &{var_name}_opt = list_pr.GetChild({child_idx}).Cast<OptionalParseResult>();",
+                            f"\tif ({var_name}_opt.HasResult()) {{",
+                            (
+                                f"\t\tauto {var_name}_value = "
+                                f"{var_name}_opt.GetResult().Cast<IdentifierParseResult>().identifier;"
+                            ),
+                            f"\t\t{var_name} = {var_name}_value;",
+                            "\t}",
+                        ],
+                    )
+                )
+                continue
+            if is_transformer_rule(child.child.name, rules, rule_types):
+                needs_child_slot = True
+                child_rule = child.child.name
+                var_name = to_snake_case(child_rule)
+                cpp_type = rule_type(child_rule, rule_types)
+                args.append(
+                    FinalizeArg(
+                        var_name=var_name,
+                        cpp_type=f"optional<{cpp_type}>",
+                        by_value=False,
+                        lines=[
+                            f"\toptional<{cpp_type}> {var_name} {{}};",
+                            f"\tauto &{var_name}_opt = list_pr.GetChild({child_idx}).Cast<OptionalParseResult>();",
+                            f"\tif ({var_name}_opt.HasResult()) {{",
+                            f"\t\tauto {var_name}_value = frame.TakeResult<{cpp_type}>({stack_slot_expr});",
+                            f"\t\t{var_name} = {var_name}_value;",
+                            "\t\tchild_slot++;",
+                            "\t}",
+                        ],
+                    )
+                )
                 continue
         if (
             isinstance(child, OptionalNode)
@@ -350,6 +479,7 @@ def sequence_finalize_args(sequence, rules, rule_types, identifier_override_rule
             child_rule = child.child.child.name
             var_name = to_snake_case(child_rule)
             cpp_type = rule_type(child_rule, rule_types)
+            needs_child_slot = True
             args.append(
                 FinalizeArg(
                     var_name=var_name,
@@ -360,17 +490,46 @@ def sequence_finalize_args(sequence, rules, rule_types, identifier_override_rule
                         f"\tauto &{var_name}_opt = list_pr.GetChild({child_idx}).Cast<OptionalParseResult>();",
                         f"\tif ({var_name}_opt.HasResult()) {{",
                         f"\t\tvector<{cpp_type}> {var_name}_value;",
-                        "\t\tfor (idx_t child_idx = 0; child_idx < frame.child_results.size(); child_idx++) {",
-                        f"\t\t\t{var_name}_value.push_back(frame.TakeResult<{cpp_type}>(child_idx));",
+                        f"\t\tauto &{var_name}_repeat = {var_name}_opt.GetResult().Cast<RepeatParseResult>();",
+                        f"\t\tauto {var_name}_children = {var_name}_repeat.GetChildren();",
+                        f"\t\tfor (idx_t child_idx = 0; child_idx < {var_name}_children.size(); child_idx++) {{",
+                        f"\t\t\t{var_name}_value.push_back(frame.TakeResult<{cpp_type}>(child_slot + child_idx));",
                         "\t\t}",
                         f"\t\t{var_name} = {var_name}_value;",
+                        f"\t\tchild_slot += {var_name}_children.size();",
                         "\t}",
                     ],
                 )
             )
             continue
+        if (
+            isinstance(child, RepeatNode)
+            and isinstance(child.child, ReferenceNode)
+            and is_transformer_rule(child.child.name, rules, rule_types)
+        ):
+            child_rule = child.child.name
+            var_name = to_snake_case(child_rule)
+            cpp_type = rule_type(child_rule, rule_types)
+            needs_child_slot = True
+            args.append(
+                FinalizeArg(
+                    var_name=var_name,
+                    cpp_type=f"vector<{cpp_type}>",
+                    by_value=False,
+                    lines=[
+                        f"\tvector<{cpp_type}> {var_name};",
+                        f"\tauto &{var_name}_repeat = list_pr.GetChild({child_idx}).Cast<RepeatParseResult>();",
+                        f"\tauto {var_name}_children = {var_name}_repeat.GetChildren();",
+                        f"\tfor (idx_t child_idx = 0; child_idx < {var_name}_children.size(); child_idx++) {{",
+                        f"\t\t{var_name}.push_back(frame.TakeResult<{cpp_type}>(child_slot + child_idx));",
+                        "\t}",
+                        f"\tchild_slot += {var_name}_children.size();",
+                    ],
+                )
+            )
+            continue
         raise NotImplementedError(f"unsupported finalize child at sequence index {child_idx}: {child}")
-    return args
+    return args, needs_child_slot
 
 
 def generate_choice_finalize(rule_name, return_type, return_by_value):
@@ -387,7 +546,7 @@ def generate_sequence_finalize(rule_name, ast, rules, rule_types, identifier_ove
     sequence = ensure_sequence(ast)
     return_type = rule_type(rule_name, rule_types)
     return_by_value = rule_by_value(rule_name, rule_types)
-    args = sequence_finalize_args(sequence, rules, rule_types, identifier_override_rules)
+    args, needs_child_slot = sequence_finalize_args(sequence, rules, rule_types, identifier_override_rules)
 
     lines = [
         f"unique_ptr<TransformResultValue> PEGTransformerFactory::{finalize_name(rule_name)}",
@@ -395,6 +554,8 @@ def generate_sequence_finalize(rule_name, ast, rules, rule_types, identifier_ove
     ]
     if any("list_pr." in line or "list_pr " in line for arg in args for line in arg.lines):
         lines.append("\tauto &list_pr = frame.parse_result.Cast<ListParseResult>();")
+    if needs_child_slot:
+        lines.append("\tidx_t child_slot = 0;")
     for arg in args:
         lines.extend(arg.lines)
     call_args = []
@@ -415,81 +576,65 @@ def generate_finalize(rule_name, ast, rules, rule_types, identifier_override_rul
     return generate_sequence_finalize(rule_name, ast, rules, rule_types, identifier_override_rules)
 
 
-def generate_internal(rule_name, is_root):
-    if is_root:
-        comment = "// Root trampoline entrypoint: creates the stack for this traversal."
-    else:
-        comment = "// Compatibility entrypoint: not used by generated trampoline child traversal."
-    return (
-        f"{comment}\n"
-        f"unique_ptr<TransformResultValue> PEGTransformerFactory::{internal_name(rule_name)}"
-        f"(PEGTransformer &transformer, ParseResult &parse_result) {{\n"
-        "\tTransformStack stack(transformer);\n"
-        f"\treturn stack.Execute(parse_result, {ops_name(rule_name)});\n"
-        "}"
-    )
-
-
 def generated_block(begin_label, body):
     return f"// BEGIN {begin_label}\n{body.rstrip()}\n// END {begin_label}\n"
 
 
-def generate_header_section(rules, rule_asts, rule_types, identifier_override_rules):
+def generate_trampoline_header_section(grammar_names):
     lines = []
-    for rule_name, ast in rule_asts.items():
-        lines.extend(generate_rule_declarations(rule_name, ast, rules, rule_types, identifier_override_rules))
+    for grammar_name in grammar_names:
+        _, rules, rule_types, excluded_rules, identifier_override_rules = load_rules(grammar_name)
+        del rule_types, excluded_rules, identifier_override_rules
+        for rule_name in rules:
+            lines.extend(generate_trampoline_rule_declarations(rule_name))
     return "\n".join(lines) + "\n"
 
 
-def generate_source_section(rules, rule_asts, rule_types, identifier_override_rules):
+def generate_trampoline_source_section(grammar_names):
     lines = []
-    for rule_name in rules:
-        lines.append(generate_ops_definition(rule_name))
-    lines.append("")
-    for rule_name, ast in rule_asts.items():
-        lines.append(generate_initialize(rule_name, ast, rules, rule_types))
+    rule_names = []
+    for grammar_name in grammar_names:
+        _, rules, rule_types, excluded_rules, identifier_override_rules = load_rules(grammar_name)
+        del excluded_rules
+        rule_asts = {rule_name: rule_to_ast(rule) for rule_name, rule in rules.items()}
+        for rule_name in rules:
+            rule_names.append(rule_name)
+            lines.append(generate_ops_definition(rule_name))
         lines.append("")
-        lines.append(generate_finalize(rule_name, ast, rules, rule_types, identifier_override_rules))
-        lines.append("")
-    for rule_name in rules:
-        lines.append(generate_internal(rule_name, rule_name in ROOT_RULES))
-        lines.append("")
-    return "\n".join(lines).rstrip() + "\n"
+        for rule_name, ast in rule_asts.items():
+            lines.append(generate_initialize(rule_name, ast, rules, rule_types))
+            lines.append("")
+            lines.append(generate_finalize(rule_name, ast, rules, rule_types, identifier_override_rules))
+            lines.append("")
+
+    ops_registry = [
+        "const case_insensitive_map_t<const TransformFrameOps *> &PEGTransformerFactory::GeneratedTrampolineOps() {",
+        "\tstatic const case_insensitive_map_t<const TransformFrameOps *> rule_ops = {",
+    ]
+    for rule_name in rule_names:
+        ops_registry.append(f'\t    {{"{rule_name}", &{ops_name(rule_name)}}},')
+    ops_registry.extend(
+        [
+            "\t};",
+            "\treturn rule_ops;",
+            "}",
+            "",
+        ]
+    )
+    return "\n".join(lines + ops_registry).rstrip() + "\n"
 
 
-def load_use_rules():
+def load_rules(grammar_name):
     grammar_types_file = type_dir / "grammar_types.yml"
     rule_types, excluded_rules = load_grammar_types(grammar_types_file)
     identifier_override_rules = load_identifier_override_rules(grammar_types_file)
-    grammar_file = statements_dir / "use.gram"
+    grammar_file = statements_dir / grammar_name
     rules = parse_peg_grammar(grammar_file.read_text())
 
     for rule_name, rule in rules.items():
         if rule_name in rule_types:
             rule.return_type = rule_types[rule_name].cpp_type
     return grammar_file, rules, rule_types, excluded_rules, identifier_override_rules
-
-
-def generate_preview():
-    grammar_file, rules, rule_types, excluded_rules, identifier_override_rules = load_use_rules()
-    del excluded_rules
-
-    rule_asts = {rule_name: rule_to_ast(rule) for rule_name, rule in rules.items()}
-    header_section = generate_header_section(rules, rule_asts, rule_types, identifier_override_rules)
-    source_section = generate_source_section(rules, rule_asts, rule_types, identifier_override_rules)
-
-    lines = [
-        "// AUTO-GENERATED PREVIEW by scripts/parser/generate_transformer_trampoline.py",
-        "// This script is intentionally review-only and does not write generated files.",
-        f"// Source grammar: {grammar_file}",
-        "",
-        "// Header declarations:",
-        header_section.rstrip(),
-        "",
-        "// C++ definitions:",
-        source_section.rstrip(),
-    ]
-    return "\n".join(lines).rstrip() + "\n"
 
 
 def replace_between_markers(text, label, replacement):
@@ -515,58 +660,75 @@ def replace_between(text, start_text, end_text, replacement):
     return text[:start] + replacement + "\n" + text[finish:]
 
 
+def generate_trampoline_source_file(grammar_names):
+    source_section = generate_trampoline_source_section(grammar_names)
+    return (
+        '#include "duckdb/parser/peg/transformer/peg_transformer.hpp"\n'
+        "\n"
+        "namespace duckdb {\n"
+        "\n"
+        f"{generated_block('generated trampoline transformer rules', source_section)}"
+        "\n"
+        "void PEGTransformerFactory::RegisterGeneratedTrampoline() {\n"
+        '\ttrampoline_transform_functions["Statement"] = &PEGTransformerFactory::TransformStatementTrampolineInternal;\n'
+        "}\n"
+        "\n"
+        "} // namespace duckdb\n"
+    )
+
+
 def write_generated_files():
-    _, rules, rule_types, excluded_rules, identifier_override_rules = load_use_rules()
-    del excluded_rules
-
-    rule_asts = {rule_name: rule_to_ast(rule) for rule_name, rule in rules.items()}
-    label = "generated trampoline transformer rules for use.gram"
-    header_section = generate_header_section(rules, rule_asts, rule_types, identifier_override_rules)
-    source_section = generate_source_section(rules, rule_asts, rule_types, identifier_override_rules)
-
+    header_section = generate_trampoline_header_section(TRAMPOLINE_GRAMMARS)
     header_text = transformer_header.read_text()
-    header_replacement = generated_block(label, header_section)
-    new_header_text = replace_between_markers(header_text, label, header_section)
+    new_header_text = replace_between_markers(
+        header_text, "generated trampoline transformer declarations", header_section
+    )
     if new_header_text is None:
-        new_header_text = replace_between(
-            header_text,
-            "\tstatic const TransformFrameOps USE_STATEMENT_OPS;",
-            "\tstatic unique_ptr<TransformResultValue> TransformVacuumStatementInternal",
-            header_replacement,
-        )
+        raise RuntimeError("could not find generated trampoline transformer declarations marker")
     transformer_header.write_text(new_header_text)
-
-    source_text = transformer_source.read_text()
-    source_replacement = generated_block(label, source_section)
-    new_source_text = replace_between_markers(source_text, label, source_section)
-    if new_source_text is None:
-        new_source_text = replace_between(
-            source_text,
-            "const TransformFrameOps PEGTransformerFactory::USE_STATEMENT_OPS",
-            "unique_ptr<TransformResultValue> PEGTransformerFactory::TransformVacuumStatementInternal",
-            source_replacement,
-        )
-    transformer_source.write_text(new_source_text)
+    transformer_trampoline_source.write_text(generate_trampoline_source_file(TRAMPOLINE_GRAMMARS))
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Preview trampoline-style transformer generation for use.gram.")
+    parser = argparse.ArgumentParser(description="Preview trampoline-style transformer generation.")
     parser.add_argument(
         "--grammar",
         default="use.gram",
-        choices=["use.gram"],
-        help="Grammar file to preview. Only use.gram is supported by this pilot.",
+        choices=["use.gram", "checkpoint.gram"],
+        help="Grammar file to preview. --write always writes the full trampoline backend.",
     )
     parser.add_argument(
         "--write",
         action="store_true",
-        help="Write the generated use.gram trampoline blocks into the transformer header/source.",
+        help="Write the generated trampoline declarations and dedicated trampoline source.",
     )
     args = parser.parse_args()
     if args.write:
         write_generated_files()
         return
-    print(generate_preview(), end="")
+    grammar_file, rules, rule_types, excluded_rules, identifier_override_rules = load_rules(args.grammar)
+    del excluded_rules
+    rule_asts = {rule_name: rule_to_ast(rule) for rule_name, rule in rules.items()}
+    header_section = "\n".join(
+        line for rule_name in rules for line in generate_trampoline_rule_declarations(rule_name)
+    )
+    source_section = generate_trampoline_source_section([args.grammar])
+    print(
+        "\n".join(
+            [
+                "// AUTO-GENERATED PREVIEW by scripts/parser/generate_transformer_trampoline.py",
+                f"// Source grammar: {grammar_file}",
+                "",
+                "// Header declarations:",
+                header_section.rstrip(),
+                "",
+                "// C++ definitions:",
+                source_section.rstrip(),
+            ]
+        )
+        + "\n",
+        end="",
+    )
 
 
 if __name__ == "__main__":

@@ -30,18 +30,26 @@ unique_ptr<SQLStatement> PEGTransformerFactory::TransformStatement(PEGTransforme
                                                                    ParseResult &parse_result) {
 	auto &list_pr = parse_result.Cast<ListParseResult>();
 	auto &choice_pr = list_pr.Child<ChoiceParseResult>(0);
-	auto &choice_result = choice_pr.GetResult();
-	unique_ptr<SQLStatement> result;
-	if (choice_result.name == "UseStatement") {
-		result = ExecuteSQLStatementTrampoline(transformer, choice_result, USE_STATEMENT_OPS);
-	} else {
-		result = transformer.Transform<unique_ptr<SQLStatement>>(choice_result);
-	}
+	auto result = transformer.Transform<unique_ptr<SQLStatement>>(choice_pr.GetResult());
 	if (!transformer.named_parameter_map.empty()) {
 		// Avoid overriding a previous move with nothing
 		result->named_param_map = transformer.named_parameter_map;
 	}
 	return result;
+}
+
+unique_ptr<TransformResultValue>
+PEGTransformerFactory::TransformStatementTrampolineInternal(PEGTransformer &transformer, ParseResult &parse_result) {
+	auto &list_pr = parse_result.Cast<ListParseResult>();
+	auto &choice_pr = list_pr.Child<ChoiceParseResult>(0);
+	auto &choice_result = choice_pr.GetResult();
+	auto &trampoline_ops = GeneratedTrampolineOps();
+	auto entry = trampoline_ops.find(choice_result.name);
+	if (entry == trampoline_ops.end()) {
+		throw NotImplementedException("Trampoline transformer does not support rule '%s' yet", choice_result.name);
+	}
+	auto result = ExecuteSQLStatementTrampoline(transformer, choice_result, *entry->second);
+	return make_uniq<TypedTransformResult<unique_ptr<SQLStatement>>>(std::move(result));
 }
 
 static unique_ptr<SQLStatement> ExtractAndTransformStatement(PEGTransformer &transformer,
@@ -126,7 +134,9 @@ unique_ptr<SQLStatement> PEGTransformerFactory::TransformTopLevelStatement(vecto
 
 	ArenaAllocator transformer_allocator(Allocator::DefaultAllocator());
 	PEGTransformerState transformer_state(tokens);
-	PEGTransformer transformer(transformer_allocator, transformer_state, sql_transform_functions, parser.rules,
+	auto &transform_functions =
+	    options.parser_trampoline_style ? trampoline_transform_functions : sql_transform_functions;
+	PEGTransformer transformer(transformer_allocator, transformer_state, transform_functions, parser.rules,
 	                           enum_mappings, options);
 
 	return ExtractAndTransformStatement(transformer, tokens, stmt_opt.GetResult(), terminator_offset);
@@ -218,6 +228,7 @@ void PEGTransformerFactory::RegisterEnums() {
 
 PEGTransformerFactory::PEGTransformerFactory() {
 	RegisterGenerated();
+	RegisterGeneratedTrampoline();
 	REGISTER_TRANSFORM(TransformStatement);
 	RegisterComment();
 	RegisterCommon();
