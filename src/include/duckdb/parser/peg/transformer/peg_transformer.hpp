@@ -436,6 +436,16 @@ private:
 	static const case_insensitive_map_t<const TransformFrameOps *> &GeneratedTrampolineOps();
 
 	// BEGIN generated trampoline transformer declarations
+	static const TransformFrameOps ANALYZE_STATEMENT_OPS;
+	static void InitializeAnalyzeStatement(PEGTransformer &transformer, TransformStack &stack, TransformStackFrame &frame);
+	static unique_ptr<TransformResultValue> FinalizeAnalyzeStatement(
+	    PEGTransformer &transformer, TransformStackFrame &frame);
+	static const TransformFrameOps ANALYZE_TARGET_OPS;
+	static void InitializeAnalyzeTarget(PEGTransformer &transformer, TransformStack &stack, TransformStackFrame &frame);
+	static unique_ptr<TransformResultValue> FinalizeAnalyzeTarget(PEGTransformer &transformer, TransformStackFrame &frame);
+	static const TransformFrameOps ANALYZE_VERBOSE_OPS;
+	static void InitializeAnalyzeVerbose(PEGTransformer &transformer, TransformStack &stack, TransformStackFrame &frame);
+	static unique_ptr<TransformResultValue> FinalizeAnalyzeVerbose(PEGTransformer &transformer, TransformStackFrame &frame);
 	static const TransformFrameOps CHECKPOINT_STATEMENT_OPS;
 	static void InitializeCheckpointStatement(
 	    PEGTransformer &transformer, TransformStack &stack, TransformStackFrame &frame);
@@ -444,6 +454,50 @@ private:
 	static const TransformFrameOps CHECKPOINT_FORCE_OPS;
 	static void InitializeCheckpointForce(PEGTransformer &transformer, TransformStack &stack, TransformStackFrame &frame);
 	static unique_ptr<TransformResultValue> FinalizeCheckpointForce(PEGTransformer &transformer, TransformStackFrame &frame);
+	static const TransformFrameOps COMMENT_STATEMENT_OPS;
+	static void InitializeCommentStatement(PEGTransformer &transformer, TransformStack &stack, TransformStackFrame &frame);
+	static unique_ptr<TransformResultValue> FinalizeCommentStatement(
+	    PEGTransformer &transformer, TransformStackFrame &frame);
+	static const TransformFrameOps COMMENT_ON_TYPE_OPS;
+	static void InitializeCommentOnType(PEGTransformer &transformer, TransformStack &stack, TransformStackFrame &frame);
+	static unique_ptr<TransformResultValue> FinalizeCommentOnType(PEGTransformer &transformer, TransformStackFrame &frame);
+	static const TransformFrameOps COMMENT_TABLE_OPS;
+	static void InitializeCommentTable(PEGTransformer &transformer, TransformStack &stack, TransformStackFrame &frame);
+	static unique_ptr<TransformResultValue> FinalizeCommentTable(PEGTransformer &transformer, TransformStackFrame &frame);
+	static const TransformFrameOps COMMENT_SEQUENCE_OPS;
+	static void InitializeCommentSequence(PEGTransformer &transformer, TransformStack &stack, TransformStackFrame &frame);
+	static unique_ptr<TransformResultValue> FinalizeCommentSequence(PEGTransformer &transformer, TransformStackFrame &frame);
+	static const TransformFrameOps COMMENT_FUNCTION_OPS;
+	static void InitializeCommentFunction(PEGTransformer &transformer, TransformStack &stack, TransformStackFrame &frame);
+	static unique_ptr<TransformResultValue> FinalizeCommentFunction(PEGTransformer &transformer, TransformStackFrame &frame);
+	static const TransformFrameOps COMMENT_MACRO_TABLE_OPS;
+	static void InitializeCommentMacroTable(PEGTransformer &transformer, TransformStack &stack, TransformStackFrame &frame);
+	static unique_ptr<TransformResultValue> FinalizeCommentMacroTable(
+	    PEGTransformer &transformer, TransformStackFrame &frame);
+	static const TransformFrameOps COMMENT_MACRO_OPS;
+	static void InitializeCommentMacro(PEGTransformer &transformer, TransformStack &stack, TransformStackFrame &frame);
+	static unique_ptr<TransformResultValue> FinalizeCommentMacro(PEGTransformer &transformer, TransformStackFrame &frame);
+	static const TransformFrameOps COMMENT_VIEW_OPS;
+	static void InitializeCommentView(PEGTransformer &transformer, TransformStack &stack, TransformStackFrame &frame);
+	static unique_ptr<TransformResultValue> FinalizeCommentView(PEGTransformer &transformer, TransformStackFrame &frame);
+	static const TransformFrameOps COMMENT_DATABASE_OPS;
+	static void InitializeCommentDatabase(PEGTransformer &transformer, TransformStack &stack, TransformStackFrame &frame);
+	static unique_ptr<TransformResultValue> FinalizeCommentDatabase(PEGTransformer &transformer, TransformStackFrame &frame);
+	static const TransformFrameOps COMMENT_INDEX_OPS;
+	static void InitializeCommentIndex(PEGTransformer &transformer, TransformStack &stack, TransformStackFrame &frame);
+	static unique_ptr<TransformResultValue> FinalizeCommentIndex(PEGTransformer &transformer, TransformStackFrame &frame);
+	static const TransformFrameOps COMMENT_SCHEMA_OPS;
+	static void InitializeCommentSchema(PEGTransformer &transformer, TransformStack &stack, TransformStackFrame &frame);
+	static unique_ptr<TransformResultValue> FinalizeCommentSchema(PEGTransformer &transformer, TransformStackFrame &frame);
+	static const TransformFrameOps COMMENT_TYPE_OPS;
+	static void InitializeCommentType(PEGTransformer &transformer, TransformStack &stack, TransformStackFrame &frame);
+	static unique_ptr<TransformResultValue> FinalizeCommentType(PEGTransformer &transformer, TransformStackFrame &frame);
+	static const TransformFrameOps COMMENT_COLUMN_OPS;
+	static void InitializeCommentColumn(PEGTransformer &transformer, TransformStack &stack, TransformStackFrame &frame);
+	static unique_ptr<TransformResultValue> FinalizeCommentColumn(PEGTransformer &transformer, TransformStackFrame &frame);
+	static const TransformFrameOps COMMENT_VALUE_OPS;
+	static void InitializeCommentValue(PEGTransformer &transformer, TransformStack &stack, TransformStackFrame &frame);
+	static unique_ptr<TransformResultValue> FinalizeCommentValue(PEGTransformer &transformer, TransformStackFrame &frame);
 	static const TransformFrameOps CONNECT_STATEMENT_OPS;
 	static void InitializeConnectStatement(PEGTransformer &transformer, TransformStack &stack, TransformStackFrame &frame);
 	static unique_ptr<TransformResultValue> FinalizeConnectStatement(
@@ -482,6 +536,36 @@ private:
 	static const TransformFrameOps DETACH_STATEMENT_OPS;
 	static void InitializeDetachStatement(PEGTransformer &transformer, TransformStack &stack, TransformStackFrame &frame);
 	static unique_ptr<TransformResultValue> FinalizeDetachStatement(PEGTransformer &transformer, TransformStackFrame &frame);
+	static const TransformFrameOps LOAD_STATEMENT_OPS;
+	static void InitializeLoadStatement(PEGTransformer &transformer, TransformStack &stack, TransformStackFrame &frame);
+	static unique_ptr<TransformResultValue> FinalizeLoadStatement(PEGTransformer &transformer, TransformStackFrame &frame);
+	static const TransformFrameOps EXTENSION_ALIAS_OPS;
+	static void InitializeExtensionAlias(PEGTransformer &transformer, TransformStack &stack, TransformStackFrame &frame);
+	static unique_ptr<TransformResultValue> FinalizeExtensionAlias(PEGTransformer &transformer, TransformStackFrame &frame);
+	static const TransformFrameOps INSTALL_STATEMENT_OPS;
+	static void InitializeInstallStatement(PEGTransformer &transformer, TransformStack &stack, TransformStackFrame &frame);
+	static unique_ptr<TransformResultValue> FinalizeInstallStatement(
+	    PEGTransformer &transformer, TransformStackFrame &frame);
+	static const TransformFrameOps UPDATE_EXTENSIONS_STATEMENT_OPS;
+	static void InitializeUpdateExtensionsStatement(
+	    PEGTransformer &transformer, TransformStack &stack, TransformStackFrame &frame);
+	static unique_ptr<TransformResultValue> FinalizeUpdateExtensionsStatement(
+	    PEGTransformer &transformer, TransformStackFrame &frame);
+	static const TransformFrameOps FROM_SOURCE_OPS;
+	static void InitializeFromSource(PEGTransformer &transformer, TransformStack &stack, TransformStackFrame &frame);
+	static unique_ptr<TransformResultValue> FinalizeFromSource(PEGTransformer &transformer, TransformStackFrame &frame);
+	static const TransformFrameOps FROM_SOURCE_IDENTIFIER_OPS;
+	static void InitializeFromSourceIdentifier(
+	    PEGTransformer &transformer, TransformStack &stack, TransformStackFrame &frame);
+	static unique_ptr<TransformResultValue> FinalizeFromSourceIdentifier(
+	    PEGTransformer &transformer, TransformStackFrame &frame);
+	static const TransformFrameOps FROM_SOURCE_STRING_OPS;
+	static void InitializeFromSourceString(PEGTransformer &transformer, TransformStack &stack, TransformStackFrame &frame);
+	static unique_ptr<TransformResultValue> FinalizeFromSourceString(
+	    PEGTransformer &transformer, TransformStackFrame &frame);
+	static const TransformFrameOps VERSION_NUMBER_OPS;
+	static void InitializeVersionNumber(PEGTransformer &transformer, TransformStack &stack, TransformStackFrame &frame);
+	static unique_ptr<TransformResultValue> FinalizeVersionNumber(PEGTransformer &transformer, TransformStackFrame &frame);
 	static const TransformFrameOps TRANSACTION_STATEMENT_OPS;
 	static void InitializeTransactionStatement(
 	    PEGTransformer &transformer, TransformStack &stack, TransformStackFrame &frame);
@@ -538,9 +622,97 @@ private:
 	static const TransformFrameOps DOT_IDENTIFIER_OPS;
 	static void InitializeDotIdentifier(PEGTransformer &transformer, TransformStack &stack, TransformStackFrame &frame);
 	static unique_ptr<TransformResultValue> FinalizeDotIdentifier(PEGTransformer &transformer, TransformStackFrame &frame);
+	static const TransformFrameOps VACUUM_STATEMENT_OPS;
+	static void InitializeVacuumStatement(PEGTransformer &transformer, TransformStack &stack, TransformStackFrame &frame);
+	static unique_ptr<TransformResultValue> FinalizeVacuumStatement(PEGTransformer &transformer, TransformStackFrame &frame);
+	static const TransformFrameOps VACUUM_OPTIONS_OPS;
+	static void InitializeVacuumOptions(PEGTransformer &transformer, TransformStack &stack, TransformStackFrame &frame);
+	static unique_ptr<TransformResultValue> FinalizeVacuumOptions(PEGTransformer &transformer, TransformStackFrame &frame);
+	static const TransformFrameOps VACUUM_PARENS_OPTIONS_OPS;
+	static void InitializeVacuumParensOptions(
+	    PEGTransformer &transformer, TransformStack &stack, TransformStackFrame &frame);
+	static unique_ptr<TransformResultValue> FinalizeVacuumParensOptions(
+	    PEGTransformer &transformer, TransformStackFrame &frame);
+	static const TransformFrameOps VACUUM_LEGACY_OPTIONS_OPS;
+	static void InitializeVacuumLegacyOptions(
+	    PEGTransformer &transformer, TransformStack &stack, TransformStackFrame &frame);
+	static unique_ptr<TransformResultValue> FinalizeVacuumLegacyOptions(
+	    PEGTransformer &transformer, TransformStackFrame &frame);
+	static const TransformFrameOps VACUUM_OPTION_OPS;
+	static void InitializeVacuumOption(PEGTransformer &transformer, TransformStack &stack, TransformStackFrame &frame);
+	static unique_ptr<TransformResultValue> FinalizeVacuumOption(PEGTransformer &transformer, TransformStackFrame &frame);
+	static const TransformFrameOps OPT_ANALYZE_OPS;
+	static void InitializeOptAnalyze(PEGTransformer &transformer, TransformStack &stack, TransformStackFrame &frame);
+	static unique_ptr<TransformResultValue> FinalizeOptAnalyze(PEGTransformer &transformer, TransformStackFrame &frame);
+	static const TransformFrameOps OPT_FULL_OPS;
+	static void InitializeOptFull(PEGTransformer &transformer, TransformStack &stack, TransformStackFrame &frame);
+	static unique_ptr<TransformResultValue> FinalizeOptFull(PEGTransformer &transformer, TransformStackFrame &frame);
+	static const TransformFrameOps OPT_FREEZE_OPS;
+	static void InitializeOptFreeze(PEGTransformer &transformer, TransformStack &stack, TransformStackFrame &frame);
+	static unique_ptr<TransformResultValue> FinalizeOptFreeze(PEGTransformer &transformer, TransformStackFrame &frame);
+	static const TransformFrameOps OPT_VERBOSE_OPS;
+	static void InitializeOptVerbose(PEGTransformer &transformer, TransformStack &stack, TransformStackFrame &frame);
+	static unique_ptr<TransformResultValue> FinalizeOptVerbose(PEGTransformer &transformer, TransformStackFrame &frame);
+	static const TransformFrameOps NAME_LIST_OPS;
+	static void InitializeNameList(PEGTransformer &transformer, TransformStack &stack, TransformStackFrame &frame);
+	static unique_ptr<TransformResultValue> FinalizeNameList(PEGTransformer &transformer, TransformStackFrame &frame);
+	static const TransformFrameOps BASE_TABLE_NAME_OPS;
+	static void InitializeBaseTableName(PEGTransformer &transformer, TransformStack &stack, TransformStackFrame &frame);
+	static unique_ptr<TransformResultValue> FinalizeBaseTableName(PEGTransformer &transformer, TransformStackFrame &frame);
+	static const TransformFrameOps DOTTED_IDENTIFIER_OPS;
+	static void InitializeDottedIdentifier(PEGTransformer &transformer, TransformStack &stack, TransformStackFrame &frame);
+	static unique_ptr<TransformResultValue> FinalizeDottedIdentifier(
+	    PEGTransformer &transformer, TransformStackFrame &frame);
+	static const TransformFrameOps NULL_LITERAL_OPS;
+	static void InitializeNullLiteral(PEGTransformer &transformer, TransformStack &stack, TransformStackFrame &frame);
+	static unique_ptr<TransformResultValue> FinalizeNullLiteral(PEGTransformer &transformer, TransformStackFrame &frame);
 	static const TransformFrameOps IF_EXISTS_OPS;
 	static void InitializeIfExists(PEGTransformer &transformer, TransformStack &stack, TransformStackFrame &frame);
 	static unique_ptr<TransformResultValue> FinalizeIfExists(PEGTransformer &transformer, TransformStackFrame &frame);
+	static const TransformFrameOps COL_ID_OR_STRING_OPS;
+	static void InitializeColIdOrString(PEGTransformer &transformer, TransformStack &stack, TransformStackFrame &frame);
+	static unique_ptr<TransformResultValue> FinalizeColIdOrString(PEGTransformer &transformer, TransformStackFrame &frame);
+	static const TransformFrameOps IDENTIFIER_OR_STRING_LITERAL_OPS;
+	static void InitializeIdentifierOrStringLiteral(
+	    PEGTransformer &transformer, TransformStack &stack, TransformStackFrame &frame);
+	static unique_ptr<TransformResultValue> FinalizeIdentifierOrStringLiteral(
+	    PEGTransformer &transformer, TransformStackFrame &frame);
+	static const TransformFrameOps COL_ID_OPS;
+	static void InitializeColId(PEGTransformer &transformer, TransformStack &stack, TransformStackFrame &frame);
+	static unique_ptr<TransformResultValue> FinalizeColId(PEGTransformer &transformer, TransformStackFrame &frame);
+	static const TransformFrameOps CATALOG_RESERVED_SCHEMA_TABLE_OPS;
+	static void InitializeCatalogReservedSchemaTable(
+	    PEGTransformer &transformer, TransformStack &stack, TransformStackFrame &frame);
+	static unique_ptr<TransformResultValue> FinalizeCatalogReservedSchemaTable(
+	    PEGTransformer &transformer, TransformStackFrame &frame);
+	static const TransformFrameOps SCHEMA_RESERVED_TABLE_OPS;
+	static void InitializeSchemaReservedTable(
+	    PEGTransformer &transformer, TransformStack &stack, TransformStackFrame &frame);
+	static unique_ptr<TransformResultValue> FinalizeSchemaReservedTable(
+	    PEGTransformer &transformer, TransformStackFrame &frame);
+	static const TransformFrameOps UNQUALIFIED_BASE_TABLE_NAME_OPS;
+	static void InitializeUnqualifiedBaseTableName(
+	    PEGTransformer &transformer, TransformStack &stack, TransformStackFrame &frame);
+	static unique_ptr<TransformResultValue> FinalizeUnqualifiedBaseTableName(
+	    PEGTransformer &transformer, TransformStackFrame &frame);
+	static const TransformFrameOps DOT_COL_LABEL_OPS;
+	static void InitializeDotColLabel(PEGTransformer &transformer, TransformStack &stack, TransformStackFrame &frame);
+	static unique_ptr<TransformResultValue> FinalizeDotColLabel(PEGTransformer &transformer, TransformStackFrame &frame);
+	static const TransformFrameOps CATALOG_QUALIFICATION_OPS;
+	static void InitializeCatalogQualification(
+	    PEGTransformer &transformer, TransformStack &stack, TransformStackFrame &frame);
+	static unique_ptr<TransformResultValue> FinalizeCatalogQualification(
+	    PEGTransformer &transformer, TransformStackFrame &frame);
+	static const TransformFrameOps RESERVED_SCHEMA_QUALIFICATION_OPS;
+	static void InitializeReservedSchemaQualification(
+	    PEGTransformer &transformer, TransformStack &stack, TransformStackFrame &frame);
+	static unique_ptr<TransformResultValue> FinalizeReservedSchemaQualification(
+	    PEGTransformer &transformer, TransformStackFrame &frame);
+	static const TransformFrameOps SCHEMA_QUALIFICATION_OPS;
+	static void InitializeSchemaQualification(
+	    PEGTransformer &transformer, TransformStack &stack, TransformStackFrame &frame);
+	static unique_ptr<TransformResultValue> FinalizeSchemaQualification(
+	    PEGTransformer &transformer, TransformStackFrame &frame);
 // END generated trampoline transformer declarations
 
 	// comment.gram
