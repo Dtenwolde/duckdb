@@ -2885,9 +2885,9 @@ void PEGTransformerFactory::InitializeAlterStatement(PEGTransformer &transformer
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), ALTER_OPTIONS_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeAlterStatement
@@ -2933,18 +2933,18 @@ void PEGTransformerFactory::InitializeAlterTableStmt(PEGTransformer &transformer
 	child_result_count += alter_table_options_children_2.size();
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	if (if_exists_opt_0.HasResult()) {
-		stack.PushFrame(if_exists_opt_0.GetResult(), IF_EXISTS_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
-	stack.PushFrame(list_pr.GetChild(2), BASE_TABLE_NAME_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
+	child_slot -= alter_table_options_children_2.size();
 	for (idx_t child_idx = alter_table_options_children_2.size(); child_idx > 0; child_idx--) {
 		auto result_idx = child_idx - 1;
 		stack.PushFrame(alter_table_options_children_2[result_idx].get(), ALTER_TABLE_OPTIONS_OPS, parent_frame_index, child_slot + result_idx);
 	}
-	child_slot += alter_table_options_children_2.size();
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(2), BASE_TABLE_NAME_OPS, parent_frame_index, child_slot);
+	if (if_exists_opt_0.HasResult()) {
+		child_slot--;
+		stack.PushFrame(if_exists_opt_0.GetResult(), IF_EXISTS_OPS, parent_frame_index, child_slot);
+	}
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeAlterTableStmt
@@ -2984,15 +2984,15 @@ void PEGTransformerFactory::InitializeAlterSchemaStmt(PEGTransformer &transforme
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	if (if_exists_opt_0.HasResult()) {
-		stack.PushFrame(if_exists_opt_0.GetResult(), IF_EXISTS_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
-	stack.PushFrame(list_pr.GetChild(2), QUALIFIED_NAME_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(3), RENAME_ALTER_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(2), QUALIFIED_NAME_OPS, parent_frame_index, child_slot);
+	if (if_exists_opt_0.HasResult()) {
+		child_slot--;
+		stack.PushFrame(if_exists_opt_0.GetResult(), IF_EXISTS_OPS, parent_frame_index, child_slot);
+	}
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeAlterSchemaStmt
@@ -3042,9 +3042,9 @@ void PEGTransformerFactory::InitializeAddConstraint(PEGTransformer &transformer,
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), TOP_LEVEL_CONSTRAINT_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeAddConstraint
@@ -3067,13 +3067,13 @@ void PEGTransformerFactory::InitializeAddColumn(PEGTransformer &transformer, Tra
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	if (if_not_exists_opt_0.HasResult()) {
-		stack.PushFrame(if_not_exists_opt_0.GetResult(), IF_NOT_EXISTS_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(3), ADD_COLUMN_ENTRY_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	if (if_not_exists_opt_0.HasResult()) {
+		child_slot--;
+		stack.PushFrame(if_not_exists_opt_0.GetResult(), IF_NOT_EXISTS_OPS, parent_frame_index, child_slot);
+	}
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeAddColumn
@@ -3116,26 +3116,26 @@ void PEGTransformerFactory::InitializeAddColumnEntry(PEGTransformer &transformer
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), DOTTED_IDENTIFIER_OPS, parent_frame_index, child_slot);
-	child_slot++;
-	if (type_opt_1.HasResult()) {
-		stack.PushFrame(type_opt_1.GetResult(), TYPE_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
-	if (generated_column_opt_2.HasResult()) {
-		stack.PushFrame(generated_column_opt_2.GetResult(), GENERATED_COLUMN_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
+	idx_t child_slot = child_result_count;
 	if (column_constraint_opt_3.HasResult()) {
 		auto &column_constraint_repeat_3 = column_constraint_opt_3.GetResult().Cast<RepeatParseResult>();
 		auto column_constraint_children_3 = column_constraint_repeat_3.GetChildren();
+		child_slot -= column_constraint_children_3.size();
 		for (idx_t child_idx = column_constraint_children_3.size(); child_idx > 0; child_idx--) {
 			auto result_idx = child_idx - 1;
 			stack.PushFrame(column_constraint_children_3[result_idx].get(), COLUMN_CONSTRAINT_OPS, parent_frame_index, child_slot + result_idx);
 		}
-		child_slot += column_constraint_children_3.size();
 	}
+	if (generated_column_opt_2.HasResult()) {
+		child_slot--;
+		stack.PushFrame(generated_column_opt_2.GetResult(), GENERATED_COLUMN_OPS, parent_frame_index, child_slot);
+	}
+	if (type_opt_1.HasResult()) {
+		child_slot--;
+		stack.PushFrame(type_opt_1.GetResult(), TYPE_OPS, parent_frame_index, child_slot);
+	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), DOTTED_IDENTIFIER_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeAddColumnEntry
@@ -3189,16 +3189,16 @@ void PEGTransformerFactory::InitializeDropColumn(PEGTransformer &transformer, Tr
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	if (if_exists_opt_0.HasResult()) {
-		stack.PushFrame(if_exists_opt_0.GetResult(), IF_EXISTS_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
-	stack.PushFrame(list_pr.GetChild(3), NESTED_COLUMN_NAME_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
 	if (drop_behavior_opt_2.HasResult()) {
+		child_slot--;
 		stack.PushFrame(drop_behavior_opt_2.GetResult(), DROP_BEHAVIOR_OPS, parent_frame_index, child_slot);
-		child_slot++;
+	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(3), NESTED_COLUMN_NAME_OPS, parent_frame_index, child_slot);
+	if (if_exists_opt_0.HasResult()) {
+		child_slot--;
+		stack.PushFrame(if_exists_opt_0.GetResult(), IF_EXISTS_OPS, parent_frame_index, child_slot);
 	}
 }
 
@@ -3237,11 +3237,11 @@ void PEGTransformerFactory::InitializeAlterColumn(PEGTransformer &transformer, T
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(2), NESTED_COLUMN_NAME_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(3), ALTER_COLUMN_ENTRY_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(2), NESTED_COLUMN_NAME_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeAlterColumn
@@ -3266,9 +3266,9 @@ void PEGTransformerFactory::InitializeRenameColumn(PEGTransformer &transformer, 
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(2), NESTED_COLUMN_NAME_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeRenameColumn
@@ -3296,15 +3296,15 @@ void PEGTransformerFactory::InitializeNestedColumnName(PEGTransformer &transform
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
 	if (identifier_dot_opt_0.HasResult()) {
 		auto &identifier_dot_repeat_0 = identifier_dot_opt_0.GetResult().Cast<RepeatParseResult>();
 		auto identifier_dot_children_0 = identifier_dot_repeat_0.GetChildren();
+		child_slot -= identifier_dot_children_0.size();
 		for (idx_t child_idx = identifier_dot_children_0.size(); child_idx > 0; child_idx--) {
 			auto result_idx = child_idx - 1;
 			stack.PushFrame(identifier_dot_children_0[result_idx].get(), IDENTIFIER_DOT_OPS, parent_frame_index, child_slot + result_idx);
 		}
-		child_slot += identifier_dot_children_0.size();
 	}
 }
 
@@ -3361,12 +3361,12 @@ void PEGTransformerFactory::InitializeSetPartitionedBy(PEGTransformer &transform
 	child_result_count += expression_children_0.size();
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot -= expression_children_0.size();
 	for (idx_t child_idx = expression_children_0.size(); child_idx > 0; child_idx--) {
 		auto result_idx = child_idx - 1;
 		stack.PushFrame(expression_children_0[result_idx].get(), EXPRESSION_OPS, parent_frame_index, child_slot + result_idx);
 	}
-	child_slot += expression_children_0.size();
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeSetPartitionedBy
@@ -3401,9 +3401,9 @@ void PEGTransformerFactory::InitializeSetSortedBy(PEGTransformer &transformer, T
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(ExtractResultFromParens(list_pr.GetChild(3)), ORDER_BY_EXPRESSIONS_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeSetSortedBy
@@ -3431,9 +3431,9 @@ void PEGTransformerFactory::InitializeSetOptions(PEGTransformer &transformer, Tr
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), REL_OPTION_LIST_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeSetOptions
@@ -3452,9 +3452,9 @@ void PEGTransformerFactory::InitializeResetOptions(PEGTransformer &transformer, 
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), REL_OPTION_LIST_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeResetOptions
@@ -3515,9 +3515,9 @@ void PEGTransformerFactory::InitializeAddDefault(PEGTransformer &transformer, Tr
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(2), EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeAddDefault
@@ -3545,9 +3545,9 @@ void PEGTransformerFactory::InitializeChangeNullability(PEGTransformer &transfor
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(0), DROP_OR_SET_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeChangeNullability
@@ -3612,14 +3612,14 @@ void PEGTransformerFactory::InitializeAlterType(PEGTransformer &transformer, Tra
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	if (type_opt_0.HasResult()) {
-		stack.PushFrame(type_opt_0.GetResult(), TYPE_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
+	idx_t child_slot = child_result_count;
 	if (using_expression_opt_1.HasResult()) {
+		child_slot--;
 		stack.PushFrame(using_expression_opt_1.GetResult(), USING_EXPRESSION_OPS, parent_frame_index, child_slot);
-		child_slot++;
+	}
+	if (type_opt_0.HasResult()) {
+		child_slot--;
+		stack.PushFrame(type_opt_0.GetResult(), TYPE_OPS, parent_frame_index, child_slot);
 	}
 }
 
@@ -3655,9 +3655,9 @@ void PEGTransformerFactory::InitializeUsingExpression(PEGTransformer &transforme
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeUsingExpression
@@ -3681,15 +3681,15 @@ void PEGTransformerFactory::InitializeAlterViewStmt(PEGTransformer &transformer,
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	if (if_exists_opt_0.HasResult()) {
-		stack.PushFrame(if_exists_opt_0.GetResult(), IF_EXISTS_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
-	stack.PushFrame(list_pr.GetChild(2), BASE_TABLE_NAME_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(3), RENAME_ALTER_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(2), BASE_TABLE_NAME_OPS, parent_frame_index, child_slot);
+	if (if_exists_opt_0.HasResult()) {
+		child_slot--;
+		stack.PushFrame(if_exists_opt_0.GetResult(), IF_EXISTS_OPS, parent_frame_index, child_slot);
+	}
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeAlterViewStmt
@@ -3723,15 +3723,15 @@ void PEGTransformerFactory::InitializeAlterSequenceStmt(PEGTransformer &transfor
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	if (if_exists_opt_0.HasResult()) {
-		stack.PushFrame(if_exists_opt_0.GetResult(), IF_EXISTS_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
-	stack.PushFrame(list_pr.GetChild(2), QUALIFIED_SEQUENCE_NAME_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(3), ALTER_SEQUENCE_OPTIONS_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(2), QUALIFIED_SEQUENCE_NAME_OPS, parent_frame_index, child_slot);
+	if (if_exists_opt_0.HasResult()) {
+		child_slot--;
+		stack.PushFrame(if_exists_opt_0.GetResult(), IF_EXISTS_OPS, parent_frame_index, child_slot);
+	}
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeAlterSequenceStmt
@@ -3767,14 +3767,14 @@ void PEGTransformerFactory::InitializeQualifiedSequenceName(PEGTransformer &tran
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	if (catalog_qualification_opt_0.HasResult()) {
-		stack.PushFrame(catalog_qualification_opt_0.GetResult(), CATALOG_QUALIFICATION_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
+	idx_t child_slot = child_result_count;
 	if (schema_qualification_opt_1.HasResult()) {
+		child_slot--;
 		stack.PushFrame(schema_qualification_opt_1.GetResult(), SCHEMA_QUALIFICATION_OPS, parent_frame_index, child_slot);
-		child_slot++;
+	}
+	if (catalog_qualification_opt_0.HasResult()) {
+		child_slot--;
+		stack.PushFrame(catalog_qualification_opt_0.GetResult(), CATALOG_QUALIFICATION_OPS, parent_frame_index, child_slot);
 	}
 }
 
@@ -3820,13 +3820,13 @@ void PEGTransformerFactory::InitializeSetSequenceOption(PEGTransformer &transfor
 	child_result_count += sequence_option_repeat_0.GetChildren().size();
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
 	auto sequence_option_children_0 = sequence_option_repeat_0.GetChildren();
+	child_slot -= sequence_option_children_0.size();
 	for (idx_t child_idx = sequence_option_children_0.size(); child_idx > 0; child_idx--) {
 		auto result_idx = child_idx - 1;
 		stack.PushFrame(sequence_option_children_0[result_idx].get(), SEQUENCE_OPTION_OPS, parent_frame_index, child_slot + result_idx);
 	}
-	child_slot += sequence_option_children_0.size();
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeSetSequenceOption
@@ -3854,10 +3854,10 @@ void PEGTransformerFactory::InitializeAlterDatabaseStmt(PEGTransformer &transfor
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
 	if (if_exists_opt_0.HasResult()) {
+		child_slot--;
 		stack.PushFrame(if_exists_opt_0.GetResult(), IF_EXISTS_OPS, parent_frame_index, child_slot);
-		child_slot++;
 	}
 }
 
@@ -3892,14 +3892,14 @@ void PEGTransformerFactory::InitializeAnalyzeStatement(PEGTransformer &transform
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	if (analyze_verbose_opt_0.HasResult()) {
-		stack.PushFrame(analyze_verbose_opt_0.GetResult(), ANALYZE_VERBOSE_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
+	idx_t child_slot = child_result_count;
 	if (analyze_target_opt_1.HasResult()) {
+		child_slot--;
 		stack.PushFrame(analyze_target_opt_1.GetResult(), ANALYZE_TARGET_OPS, parent_frame_index, child_slot);
-		child_slot++;
+	}
+	if (analyze_verbose_opt_0.HasResult()) {
+		child_slot--;
+		stack.PushFrame(analyze_verbose_opt_0.GetResult(), ANALYZE_VERBOSE_OPS, parent_frame_index, child_slot);
 	}
 }
 
@@ -3936,13 +3936,13 @@ void PEGTransformerFactory::InitializeAnalyzeTarget(PEGTransformer &transformer,
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), BASE_TABLE_NAME_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
 	if (name_list_opt_1.HasResult()) {
+		child_slot--;
 		stack.PushFrame(name_list_opt_1.GetResult(), NAME_LIST_OPS, parent_frame_index, child_slot);
-		child_slot++;
 	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), BASE_TABLE_NAME_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeAnalyzeTarget
@@ -3994,24 +3994,24 @@ void PEGTransformerFactory::InitializeAttachStatement(PEGTransformer &transforme
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	if (or_replace_opt_0.HasResult()) {
-		stack.PushFrame(or_replace_opt_0.GetResult(), OR_REPLACE_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
-	if (if_not_exists_opt_1.HasResult()) {
-		stack.PushFrame(if_not_exists_opt_1.GetResult(), IF_NOT_EXISTS_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
-	stack.PushFrame(list_pr.GetChild(4), DATABASE_PATH_OPS, parent_frame_index, child_slot);
-	child_slot++;
-	if (attach_alias_opt_3.HasResult()) {
-		stack.PushFrame(attach_alias_opt_3.GetResult(), ATTACH_ALIAS_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
+	idx_t child_slot = child_result_count;
 	if (attach_options_opt_4.HasResult()) {
+		child_slot--;
 		stack.PushFrame(attach_options_opt_4.GetResult(), ATTACH_OPTIONS_OPS, parent_frame_index, child_slot);
-		child_slot++;
+	}
+	if (attach_alias_opt_3.HasResult()) {
+		child_slot--;
+		stack.PushFrame(attach_alias_opt_3.GetResult(), ATTACH_ALIAS_OPS, parent_frame_index, child_slot);
+	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(4), DATABASE_PATH_OPS, parent_frame_index, child_slot);
+	if (if_not_exists_opt_1.HasResult()) {
+		child_slot--;
+		stack.PushFrame(if_not_exists_opt_1.GetResult(), IF_NOT_EXISTS_OPS, parent_frame_index, child_slot);
+	}
+	if (or_replace_opt_0.HasResult()) {
+		child_slot--;
+		stack.PushFrame(or_replace_opt_0.GetResult(), OR_REPLACE_OPS, parent_frame_index, child_slot);
 	}
 }
 
@@ -4063,9 +4063,9 @@ void PEGTransformerFactory::InitializeDatabasePath(PEGTransformer &transformer, 
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(0), EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeDatabasePath
@@ -4084,9 +4084,9 @@ void PEGTransformerFactory::InitializeAttachAlias(PEGTransformer &transformer, T
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), COL_ID_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeAttachAlias
@@ -4105,9 +4105,9 @@ void PEGTransformerFactory::InitializeAttachOptions(PEGTransformer &transformer,
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(0), GENERIC_COPY_OPTION_LIST_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeAttachOptions
@@ -4127,11 +4127,11 @@ void PEGTransformerFactory::InitializeCallStatement(PEGTransformer &transformer,
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(1), QUALIFIED_TABLE_FUNCTION_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(2), TABLE_FUNCTION_ARGUMENTS_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(1), QUALIFIED_TABLE_FUNCTION_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeCallStatement
@@ -4155,10 +4155,10 @@ void PEGTransformerFactory::InitializeCheckpointStatement(PEGTransformer &transf
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
 	if (checkpoint_force_opt_0.HasResult()) {
+		child_slot--;
 		stack.PushFrame(checkpoint_force_opt_0.GetResult(), CHECKPOINT_FORCE_OPS, parent_frame_index, child_slot);
-		child_slot++;
 	}
 }
 
@@ -4201,13 +4201,13 @@ void PEGTransformerFactory::InitializeCommentStatement(PEGTransformer &transform
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(2), COMMENT_ON_TYPE_OPS, parent_frame_index, child_slot);
-	child_slot++;
-	stack.PushFrame(list_pr.GetChild(3), DOTTED_IDENTIFIER_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(5), COMMENT_VALUE_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(3), DOTTED_IDENTIFIER_OPS, parent_frame_index, child_slot);
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(2), COMMENT_ON_TYPE_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeCommentStatement
@@ -4386,12 +4386,12 @@ void PEGTransformerFactory::InitializeExpressionStatement(PEGTransformer &transf
 	child_result_count += expression_alias_children_0.size();
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot -= expression_alias_children_0.size();
 	for (idx_t child_idx = expression_alias_children_0.size(); child_idx > 0; child_idx--) {
 		auto result_idx = child_idx - 1;
 		stack.PushFrame(expression_alias_children_0[result_idx].get(), EXPRESSION_ALIAS_OPS, parent_frame_index, child_slot + result_idx);
 	}
-	child_slot += expression_alias_children_0.size();
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeExpressionStatement
@@ -4438,9 +4438,9 @@ void PEGTransformerFactory::InitializeConstraintName(PEGTransformer &transformer
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(0), COL_ID_OR_STRING_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeConstraintName
@@ -4476,18 +4476,18 @@ void PEGTransformerFactory::InitializeType(PEGTransformer &transformer, Transfor
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), TYPE_VARIATIONS_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
 	if (array_bounds_opt_1.HasResult()) {
 		auto &array_bounds_repeat_1 = array_bounds_opt_1.GetResult().Cast<RepeatParseResult>();
 		auto array_bounds_children_1 = array_bounds_repeat_1.GetChildren();
+		child_slot -= array_bounds_children_1.size();
 		for (idx_t child_idx = array_bounds_children_1.size(); child_idx > 0; child_idx--) {
 			auto result_idx = child_idx - 1;
 			stack.PushFrame(array_bounds_children_1[result_idx].get(), ARRAY_BOUNDS_OPS, parent_frame_index, child_slot + result_idx);
 		}
-		child_slot += array_bounds_children_1.size();
 	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), TYPE_VARIATIONS_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeType
@@ -4564,10 +4564,10 @@ void PEGTransformerFactory::InitializeCharacterSimpleType(PEGTransformer &transf
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
 	if (type_modifiers_opt_0.HasResult()) {
+		child_slot--;
 		stack.PushFrame(type_modifiers_opt_0.GetResult(), TYPE_MODIFIERS_OPS, parent_frame_index, child_slot);
-		child_slot++;
 	}
 }
 
@@ -4597,13 +4597,13 @@ void PEGTransformerFactory::InitializeQualifiedSimpleType(PEGTransformer &transf
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), QUALIFIED_TYPE_NAME_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
 	if (type_modifiers_opt_1.HasResult()) {
+		child_slot--;
 		stack.PushFrame(type_modifiers_opt_1.GetResult(), TYPE_MODIFIERS_OPS, parent_frame_index, child_slot);
-		child_slot++;
 	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), QUALIFIED_TYPE_NAME_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeQualifiedSimpleType
@@ -4693,9 +4693,9 @@ void PEGTransformerFactory::InitializeIntervalWithRangeSpecifier(PEGTransformer 
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), INTERVAL_TO_INTERVAL_AS_TYPE_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeIntervalWithRangeSpecifier
@@ -4714,9 +4714,9 @@ void PEGTransformerFactory::InitializeIntervalWithSimpleSpecifier(PEGTransformer
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), INTERVAL_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeIntervalWithSimpleSpecifier
@@ -4927,11 +4927,11 @@ void PEGTransformerFactory::InitializeYearToMonth(PEGTransformer &transformer, T
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), YEAR_KEYWORD_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(2), MONTH_KEYWORD_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), YEAR_KEYWORD_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeYearToMonth
@@ -4953,11 +4953,11 @@ void PEGTransformerFactory::InitializeDayToHour(PEGTransformer &transformer, Tra
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), DAY_KEYWORD_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(2), HOUR_KEYWORD_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), DAY_KEYWORD_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeDayToHour
@@ -4979,11 +4979,11 @@ void PEGTransformerFactory::InitializeDayToMinute(PEGTransformer &transformer, T
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), DAY_KEYWORD_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(2), MINUTE_KEYWORD_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), DAY_KEYWORD_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeDayToMinute
@@ -5005,11 +5005,11 @@ void PEGTransformerFactory::InitializeDayToSecond(PEGTransformer &transformer, T
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), DAY_KEYWORD_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(2), SECOND_KEYWORD_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), DAY_KEYWORD_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeDayToSecond
@@ -5031,11 +5031,11 @@ void PEGTransformerFactory::InitializeHourToMinute(PEGTransformer &transformer, 
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), HOUR_KEYWORD_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(2), MINUTE_KEYWORD_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), HOUR_KEYWORD_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeHourToMinute
@@ -5057,11 +5057,11 @@ void PEGTransformerFactory::InitializeHourToSecond(PEGTransformer &transformer, 
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), HOUR_KEYWORD_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(2), SECOND_KEYWORD_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), HOUR_KEYWORD_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeHourToSecond
@@ -5083,11 +5083,11 @@ void PEGTransformerFactory::InitializeMinuteToSecond(PEGTransformer &transformer
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), MINUTE_KEYWORD_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(2), SECOND_KEYWORD_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), MINUTE_KEYWORD_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeMinuteToSecond
@@ -5112,14 +5112,14 @@ void PEGTransformerFactory::InitializeBitType(PEGTransformer &transformer, Trans
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
 	if (expression_opt_0.HasResult()) {
 		auto expression_children_0 = ExtractParseResultsFromList(ExtractResultFromParens(expression_opt_0.GetResult()));
+		child_slot -= expression_children_0.size();
 		for (idx_t child_idx = expression_children_0.size(); child_idx > 0; child_idx--) {
 			auto result_idx = child_idx - 1;
 			stack.PushFrame(expression_children_0[result_idx].get(), EXPRESSION_OPS, parent_frame_index, child_slot + result_idx);
 		}
-		child_slot += expression_children_0.size();
 	}
 }
 
@@ -5157,10 +5157,10 @@ void PEGTransformerFactory::InitializeGeometryType(PEGTransformer &transformer, 
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
 	if (expression_opt_0.HasResult()) {
+		child_slot--;
 		stack.PushFrame(ExtractResultFromParens(expression_opt_0.GetResult()), EXPRESSION_OPS, parent_frame_index, child_slot);
-		child_slot++;
 	}
 }
 
@@ -5342,10 +5342,10 @@ void PEGTransformerFactory::InitializeDecimalType(PEGTransformer &transformer, T
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
 	if (type_modifiers_opt_0.HasResult()) {
+		child_slot--;
 		stack.PushFrame(type_modifiers_opt_0.GetResult(), TYPE_MODIFIERS_OPS, parent_frame_index, child_slot);
-		child_slot++;
 	}
 }
 
@@ -5374,10 +5374,10 @@ void PEGTransformerFactory::InitializeDecType(PEGTransformer &transformer, Trans
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
 	if (type_modifiers_opt_0.HasResult()) {
+		child_slot--;
 		stack.PushFrame(type_modifiers_opt_0.GetResult(), TYPE_MODIFIERS_OPS, parent_frame_index, child_slot);
-		child_slot++;
 	}
 }
 
@@ -5406,10 +5406,10 @@ void PEGTransformerFactory::InitializeNumericModType(PEGTransformer &transformer
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
 	if (type_modifiers_opt_0.HasResult()) {
+		child_slot--;
 		stack.PushFrame(type_modifiers_opt_0.GetResult(), TYPE_MODIFIERS_OPS, parent_frame_index, child_slot);
-		child_slot++;
 	}
 }
 
@@ -5469,11 +5469,11 @@ void PEGTransformerFactory::InitializeCatalogReservedSchemaTypeName(PEGTransform
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), CATALOG_QUALIFICATION_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), RESERVED_SCHEMA_QUALIFICATION_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), CATALOG_QUALIFICATION_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeCatalogReservedSchemaTypeName
@@ -5496,9 +5496,9 @@ void PEGTransformerFactory::InitializeSchemaReservedTypeName(PEGTransformer &tra
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(0), SCHEMA_QUALIFICATION_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeSchemaReservedTypeName
@@ -5523,14 +5523,14 @@ void PEGTransformerFactory::InitializeTypeModifiers(PEGTransformer &transformer,
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
 	if (expression_opt_0.HasResult()) {
 		auto expression_children_0 = ExtractParseResultsFromList(expression_opt_0.GetResult());
+		child_slot -= expression_children_0.size();
 		for (idx_t child_idx = expression_children_0.size(); child_idx > 0; child_idx--) {
 			auto result_idx = child_idx - 1;
 			stack.PushFrame(expression_children_0[result_idx].get(), EXPRESSION_OPS, parent_frame_index, child_slot + result_idx);
 		}
-		child_slot += expression_children_0.size();
 	}
 }
 
@@ -5563,10 +5563,10 @@ void PEGTransformerFactory::InitializeRowType(PEGTransformer &transformer, Trans
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
 	if (col_id_type_list_opt_0.HasResult()) {
+		child_slot--;
 		stack.PushFrame(col_id_type_list_opt_0.GetResult(), COL_ID_TYPE_LIST_OPS, parent_frame_index, child_slot);
-		child_slot++;
 	}
 }
 
@@ -5592,9 +5592,9 @@ void PEGTransformerFactory::InitializeSetofType(PEGTransformer &transformer, Tra
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), TYPE_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeSetofType
@@ -5613,9 +5613,9 @@ void PEGTransformerFactory::InitializeUnionType(PEGTransformer &transformer, Tra
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), COL_ID_TYPE_LIST_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeUnionType
@@ -5635,12 +5635,12 @@ void PEGTransformerFactory::InitializeColIdTypeList(PEGTransformer &transformer,
 	child_result_count += col_id_type_children_0.size();
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot -= col_id_type_children_0.size();
 	for (idx_t child_idx = col_id_type_children_0.size(); child_idx > 0; child_idx--) {
 		auto result_idx = child_idx - 1;
 		stack.PushFrame(col_id_type_children_0[result_idx].get(), COL_ID_TYPE_OPS, parent_frame_index, child_slot + result_idx);
 	}
-	child_slot += col_id_type_children_0.size();
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeColIdTypeList
@@ -5667,12 +5667,12 @@ void PEGTransformerFactory::InitializeMapType(PEGTransformer &transformer, Trans
 	child_result_count += type_children_0.size();
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot -= type_children_0.size();
 	for (idx_t child_idx = type_children_0.size(); child_idx > 0; child_idx--) {
 		auto result_idx = child_idx - 1;
 		stack.PushFrame(type_children_0[result_idx].get(), TYPE_OPS, parent_frame_index, child_slot + result_idx);
 	}
-	child_slot += type_children_0.size();
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeMapType
@@ -5699,11 +5699,11 @@ void PEGTransformerFactory::InitializeColIdType(PEGTransformer &transformer, Tra
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), COL_ID_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), TYPE_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), COL_ID_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeColIdType
@@ -5757,10 +5757,10 @@ void PEGTransformerFactory::InitializeSquareBracketsArray(PEGTransformer &transf
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
 	if (expression_opt_0.HasResult()) {
+		child_slot--;
 		stack.PushFrame(expression_opt_0.GetResult(), EXPRESSION_OPS, parent_frame_index, child_slot);
-		child_slot++;
 	}
 }
 
@@ -5794,17 +5794,17 @@ void PEGTransformerFactory::InitializeTimeType(PEGTransformer &transformer, Tran
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), TIME_OR_TIMESTAMP_OPS, parent_frame_index, child_slot);
-	child_slot++;
-	if (type_modifiers_opt_1.HasResult()) {
-		stack.PushFrame(type_modifiers_opt_1.GetResult(), TYPE_MODIFIERS_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
+	idx_t child_slot = child_result_count;
 	if (time_zone_opt_2.HasResult()) {
+		child_slot--;
 		stack.PushFrame(time_zone_opt_2.GetResult(), TIME_ZONE_OPS, parent_frame_index, child_slot);
-		child_slot++;
 	}
+	if (type_modifiers_opt_1.HasResult()) {
+		child_slot--;
+		stack.PushFrame(type_modifiers_opt_1.GetResult(), TYPE_MODIFIERS_OPS, parent_frame_index, child_slot);
+	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), TIME_OR_TIMESTAMP_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeTimeType
@@ -5877,9 +5877,9 @@ void PEGTransformerFactory::InitializeTimeZone(PEGTransformer &transformer, Tran
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(0), WITH_OR_WITHOUT_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeTimeZone
@@ -5940,10 +5940,10 @@ void PEGTransformerFactory::InitializeConnectStatement(PEGTransformer &transform
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
 	if (session_target_opt_0.HasResult()) {
+		child_slot--;
 		stack.PushFrame(session_target_opt_0.GetResult(), SESSION_TARGET_OPS, parent_frame_index, child_slot);
-		child_slot++;
 	}
 }
 
@@ -6032,9 +6032,9 @@ void PEGTransformerFactory::InitializeCopyStatement(PEGTransformer &transformer,
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), COPY_VARIATIONS_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeCopyStatement
@@ -6087,21 +6087,21 @@ void PEGTransformerFactory::InitializeCopyTable(PEGTransformer &transformer, Tra
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), BASE_TABLE_NAME_OPS, parent_frame_index, child_slot);
-	child_slot++;
-	if (insert_column_list_opt_1.HasResult()) {
-		stack.PushFrame(insert_column_list_opt_1.GetResult(), INSERT_COLUMN_LIST_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
-	stack.PushFrame(list_pr.GetChild(2), FROM_OR_TO_OPS, parent_frame_index, child_slot);
-	child_slot++;
-	stack.PushFrame(list_pr.GetChild(3), COPY_FILE_NAME_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
 	if (copy_options_opt_4.HasResult()) {
+		child_slot--;
 		stack.PushFrame(copy_options_opt_4.GetResult(), COPY_OPTIONS_OPS, parent_frame_index, child_slot);
-		child_slot++;
 	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(3), COPY_FILE_NAME_OPS, parent_frame_index, child_slot);
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(2), FROM_OR_TO_OPS, parent_frame_index, child_slot);
+	if (insert_column_list_opt_1.HasResult()) {
+		child_slot--;
+		stack.PushFrame(insert_column_list_opt_1.GetResult(), INSERT_COLUMN_LIST_OPS, parent_frame_index, child_slot);
+	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), BASE_TABLE_NAME_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeCopyTable
@@ -6183,15 +6183,15 @@ void PEGTransformerFactory::InitializeCopySelect(PEGTransformer &transformer, Tr
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(ExtractResultFromParens(list_pr.GetChild(0)), SELECT_STATEMENT_INTERNAL_OPS, parent_frame_index, child_slot);
-	child_slot++;
-	stack.PushFrame(list_pr.GetChild(2), COPY_FILE_NAME_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
 	if (copy_options_opt_2.HasResult()) {
+		child_slot--;
 		stack.PushFrame(copy_options_opt_2.GetResult(), COPY_OPTIONS_OPS, parent_frame_index, child_slot);
-		child_slot++;
 	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(2), COPY_FILE_NAME_OPS, parent_frame_index, child_slot);
+	child_slot--;
+	stack.PushFrame(ExtractResultFromParens(list_pr.GetChild(0)), SELECT_STATEMENT_INTERNAL_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeCopySelect
@@ -6286,9 +6286,9 @@ void PEGTransformerFactory::InitializeCopyFileNameIdentifierColId(PEGTransformer
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(0), IDENTIFIER_COL_ID_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeCopyFileNameIdentifierColId
@@ -6307,9 +6307,9 @@ void PEGTransformerFactory::InitializeIdentifierColId(PEGTransformer &transforme
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(2), COL_ID_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeIdentifierColId
@@ -6330,9 +6330,9 @@ void PEGTransformerFactory::InitializeCopyOptions(PEGTransformer &transformer, T
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), COPY_OPTION_LIST_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeCopyOptions
@@ -6380,15 +6380,15 @@ void PEGTransformerFactory::InitializeSpecializedOptionList(PEGTransformer &tran
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
 	if (specialized_option_opt_0.HasResult()) {
 		auto &specialized_option_repeat_0 = specialized_option_opt_0.GetResult().Cast<RepeatParseResult>();
 		auto specialized_option_children_0 = specialized_option_repeat_0.GetChildren();
+		child_slot -= specialized_option_children_0.size();
 		for (idx_t child_idx = specialized_option_children_0.size(); child_idx > 0; child_idx--) {
 			auto result_idx = child_idx - 1;
 			stack.PushFrame(specialized_option_children_0[result_idx].get(), SPECIALIZED_OPTION_OPS, parent_frame_index, child_slot + result_idx);
 		}
-		child_slot += specialized_option_children_0.size();
 	}
 }
 
@@ -6582,13 +6582,13 @@ void PEGTransformerFactory::InitializeForceQuoteOption(PEGTransformer &transform
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	if (force_quote_opt_0.HasResult()) {
-		stack.PushFrame(force_quote_opt_0.GetResult(), FORCE_QUOTE_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(2), STAR_SYMBOL_COLUMN_LIST_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	if (force_quote_opt_0.HasResult()) {
+		child_slot--;
+		stack.PushFrame(force_quote_opt_0.GetResult(), FORCE_QUOTE_OPS, parent_frame_index, child_slot);
+	}
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeForceQuoteOption
@@ -6649,9 +6649,9 @@ void PEGTransformerFactory::InitializePartitionByOption(PEGTransformer &transfor
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(2), STAR_SYMBOL_COLUMN_LIST_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizePartitionByOption
@@ -6674,13 +6674,13 @@ void PEGTransformerFactory::InitializeForceNullOption(PEGTransformer &transforme
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	if (force_not_null_opt_0.HasResult()) {
-		stack.PushFrame(force_not_null_opt_0.GetResult(), FORCE_NOT_NULL_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(3), COLUMN_LIST_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	if (force_not_null_opt_0.HasResult()) {
+		child_slot--;
+		stack.PushFrame(force_not_null_opt_0.GetResult(), FORCE_NOT_NULL_OPS, parent_frame_index, child_slot);
+	}
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeForceNullOption
@@ -6717,12 +6717,12 @@ void PEGTransformerFactory::InitializeGenericCopyOptionList(PEGTransformer &tran
 	child_result_count += generic_copy_option_children_0.size();
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot -= generic_copy_option_children_0.size();
 	for (idx_t child_idx = generic_copy_option_children_0.size(); child_idx > 0; child_idx--) {
 		auto result_idx = child_idx - 1;
 		stack.PushFrame(generic_copy_option_children_0[result_idx].get(), GENERIC_COPY_OPTION_OPS, parent_frame_index, child_slot + result_idx);
 	}
-	child_slot += generic_copy_option_children_0.size();
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeGenericCopyOptionList
@@ -6751,10 +6751,10 @@ void PEGTransformerFactory::InitializeGenericCopyOption(PEGTransformer &transfor
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
 	if (generic_copy_option_value_opt_0.HasResult()) {
+		child_slot--;
 		stack.PushFrame(generic_copy_option_value_opt_0.GetResult(), GENERIC_COPY_OPTION_VALUE_OPS, parent_frame_index, child_slot);
-		child_slot++;
 	}
 }
 
@@ -6802,9 +6802,9 @@ void PEGTransformerFactory::InitializeGenericCopyOptionOrderList(PEGTransformer 
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(0), GENERIC_COPY_OPTION_PARENTHESIZED_EXPRESSION_LIST_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeGenericCopyOptionOrderList
@@ -6823,9 +6823,9 @@ void PEGTransformerFactory::InitializeGenericCopyOptionExpression(PEGTransformer
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(0), EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeGenericCopyOptionExpression
@@ -6844,9 +6844,9 @@ void PEGTransformerFactory::InitializeGenericCopyOptionParenthesizedExpressionLi
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(ExtractResultFromParens(list_pr.GetChild(0)), ORDER_BY_EXPRESSION_LIST_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeGenericCopyOptionParenthesizedExpressionList
@@ -6891,13 +6891,13 @@ void PEGTransformerFactory::InitializeCopyFromDatabaseWithFlag(PEGTransformer &t
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(2), COL_ID_OPS, parent_frame_index, child_slot);
-	child_slot++;
-	stack.PushFrame(list_pr.GetChild(4), COL_ID_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(5), COPY_DATABASE_FLAG_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(4), COL_ID_OPS, parent_frame_index, child_slot);
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(2), COL_ID_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeCopyFromDatabaseWithFlag
@@ -6921,11 +6921,11 @@ void PEGTransformerFactory::InitializeCopyFromDatabaseWithoutFlag(PEGTransformer
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(2), COL_ID_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(4), COL_ID_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(2), COL_ID_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeCopyFromDatabaseWithoutFlag
@@ -6946,9 +6946,9 @@ void PEGTransformerFactory::InitializeCopyDatabaseFlag(PEGTransformer &transform
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(ExtractResultFromParens(list_pr.GetChild(0)), SCHEMA_OR_DATA_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeCopyDatabaseFlag
@@ -7035,40 +7035,40 @@ void PEGTransformerFactory::InitializeCreateIndexStmt(PEGTransformer &transforme
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	if (unique_index_opt_0.HasResult()) {
-		stack.PushFrame(unique_index_opt_0.GetResult(), UNIQUE_INDEX_OPS, parent_frame_index, child_slot);
-		child_slot++;
+	idx_t child_slot = child_result_count;
+	if (where_clause_opt_7.HasResult()) {
+		child_slot--;
+		stack.PushFrame(where_clause_opt_7.GetResult(), WHERE_CLAUSE_OPS, parent_frame_index, child_slot);
 	}
-	if (if_not_exists_opt_1.HasResult()) {
-		stack.PushFrame(if_not_exists_opt_1.GetResult(), IF_NOT_EXISTS_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
-	stack.PushFrame(list_pr.GetChild(5), BASE_TABLE_NAME_OPS, parent_frame_index, child_slot);
-	child_slot++;
-	if (insert_column_list_opt_3.HasResult()) {
-		stack.PushFrame(insert_column_list_opt_3.GetResult(), INSERT_COLUMN_LIST_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
-	if (index_type_opt_4.HasResult()) {
-		stack.PushFrame(index_type_opt_4.GetResult(), INDEX_TYPE_OPS, parent_frame_index, child_slot);
-		child_slot++;
+	if (with_list_opt_6.HasResult()) {
+		child_slot--;
+		stack.PushFrame(with_list_opt_6.GetResult(), WITH_LIST_OPS, parent_frame_index, child_slot);
 	}
 	if (index_element_opt_5.HasResult()) {
 		auto index_element_children_5 = ExtractParseResultsFromList(ExtractResultFromParens(index_element_opt_5.GetResult()));
+		child_slot -= index_element_children_5.size();
 		for (idx_t child_idx = index_element_children_5.size(); child_idx > 0; child_idx--) {
 			auto result_idx = child_idx - 1;
 			stack.PushFrame(index_element_children_5[result_idx].get(), INDEX_ELEMENT_OPS, parent_frame_index, child_slot + result_idx);
 		}
-		child_slot += index_element_children_5.size();
 	}
-	if (with_list_opt_6.HasResult()) {
-		stack.PushFrame(with_list_opt_6.GetResult(), WITH_LIST_OPS, parent_frame_index, child_slot);
-		child_slot++;
+	if (index_type_opt_4.HasResult()) {
+		child_slot--;
+		stack.PushFrame(index_type_opt_4.GetResult(), INDEX_TYPE_OPS, parent_frame_index, child_slot);
 	}
-	if (where_clause_opt_7.HasResult()) {
-		stack.PushFrame(where_clause_opt_7.GetResult(), WHERE_CLAUSE_OPS, parent_frame_index, child_slot);
-		child_slot++;
+	if (insert_column_list_opt_3.HasResult()) {
+		child_slot--;
+		stack.PushFrame(insert_column_list_opt_3.GetResult(), INSERT_COLUMN_LIST_OPS, parent_frame_index, child_slot);
+	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(5), BASE_TABLE_NAME_OPS, parent_frame_index, child_slot);
+	if (if_not_exists_opt_1.HasResult()) {
+		child_slot--;
+		stack.PushFrame(if_not_exists_opt_1.GetResult(), IF_NOT_EXISTS_OPS, parent_frame_index, child_slot);
+	}
+	if (unique_index_opt_0.HasResult()) {
+		child_slot--;
+		stack.PushFrame(unique_index_opt_0.GetResult(), UNIQUE_INDEX_OPS, parent_frame_index, child_slot);
 	}
 }
 
@@ -7150,9 +7150,9 @@ void PEGTransformerFactory::InitializeWithList(PEGTransformer &transformer, Tran
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), REL_OPTION_OR_OIDS_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeWithList
@@ -7193,12 +7193,12 @@ void PEGTransformerFactory::InitializeRelOptionList(PEGTransformer &transformer,
 	child_result_count += rel_option_children_0.size();
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot -= rel_option_children_0.size();
 	for (idx_t child_idx = rel_option_children_0.size(); child_idx > 0; child_idx--) {
 		auto result_idx = child_idx - 1;
 		stack.PushFrame(rel_option_children_0[result_idx].get(), REL_OPTION_OPS, parent_frame_index, child_slot + result_idx);
 	}
-	child_slot += rel_option_children_0.size();
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeRelOptionList
@@ -7224,9 +7224,9 @@ void PEGTransformerFactory::InitializeOids(PEGTransformer &transformer, Transfor
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(0), WITH_OR_WITHOUT_OIDS_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeOids
@@ -7292,17 +7292,17 @@ void PEGTransformerFactory::InitializeIndexElement(PEGTransformer &transformer, 
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
-	if (desc_or_asc_opt_1.HasResult()) {
-		stack.PushFrame(desc_or_asc_opt_1.GetResult(), DESC_OR_ASC_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
+	idx_t child_slot = child_result_count;
 	if (nulls_first_or_last_opt_2.HasResult()) {
+		child_slot--;
 		stack.PushFrame(nulls_first_or_last_opt_2.GetResult(), NULLS_FIRST_OR_LAST_OPS, parent_frame_index, child_slot);
-		child_slot++;
 	}
+	if (desc_or_asc_opt_1.HasResult()) {
+		child_slot--;
+		stack.PushFrame(desc_or_asc_opt_1.GetResult(), DESC_OR_ASC_OPS, parent_frame_index, child_slot);
+	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), EXPRESSION_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeIndexElement
@@ -7361,13 +7361,13 @@ void PEGTransformerFactory::InitializeRelOption(PEGTransformer &transformer, Tra
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), REL_OPTION_NAME_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
 	if (rel_option_argument_opt_opt_1.HasResult()) {
+		child_slot--;
 		stack.PushFrame(rel_option_argument_opt_opt_1.GetResult(), REL_OPTION_ARGUMENT_OPT_OPS, parent_frame_index, child_slot);
-		child_slot++;
 	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), REL_OPTION_NAME_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeRelOption
@@ -7430,9 +7430,9 @@ void PEGTransformerFactory::InitializeDottedIdentifierString(PEGTransformer &tra
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(0), DOTTED_IDENTIFIER_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeDottedIdentifierString
@@ -7451,9 +7451,9 @@ void PEGTransformerFactory::InitializeRelOptionArgumentOpt(PEGTransformer &trans
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), DEF_ARG_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeRelOptionArgumentOpt
@@ -7501,9 +7501,9 @@ void PEGTransformerFactory::InitializeDefArgNull(PEGTransformer &transformer, Tr
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(0), NULL_LITERAL_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeDefArgNull
@@ -7562,20 +7562,20 @@ void PEGTransformerFactory::InitializeCreateMacroStmt(PEGTransformer &transforme
 	child_result_count += macro_definition_children_3.size();
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), MACRO_OR_FUNCTION_OPS, parent_frame_index, child_slot);
-	child_slot++;
-	if (if_not_exists_opt_1.HasResult()) {
-		stack.PushFrame(if_not_exists_opt_1.GetResult(), IF_NOT_EXISTS_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
-	stack.PushFrame(list_pr.GetChild(2), QUALIFIED_NAME_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
+	child_slot -= macro_definition_children_3.size();
 	for (idx_t child_idx = macro_definition_children_3.size(); child_idx > 0; child_idx--) {
 		auto result_idx = child_idx - 1;
 		stack.PushFrame(macro_definition_children_3[result_idx].get(), MACRO_DEFINITION_OPS, parent_frame_index, child_slot + result_idx);
 	}
-	child_slot += macro_definition_children_3.size();
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(2), QUALIFIED_NAME_OPS, parent_frame_index, child_slot);
+	if (if_not_exists_opt_1.HasResult()) {
+		child_slot--;
+		stack.PushFrame(if_not_exists_opt_1.GetResult(), IF_NOT_EXISTS_OPS, parent_frame_index, child_slot);
+	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), MACRO_OR_FUNCTION_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeCreateMacroStmt
@@ -7655,13 +7655,13 @@ void PEGTransformerFactory::InitializeMacroDefinition(PEGTransformer &transforme
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	if (macro_parameters_opt_0.HasResult()) {
-		stack.PushFrame(macro_parameters_opt_0.GetResult(), MACRO_PARAMETERS_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(2), MACRO_DEFINITION_BODY_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	if (macro_parameters_opt_0.HasResult()) {
+		child_slot--;
+		stack.PushFrame(macro_parameters_opt_0.GetResult(), MACRO_PARAMETERS_OPS, parent_frame_index, child_slot);
+	}
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeMacroDefinition
@@ -7710,12 +7710,12 @@ void PEGTransformerFactory::InitializeMacroParameters(PEGTransformer &transforme
 	child_result_count += macro_parameter_children_0.size();
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot -= macro_parameter_children_0.size();
 	for (idx_t child_idx = macro_parameter_children_0.size(); child_idx > 0; child_idx--) {
 		auto result_idx = child_idx - 1;
 		stack.PushFrame(macro_parameter_children_0[result_idx].get(), MACRO_PARAMETER_OPS, parent_frame_index, child_slot + result_idx);
 	}
-	child_slot += macro_parameter_children_0.size();
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeMacroParameters
@@ -7766,13 +7766,13 @@ void PEGTransformerFactory::InitializeSimpleParameter(PEGTransformer &transforme
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), TYPE_FUNC_NAME_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
 	if (type_opt_1.HasResult()) {
+		child_slot--;
 		stack.PushFrame(type_opt_1.GetResult(), TYPE_OPS, parent_frame_index, child_slot);
-		child_slot++;
 	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), TYPE_FUNC_NAME_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeSimpleParameter
@@ -7799,9 +7799,9 @@ void PEGTransformerFactory::InitializeScalarMacroDefinition(PEGTransformer &tran
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(0), EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeScalarMacroDefinition
@@ -7820,9 +7820,9 @@ void PEGTransformerFactory::InitializeTableMacroDefinition(PEGTransformer &trans
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), SELECT_STATEMENT_INTERNAL_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeTableMacroDefinition
@@ -7845,13 +7845,13 @@ void PEGTransformerFactory::InitializeCreateSchemaStmt(PEGTransformer &transform
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	if (if_not_exists_opt_0.HasResult()) {
-		stack.PushFrame(if_not_exists_opt_0.GetResult(), IF_NOT_EXISTS_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(2), QUALIFIED_NAME_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	if (if_not_exists_opt_0.HasResult()) {
+		child_slot--;
+		stack.PushFrame(if_not_exists_opt_0.GetResult(), IF_NOT_EXISTS_OPS, parent_frame_index, child_slot);
+	}
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeCreateSchemaStmt
@@ -7890,21 +7890,21 @@ void PEGTransformerFactory::InitializeCreateSecretStmt(PEGTransformer &transform
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	if (if_not_exists_opt_0.HasResult()) {
-		stack.PushFrame(if_not_exists_opt_0.GetResult(), IF_NOT_EXISTS_OPS, parent_frame_index, child_slot);
-		child_slot++;
+	idx_t child_slot = child_result_count;
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(4), GENERIC_COPY_OPTION_LIST_OPS, parent_frame_index, child_slot);
+	if (secret_storage_specifier_opt_2.HasResult()) {
+		child_slot--;
+		stack.PushFrame(secret_storage_specifier_opt_2.GetResult(), SECRET_STORAGE_SPECIFIER_OPS, parent_frame_index, child_slot);
 	}
 	if (secret_name_opt_1.HasResult()) {
+		child_slot--;
 		stack.PushFrame(secret_name_opt_1.GetResult(), SECRET_NAME_OPS, parent_frame_index, child_slot);
-		child_slot++;
 	}
-	if (secret_storage_specifier_opt_2.HasResult()) {
-		stack.PushFrame(secret_storage_specifier_opt_2.GetResult(), SECRET_STORAGE_SPECIFIER_OPS, parent_frame_index, child_slot);
-		child_slot++;
+	if (if_not_exists_opt_0.HasResult()) {
+		child_slot--;
+		stack.PushFrame(if_not_exists_opt_0.GetResult(), IF_NOT_EXISTS_OPS, parent_frame_index, child_slot);
 	}
-	stack.PushFrame(list_pr.GetChild(4), GENERIC_COPY_OPTION_LIST_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeCreateSecretStmt
@@ -7957,9 +7957,9 @@ void PEGTransformerFactory::InitializeSecretName(PEGTransformer &transformer, Tr
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(0), COL_ID_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeSecretName
@@ -7987,21 +7987,21 @@ void PEGTransformerFactory::InitializeCreateSequenceStmt(PEGTransformer &transfo
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	if (if_not_exists_opt_0.HasResult()) {
-		stack.PushFrame(if_not_exists_opt_0.GetResult(), IF_NOT_EXISTS_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
-	stack.PushFrame(list_pr.GetChild(2), QUALIFIED_NAME_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
 	if (sequence_option_opt_2.HasResult()) {
 		auto &sequence_option_repeat_2 = sequence_option_opt_2.GetResult().Cast<RepeatParseResult>();
 		auto sequence_option_children_2 = sequence_option_repeat_2.GetChildren();
+		child_slot -= sequence_option_children_2.size();
 		for (idx_t child_idx = sequence_option_children_2.size(); child_idx > 0; child_idx--) {
 			auto result_idx = child_idx - 1;
 			stack.PushFrame(sequence_option_children_2[result_idx].get(), SEQUENCE_OPTION_OPS, parent_frame_index, child_slot + result_idx);
 		}
-		child_slot += sequence_option_children_2.size();
+	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(2), QUALIFIED_NAME_OPS, parent_frame_index, child_slot);
+	if (if_not_exists_opt_0.HasResult()) {
+		child_slot--;
+		stack.PushFrame(if_not_exists_opt_0.GetResult(), IF_NOT_EXISTS_OPS, parent_frame_index, child_slot);
 	}
 }
 
@@ -8101,9 +8101,9 @@ void PEGTransformerFactory::InitializeSeqSetIncrement(PEGTransformer &transforme
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(2), EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeSeqSetIncrement
@@ -8127,11 +8127,11 @@ void PEGTransformerFactory::InitializeSeqSetMinMax(PEGTransformer &transformer, 
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), SEQ_MIN_OR_MAX_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), SEQ_MIN_OR_MAX_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeSeqSetMinMax
@@ -8152,9 +8152,9 @@ void PEGTransformerFactory::InitializeSeqNoMinMax(PEGTransformer &transformer, T
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), SEQ_MIN_OR_MAX_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeSeqNoMinMax
@@ -8173,9 +8173,9 @@ void PEGTransformerFactory::InitializeSeqStartWith(PEGTransformer &transformer, 
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(2), EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeSeqStartWith
@@ -8198,9 +8198,9 @@ void PEGTransformerFactory::InitializeSeqOwnedBy(PEGTransformer &transformer, Tr
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(2), QUALIFIED_NAME_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeSeqOwnedBy
@@ -8266,17 +8266,17 @@ void PEGTransformerFactory::InitializeCreateStatement(PEGTransformer &transforme
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	if (or_replace_opt_0.HasResult()) {
-		stack.PushFrame(or_replace_opt_0.GetResult(), OR_REPLACE_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
-	if (temporary_opt_1.HasResult()) {
-		stack.PushFrame(temporary_opt_1.GetResult(), TEMPORARY_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(3), CREATE_STATEMENT_VARIATION_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	if (temporary_opt_1.HasResult()) {
+		child_slot--;
+		stack.PushFrame(temporary_opt_1.GetResult(), TEMPORARY_OPS, parent_frame_index, child_slot);
+	}
+	if (or_replace_opt_0.HasResult()) {
+		child_slot--;
+		stack.PushFrame(or_replace_opt_0.GetResult(), OR_REPLACE_OPS, parent_frame_index, child_slot);
+	}
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeCreateStatement
@@ -8397,18 +8397,18 @@ void PEGTransformerFactory::InitializeCreateTableStmt(PEGTransformer &transforme
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	if (if_not_exists_opt_0.HasResult()) {
-		stack.PushFrame(if_not_exists_opt_0.GetResult(), IF_NOT_EXISTS_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
-	stack.PushFrame(list_pr.GetChild(2), QUALIFIED_NAME_OPS, parent_frame_index, child_slot);
-	child_slot++;
-	stack.PushFrame(list_pr.GetChild(3), CREATE_TABLE_DEFINITION_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
 	if (commit_action_opt_3.HasResult()) {
+		child_slot--;
 		stack.PushFrame(commit_action_opt_3.GetResult(), COMMIT_ACTION_OPS, parent_frame_index, child_slot);
-		child_slot++;
+	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(3), CREATE_TABLE_DEFINITION_OPS, parent_frame_index, child_slot);
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(2), QUALIFIED_NAME_OPS, parent_frame_index, child_slot);
+	if (if_not_exists_opt_0.HasResult()) {
+		child_slot--;
+		stack.PushFrame(if_not_exists_opt_0.GetResult(), IF_NOT_EXISTS_OPS, parent_frame_index, child_slot);
 	}
 }
 
@@ -8482,24 +8482,24 @@ void PEGTransformerFactory::InitializeCreateTableAs(PEGTransformer &transformer,
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	if (identifier_list_opt_0.HasResult()) {
-		stack.PushFrame(identifier_list_opt_0.GetResult(), IDENTIFIER_LIST_OPS, parent_frame_index, child_slot);
-		child_slot++;
+	idx_t child_slot = child_result_count;
+	if (with_data_opt_4.HasResult()) {
+		child_slot--;
+		stack.PushFrame(with_data_opt_4.GetResult(), WITH_DATA_OPS, parent_frame_index, child_slot);
+	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(4), STATEMENT_OPS, parent_frame_index, child_slot);
+	if (with_list_opt_2.HasResult()) {
+		child_slot--;
+		stack.PushFrame(with_list_opt_2.GetResult(), WITH_LIST_OPS, parent_frame_index, child_slot);
 	}
 	if (partition_sorted_options_opt_1.HasResult()) {
+		child_slot--;
 		stack.PushFrame(partition_sorted_options_opt_1.GetResult(), PARTITION_SORTED_OPTIONS_OPS, parent_frame_index, child_slot);
-		child_slot++;
 	}
-	if (with_list_opt_2.HasResult()) {
-		stack.PushFrame(with_list_opt_2.GetResult(), WITH_LIST_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
-	stack.PushFrame(list_pr.GetChild(4), STATEMENT_OPS, parent_frame_index, child_slot);
-	child_slot++;
-	if (with_data_opt_4.HasResult()) {
-		stack.PushFrame(with_data_opt_4.GetResult(), WITH_DATA_OPS, parent_frame_index, child_slot);
-		child_slot++;
+	if (identifier_list_opt_0.HasResult()) {
+		child_slot--;
+		stack.PushFrame(identifier_list_opt_0.GetResult(), IDENTIFIER_LIST_OPS, parent_frame_index, child_slot);
 	}
 }
 
@@ -8573,13 +8573,13 @@ void PEGTransformerFactory::InitializePartitionOptSortedOptions(PEGTransformer &
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), PARTITION_OPTIONS_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
 	if (sorted_options_opt_1.HasResult()) {
+		child_slot--;
 		stack.PushFrame(sorted_options_opt_1.GetResult(), SORTED_OPTIONS_OPS, parent_frame_index, child_slot);
-		child_slot++;
 	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), PARTITION_OPTIONS_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizePartitionOptSortedOptions
@@ -8610,13 +8610,13 @@ void PEGTransformerFactory::InitializeSortedOptPartitionOptions(PEGTransformer &
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), SORTED_OPTIONS_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
 	if (partition_options_opt_1.HasResult()) {
+		child_slot--;
 		stack.PushFrame(partition_options_opt_1.GetResult(), PARTITION_OPTIONS_OPS, parent_frame_index, child_slot);
-		child_slot++;
 	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), SORTED_OPTIONS_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeSortedOptPartitionOptions
@@ -8644,12 +8644,12 @@ void PEGTransformerFactory::InitializePartitionOptions(PEGTransformer &transform
 	child_result_count += expression_children_0.size();
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot -= expression_children_0.size();
 	for (idx_t child_idx = expression_children_0.size(); child_idx > 0; child_idx--) {
 		auto result_idx = child_idx - 1;
 		stack.PushFrame(expression_children_0[result_idx].get(), EXPRESSION_OPS, parent_frame_index, child_slot + result_idx);
 	}
-	child_slot += expression_children_0.size();
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizePartitionOptions
@@ -8676,12 +8676,12 @@ void PEGTransformerFactory::InitializeSortedOptions(PEGTransformer &transformer,
 	child_result_count += expression_children_0.size();
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot -= expression_children_0.size();
 	for (idx_t child_idx = expression_children_0.size(); child_idx > 0; child_idx--) {
 		auto result_idx = child_idx - 1;
 		stack.PushFrame(expression_children_0[result_idx].get(), EXPRESSION_OPS, parent_frame_index, child_slot + result_idx);
 	}
-	child_slot += expression_children_0.size();
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeSortedOptions
@@ -8775,18 +8775,18 @@ void PEGTransformerFactory::InitializeCreateColumnList(PEGTransformer &transform
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	if (create_table_column_list_opt_0.HasResult()) {
-		stack.PushFrame(create_table_column_list_opt_0.GetResult(), CREATE_TABLE_COLUMN_LIST_OPS, parent_frame_index, child_slot);
-		child_slot++;
+	idx_t child_slot = child_result_count;
+	if (with_list_opt_2.HasResult()) {
+		child_slot--;
+		stack.PushFrame(with_list_opt_2.GetResult(), WITH_LIST_OPS, parent_frame_index, child_slot);
 	}
 	if (partition_sorted_options_opt_1.HasResult()) {
+		child_slot--;
 		stack.PushFrame(partition_sorted_options_opt_1.GetResult(), PARTITION_SORTED_OPTIONS_OPS, parent_frame_index, child_slot);
-		child_slot++;
 	}
-	if (with_list_opt_2.HasResult()) {
-		stack.PushFrame(with_list_opt_2.GetResult(), WITH_LIST_OPS, parent_frame_index, child_slot);
-		child_slot++;
+	if (create_table_column_list_opt_0.HasResult()) {
+		child_slot--;
+		stack.PushFrame(create_table_column_list_opt_0.GetResult(), CREATE_TABLE_COLUMN_LIST_OPS, parent_frame_index, child_slot);
 	}
 }
 
@@ -8857,11 +8857,11 @@ void PEGTransformerFactory::InitializeSchemaReservedIdentifierOrStringLiteral(PE
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), SCHEMA_QUALIFICATION_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), RESERVED_IDENTIFIER_OR_STRING_LITERAL_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), SCHEMA_QUALIFICATION_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeSchemaReservedIdentifierOrStringLiteral
@@ -8884,13 +8884,13 @@ void PEGTransformerFactory::InitializeCatalogReservedSchemaIdentifier(PEGTransfo
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), CATALOG_QUALIFICATION_OPS, parent_frame_index, child_slot);
-	child_slot++;
-	stack.PushFrame(list_pr.GetChild(1), RESERVED_SCHEMA_QUALIFICATION_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(2), RESERVED_IDENTIFIER_OR_STRING_LITERAL_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(1), RESERVED_SCHEMA_QUALIFICATION_OPS, parent_frame_index, child_slot);
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), CATALOG_QUALIFICATION_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeCatalogReservedSchemaIdentifier
@@ -9035,12 +9035,12 @@ void PEGTransformerFactory::InitializeCreateTableColumnList(PEGTransformer &tran
 	child_result_count += create_table_column_element_children_0.size();
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot -= create_table_column_element_children_0.size();
 	for (idx_t child_idx = create_table_column_element_children_0.size(); child_idx > 0; child_idx--) {
 		auto result_idx = child_idx - 1;
 		stack.PushFrame(create_table_column_element_children_0[result_idx].get(), CREATE_TABLE_COLUMN_ELEMENT_OPS, parent_frame_index, child_slot + result_idx);
 	}
-	child_slot += create_table_column_element_children_0.size();
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeCreateTableColumnList
@@ -9087,9 +9087,9 @@ void PEGTransformerFactory::InitializeCreateTableColumnDefinition(PEGTransformer
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(0), COLUMN_DEFINITION_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeCreateTableColumnDefinition
@@ -9108,9 +9108,9 @@ void PEGTransformerFactory::InitializeCreateTableConstraint(PEGTransformer &tran
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(0), TOP_LEVEL_CONSTRAINT_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeCreateTableConstraint
@@ -9142,26 +9142,26 @@ void PEGTransformerFactory::InitializeColumnDefinition(PEGTransformer &transform
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), DOTTED_IDENTIFIER_OPS, parent_frame_index, child_slot);
-	child_slot++;
-	if (type_opt_1.HasResult()) {
-		stack.PushFrame(type_opt_1.GetResult(), TYPE_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
-	if (generated_column_opt_2.HasResult()) {
-		stack.PushFrame(generated_column_opt_2.GetResult(), GENERATED_COLUMN_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
+	idx_t child_slot = child_result_count;
 	if (column_constraint_opt_3.HasResult()) {
 		auto &column_constraint_repeat_3 = column_constraint_opt_3.GetResult().Cast<RepeatParseResult>();
 		auto column_constraint_children_3 = column_constraint_repeat_3.GetChildren();
+		child_slot -= column_constraint_children_3.size();
 		for (idx_t child_idx = column_constraint_children_3.size(); child_idx > 0; child_idx--) {
 			auto result_idx = child_idx - 1;
 			stack.PushFrame(column_constraint_children_3[result_idx].get(), COLUMN_CONSTRAINT_OPS, parent_frame_index, child_slot + result_idx);
 		}
-		child_slot += column_constraint_children_3.size();
 	}
+	if (generated_column_opt_2.HasResult()) {
+		child_slot--;
+		stack.PushFrame(generated_column_opt_2.GetResult(), GENERATED_COLUMN_OPS, parent_frame_index, child_slot);
+	}
+	if (type_opt_1.HasResult()) {
+		child_slot--;
+		stack.PushFrame(type_opt_1.GetResult(), TYPE_OPS, parent_frame_index, child_slot);
+	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), DOTTED_IDENTIFIER_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeColumnDefinition
@@ -9289,9 +9289,9 @@ void PEGTransformerFactory::InitializeDefaultValue(PEGTransformer &transformer, 
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), COLUMN_DEFAULT_EXPR_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeDefaultValue
@@ -9310,9 +9310,9 @@ void PEGTransformerFactory::InitializeCheckConstraint(PEGTransformer &transforme
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(ExtractResultFromParens(list_pr.GetChild(1)), EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeCheckConstraint
@@ -9336,15 +9336,15 @@ void PEGTransformerFactory::InitializeForeignKeyConstraint(PEGTransformer &trans
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(1), BASE_TABLE_NAME_OPS, parent_frame_index, child_slot);
-	child_slot++;
-	if (column_list_opt_1.HasResult()) {
-		stack.PushFrame(ExtractResultFromParens(column_list_opt_1.GetResult()), COLUMN_LIST_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(3), KEY_ACTIONS_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	if (column_list_opt_1.HasResult()) {
+		child_slot--;
+		stack.PushFrame(ExtractResultFromParens(column_list_opt_1.GetResult()), COLUMN_LIST_OPS, parent_frame_index, child_slot);
+	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(1), BASE_TABLE_NAME_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeForeignKeyConstraint
@@ -9373,9 +9373,9 @@ void PEGTransformerFactory::InitializeColumnCollation(PEGTransformer &transforme
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), DOTTED_IDENTIFIER_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeColumnCollation
@@ -9394,9 +9394,9 @@ void PEGTransformerFactory::InitializeColumnCompression(PEGTransformer &transfor
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(2), COL_ID_OR_STRING_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeColumnCompression
@@ -9422,14 +9422,14 @@ void PEGTransformerFactory::InitializeKeyActions(PEGTransformer &transformer, Tr
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	if (update_action_opt_0.HasResult()) {
-		stack.PushFrame(update_action_opt_0.GetResult(), UPDATE_ACTION_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
+	idx_t child_slot = child_result_count;
 	if (delete_action_opt_1.HasResult()) {
+		child_slot--;
 		stack.PushFrame(delete_action_opt_1.GetResult(), DELETE_ACTION_OPS, parent_frame_index, child_slot);
-		child_slot++;
+	}
+	if (update_action_opt_0.HasResult()) {
+		child_slot--;
+		stack.PushFrame(update_action_opt_0.GetResult(), UPDATE_ACTION_OPS, parent_frame_index, child_slot);
 	}
 }
 
@@ -9462,9 +9462,9 @@ void PEGTransformerFactory::InitializeUpdateAction(PEGTransformer &transformer, 
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(2), KEY_ACTION_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeUpdateAction
@@ -9483,9 +9483,9 @@ void PEGTransformerFactory::InitializeDeleteAction(PEGTransformer &transformer, 
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(2), KEY_ACTION_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeDeleteAction
@@ -9570,9 +9570,9 @@ void PEGTransformerFactory::InitializeTopLevelConstraint(PEGTransformer &transfo
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), TOP_LEVEL_CONSTRAINT_LIST_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeTopLevelConstraint
@@ -9606,9 +9606,9 @@ void PEGTransformerFactory::InitializeTopPrimaryKeyConstraint(PEGTransformer &tr
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(2), COLUMN_ID_LIST_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeTopPrimaryKeyConstraint
@@ -9627,9 +9627,9 @@ void PEGTransformerFactory::InitializeTopUniqueConstraint(PEGTransformer &transf
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), COLUMN_ID_LIST_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeTopUniqueConstraint
@@ -9649,11 +9649,11 @@ void PEGTransformerFactory::InitializeTopForeignKeyConstraint(PEGTransformer &tr
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(2), COLUMN_ID_LIST_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(3), FOREIGN_KEY_CONSTRAINT_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(2), COLUMN_ID_LIST_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeTopForeignKeyConstraint
@@ -9675,12 +9675,12 @@ void PEGTransformerFactory::InitializeColumnIdList(PEGTransformer &transformer, 
 	child_result_count += col_id_children_0.size();
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot -= col_id_children_0.size();
 	for (idx_t child_idx = col_id_children_0.size(); child_idx > 0; child_idx--) {
 		auto result_idx = child_idx - 1;
 		stack.PushFrame(col_id_children_0[result_idx].get(), COL_ID_OPS, parent_frame_index, child_slot + result_idx);
 	}
-	child_slot += col_id_children_0.size();
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeColumnIdList
@@ -9710,15 +9710,15 @@ void PEGTransformerFactory::InitializeDottedIdentifier(PEGTransformer &transform
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
 	if (dot_col_label_opt_0.HasResult()) {
 		auto &dot_col_label_repeat_0 = dot_col_label_opt_0.GetResult().Cast<RepeatParseResult>();
 		auto dot_col_label_children_0 = dot_col_label_repeat_0.GetChildren();
+		child_slot -= dot_col_label_children_0.size();
 		for (idx_t child_idx = dot_col_label_children_0.size(); child_idx > 0; child_idx--) {
 			auto result_idx = child_idx - 1;
 			stack.PushFrame(dot_col_label_children_0[result_idx].get(), DOT_COL_LABEL_OPS, parent_frame_index, child_slot + result_idx);
 		}
-		child_slot += dot_col_label_children_0.size();
 	}
 }
 
@@ -9873,13 +9873,13 @@ void PEGTransformerFactory::InitializeGeneratedColumn(PEGTransformer &transforme
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(ExtractResultFromParens(list_pr.GetChild(2)), EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
 	if (generated_column_type_opt_1.HasResult()) {
+		child_slot--;
 		stack.PushFrame(generated_column_type_opt_1.GetResult(), GENERATED_COLUMN_TYPE_OPS, parent_frame_index, child_slot);
-		child_slot++;
 	}
+	child_slot--;
+	stack.PushFrame(ExtractResultFromParens(list_pr.GetChild(2)), EXPRESSION_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeGeneratedColumn
@@ -9930,9 +9930,9 @@ void PEGTransformerFactory::InitializeCommitAction(PEGTransformer &transformer, 
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(2), PRESERVE_OR_DELETE_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeCommitAction
@@ -10024,29 +10024,29 @@ void PEGTransformerFactory::InitializeCreateTriggerStmt(PEGTransformer &transfor
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	if (if_not_exists_opt_0.HasResult()) {
-		stack.PushFrame(if_not_exists_opt_0.GetResult(), IF_NOT_EXISTS_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
-	stack.PushFrame(list_pr.GetChild(2), TRIGGER_NAME_OPS, parent_frame_index, child_slot);
-	child_slot++;
-	stack.PushFrame(list_pr.GetChild(3), TRIGGER_TIMING_OPS, parent_frame_index, child_slot);
-	child_slot++;
-	stack.PushFrame(list_pr.GetChild(4), TRIGGER_EVENT_OPS, parent_frame_index, child_slot);
-	child_slot++;
-	stack.PushFrame(list_pr.GetChild(6), BASE_TABLE_NAME_OPS, parent_frame_index, child_slot);
-	child_slot++;
-	if (referencing_clause_opt_5.HasResult()) {
-		stack.PushFrame(referencing_clause_opt_5.GetResult(), REFERENCING_CLAUSE_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
-	if (for_each_clause_opt_6.HasResult()) {
-		stack.PushFrame(for_each_clause_opt_6.GetResult(), FOR_EACH_CLAUSE_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(9), TRIGGER_BODY_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	if (for_each_clause_opt_6.HasResult()) {
+		child_slot--;
+		stack.PushFrame(for_each_clause_opt_6.GetResult(), FOR_EACH_CLAUSE_OPS, parent_frame_index, child_slot);
+	}
+	if (referencing_clause_opt_5.HasResult()) {
+		child_slot--;
+		stack.PushFrame(referencing_clause_opt_5.GetResult(), REFERENCING_CLAUSE_OPS, parent_frame_index, child_slot);
+	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(6), BASE_TABLE_NAME_OPS, parent_frame_index, child_slot);
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(4), TRIGGER_EVENT_OPS, parent_frame_index, child_slot);
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(3), TRIGGER_TIMING_OPS, parent_frame_index, child_slot);
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(2), TRIGGER_NAME_OPS, parent_frame_index, child_slot);
+	if (if_not_exists_opt_0.HasResult()) {
+		child_slot--;
+		stack.PushFrame(if_not_exists_opt_0.GetResult(), IF_NOT_EXISTS_OPS, parent_frame_index, child_slot);
+	}
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeCreateTriggerStmt
@@ -10135,13 +10135,13 @@ void PEGTransformerFactory::InitializeReferencingClause(PEGTransformer &transfor
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(1), REFERENCING_ITEM_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
 	if (referencing_item_opt_1.HasResult()) {
+		child_slot--;
 		stack.PushFrame(referencing_item_opt_1.GetResult(), REFERENCING_ITEM_OPS, parent_frame_index, child_slot);
-		child_slot++;
 	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(1), REFERENCING_ITEM_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeReferencingClause
@@ -10189,9 +10189,9 @@ void PEGTransformerFactory::InitializeReferencingNewTableAs(PEGTransformer &tran
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(3), COL_ID_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeReferencingNewTableAs
@@ -10210,9 +10210,9 @@ void PEGTransformerFactory::InitializeReferencingOldTableAs(PEGTransformer &tran
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(3), COL_ID_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeReferencingOldTableAs
@@ -10327,9 +10327,9 @@ void PEGTransformerFactory::InitializeTriggerEventUpdateOf(PEGTransformer &trans
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(2), TRIGGER_COLUMN_LIST_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeTriggerEventUpdateOf
@@ -10349,12 +10349,12 @@ void PEGTransformerFactory::InitializeTriggerColumnList(PEGTransformer &transfor
 	child_result_count += col_id_children_0.size();
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot -= col_id_children_0.size();
 	for (idx_t child_idx = col_id_children_0.size(); child_idx > 0; child_idx--) {
 		auto result_idx = child_idx - 1;
 		stack.PushFrame(col_id_children_0[result_idx].get(), COL_ID_OPS, parent_frame_index, child_slot + result_idx);
 	}
-	child_slot += col_id_children_0.size();
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeTriggerColumnList
@@ -10424,15 +10424,15 @@ void PEGTransformerFactory::InitializeCreateTypeStmt(PEGTransformer &transformer
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	if (if_not_exists_opt_0.HasResult()) {
-		stack.PushFrame(if_not_exists_opt_0.GetResult(), IF_NOT_EXISTS_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
-	stack.PushFrame(list_pr.GetChild(2), QUALIFIED_NAME_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(4), CREATE_TYPE_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(2), QUALIFIED_NAME_OPS, parent_frame_index, child_slot);
+	if (if_not_exists_opt_0.HasResult()) {
+		child_slot--;
+		stack.PushFrame(if_not_exists_opt_0.GetResult(), IF_NOT_EXISTS_OPS, parent_frame_index, child_slot);
+	}
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeCreateTypeStmt
@@ -10482,9 +10482,9 @@ void PEGTransformerFactory::InitializeCreateTypeFromType(PEGTransformer &transfo
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(0), TYPE_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeCreateTypeFromType
@@ -10503,9 +10503,9 @@ void PEGTransformerFactory::InitializeEnumSelectType(PEGTransformer &transformer
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(ExtractResultFromParens(list_pr.GetChild(1)), SELECT_STATEMENT_INTERNAL_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeEnumSelectType
@@ -10562,27 +10562,27 @@ void PEGTransformerFactory::InitializeCreateViewStmt(PEGTransformer &transformer
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	if (create_recursive_opt_0.HasResult()) {
-		stack.PushFrame(create_recursive_opt_0.GetResult(), CREATE_RECURSIVE_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
-	if (if_not_exists_opt_1.HasResult()) {
-		stack.PushFrame(if_not_exists_opt_1.GetResult(), IF_NOT_EXISTS_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
-	stack.PushFrame(list_pr.GetChild(3), QUALIFIED_NAME_OPS, parent_frame_index, child_slot);
-	child_slot++;
-	if (insert_column_list_opt_3.HasResult()) {
-		stack.PushFrame(insert_column_list_opt_3.GetResult(), INSERT_COLUMN_LIST_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
-	if (with_list_opt_4.HasResult()) {
-		stack.PushFrame(with_list_opt_4.GetResult(), WITH_LIST_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(7), SELECT_STATEMENT_INTERNAL_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	if (with_list_opt_4.HasResult()) {
+		child_slot--;
+		stack.PushFrame(with_list_opt_4.GetResult(), WITH_LIST_OPS, parent_frame_index, child_slot);
+	}
+	if (insert_column_list_opt_3.HasResult()) {
+		child_slot--;
+		stack.PushFrame(insert_column_list_opt_3.GetResult(), INSERT_COLUMN_LIST_OPS, parent_frame_index, child_slot);
+	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(3), QUALIFIED_NAME_OPS, parent_frame_index, child_slot);
+	if (if_not_exists_opt_1.HasResult()) {
+		child_slot--;
+		stack.PushFrame(if_not_exists_opt_1.GetResult(), IF_NOT_EXISTS_OPS, parent_frame_index, child_slot);
+	}
+	if (create_recursive_opt_0.HasResult()) {
+		child_slot--;
+		stack.PushFrame(create_recursive_opt_0.GetResult(), CREATE_RECURSIVE_OPS, parent_frame_index, child_slot);
+	}
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeCreateViewStmt
@@ -10644,10 +10644,10 @@ void PEGTransformerFactory::InitializeDeallocateStatement(PEGTransformer &transf
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
 	if (deallocate_prepare_opt_0.HasResult()) {
+		child_slot--;
 		stack.PushFrame(deallocate_prepare_opt_0.GetResult(), DEALLOCATE_PREPARE_OPS, parent_frame_index, child_slot);
-		child_slot++;
 	}
 }
 
@@ -10699,24 +10699,24 @@ void PEGTransformerFactory::InitializeDeleteStatement(PEGTransformer &transforme
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	if (with_clause_opt_0.HasResult()) {
-		stack.PushFrame(with_clause_opt_0.GetResult(), WITH_CLAUSE_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
-	stack.PushFrame(list_pr.GetChild(3), TARGET_OPT_ALIAS_OPS, parent_frame_index, child_slot);
-	child_slot++;
-	if (delete_using_clause_opt_2.HasResult()) {
-		stack.PushFrame(delete_using_clause_opt_2.GetResult(), DELETE_USING_CLAUSE_OPS, parent_frame_index, child_slot);
-		child_slot++;
+	idx_t child_slot = child_result_count;
+	if (returning_clause_opt_4.HasResult()) {
+		child_slot--;
+		stack.PushFrame(returning_clause_opt_4.GetResult(), RETURNING_CLAUSE_OPS, parent_frame_index, child_slot);
 	}
 	if (where_clause_opt_3.HasResult()) {
+		child_slot--;
 		stack.PushFrame(where_clause_opt_3.GetResult(), WHERE_CLAUSE_OPS, parent_frame_index, child_slot);
-		child_slot++;
 	}
-	if (returning_clause_opt_4.HasResult()) {
-		stack.PushFrame(returning_clause_opt_4.GetResult(), RETURNING_CLAUSE_OPS, parent_frame_index, child_slot);
-		child_slot++;
+	if (delete_using_clause_opt_2.HasResult()) {
+		child_slot--;
+		stack.PushFrame(delete_using_clause_opt_2.GetResult(), DELETE_USING_CLAUSE_OPS, parent_frame_index, child_slot);
+	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(3), TARGET_OPT_ALIAS_OPS, parent_frame_index, child_slot);
+	if (with_clause_opt_0.HasResult()) {
+		child_slot--;
+		stack.PushFrame(with_clause_opt_0.GetResult(), WITH_CLAUSE_OPS, parent_frame_index, child_slot);
 	}
 }
 
@@ -10765,9 +10765,9 @@ void PEGTransformerFactory::InitializeTruncateStatement(PEGTransformer &transfor
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(2), BASE_TABLE_NAME_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeTruncateStatement
@@ -10794,13 +10794,13 @@ void PEGTransformerFactory::InitializeTargetOptAlias(PEGTransformer &transformer
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), BASE_TABLE_NAME_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
 	if (col_id_opt_1.HasResult()) {
+		child_slot--;
 		stack.PushFrame(col_id_opt_1.GetResult(), COL_ID_OPS, parent_frame_index, child_slot);
-		child_slot++;
 	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), BASE_TABLE_NAME_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeTargetOptAlias
@@ -10831,12 +10831,12 @@ void PEGTransformerFactory::InitializeDeleteUsingClause(PEGTransformer &transfor
 	child_result_count += table_ref_children_0.size();
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot -= table_ref_children_0.size();
 	for (idx_t child_idx = table_ref_children_0.size(); child_idx > 0; child_idx--) {
 		auto result_idx = child_idx - 1;
 		stack.PushFrame(table_ref_children_0[result_idx].get(), TABLE_REF_OPS, parent_frame_index, child_slot + result_idx);
 	}
-	child_slot += table_ref_children_0.size();
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeDeleteUsingClause
@@ -10885,11 +10885,11 @@ void PEGTransformerFactory::InitializeShowSelect(PEGTransformer &transformer, Tr
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), SHOW_OR_DESCRIBE_OR_SUMMARIZE_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), SELECT_STATEMENT_INTERNAL_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), SHOW_OR_DESCRIBE_OR_SUMMARIZE_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeShowSelect
@@ -10910,9 +10910,9 @@ void PEGTransformerFactory::InitializeShowAllTables(PEGTransformer &transformer,
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(0), SHOW_OR_DESCRIBE_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeShowAllTables
@@ -10935,13 +10935,13 @@ void PEGTransformerFactory::InitializeShowQualifiedName(PEGTransformer &transfor
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), SHOW_OR_DESCRIBE_OR_SUMMARIZE_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
 	if (describe_target_opt_1.HasResult()) {
+		child_slot--;
 		stack.PushFrame(describe_target_opt_1.GetResult(), DESCRIBE_TARGET_OPS, parent_frame_index, child_slot);
-		child_slot++;
 	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), SHOW_OR_DESCRIBE_OR_SUMMARIZE_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeShowQualifiedName
@@ -10969,11 +10969,11 @@ void PEGTransformerFactory::InitializeShowTables(PEGTransformer &transformer, Tr
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), SHOW_OR_DESCRIBE_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(3), QUALIFIED_NAME_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), SHOW_OR_DESCRIBE_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeShowTables
@@ -11015,9 +11015,9 @@ void PEGTransformerFactory::InitializeDescribeBaseTableName(PEGTransformer &tran
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(0), BASE_TABLE_NAME_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeDescribeBaseTableName
@@ -11069,9 +11069,9 @@ void PEGTransformerFactory::InitializeSummarize(PEGTransformer &transformer, Tra
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(0), SUMMARIZE_RULE_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeSummarize
@@ -11171,10 +11171,10 @@ void PEGTransformerFactory::InitializeDetachStatement(PEGTransformer &transforme
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
 	if (if_exists_opt_0.HasResult()) {
+		child_slot--;
 		stack.PushFrame(if_exists_opt_0.GetResult(), IF_EXISTS_OPS, parent_frame_index, child_slot);
-		child_slot++;
 	}
 }
 
@@ -11208,13 +11208,13 @@ void PEGTransformerFactory::InitializeDropStatement(PEGTransformer &transformer,
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(1), DROP_ENTRIES_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
 	if (drop_behavior_opt_1.HasResult()) {
+		child_slot--;
 		stack.PushFrame(drop_behavior_opt_1.GetResult(), DROP_BEHAVIOR_OPS, parent_frame_index, child_slot);
-		child_slot++;
 	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(1), DROP_ENTRIES_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeDropStatement
@@ -11267,15 +11267,15 @@ void PEGTransformerFactory::InitializeDropTrigger(PEGTransformer &transformer, T
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	if (if_exists_opt_0.HasResult()) {
-		stack.PushFrame(if_exists_opt_0.GetResult(), IF_EXISTS_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
-	stack.PushFrame(list_pr.GetChild(2), TRIGGER_NAME_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(4), BASE_TABLE_NAME_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(2), TRIGGER_NAME_OPS, parent_frame_index, child_slot);
+	if (if_exists_opt_0.HasResult()) {
+		child_slot--;
+		stack.PushFrame(if_exists_opt_0.GetResult(), IF_EXISTS_OPS, parent_frame_index, child_slot);
+	}
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeDropTrigger
@@ -11310,18 +11310,18 @@ void PEGTransformerFactory::InitializeDropTable(PEGTransformer &transformer, Tra
 	child_result_count += base_table_name_children_2.size();
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), TABLE_OR_VIEW_OPS, parent_frame_index, child_slot);
-	child_slot++;
-	if (if_exists_opt_1.HasResult()) {
-		stack.PushFrame(if_exists_opt_1.GetResult(), IF_EXISTS_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
+	idx_t child_slot = child_result_count;
+	child_slot -= base_table_name_children_2.size();
 	for (idx_t child_idx = base_table_name_children_2.size(); child_idx > 0; child_idx--) {
 		auto result_idx = child_idx - 1;
 		stack.PushFrame(base_table_name_children_2[result_idx].get(), BASE_TABLE_NAME_OPS, parent_frame_index, child_slot + result_idx);
 	}
-	child_slot += base_table_name_children_2.size();
+	if (if_exists_opt_1.HasResult()) {
+		child_slot--;
+		stack.PushFrame(if_exists_opt_1.GetResult(), IF_EXISTS_OPS, parent_frame_index, child_slot);
+	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), TABLE_OR_VIEW_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeDropTable
@@ -11360,13 +11360,13 @@ void PEGTransformerFactory::InitializeDropTableFunction(PEGTransformer &transfor
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), COMMENT_MACRO_TABLE_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
 	if (if_exists_opt_1.HasResult()) {
+		child_slot--;
 		stack.PushFrame(if_exists_opt_1.GetResult(), IF_EXISTS_OPS, parent_frame_index, child_slot);
-		child_slot++;
 	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), COMMENT_MACRO_TABLE_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeDropTableFunction
@@ -11406,18 +11406,18 @@ void PEGTransformerFactory::InitializeDropFunction(PEGTransformer &transformer, 
 	child_result_count += function_identifier_children_2.size();
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), FUNCTION_TYPE_MACRO_OPS, parent_frame_index, child_slot);
-	child_slot++;
-	if (if_exists_opt_1.HasResult()) {
-		stack.PushFrame(if_exists_opt_1.GetResult(), IF_EXISTS_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
+	idx_t child_slot = child_result_count;
+	child_slot -= function_identifier_children_2.size();
 	for (idx_t child_idx = function_identifier_children_2.size(); child_idx > 0; child_idx--) {
 		auto result_idx = child_idx - 1;
 		stack.PushFrame(function_identifier_children_2[result_idx].get(), FUNCTION_IDENTIFIER_OPS, parent_frame_index, child_slot + result_idx);
 	}
-	child_slot += function_identifier_children_2.size();
+	if (if_exists_opt_1.HasResult()) {
+		child_slot--;
+		stack.PushFrame(if_exists_opt_1.GetResult(), IF_EXISTS_OPS, parent_frame_index, child_slot);
+	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), FUNCTION_TYPE_MACRO_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeDropFunction
@@ -11457,16 +11457,16 @@ void PEGTransformerFactory::InitializeDropSchema(PEGTransformer &transformer, Tr
 	child_result_count += qualified_schema_name_children_1.size();
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	if (if_exists_opt_0.HasResult()) {
-		stack.PushFrame(if_exists_opt_0.GetResult(), IF_EXISTS_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
+	idx_t child_slot = child_result_count;
+	child_slot -= qualified_schema_name_children_1.size();
 	for (idx_t child_idx = qualified_schema_name_children_1.size(); child_idx > 0; child_idx--) {
 		auto result_idx = child_idx - 1;
 		stack.PushFrame(qualified_schema_name_children_1[result_idx].get(), QUALIFIED_SCHEMA_NAME_OPS, parent_frame_index, child_slot + result_idx);
 	}
-	child_slot += qualified_schema_name_children_1.size();
+	if (if_exists_opt_0.HasResult()) {
+		child_slot--;
+		stack.PushFrame(if_exists_opt_0.GetResult(), IF_EXISTS_OPS, parent_frame_index, child_slot);
+	}
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeDropSchema
@@ -11504,16 +11504,16 @@ void PEGTransformerFactory::InitializeDropIndex(PEGTransformer &transformer, Tra
 	child_result_count += qualified_index_name_children_1.size();
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	if (if_exists_opt_0.HasResult()) {
-		stack.PushFrame(if_exists_opt_0.GetResult(), IF_EXISTS_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
+	idx_t child_slot = child_result_count;
+	child_slot -= qualified_index_name_children_1.size();
 	for (idx_t child_idx = qualified_index_name_children_1.size(); child_idx > 0; child_idx--) {
 		auto result_idx = child_idx - 1;
 		stack.PushFrame(qualified_index_name_children_1[result_idx].get(), QUALIFIED_INDEX_NAME_OPS, parent_frame_index, child_slot + result_idx);
 	}
-	child_slot += qualified_index_name_children_1.size();
+	if (if_exists_opt_0.HasResult()) {
+		child_slot--;
+		stack.PushFrame(if_exists_opt_0.GetResult(), IF_EXISTS_OPS, parent_frame_index, child_slot);
+	}
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeDropIndex
@@ -11579,9 +11579,9 @@ void PEGTransformerFactory::InitializeSchemaReservedIndex(PEGTransformer &transf
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(0), SCHEMA_QUALIFICATION_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeSchemaReservedIndex
@@ -11603,11 +11603,11 @@ void PEGTransformerFactory::InitializeCatalogReservedSchemaIndex(PEGTransformer 
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), CATALOG_QUALIFICATION_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), RESERVED_SCHEMA_QUALIFICATION_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), CATALOG_QUALIFICATION_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeCatalogReservedSchemaIndex
@@ -11635,16 +11635,16 @@ void PEGTransformerFactory::InitializeDropSequence(PEGTransformer &transformer, 
 	child_result_count += qualified_sequence_name_children_1.size();
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	if (if_exists_opt_0.HasResult()) {
-		stack.PushFrame(if_exists_opt_0.GetResult(), IF_EXISTS_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
+	idx_t child_slot = child_result_count;
+	child_slot -= qualified_sequence_name_children_1.size();
 	for (idx_t child_idx = qualified_sequence_name_children_1.size(); child_idx > 0; child_idx--) {
 		auto result_idx = child_idx - 1;
 		stack.PushFrame(qualified_sequence_name_children_1[result_idx].get(), QUALIFIED_SEQUENCE_NAME_OPS, parent_frame_index, child_slot + result_idx);
 	}
-	child_slot += qualified_sequence_name_children_1.size();
+	if (if_exists_opt_0.HasResult()) {
+		child_slot--;
+		stack.PushFrame(if_exists_opt_0.GetResult(), IF_EXISTS_OPS, parent_frame_index, child_slot);
+	}
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeDropSequence
@@ -11682,16 +11682,16 @@ void PEGTransformerFactory::InitializeDropCollation(PEGTransformer &transformer,
 	child_result_count += collation_name_children_1.size();
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	if (if_exists_opt_0.HasResult()) {
-		stack.PushFrame(if_exists_opt_0.GetResult(), IF_EXISTS_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
+	idx_t child_slot = child_result_count;
+	child_slot -= collation_name_children_1.size();
 	for (idx_t child_idx = collation_name_children_1.size(); child_idx > 0; child_idx--) {
 		auto result_idx = child_idx - 1;
 		stack.PushFrame(collation_name_children_1[result_idx].get(), COLLATION_NAME_OPS, parent_frame_index, child_slot + result_idx);
 	}
-	child_slot += collation_name_children_1.size();
+	if (if_exists_opt_0.HasResult()) {
+		child_slot--;
+		stack.PushFrame(if_exists_opt_0.GetResult(), IF_EXISTS_OPS, parent_frame_index, child_slot);
+	}
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeDropCollation
@@ -11729,16 +11729,16 @@ void PEGTransformerFactory::InitializeDropType(PEGTransformer &transformer, Tran
 	child_result_count += qualified_type_name_children_1.size();
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	if (if_exists_opt_0.HasResult()) {
-		stack.PushFrame(if_exists_opt_0.GetResult(), IF_EXISTS_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
+	idx_t child_slot = child_result_count;
+	child_slot -= qualified_type_name_children_1.size();
 	for (idx_t child_idx = qualified_type_name_children_1.size(); child_idx > 0; child_idx--) {
 		auto result_idx = child_idx - 1;
 		stack.PushFrame(qualified_type_name_children_1[result_idx].get(), QUALIFIED_TYPE_NAME_OPS, parent_frame_index, child_slot + result_idx);
 	}
-	child_slot += qualified_type_name_children_1.size();
+	if (if_exists_opt_0.HasResult()) {
+		child_slot--;
+		stack.PushFrame(if_exists_opt_0.GetResult(), IF_EXISTS_OPS, parent_frame_index, child_slot);
+	}
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeDropType
@@ -11783,20 +11783,20 @@ void PEGTransformerFactory::InitializeDropSecret(PEGTransformer &transformer, Tr
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	if (temporary_opt_0.HasResult()) {
-		stack.PushFrame(temporary_opt_0.GetResult(), TEMPORARY_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
-	if (if_exists_opt_1.HasResult()) {
-		stack.PushFrame(if_exists_opt_1.GetResult(), IF_EXISTS_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
-	stack.PushFrame(list_pr.GetChild(3), SECRET_NAME_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
 	if (drop_secret_storage_opt_3.HasResult()) {
+		child_slot--;
 		stack.PushFrame(drop_secret_storage_opt_3.GetResult(), DROP_SECRET_STORAGE_OPS, parent_frame_index, child_slot);
-		child_slot++;
+	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(3), SECRET_NAME_OPS, parent_frame_index, child_slot);
+	if (if_exists_opt_1.HasResult()) {
+		child_slot--;
+		stack.PushFrame(if_exists_opt_1.GetResult(), IF_EXISTS_OPS, parent_frame_index, child_slot);
+	}
+	if (temporary_opt_0.HasResult()) {
+		child_slot--;
+		stack.PushFrame(temporary_opt_0.GetResult(), TEMPORARY_OPS, parent_frame_index, child_slot);
 	}
 }
 
@@ -11988,9 +11988,9 @@ void PEGTransformerFactory::InitializeCatalogReservedSchema(PEGTransformer &tran
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(0), CATALOG_QUALIFICATION_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeCatalogReservedSchema
@@ -12026,10 +12026,10 @@ void PEGTransformerFactory::InitializeExecuteStatement(PEGTransformer &transform
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
 	if (table_function_arguments_opt_0.HasResult()) {
+		child_slot--;
 		stack.PushFrame(table_function_arguments_opt_0.GetResult(), TABLE_FUNCTION_ARGUMENTS_OPS, parent_frame_index, child_slot);
-		child_slot++;
 	}
 }
 
@@ -12064,17 +12064,17 @@ void PEGTransformerFactory::InitializeExplainStatement(PEGTransformer &transform
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	if (explain_analyze_opt_0.HasResult()) {
-		stack.PushFrame(explain_analyze_opt_0.GetResult(), EXPLAIN_ANALYZE_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
-	if (explain_option_list_opt_1.HasResult()) {
-		stack.PushFrame(explain_option_list_opt_1.GetResult(), EXPLAIN_OPTION_LIST_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(3), EXPLAINABLE_STATEMENTS_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	if (explain_option_list_opt_1.HasResult()) {
+		child_slot--;
+		stack.PushFrame(explain_option_list_opt_1.GetResult(), EXPLAIN_OPTION_LIST_OPS, parent_frame_index, child_slot);
+	}
+	if (explain_analyze_opt_0.HasResult()) {
+		child_slot--;
+		stack.PushFrame(explain_analyze_opt_0.GetResult(), EXPLAIN_ANALYZE_OPS, parent_frame_index, child_slot);
+	}
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeExplainStatement
@@ -12118,12 +12118,12 @@ void PEGTransformerFactory::InitializeExplainOptionList(PEGTransformer &transfor
 	child_result_count += explain_option_children_0.size();
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot -= explain_option_children_0.size();
 	for (idx_t child_idx = explain_option_children_0.size(); child_idx > 0; child_idx--) {
 		auto result_idx = child_idx - 1;
 		stack.PushFrame(explain_option_children_0[result_idx].get(), EXPLAIN_OPTION_OPS, parent_frame_index, child_slot + result_idx);
 	}
-	child_slot += explain_option_children_0.size();
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeExplainOptionList
@@ -12152,10 +12152,10 @@ void PEGTransformerFactory::InitializeExplainOption(PEGTransformer &transformer,
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
 	if (expression_opt_0.HasResult()) {
+		child_slot--;
 		stack.PushFrame(expression_opt_0.GetResult(), EXPRESSION_OPS, parent_frame_index, child_slot);
-		child_slot++;
 	}
 }
 
@@ -12182,9 +12182,9 @@ void PEGTransformerFactory::InitializeExplainSelectStatement(PEGTransformer &tra
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(0), SELECT_STATEMENT_INTERNAL_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeExplainSelectStatement
@@ -12234,14 +12234,14 @@ void PEGTransformerFactory::InitializeExportStatement(PEGTransformer &transforme
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	if (export_source_opt_0.HasResult()) {
-		stack.PushFrame(export_source_opt_0.GetResult(), EXPORT_SOURCE_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
+	idx_t child_slot = child_result_count;
 	if (generic_copy_option_list_opt_1.HasResult()) {
+		child_slot--;
 		stack.PushFrame(generic_copy_option_list_opt_1.GetResult(), GENERIC_COPY_OPTION_LIST_OPS, parent_frame_index, child_slot);
-		child_slot++;
+	}
+	if (export_source_opt_0.HasResult()) {
+		child_slot--;
+		stack.PushFrame(export_source_opt_0.GetResult(), EXPORT_SOURCE_OPS, parent_frame_index, child_slot);
 	}
 }
 
@@ -12323,13 +12323,13 @@ void PEGTransformerFactory::InitializeCatalogReservedSchemaTableColumnName(PEGTr
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), CATALOG_QUALIFICATION_OPS, parent_frame_index, child_slot);
-	child_slot++;
-	stack.PushFrame(list_pr.GetChild(1), RESERVED_SCHEMA_QUALIFICATION_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(2), RESERVED_TABLE_QUALIFICATION_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(1), RESERVED_SCHEMA_QUALIFICATION_OPS, parent_frame_index, child_slot);
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), CATALOG_QUALIFICATION_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeCatalogReservedSchemaTableColumnName
@@ -12355,11 +12355,11 @@ void PEGTransformerFactory::InitializeSchemaReservedTableColumnName(PEGTransform
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), SCHEMA_QUALIFICATION_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), RESERVED_TABLE_QUALIFICATION_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), SCHEMA_QUALIFICATION_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeSchemaReservedTableColumnName
@@ -12382,9 +12382,9 @@ void PEGTransformerFactory::InitializeTableReservedColumnName(PEGTransformer &tr
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(0), TABLE_QUALIFICATION_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeTableReservedColumnName
@@ -12418,23 +12418,23 @@ void PEGTransformerFactory::InitializeFunctionExpression(PEGTransformer &transfo
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), FUNCTION_IDENTIFIER_OPS, parent_frame_index, child_slot);
-	child_slot++;
-	stack.PushFrame(list_pr.GetChild(1), FUNCTION_EXPRESSION_ARGUMENTS_OPS, parent_frame_index, child_slot);
-	child_slot++;
-	if (within_group_clause_opt_2.HasResult()) {
-		stack.PushFrame(within_group_clause_opt_2.GetResult(), WITHIN_GROUP_CLAUSE_OPS, parent_frame_index, child_slot);
-		child_slot++;
+	idx_t child_slot = child_result_count;
+	if (over_clause_opt_4.HasResult()) {
+		child_slot--;
+		stack.PushFrame(over_clause_opt_4.GetResult(), OVER_CLAUSE_OPS, parent_frame_index, child_slot);
 	}
 	if (filter_clause_opt_3.HasResult()) {
+		child_slot--;
 		stack.PushFrame(filter_clause_opt_3.GetResult(), FILTER_CLAUSE_OPS, parent_frame_index, child_slot);
-		child_slot++;
 	}
-	if (over_clause_opt_4.HasResult()) {
-		stack.PushFrame(over_clause_opt_4.GetResult(), OVER_CLAUSE_OPS, parent_frame_index, child_slot);
-		child_slot++;
+	if (within_group_clause_opt_2.HasResult()) {
+		child_slot--;
+		stack.PushFrame(within_group_clause_opt_2.GetResult(), WITHIN_GROUP_CLAUSE_OPS, parent_frame_index, child_slot);
 	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(1), FUNCTION_EXPRESSION_ARGUMENTS_OPS, parent_frame_index, child_slot);
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), FUNCTION_IDENTIFIER_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeFunctionExpression
@@ -12480,9 +12480,9 @@ void PEGTransformerFactory::InitializeFunctionExpressionArguments(PEGTransformer
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(ExtractResultFromParens(list_pr.GetChild(0)), FUNCTION_EXPRESSION_ARGUMENT_LIST_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeFunctionExpressionArguments
@@ -12516,22 +12516,22 @@ void PEGTransformerFactory::InitializeFunctionExpressionArgumentList(PEGTransfor
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	if (distinct_or_all_opt_0.HasResult()) {
-		stack.PushFrame(distinct_or_all_opt_0.GetResult(), DISTINCT_OR_ALL_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
-	if (function_argument_list_opt_1.HasResult()) {
-		stack.PushFrame(function_argument_list_opt_1.GetResult(), FUNCTION_ARGUMENT_LIST_OPS, parent_frame_index, child_slot);
-		child_slot++;
+	idx_t child_slot = child_result_count;
+	if (ignore_or_respect_nulls_opt_3.HasResult()) {
+		child_slot--;
+		stack.PushFrame(ignore_or_respect_nulls_opt_3.GetResult(), IGNORE_OR_RESPECT_NULLS_OPS, parent_frame_index, child_slot);
 	}
 	if (order_by_clause_opt_2.HasResult()) {
+		child_slot--;
 		stack.PushFrame(order_by_clause_opt_2.GetResult(), ORDER_BY_CLAUSE_OPS, parent_frame_index, child_slot);
-		child_slot++;
 	}
-	if (ignore_or_respect_nulls_opt_3.HasResult()) {
-		stack.PushFrame(ignore_or_respect_nulls_opt_3.GetResult(), IGNORE_OR_RESPECT_NULLS_OPS, parent_frame_index, child_slot);
-		child_slot++;
+	if (function_argument_list_opt_1.HasResult()) {
+		child_slot--;
+		stack.PushFrame(function_argument_list_opt_1.GetResult(), FUNCTION_ARGUMENT_LIST_OPS, parent_frame_index, child_slot);
+	}
+	if (distinct_or_all_opt_0.HasResult()) {
+		child_slot--;
+		stack.PushFrame(distinct_or_all_opt_0.GetResult(), DISTINCT_OR_ALL_OPS, parent_frame_index, child_slot);
 	}
 }
 
@@ -12579,12 +12579,12 @@ void PEGTransformerFactory::InitializeFunctionArgumentList(PEGTransformer &trans
 	child_result_count += function_argument_children_0.size();
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot -= function_argument_children_0.size();
 	for (idx_t child_idx = function_argument_children_0.size(); child_idx > 0; child_idx--) {
 		auto result_idx = child_idx - 1;
 		stack.PushFrame(function_argument_children_0[result_idx].get(), FUNCTION_ARGUMENT_OPS, parent_frame_index, child_slot + result_idx);
 	}
-	child_slot += function_argument_children_0.size();
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeFunctionArgumentList
@@ -12625,13 +12625,13 @@ void PEGTransformerFactory::InitializeCatalogReservedSchemaFunctionName(PEGTrans
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), CATALOG_QUALIFICATION_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
 	if (reserved_schema_qualification_opt_1.HasResult()) {
+		child_slot--;
 		stack.PushFrame(reserved_schema_qualification_opt_1.GetResult(), RESERVED_SCHEMA_QUALIFICATION_OPS, parent_frame_index, child_slot);
-		child_slot++;
 	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), CATALOG_QUALIFICATION_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeCatalogReservedSchemaFunctionName
@@ -12659,9 +12659,9 @@ void PEGTransformerFactory::InitializeSchemaReservedFunctionName(PEGTransformer 
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(0), SCHEMA_QUALIFICATION_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeSchemaReservedFunctionName
@@ -12721,9 +12721,9 @@ void PEGTransformerFactory::InitializeWithinGroupClause(PEGTransformer &transfor
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(ExtractResultFromParens(list_pr.GetChild(2)), ORDER_BY_CLAUSE_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeWithinGroupClause
@@ -12742,9 +12742,9 @@ void PEGTransformerFactory::InitializeFilterClause(PEGTransformer &transformer, 
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), FILTER_CLAUSE_EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeFilterClause
@@ -12763,9 +12763,9 @@ void PEGTransformerFactory::InitializeFilterClauseExpression(PEGTransformer &tra
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(ExtractResultFromParens(list_pr.GetChild(0)), FILTER_CLAUSE_CONTENTS_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeFilterClauseExpression
@@ -12784,9 +12784,9 @@ void PEGTransformerFactory::InitializeFilterClauseContents(PEGTransformer &trans
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeFilterClauseContents
@@ -12849,12 +12849,12 @@ void PEGTransformerFactory::InitializeParenthesisExpression(PEGTransformer &tran
 	child_result_count += expression_children_0.size();
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot -= expression_children_0.size();
 	for (idx_t child_idx = expression_children_0.size(); child_idx > 0; child_idx--) {
 		auto result_idx = child_idx - 1;
 		stack.PushFrame(expression_children_0[result_idx].get(), EXPRESSION_OPS, parent_frame_index, child_slot + result_idx);
 	}
-	child_slot += expression_children_0.size();
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeParenthesisExpression
@@ -12941,11 +12941,11 @@ void PEGTransformerFactory::InitializeCastExpression(PEGTransformer &transformer
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), CAST_OR_TRY_CAST_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(ExtractResultFromParens(list_pr.GetChild(1)), CAST_ARGUMENTS_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), CAST_OR_TRY_CAST_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeCastExpression
@@ -12967,11 +12967,11 @@ void PEGTransformerFactory::InitializeCastArguments(PEGTransformer &transformer,
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(2), TYPE_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), EXPRESSION_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeCastArguments
@@ -13031,9 +13031,9 @@ void PEGTransformerFactory::InitializeColIdDot(PEGTransformer &transformer, Tran
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(0), COL_ID_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeColIdDot
@@ -13067,22 +13067,22 @@ void PEGTransformerFactory::InitializeStarExpression(PEGTransformer &transformer
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	if (star_qualifier_list_opt_0.HasResult()) {
-		stack.PushFrame(star_qualifier_list_opt_0.GetResult(), STAR_QUALIFIER_LIST_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
-	if (exclude_list_opt_1.HasResult()) {
-		stack.PushFrame(exclude_list_opt_1.GetResult(), EXCLUDE_LIST_OPS, parent_frame_index, child_slot);
-		child_slot++;
+	idx_t child_slot = child_result_count;
+	if (rename_list_opt_3.HasResult()) {
+		child_slot--;
+		stack.PushFrame(rename_list_opt_3.GetResult(), RENAME_LIST_OPS, parent_frame_index, child_slot);
 	}
 	if (replace_list_opt_2.HasResult()) {
+		child_slot--;
 		stack.PushFrame(replace_list_opt_2.GetResult(), REPLACE_LIST_OPS, parent_frame_index, child_slot);
-		child_slot++;
 	}
-	if (rename_list_opt_3.HasResult()) {
-		stack.PushFrame(rename_list_opt_3.GetResult(), RENAME_LIST_OPS, parent_frame_index, child_slot);
-		child_slot++;
+	if (exclude_list_opt_1.HasResult()) {
+		child_slot--;
+		stack.PushFrame(exclude_list_opt_1.GetResult(), EXCLUDE_LIST_OPS, parent_frame_index, child_slot);
+	}
+	if (star_qualifier_list_opt_0.HasResult()) {
+		child_slot--;
+		stack.PushFrame(star_qualifier_list_opt_0.GetResult(), STAR_QUALIFIER_LIST_OPS, parent_frame_index, child_slot);
 	}
 }
 
@@ -13130,13 +13130,13 @@ void PEGTransformerFactory::InitializeStarQualifierList(PEGTransformer &transfor
 	child_result_count += col_id_dot_repeat_0.GetChildren().size();
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
 	auto col_id_dot_children_0 = col_id_dot_repeat_0.GetChildren();
+	child_slot -= col_id_dot_children_0.size();
 	for (idx_t child_idx = col_id_dot_children_0.size(); child_idx > 0; child_idx--) {
 		auto result_idx = child_idx - 1;
 		stack.PushFrame(col_id_dot_children_0[result_idx].get(), COL_ID_DOT_OPS, parent_frame_index, child_slot + result_idx);
 	}
-	child_slot += col_id_dot_children_0.size();
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeStarQualifierList
@@ -13161,9 +13161,9 @@ void PEGTransformerFactory::InitializeExcludeList(PEGTransformer &transformer, T
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), EXCLUDE_NAMES_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeExcludeList
@@ -13204,12 +13204,12 @@ void PEGTransformerFactory::InitializeExcludeNameList(PEGTransformer &transforme
 	child_result_count += exclude_name_children_0.size();
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot -= exclude_name_children_0.size();
 	for (idx_t child_idx = exclude_name_children_0.size(); child_idx > 0; child_idx--) {
 		auto result_idx = child_idx - 1;
 		stack.PushFrame(exclude_name_children_0[result_idx].get(), EXCLUDE_NAME_OPS, parent_frame_index, child_slot + result_idx);
 	}
-	child_slot += exclude_name_children_0.size();
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeExcludeNameList
@@ -13235,9 +13235,9 @@ void PEGTransformerFactory::InitializeExcludeNameSingle(PEGTransformer &transfor
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(0), EXCLUDE_NAME_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeExcludeNameSingle
@@ -13277,9 +13277,9 @@ void PEGTransformerFactory::InitializeExcludeDottedName(PEGTransformer &transfor
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(0), DOTTED_IDENTIFIER_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeExcludeDottedName
@@ -13298,9 +13298,9 @@ void PEGTransformerFactory::InitializeExcludeColumnName(PEGTransformer &transfor
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(0), COL_ID_OR_STRING_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeExcludeColumnName
@@ -13319,9 +13319,9 @@ void PEGTransformerFactory::InitializeReplaceList(PEGTransformer &transformer, T
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), REPLACE_ENTRIES_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeReplaceList
@@ -13361,9 +13361,9 @@ void PEGTransformerFactory::InitializeReplaceEntrySingle(PEGTransformer &transfo
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(0), REPLACE_ENTRY_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeReplaceEntrySingle
@@ -13383,12 +13383,12 @@ void PEGTransformerFactory::InitializeReplaceEntryList(PEGTransformer &transform
 	child_result_count += replace_entry_children_0.size();
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot -= replace_entry_children_0.size();
 	for (idx_t child_idx = replace_entry_children_0.size(); child_idx > 0; child_idx--) {
 		auto result_idx = child_idx - 1;
 		stack.PushFrame(replace_entry_children_0[result_idx].get(), REPLACE_ENTRY_OPS, parent_frame_index, child_slot + result_idx);
 	}
-	child_slot += replace_entry_children_0.size();
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeReplaceEntryList
@@ -13415,11 +13415,11 @@ void PEGTransformerFactory::InitializeReplaceEntry(PEGTransformer &transformer, 
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(2), COLUMN_REFERENCE_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), EXPRESSION_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeReplaceEntry
@@ -13440,9 +13440,9 @@ void PEGTransformerFactory::InitializeRenameList(PEGTransformer &transformer, Tr
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), RENAME_ENTRIES_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeRenameList
@@ -13483,12 +13483,12 @@ void PEGTransformerFactory::InitializeRenameEntryList(PEGTransformer &transforme
 	child_result_count += rename_entry_children_0.size();
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot -= rename_entry_children_0.size();
 	for (idx_t child_idx = rename_entry_children_0.size(); child_idx > 0; child_idx--) {
 		auto result_idx = child_idx - 1;
 		stack.PushFrame(rename_entry_children_0[result_idx].get(), RENAME_ENTRY_OPS, parent_frame_index, child_slot + result_idx);
 	}
-	child_slot += rename_entry_children_0.size();
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeRenameEntryList
@@ -13514,9 +13514,9 @@ void PEGTransformerFactory::InitializeSingleRenameEntry(PEGTransformer &transfor
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(0), RENAME_ENTRY_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeSingleRenameEntry
@@ -13535,9 +13535,9 @@ void PEGTransformerFactory::InitializeRenameEntry(PEGTransformer &transformer, T
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(0), EXCLUDE_NAME_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeRenameEntry
@@ -13566,17 +13566,17 @@ void PEGTransformerFactory::InitializeSubqueryExpression(PEGTransformer &transfo
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	if (subquery_not_opt_0.HasResult()) {
-		stack.PushFrame(subquery_not_opt_0.GetResult(), SUBQUERY_NOT_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
-	if (subquery_exists_opt_1.HasResult()) {
-		stack.PushFrame(subquery_exists_opt_1.GetResult(), SUBQUERY_EXISTS_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(2), SUBQUERY_REFERENCE_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	if (subquery_exists_opt_1.HasResult()) {
+		child_slot--;
+		stack.PushFrame(subquery_exists_opt_1.GetResult(), SUBQUERY_EXISTS_OPS, parent_frame_index, child_slot);
+	}
+	if (subquery_not_opt_0.HasResult()) {
+		child_slot--;
+		stack.PushFrame(subquery_not_opt_0.GetResult(), SUBQUERY_NOT_OPS, parent_frame_index, child_slot);
+	}
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeSubqueryExpression
@@ -13637,20 +13637,20 @@ void PEGTransformerFactory::InitializeCaseExpression(PEGTransformer &transformer
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	if (expression_opt_0.HasResult()) {
-		stack.PushFrame(expression_opt_0.GetResult(), EXPRESSION_OPS, parent_frame_index, child_slot);
-		child_slot++;
+	idx_t child_slot = child_result_count;
+	if (case_else_opt_2.HasResult()) {
+		child_slot--;
+		stack.PushFrame(case_else_opt_2.GetResult(), CASE_ELSE_OPS, parent_frame_index, child_slot);
 	}
 	auto case_when_then_children_1 = case_when_then_repeat_1.GetChildren();
+	child_slot -= case_when_then_children_1.size();
 	for (idx_t child_idx = case_when_then_children_1.size(); child_idx > 0; child_idx--) {
 		auto result_idx = child_idx - 1;
 		stack.PushFrame(case_when_then_children_1[result_idx].get(), CASE_WHEN_THEN_OPS, parent_frame_index, child_slot + result_idx);
 	}
-	child_slot += case_when_then_children_1.size();
-	if (case_else_opt_2.HasResult()) {
-		stack.PushFrame(case_else_opt_2.GetResult(), CASE_ELSE_OPS, parent_frame_index, child_slot);
-		child_slot++;
+	if (expression_opt_0.HasResult()) {
+		child_slot--;
+		stack.PushFrame(expression_opt_0.GetResult(), EXPRESSION_OPS, parent_frame_index, child_slot);
 	}
 }
 
@@ -13691,11 +13691,11 @@ void PEGTransformerFactory::InitializeCaseWhenThen(PEGTransformer &transformer, 
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(1), EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(3), EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(1), EXPRESSION_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeCaseWhenThen
@@ -13716,9 +13716,9 @@ void PEGTransformerFactory::InitializeCaseElse(PEGTransformer &transformer, Tran
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeCaseElse
@@ -13737,9 +13737,9 @@ void PEGTransformerFactory::InitializeTypeLiteral(PEGTransformer &transformer, T
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(0), COL_ID_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeTypeLiteral
@@ -13764,13 +13764,13 @@ void PEGTransformerFactory::InitializeIntervalLiteral(PEGTransformer &transforme
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(1), INTERVAL_PARAMETER_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
 	if (interval_opt_1.HasResult()) {
+		child_slot--;
 		stack.PushFrame(interval_opt_1.GetResult(), INTERVAL_OPS, parent_frame_index, child_slot);
-		child_slot++;
 	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(1), INTERVAL_PARAMETER_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeIntervalLiteral
@@ -13843,15 +13843,15 @@ void PEGTransformerFactory::InitializeFrameClause(PEGTransformer &transformer, T
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), FRAMING_OPS, parent_frame_index, child_slot);
-	child_slot++;
-	stack.PushFrame(list_pr.GetChild(1), FRAME_EXTENT_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
 	if (window_exclude_clause_opt_2.HasResult()) {
+		child_slot--;
 		stack.PushFrame(window_exclude_clause_opt_2.GetResult(), WINDOW_EXCLUDE_CLAUSE_OPS, parent_frame_index, child_slot);
-		child_slot++;
 	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(1), FRAME_EXTENT_OPS, parent_frame_index, child_slot);
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), FRAMING_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeFrameClause
@@ -13949,9 +13949,9 @@ void PEGTransformerFactory::InitializeSingleFrameExtent(PEGTransformer &transfor
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(0), FRAME_BOUND_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeSingleFrameExtent
@@ -13971,11 +13971,11 @@ void PEGTransformerFactory::InitializeBetweenFrameExtent(PEGTransformer &transfo
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(1), FRAME_BOUND_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(3), FRAME_BOUND_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(1), FRAME_BOUND_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeBetweenFrameExtent
@@ -14017,9 +14017,9 @@ void PEGTransformerFactory::InitializeFrameUnbounded(PEGTransformer &transformer
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), PRECEDING_OR_FOLLOWING_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeFrameUnbounded
@@ -14039,11 +14039,11 @@ void PEGTransformerFactory::InitializeFrameExpression(PEGTransformer &transforme
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), PRECEDING_OR_FOLLOWING_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), EXPRESSION_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeFrameExpression
@@ -14112,9 +14112,9 @@ void PEGTransformerFactory::InitializeWindowExcludeClause(PEGTransformer &transf
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), WINDOW_EXCLUDE_ELEMENT_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeWindowExcludeClause
@@ -14244,9 +14244,9 @@ void PEGTransformerFactory::InitializeWindowFrameNameContentsParens(PEGTransform
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(ExtractResultFromParens(list_pr.GetChild(0)), WINDOW_FRAME_NAME_CONTENTS_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeWindowFrameNameContentsParens
@@ -14269,13 +14269,13 @@ void PEGTransformerFactory::InitializeWindowFrameNameContents(PEGTransformer &tr
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	if (base_window_name_opt_0.HasResult()) {
-		stack.PushFrame(base_window_name_opt_0.GetResult(), BASE_WINDOW_NAME_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), WINDOW_FRAME_CONTENTS_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	if (base_window_name_opt_0.HasResult()) {
+		child_slot--;
+		stack.PushFrame(base_window_name_opt_0.GetResult(), BASE_WINDOW_NAME_OPS, parent_frame_index, child_slot);
+	}
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeWindowFrameNameContents
@@ -14302,9 +14302,9 @@ void PEGTransformerFactory::InitializeWindowFrameContentsParens(PEGTransformer &
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(ExtractResultFromParens(list_pr.GetChild(0)), WINDOW_FRAME_CONTENTS_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeWindowFrameContentsParens
@@ -14334,18 +14334,18 @@ void PEGTransformerFactory::InitializeWindowFrameContents(PEGTransformer &transf
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	if (window_partition_opt_0.HasResult()) {
-		stack.PushFrame(window_partition_opt_0.GetResult(), WINDOW_PARTITION_OPS, parent_frame_index, child_slot);
-		child_slot++;
+	idx_t child_slot = child_result_count;
+	if (frame_clause_opt_2.HasResult()) {
+		child_slot--;
+		stack.PushFrame(frame_clause_opt_2.GetResult(), FRAME_CLAUSE_OPS, parent_frame_index, child_slot);
 	}
 	if (order_by_clause_opt_1.HasResult()) {
+		child_slot--;
 		stack.PushFrame(order_by_clause_opt_1.GetResult(), ORDER_BY_CLAUSE_OPS, parent_frame_index, child_slot);
-		child_slot++;
 	}
-	if (frame_clause_opt_2.HasResult()) {
-		stack.PushFrame(frame_clause_opt_2.GetResult(), FRAME_CLAUSE_OPS, parent_frame_index, child_slot);
-		child_slot++;
+	if (window_partition_opt_0.HasResult()) {
+		child_slot--;
+		stack.PushFrame(window_partition_opt_0.GetResult(), WINDOW_PARTITION_OPS, parent_frame_index, child_slot);
 	}
 }
 
@@ -14398,12 +14398,12 @@ void PEGTransformerFactory::InitializeWindowPartition(PEGTransformer &transforme
 	child_result_count += expression_children_0.size();
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot -= expression_children_0.size();
 	for (idx_t child_idx = expression_children_0.size(); child_idx > 0; child_idx--) {
 		auto result_idx = child_idx - 1;
 		stack.PushFrame(expression_children_0[result_idx].get(), EXPRESSION_OPS, parent_frame_index, child_slot + result_idx);
 	}
-	child_slot += expression_children_0.size();
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeWindowPartition
@@ -14450,9 +14450,9 @@ void PEGTransformerFactory::InitializeArrayBoundedListExpression(PEGTransformer 
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), BOUNDED_LIST_EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeArrayBoundedListExpression
@@ -14475,9 +14475,9 @@ void PEGTransformerFactory::InitializeArrayParensSelect(PEGTransformer &transfor
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(ExtractResultFromParens(list_pr.GetChild(1)), SELECT_STATEMENT_INTERNAL_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeArrayParensSelect
@@ -14500,14 +14500,14 @@ void PEGTransformerFactory::InitializeBoundedListExpression(PEGTransformer &tran
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
 	if (expression_opt_0.HasResult()) {
 		auto expression_children_0 = ExtractParseResultsFromList(expression_opt_0.GetResult());
+		child_slot -= expression_children_0.size();
 		for (idx_t child_idx = expression_children_0.size(); child_idx > 0; child_idx--) {
 			auto result_idx = child_idx - 1;
 			stack.PushFrame(expression_children_0[result_idx].get(), EXPRESSION_OPS, parent_frame_index, child_slot + result_idx);
 		}
-		child_slot += expression_children_0.size();
 	}
 }
 
@@ -14540,12 +14540,12 @@ void PEGTransformerFactory::InitializeStructExpression(PEGTransformer &transform
 	child_result_count += struct_field_children_0.size();
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot -= struct_field_children_0.size();
 	for (idx_t child_idx = struct_field_children_0.size(); child_idx > 0; child_idx--) {
 		auto result_idx = child_idx - 1;
 		stack.PushFrame(struct_field_children_0[result_idx].get(), STRUCT_FIELD_OPS, parent_frame_index, child_slot + result_idx);
 	}
-	child_slot += struct_field_children_0.size();
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeStructExpression
@@ -14572,11 +14572,11 @@ void PEGTransformerFactory::InitializeStructField(PEGTransformer &transformer, T
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), COL_ID_OR_STRING_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(2), EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), COL_ID_OR_STRING_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeStructField
@@ -14597,9 +14597,9 @@ void PEGTransformerFactory::InitializeMapExpression(PEGTransformer &transformer,
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), MAP_STRUCT_EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeMapExpression
@@ -14622,14 +14622,14 @@ void PEGTransformerFactory::InitializeMapStructExpression(PEGTransformer &transf
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
 	if (map_struct_field_opt_0.HasResult()) {
 		auto map_struct_field_children_0 = ExtractParseResultsFromList(map_struct_field_opt_0.GetResult());
+		child_slot -= map_struct_field_children_0.size();
 		for (idx_t child_idx = map_struct_field_children_0.size(); child_idx > 0; child_idx--) {
 			auto result_idx = child_idx - 1;
 			stack.PushFrame(map_struct_field_children_0[result_idx].get(), MAP_STRUCT_FIELD_OPS, parent_frame_index, child_slot + result_idx);
 		}
-		child_slot += map_struct_field_children_0.size();
 	}
 }
 
@@ -14662,11 +14662,11 @@ void PEGTransformerFactory::InitializeMapStructField(PEGTransformer &transformer
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(2), EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), EXPRESSION_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeMapStructField
@@ -14692,17 +14692,17 @@ void PEGTransformerFactory::InitializeGroupingExpression(PEGTransformer &transfo
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), GROUPING_OR_GROUPING_ID_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
 	if (expression_opt_1.HasResult()) {
 		auto expression_children_1 = ExtractParseResultsFromList(expression_opt_1.GetResult());
+		child_slot -= expression_children_1.size();
 		for (idx_t child_idx = expression_children_1.size(); child_idx > 0; child_idx--) {
 			auto result_idx = child_idx - 1;
 			stack.PushFrame(expression_children_1[result_idx].get(), EXPRESSION_OPS, parent_frame_index, child_slot + result_idx);
 		}
-		child_slot += expression_children_1.size();
 	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), GROUPING_OR_GROUPING_ID_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeGroupingExpression
@@ -14866,20 +14866,20 @@ void PEGTransformerFactory::InitializeListComprehensionExpression(PEGTransformer
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(1), EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
+	if (list_comprehension_filter_opt_3.HasResult()) {
+		child_slot--;
+		stack.PushFrame(list_comprehension_filter_opt_3.GetResult(), LIST_COMPREHENSION_FILTER_OPS, parent_frame_index, child_slot);
+	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(5), EXPRESSION_OPS, parent_frame_index, child_slot);
+	child_slot -= col_id_or_string_children_1.size();
 	for (idx_t child_idx = col_id_or_string_children_1.size(); child_idx > 0; child_idx--) {
 		auto result_idx = child_idx - 1;
 		stack.PushFrame(col_id_or_string_children_1[result_idx].get(), COL_ID_OR_STRING_OPS, parent_frame_index, child_slot + result_idx);
 	}
-	child_slot += col_id_or_string_children_1.size();
-	stack.PushFrame(list_pr.GetChild(5), EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
-	if (list_comprehension_filter_opt_3.HasResult()) {
-		stack.PushFrame(list_comprehension_filter_opt_3.GetResult(), LIST_COMPREHENSION_FILTER_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(1), EXPRESSION_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeListComprehensionExpression
@@ -14916,9 +14916,9 @@ void PEGTransformerFactory::InitializeListComprehensionFilter(PEGTransformer &tr
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeListComprehensionFilter
@@ -14937,9 +14937,9 @@ void PEGTransformerFactory::InitializeParensExpression(PEGTransformer &transform
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(ExtractResultFromParens(list_pr.GetChild(0)), EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeParensExpression
@@ -14989,9 +14989,9 @@ void PEGTransformerFactory::InitializeColumnDefaultExpr(PEGTransformer &transfor
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(0), COL_DEF_OR_EXPR_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeColumnDefaultExpr
@@ -15015,18 +15015,18 @@ void PEGTransformerFactory::InitializeLambdaArrowExpression(PEGTransformer &tran
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), LOGICAL_OR_EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
 	if (single_arrow_pair_opt_1.HasResult()) {
 		auto &single_arrow_pair_repeat_1 = single_arrow_pair_opt_1.GetResult().Cast<RepeatParseResult>();
 		auto single_arrow_pair_children_1 = single_arrow_pair_repeat_1.GetChildren();
+		child_slot -= single_arrow_pair_children_1.size();
 		for (idx_t child_idx = single_arrow_pair_children_1.size(); child_idx > 0; child_idx--) {
 			auto result_idx = child_idx - 1;
 			stack.PushFrame(single_arrow_pair_children_1[result_idx].get(), SINGLE_ARROW_PAIR_OPS, parent_frame_index, child_slot + result_idx);
 		}
-		child_slot += single_arrow_pair_children_1.size();
 	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), LOGICAL_OR_EXPRESSION_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeLambdaArrowExpression
@@ -15058,9 +15058,9 @@ void PEGTransformerFactory::InitializeSingleArrowPair(PEGTransformer &transforme
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), LOGICAL_OR_EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeSingleArrowPair
@@ -15084,18 +15084,18 @@ void PEGTransformerFactory::InitializeLogicalOrExpression(PEGTransformer &transf
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), LOGICAL_AND_EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
 	if (logical_or_expression_tail_opt_1.HasResult()) {
 		auto &logical_or_expression_tail_repeat_1 = logical_or_expression_tail_opt_1.GetResult().Cast<RepeatParseResult>();
 		auto logical_or_expression_tail_children_1 = logical_or_expression_tail_repeat_1.GetChildren();
+		child_slot -= logical_or_expression_tail_children_1.size();
 		for (idx_t child_idx = logical_or_expression_tail_children_1.size(); child_idx > 0; child_idx--) {
 			auto result_idx = child_idx - 1;
 			stack.PushFrame(logical_or_expression_tail_children_1[result_idx].get(), LOGICAL_OR_EXPRESSION_TAIL_OPS, parent_frame_index, child_slot + result_idx);
 		}
-		child_slot += logical_or_expression_tail_children_1.size();
 	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), LOGICAL_AND_EXPRESSION_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeLogicalOrExpression
@@ -15127,9 +15127,9 @@ void PEGTransformerFactory::InitializeLogicalOrExpressionTail(PEGTransformer &tr
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), LOGICAL_AND_EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeLogicalOrExpressionTail
@@ -15153,18 +15153,18 @@ void PEGTransformerFactory::InitializeColDefOrExpr(PEGTransformer &transformer, 
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), COL_DEF_AND_EXPR_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
 	if (col_def_or_expression_tail_opt_1.HasResult()) {
 		auto &col_def_or_expression_tail_repeat_1 = col_def_or_expression_tail_opt_1.GetResult().Cast<RepeatParseResult>();
 		auto col_def_or_expression_tail_children_1 = col_def_or_expression_tail_repeat_1.GetChildren();
+		child_slot -= col_def_or_expression_tail_children_1.size();
 		for (idx_t child_idx = col_def_or_expression_tail_children_1.size(); child_idx > 0; child_idx--) {
 			auto result_idx = child_idx - 1;
 			stack.PushFrame(col_def_or_expression_tail_children_1[result_idx].get(), COL_DEF_OR_EXPRESSION_TAIL_OPS, parent_frame_index, child_slot + result_idx);
 		}
-		child_slot += col_def_or_expression_tail_children_1.size();
 	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), COL_DEF_AND_EXPR_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeColDefOrExpr
@@ -15196,9 +15196,9 @@ void PEGTransformerFactory::InitializeColDefOrExpressionTail(PEGTransformer &tra
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), COL_DEF_AND_EXPR_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeColDefOrExpressionTail
@@ -15222,18 +15222,18 @@ void PEGTransformerFactory::InitializeLogicalAndExpression(PEGTransformer &trans
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), LOGICAL_NOT_EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
 	if (logical_and_expression_tail_opt_1.HasResult()) {
 		auto &logical_and_expression_tail_repeat_1 = logical_and_expression_tail_opt_1.GetResult().Cast<RepeatParseResult>();
 		auto logical_and_expression_tail_children_1 = logical_and_expression_tail_repeat_1.GetChildren();
+		child_slot -= logical_and_expression_tail_children_1.size();
 		for (idx_t child_idx = logical_and_expression_tail_children_1.size(); child_idx > 0; child_idx--) {
 			auto result_idx = child_idx - 1;
 			stack.PushFrame(logical_and_expression_tail_children_1[result_idx].get(), LOGICAL_AND_EXPRESSION_TAIL_OPS, parent_frame_index, child_slot + result_idx);
 		}
-		child_slot += logical_and_expression_tail_children_1.size();
 	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), LOGICAL_NOT_EXPRESSION_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeLogicalAndExpression
@@ -15265,9 +15265,9 @@ void PEGTransformerFactory::InitializeLogicalAndExpressionTail(PEGTransformer &t
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), LOGICAL_NOT_EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeLogicalAndExpressionTail
@@ -15291,18 +15291,18 @@ void PEGTransformerFactory::InitializeColDefAndExpr(PEGTransformer &transformer,
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), IS_DISTINCT_FROM_EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
 	if (col_def_and_expression_tail_opt_1.HasResult()) {
 		auto &col_def_and_expression_tail_repeat_1 = col_def_and_expression_tail_opt_1.GetResult().Cast<RepeatParseResult>();
 		auto col_def_and_expression_tail_children_1 = col_def_and_expression_tail_repeat_1.GetChildren();
+		child_slot -= col_def_and_expression_tail_children_1.size();
 		for (idx_t child_idx = col_def_and_expression_tail_children_1.size(); child_idx > 0; child_idx--) {
 			auto result_idx = child_idx - 1;
 			stack.PushFrame(col_def_and_expression_tail_children_1[result_idx].get(), COL_DEF_AND_EXPRESSION_TAIL_OPS, parent_frame_index, child_slot + result_idx);
 		}
-		child_slot += col_def_and_expression_tail_children_1.size();
 	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), IS_DISTINCT_FROM_EXPRESSION_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeColDefAndExpr
@@ -15334,9 +15334,9 @@ void PEGTransformerFactory::InitializeColDefAndExpressionTail(PEGTransformer &tr
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), IS_DISTINCT_FROM_EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeColDefAndExpressionTail
@@ -15359,13 +15359,13 @@ void PEGTransformerFactory::InitializeLogicalNotExpression(PEGTransformer &trans
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	if (not_expression_opt_0.HasResult()) {
-		stack.PushFrame(not_expression_opt_0.GetResult(), NOT_EXPRESSION_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), IS_EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	if (not_expression_opt_0.HasResult()) {
+		child_slot--;
+		stack.PushFrame(not_expression_opt_0.GetResult(), NOT_EXPRESSION_OPS, parent_frame_index, child_slot);
+	}
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeLogicalNotExpression
@@ -15393,13 +15393,13 @@ void PEGTransformerFactory::InitializeNotExpression(PEGTransformer &transformer,
 	child_result_count += not_keyword_repeat_0.GetChildren().size();
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
 	auto not_keyword_children_0 = not_keyword_repeat_0.GetChildren();
+	child_slot -= not_keyword_children_0.size();
 	for (idx_t child_idx = not_keyword_children_0.size(); child_idx > 0; child_idx--) {
 		auto result_idx = child_idx - 1;
 		stack.PushFrame(not_keyword_children_0[result_idx].get(), NOT_KEYWORD_OPS, parent_frame_index, child_slot + result_idx);
 	}
-	child_slot += not_keyword_children_0.size();
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeNotExpression
@@ -15438,18 +15438,18 @@ void PEGTransformerFactory::InitializeIsExpression(PEGTransformer &transformer, 
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), IS_DISTINCT_FROM_EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
 	if (is_test_opt_1.HasResult()) {
 		auto &is_test_repeat_1 = is_test_opt_1.GetResult().Cast<RepeatParseResult>();
 		auto is_test_children_1 = is_test_repeat_1.GetChildren();
+		child_slot -= is_test_children_1.size();
 		for (idx_t child_idx = is_test_children_1.size(); child_idx > 0; child_idx--) {
 			auto result_idx = child_idx - 1;
 			stack.PushFrame(is_test_children_1[result_idx].get(), IS_TEST_OPS, parent_frame_index, child_slot + result_idx);
 		}
-		child_slot += is_test_children_1.size();
 	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), IS_DISTINCT_FROM_EXPRESSION_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeIsExpression
@@ -15502,9 +15502,9 @@ void PEGTransformerFactory::InitializeIsLiteral(PEGTransformer &transformer, Tra
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(2), IS_LITERAL_VALUE_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeIsLiteral
@@ -15596,9 +15596,9 @@ void PEGTransformerFactory::InitializeIsNull(PEGTransformer &transformer, Transf
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(0), IS_NULL_OPERATOR_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeIsNull
@@ -15631,18 +15631,18 @@ void PEGTransformerFactory::InitializeIsDistinctFromExpression(PEGTransformer &t
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), COMPARISON_EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
 	if (is_distinct_from_tail_opt_1.HasResult()) {
 		auto &is_distinct_from_tail_repeat_1 = is_distinct_from_tail_opt_1.GetResult().Cast<RepeatParseResult>();
 		auto is_distinct_from_tail_children_1 = is_distinct_from_tail_repeat_1.GetChildren();
+		child_slot -= is_distinct_from_tail_children_1.size();
 		for (idx_t child_idx = is_distinct_from_tail_children_1.size(); child_idx > 0; child_idx--) {
 			auto result_idx = child_idx - 1;
 			stack.PushFrame(is_distinct_from_tail_children_1[result_idx].get(), IS_DISTINCT_FROM_TAIL_OPS, parent_frame_index, child_slot + result_idx);
 		}
-		child_slot += is_distinct_from_tail_children_1.size();
 	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), COMPARISON_EXPRESSION_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeIsDistinctFromExpression
@@ -15675,11 +15675,11 @@ void PEGTransformerFactory::InitializeIsDistinctFromTail(PEGTransformer &transfo
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), IS_DISTINCT_FROM_OP_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), COMPARISON_EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), IS_DISTINCT_FROM_OP_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeIsDistinctFromTail
@@ -15719,18 +15719,18 @@ void PEGTransformerFactory::InitializeComparisonExpression(PEGTransformer &trans
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), BETWEEN_IN_LIKE_EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
 	if (comparison_expression_tail_opt_1.HasResult()) {
 		auto &comparison_expression_tail_repeat_1 = comparison_expression_tail_opt_1.GetResult().Cast<RepeatParseResult>();
 		auto comparison_expression_tail_children_1 = comparison_expression_tail_repeat_1.GetChildren();
+		child_slot -= comparison_expression_tail_children_1.size();
 		for (idx_t child_idx = comparison_expression_tail_children_1.size(); child_idx > 0; child_idx--) {
 			auto result_idx = child_idx - 1;
 			stack.PushFrame(comparison_expression_tail_children_1[result_idx].get(), COMPARISON_EXPRESSION_TAIL_OPS, parent_frame_index, child_slot + result_idx);
 		}
-		child_slot += comparison_expression_tail_children_1.size();
 	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), BETWEEN_IN_LIKE_EXPRESSION_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeComparisonExpression
@@ -15767,15 +15767,15 @@ void PEGTransformerFactory::InitializeComparisonExpressionTail(PEGTransformer &t
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), COMPARISON_OPERATOR_OPS, parent_frame_index, child_slot);
-	child_slot++;
-	if (not_expression_opt_1.HasResult()) {
-		stack.PushFrame(not_expression_opt_1.GetResult(), NOT_EXPRESSION_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(2), BETWEEN_IN_LIKE_EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	if (not_expression_opt_1.HasResult()) {
+		child_slot--;
+		stack.PushFrame(not_expression_opt_1.GetResult(), NOT_EXPRESSION_OPS, parent_frame_index, child_slot);
+	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), COMPARISON_OPERATOR_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeComparisonExpressionTail
@@ -15883,13 +15883,13 @@ void PEGTransformerFactory::InitializeBetweenInLikeExpression(PEGTransformer &tr
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), OTHER_OPERATOR_EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
 	if (between_in_like_op_opt_1.HasResult()) {
+		child_slot--;
 		stack.PushFrame(between_in_like_op_opt_1.GetResult(), BETWEEN_IN_LIKE_OP_OPS, parent_frame_index, child_slot);
-		child_slot++;
 	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), OTHER_OPERATOR_EXPRESSION_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeBetweenInLikeExpression
@@ -15916,9 +15916,9 @@ void PEGTransformerFactory::InitializeBetweenInLikeOp(PEGTransformer &transforme
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), BETWEEN_IN_LIKE_OP_EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeBetweenInLikeOp
@@ -15967,15 +15967,15 @@ void PEGTransformerFactory::InitializeLikeClause(PEGTransformer &transformer, Tr
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), LIKE_VARIATIONS_OPS, parent_frame_index, child_slot);
-	child_slot++;
-	stack.PushFrame(list_pr.GetChild(1), OTHER_OPERATOR_EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
 	if (escape_clause_opt_2.HasResult()) {
+		child_slot--;
 		stack.PushFrame(escape_clause_opt_2.GetResult(), ESCAPE_CLAUSE_OPS, parent_frame_index, child_slot);
-		child_slot++;
 	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(1), OTHER_OPERATOR_EXPRESSION_OPS, parent_frame_index, child_slot);
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), LIKE_VARIATIONS_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeLikeClause
@@ -16004,9 +16004,9 @@ void PEGTransformerFactory::InitializeEscapeClause(PEGTransformer &transformer, 
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), COMPARISON_EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeEscapeClause
@@ -16109,9 +16109,9 @@ void PEGTransformerFactory::InitializeInClause(PEGTransformer &transformer, Tran
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), IN_EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeInClause
@@ -16151,9 +16151,9 @@ void PEGTransformerFactory::InitializeInContainsExpression(PEGTransformer &trans
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(0), OTHER_OPERATOR_EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeInContainsExpression
@@ -16173,12 +16173,12 @@ void PEGTransformerFactory::InitializeInExpressionList(PEGTransformer &transform
 	child_result_count += expression_children_0.size();
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot -= expression_children_0.size();
 	for (idx_t child_idx = expression_children_0.size(); child_idx > 0; child_idx--) {
 		auto result_idx = child_idx - 1;
 		stack.PushFrame(expression_children_0[result_idx].get(), EXPRESSION_OPS, parent_frame_index, child_slot + result_idx);
 	}
-	child_slot += expression_children_0.size();
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeInExpressionList
@@ -16204,9 +16204,9 @@ void PEGTransformerFactory::InitializeInSelectStatement(PEGTransformer &transfor
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(ExtractResultFromParens(list_pr.GetChild(0)), SELECT_STATEMENT_INTERNAL_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeInSelectStatement
@@ -16226,11 +16226,11 @@ void PEGTransformerFactory::InitializeBetweenClause(PEGTransformer &transformer,
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(1), OTHER_OPERATOR_EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(3), OTHER_OPERATOR_EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(1), OTHER_OPERATOR_EXPRESSION_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeBetweenClause
@@ -16256,18 +16256,18 @@ void PEGTransformerFactory::InitializeOtherOperatorExpression(PEGTransformer &tr
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), BITWISE_EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
 	if (other_operator_tail_opt_1.HasResult()) {
 		auto &other_operator_tail_repeat_1 = other_operator_tail_opt_1.GetResult().Cast<RepeatParseResult>();
 		auto other_operator_tail_children_1 = other_operator_tail_repeat_1.GetChildren();
+		child_slot -= other_operator_tail_children_1.size();
 		for (idx_t child_idx = other_operator_tail_children_1.size(); child_idx > 0; child_idx--) {
 			auto result_idx = child_idx - 1;
 			stack.PushFrame(other_operator_tail_children_1[result_idx].get(), OTHER_OPERATOR_TAIL_OPS, parent_frame_index, child_slot + result_idx);
 		}
-		child_slot += other_operator_tail_children_1.size();
 	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), BITWISE_EXPRESSION_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeOtherOperatorExpression
@@ -16300,11 +16300,11 @@ void PEGTransformerFactory::InitializeOtherOperatorTail(PEGTransformer &transfor
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), OTHER_OPERATOR_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), BITWISE_EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), OTHER_OPERATOR_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeOtherOperatorTail
@@ -16337,11 +16337,11 @@ void PEGTransformerFactory::InitializeAnyAllOperator(PEGTransformer &transformer
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), ANY_OP_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), ANY_OR_ALL_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), ANY_OP_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeAnyAllOperator
@@ -16447,9 +16447,9 @@ void PEGTransformerFactory::InitializeQualifiedOperator(PEGTransformer &transfor
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(ExtractResultFromParens(list_pr.GetChild(1)), QUALIFIED_OPERATOR_CONTENTS_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeQualifiedOperator
@@ -16473,18 +16473,18 @@ void PEGTransformerFactory::InitializeQualifiedOperatorContents(PEGTransformer &
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(1), ANY_OP_OPS, parent_frame_index, child_slot);
 	if (col_id_dot_opt_0.HasResult()) {
 		auto &col_id_dot_repeat_0 = col_id_dot_opt_0.GetResult().Cast<RepeatParseResult>();
 		auto col_id_dot_children_0 = col_id_dot_repeat_0.GetChildren();
+		child_slot -= col_id_dot_children_0.size();
 		for (idx_t child_idx = col_id_dot_children_0.size(); child_idx > 0; child_idx--) {
 			auto result_idx = child_idx - 1;
 			stack.PushFrame(col_id_dot_children_0[result_idx].get(), COL_ID_DOT_OPS, parent_frame_index, child_slot + result_idx);
 		}
-		child_slot += col_id_dot_children_0.size();
 	}
-	stack.PushFrame(list_pr.GetChild(1), ANY_OP_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeQualifiedOperatorContents
@@ -16533,18 +16533,18 @@ void PEGTransformerFactory::InitializeBitwiseExpression(PEGTransformer &transfor
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), ADDITIVE_EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
 	if (bitwise_expression_tail_opt_1.HasResult()) {
 		auto &bitwise_expression_tail_repeat_1 = bitwise_expression_tail_opt_1.GetResult().Cast<RepeatParseResult>();
 		auto bitwise_expression_tail_children_1 = bitwise_expression_tail_repeat_1.GetChildren();
+		child_slot -= bitwise_expression_tail_children_1.size();
 		for (idx_t child_idx = bitwise_expression_tail_children_1.size(); child_idx > 0; child_idx--) {
 			auto result_idx = child_idx - 1;
 			stack.PushFrame(bitwise_expression_tail_children_1[result_idx].get(), BITWISE_EXPRESSION_TAIL_OPS, parent_frame_index, child_slot + result_idx);
 		}
-		child_slot += bitwise_expression_tail_children_1.size();
 	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), ADDITIVE_EXPRESSION_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeBitwiseExpression
@@ -16577,11 +16577,11 @@ void PEGTransformerFactory::InitializeBitwiseExpressionTail(PEGTransformer &tran
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), BIT_OPERATOR_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), ADDITIVE_EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), BIT_OPERATOR_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeBitwiseExpressionTail
@@ -16619,18 +16619,18 @@ void PEGTransformerFactory::InitializeAdditiveExpression(PEGTransformer &transfo
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), MULTIPLICATIVE_EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
 	if (additive_expression_tail_opt_1.HasResult()) {
 		auto &additive_expression_tail_repeat_1 = additive_expression_tail_opt_1.GetResult().Cast<RepeatParseResult>();
 		auto additive_expression_tail_children_1 = additive_expression_tail_repeat_1.GetChildren();
+		child_slot -= additive_expression_tail_children_1.size();
 		for (idx_t child_idx = additive_expression_tail_children_1.size(); child_idx > 0; child_idx--) {
 			auto result_idx = child_idx - 1;
 			stack.PushFrame(additive_expression_tail_children_1[result_idx].get(), ADDITIVE_EXPRESSION_TAIL_OPS, parent_frame_index, child_slot + result_idx);
 		}
-		child_slot += additive_expression_tail_children_1.size();
 	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), MULTIPLICATIVE_EXPRESSION_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeAdditiveExpression
@@ -16663,11 +16663,11 @@ void PEGTransformerFactory::InitializeAdditiveExpressionTail(PEGTransformer &tra
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), TERM_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), MULTIPLICATIVE_EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), TERM_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeAdditiveExpressionTail
@@ -16705,18 +16705,18 @@ void PEGTransformerFactory::InitializeMultiplicativeExpression(PEGTransformer &t
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), EXPONENTIATION_EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
 	if (multiplicative_expression_tail_opt_1.HasResult()) {
 		auto &multiplicative_expression_tail_repeat_1 = multiplicative_expression_tail_opt_1.GetResult().Cast<RepeatParseResult>();
 		auto multiplicative_expression_tail_children_1 = multiplicative_expression_tail_repeat_1.GetChildren();
+		child_slot -= multiplicative_expression_tail_children_1.size();
 		for (idx_t child_idx = multiplicative_expression_tail_children_1.size(); child_idx > 0; child_idx--) {
 			auto result_idx = child_idx - 1;
 			stack.PushFrame(multiplicative_expression_tail_children_1[result_idx].get(), MULTIPLICATIVE_EXPRESSION_TAIL_OPS, parent_frame_index, child_slot + result_idx);
 		}
-		child_slot += multiplicative_expression_tail_children_1.size();
 	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), EXPONENTIATION_EXPRESSION_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeMultiplicativeExpression
@@ -16749,11 +16749,11 @@ void PEGTransformerFactory::InitializeMultiplicativeExpressionTail(PEGTransforme
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), FACTOR_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), EXPONENTIATION_EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), FACTOR_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeMultiplicativeExpressionTail
@@ -16791,18 +16791,18 @@ void PEGTransformerFactory::InitializeExponentiationExpression(PEGTransformer &t
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), COLLATE_EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
 	if (exponentiation_expression_tail_opt_1.HasResult()) {
 		auto &exponentiation_expression_tail_repeat_1 = exponentiation_expression_tail_opt_1.GetResult().Cast<RepeatParseResult>();
 		auto exponentiation_expression_tail_children_1 = exponentiation_expression_tail_repeat_1.GetChildren();
+		child_slot -= exponentiation_expression_tail_children_1.size();
 		for (idx_t child_idx = exponentiation_expression_tail_children_1.size(); child_idx > 0; child_idx--) {
 			auto result_idx = child_idx - 1;
 			stack.PushFrame(exponentiation_expression_tail_children_1[result_idx].get(), EXPONENTIATION_EXPRESSION_TAIL_OPS, parent_frame_index, child_slot + result_idx);
 		}
-		child_slot += exponentiation_expression_tail_children_1.size();
 	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), COLLATE_EXPRESSION_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeExponentiationExpression
@@ -16835,11 +16835,11 @@ void PEGTransformerFactory::InitializeExponentiationExpressionTail(PEGTransforme
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), EXPONENT_OPERATOR_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), COLLATE_EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), EXPONENT_OPERATOR_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeExponentiationExpressionTail
@@ -16877,18 +16877,18 @@ void PEGTransformerFactory::InitializeCollateExpression(PEGTransformer &transfor
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), AT_TIME_ZONE_EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
 	if (collate_expression_tail_opt_1.HasResult()) {
 		auto &collate_expression_tail_repeat_1 = collate_expression_tail_opt_1.GetResult().Cast<RepeatParseResult>();
 		auto collate_expression_tail_children_1 = collate_expression_tail_repeat_1.GetChildren();
+		child_slot -= collate_expression_tail_children_1.size();
 		for (idx_t child_idx = collate_expression_tail_children_1.size(); child_idx > 0; child_idx--) {
 			auto result_idx = child_idx - 1;
 			stack.PushFrame(collate_expression_tail_children_1[result_idx].get(), COLLATE_EXPRESSION_TAIL_OPS, parent_frame_index, child_slot + result_idx);
 		}
-		child_slot += collate_expression_tail_children_1.size();
 	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), AT_TIME_ZONE_EXPRESSION_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeCollateExpression
@@ -16920,9 +16920,9 @@ void PEGTransformerFactory::InitializeCollateExpressionTail(PEGTransformer &tran
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), AT_TIME_ZONE_EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeCollateExpressionTail
@@ -16946,18 +16946,18 @@ void PEGTransformerFactory::InitializeAtTimeZoneExpression(PEGTransformer &trans
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), PREFIX_EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
 	if (at_time_zone_expression_tail_opt_1.HasResult()) {
 		auto &at_time_zone_expression_tail_repeat_1 = at_time_zone_expression_tail_opt_1.GetResult().Cast<RepeatParseResult>();
 		auto at_time_zone_expression_tail_children_1 = at_time_zone_expression_tail_repeat_1.GetChildren();
+		child_slot -= at_time_zone_expression_tail_children_1.size();
 		for (idx_t child_idx = at_time_zone_expression_tail_children_1.size(); child_idx > 0; child_idx--) {
 			auto result_idx = child_idx - 1;
 			stack.PushFrame(at_time_zone_expression_tail_children_1[result_idx].get(), AT_TIME_ZONE_EXPRESSION_TAIL_OPS, parent_frame_index, child_slot + result_idx);
 		}
-		child_slot += at_time_zone_expression_tail_children_1.size();
 	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), PREFIX_EXPRESSION_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeAtTimeZoneExpression
@@ -16989,9 +16989,9 @@ void PEGTransformerFactory::InitializeAtTimeZoneExpressionTail(PEGTransformer &t
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), PREFIX_EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeAtTimeZoneExpressionTail
@@ -17075,13 +17075,13 @@ void PEGTransformerFactory::InitializeBaseExpression(PEGTransformer &transformer
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), SINGLE_EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
 	if (indirection_list_opt_1.HasResult()) {
+		child_slot--;
 		stack.PushFrame(indirection_list_opt_1.GetResult(), INDIRECTION_LIST_OPS, parent_frame_index, child_slot);
-		child_slot++;
 	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), SINGLE_EXPRESSION_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeBaseExpression
@@ -17109,13 +17109,13 @@ void PEGTransformerFactory::InitializeIndirectionList(PEGTransformer &transforme
 	child_result_count += indirection_repeat_0.GetChildren().size();
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
 	auto indirection_children_0 = indirection_repeat_0.GetChildren();
+	child_slot -= indirection_children_0.size();
 	for (idx_t child_idx = indirection_children_0.size(); child_idx > 0; child_idx--) {
 		auto result_idx = child_idx - 1;
 		stack.PushFrame(indirection_children_0[result_idx].get(), INDIRECTION_OPS, parent_frame_index, child_slot + result_idx);
 	}
-	child_slot += indirection_children_0.size();
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeIndirectionList
@@ -17161,9 +17161,9 @@ void PEGTransformerFactory::InitializeCastOperator(PEGTransformer &transformer, 
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), TYPE_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeCastOperator
@@ -17203,9 +17203,9 @@ void PEGTransformerFactory::InitializeDotMethodOperator(PEGTransformer &transfor
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), METHOD_EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeDotMethodOperator
@@ -17236,9 +17236,9 @@ void PEGTransformerFactory::InitializeMethodExpression(PEGTransformer &transform
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), METHOD_EXPRESSION_ARGUMENTS_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeMethodExpression
@@ -17259,9 +17259,9 @@ void PEGTransformerFactory::InitializeMethodExpressionArguments(PEGTransformer &
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(ExtractResultFromParens(list_pr.GetChild(0)), METHOD_EXPRESSION_ARGUMENT_LIST_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeMethodExpressionArguments
@@ -17295,22 +17295,22 @@ void PEGTransformerFactory::InitializeMethodExpressionArgumentList(PEGTransforme
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	if (distinct_or_all_opt_0.HasResult()) {
-		stack.PushFrame(distinct_or_all_opt_0.GetResult(), DISTINCT_OR_ALL_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
-	if (method_function_arguments_opt_1.HasResult()) {
-		stack.PushFrame(method_function_arguments_opt_1.GetResult(), METHOD_FUNCTION_ARGUMENTS_OPS, parent_frame_index, child_slot);
-		child_slot++;
+	idx_t child_slot = child_result_count;
+	if (ignore_or_respect_nulls_opt_3.HasResult()) {
+		child_slot--;
+		stack.PushFrame(ignore_or_respect_nulls_opt_3.GetResult(), IGNORE_OR_RESPECT_NULLS_OPS, parent_frame_index, child_slot);
 	}
 	if (order_by_clause_opt_2.HasResult()) {
+		child_slot--;
 		stack.PushFrame(order_by_clause_opt_2.GetResult(), ORDER_BY_CLAUSE_OPS, parent_frame_index, child_slot);
-		child_slot++;
 	}
-	if (ignore_or_respect_nulls_opt_3.HasResult()) {
-		stack.PushFrame(ignore_or_respect_nulls_opt_3.GetResult(), IGNORE_OR_RESPECT_NULLS_OPS, parent_frame_index, child_slot);
-		child_slot++;
+	if (method_function_arguments_opt_1.HasResult()) {
+		child_slot--;
+		stack.PushFrame(method_function_arguments_opt_1.GetResult(), METHOD_FUNCTION_ARGUMENTS_OPS, parent_frame_index, child_slot);
+	}
+	if (distinct_or_all_opt_0.HasResult()) {
+		child_slot--;
+		stack.PushFrame(distinct_or_all_opt_0.GetResult(), DISTINCT_OR_ALL_OPS, parent_frame_index, child_slot);
 	}
 }
 
@@ -17358,12 +17358,12 @@ void PEGTransformerFactory::InitializeMethodFunctionArguments(PEGTransformer &tr
 	child_result_count += function_argument_children_0.size();
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot -= function_argument_children_0.size();
 	for (idx_t child_idx = function_argument_children_0.size(); child_idx > 0; child_idx--) {
 		auto result_idx = child_idx - 1;
 		stack.PushFrame(function_argument_children_0[result_idx].get(), FUNCTION_ARGUMENT_OPS, parent_frame_index, child_slot + result_idx);
 	}
-	child_slot += function_argument_children_0.size();
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeMethodFunctionArguments
@@ -17389,9 +17389,9 @@ void PEGTransformerFactory::InitializeSliceExpression(PEGTransformer &transforme
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), SLICE_BOUND_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeSliceExpression
@@ -17421,18 +17421,18 @@ void PEGTransformerFactory::InitializeSliceBound(PEGTransformer &transformer, Tr
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	if (expression_opt_0.HasResult()) {
-		stack.PushFrame(expression_opt_0.GetResult(), EXPRESSION_OPS, parent_frame_index, child_slot);
-		child_slot++;
+	idx_t child_slot = child_result_count;
+	if (step_slice_bound_opt_2.HasResult()) {
+		child_slot--;
+		stack.PushFrame(step_slice_bound_opt_2.GetResult(), STEP_SLICE_BOUND_OPS, parent_frame_index, child_slot);
 	}
 	if (end_slice_bound_opt_1.HasResult()) {
+		child_slot--;
 		stack.PushFrame(end_slice_bound_opt_1.GetResult(), END_SLICE_BOUND_OPS, parent_frame_index, child_slot);
-		child_slot++;
 	}
-	if (step_slice_bound_opt_2.HasResult()) {
-		stack.PushFrame(step_slice_bound_opt_2.GetResult(), STEP_SLICE_BOUND_OPS, parent_frame_index, child_slot);
-		child_slot++;
+	if (expression_opt_0.HasResult()) {
+		child_slot--;
+		stack.PushFrame(expression_opt_0.GetResult(), EXPRESSION_OPS, parent_frame_index, child_slot);
 	}
 }
 
@@ -17475,10 +17475,10 @@ void PEGTransformerFactory::InitializeEndSliceBound(PEGTransformer &transformer,
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
 	if (end_slice_value_opt_0.HasResult()) {
+		child_slot--;
 		stack.PushFrame(end_slice_value_opt_0.GetResult(), END_SLICE_VALUE_OPS, parent_frame_index, child_slot);
-		child_slot++;
 	}
 }
 
@@ -17537,10 +17537,10 @@ void PEGTransformerFactory::InitializeStepSliceBound(PEGTransformer &transformer
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
 	if (expression_opt_0.HasResult()) {
+		child_slot--;
 		stack.PushFrame(expression_opt_0.GetResult(), EXPRESSION_OPS, parent_frame_index, child_slot);
-		child_slot++;
 	}
 }
 
@@ -17597,12 +17597,12 @@ void PEGTransformerFactory::InitializeCoalesceExpression(PEGTransformer &transfo
 	child_result_count += expression_children_0.size();
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot -= expression_children_0.size();
 	for (idx_t child_idx = expression_children_0.size(); child_idx > 0; child_idx--) {
 		auto result_idx = child_idx - 1;
 		stack.PushFrame(expression_children_0[result_idx].get(), EXPRESSION_OPS, parent_frame_index, child_slot + result_idx);
 	}
-	child_slot += expression_children_0.size();
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeCoalesceExpression
@@ -17628,9 +17628,9 @@ void PEGTransformerFactory::InitializeUnpackExpression(PEGTransformer &transform
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(ExtractResultFromParens(list_pr.GetChild(1)), EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeUnpackExpression
@@ -17649,9 +17649,9 @@ void PEGTransformerFactory::InitializeTryExpression(PEGTransformer &transformer,
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(ExtractResultFromParens(list_pr.GetChild(1)), EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeTryExpression
@@ -17670,9 +17670,9 @@ void PEGTransformerFactory::InitializeColumnsExpression(PEGTransformer &transfor
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(ExtractResultFromParens(list_pr.GetChild(2)), EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeColumnsExpression
@@ -17695,9 +17695,9 @@ void PEGTransformerFactory::InitializeExtractExpression(PEGTransformer &transfor
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(ExtractResultFromParens(list_pr.GetChild(1)), EXTRACT_ARGUMENTS_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeExtractExpression
@@ -17717,11 +17717,11 @@ void PEGTransformerFactory::InitializeExtractArguments(PEGTransformer &transform
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), EXTRACT_ARGUMENT_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(2), EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), EXTRACT_ARGUMENT_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeExtractArguments
@@ -17744,14 +17744,14 @@ void PEGTransformerFactory::InitializeLambdaExpression(PEGTransformer &transform
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(3), EXPRESSION_OPS, parent_frame_index, child_slot);
+	child_slot -= col_id_or_string_children_0.size();
 	for (idx_t child_idx = col_id_or_string_children_0.size(); child_idx > 0; child_idx--) {
 		auto result_idx = child_idx - 1;
 		stack.PushFrame(col_id_or_string_children_0[result_idx].get(), COL_ID_OR_STRING_OPS, parent_frame_index, child_slot + result_idx);
 	}
-	child_slot += col_id_or_string_children_0.size();
-	stack.PushFrame(list_pr.GetChild(3), EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeLambdaExpression
@@ -17779,9 +17779,9 @@ void PEGTransformerFactory::InitializeNullIfExpression(PEGTransformer &transform
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(ExtractResultFromParens(list_pr.GetChild(1)), NULL_IF_ARGUMENTS_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeNullIfExpression
@@ -17801,11 +17801,11 @@ void PEGTransformerFactory::InitializeNullIfArguments(PEGTransformer &transforme
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(2), EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), EXPRESSION_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeNullIfArguments
@@ -17826,9 +17826,9 @@ void PEGTransformerFactory::InitializePositionExpression(PEGTransformer &transfo
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(ExtractResultFromParens(list_pr.GetChild(1)), POSITION_ARGUMENTS_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizePositionExpression
@@ -17848,11 +17848,11 @@ void PEGTransformerFactory::InitializePositionArguments(PEGTransformer &transfor
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), SINGLE_EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(2), SINGLE_EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), SINGLE_EXPRESSION_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizePositionArguments
@@ -17877,14 +17877,14 @@ void PEGTransformerFactory::InitializeRowExpression(PEGTransformer &transformer,
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
 	if (expression_opt_0.HasResult()) {
 		auto expression_children_0 = ExtractParseResultsFromList(expression_opt_0.GetResult());
+		child_slot -= expression_children_0.size();
 		for (idx_t child_idx = expression_children_0.size(); child_idx > 0; child_idx--) {
 			auto result_idx = child_idx - 1;
 			stack.PushFrame(expression_children_0[result_idx].get(), EXPRESSION_OPS, parent_frame_index, child_slot + result_idx);
 		}
-		child_slot += expression_children_0.size();
 	}
 }
 
@@ -17914,9 +17914,9 @@ void PEGTransformerFactory::InitializeSubstringExpression(PEGTransformer &transf
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(ExtractResultFromParens(list_pr.GetChild(1)), SUBSTRING_ARGUMENTS_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeSubstringExpression
@@ -17957,12 +17957,12 @@ void PEGTransformerFactory::InitializeSubstringExpressionList(PEGTransformer &tr
 	child_result_count += expression_children_0.size();
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot -= expression_children_0.size();
 	for (idx_t child_idx = expression_children_0.size(); child_idx > 0; child_idx--) {
 		auto result_idx = child_idx - 1;
 		stack.PushFrame(expression_children_0[result_idx].get(), EXPRESSION_OPS, parent_frame_index, child_slot + result_idx);
 	}
-	child_slot += expression_children_0.size();
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeSubstringExpressionList
@@ -17989,11 +17989,11 @@ void PEGTransformerFactory::InitializeSubstringParameters(PEGTransformer &transf
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), SUBSTRING_FROM_FOR_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), EXPRESSION_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeSubstringParameters
@@ -18039,13 +18039,13 @@ void PEGTransformerFactory::InitializeSubstringFromOptionalFor(PEGTransformer &t
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), FROM_EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
 	if (for_expression_opt_1.HasResult()) {
+		child_slot--;
 		stack.PushFrame(for_expression_opt_1.GetResult(), FOR_EXPRESSION_OPS, parent_frame_index, child_slot);
-		child_slot++;
 	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), FROM_EXPRESSION_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeSubstringFromOptionalFor
@@ -18072,9 +18072,9 @@ void PEGTransformerFactory::InitializeSubstringFor(PEGTransformer &transformer, 
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(0), FOR_EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeSubstringFor
@@ -18093,9 +18093,9 @@ void PEGTransformerFactory::InitializeTrimExpression(PEGTransformer &transformer
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(ExtractResultFromParens(list_pr.GetChild(1)), TRIM_ARGUMENTS_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeTrimExpression
@@ -18123,20 +18123,20 @@ void PEGTransformerFactory::InitializeTrimArguments(PEGTransformer &transformer,
 	child_result_count += expression_children_2.size();
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	if (trim_direction_opt_0.HasResult()) {
-		stack.PushFrame(trim_direction_opt_0.GetResult(), TRIM_DIRECTION_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
-	if (trim_source_opt_1.HasResult()) {
-		stack.PushFrame(trim_source_opt_1.GetResult(), TRIM_SOURCE_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
+	idx_t child_slot = child_result_count;
+	child_slot -= expression_children_2.size();
 	for (idx_t child_idx = expression_children_2.size(); child_idx > 0; child_idx--) {
 		auto result_idx = child_idx - 1;
 		stack.PushFrame(expression_children_2[result_idx].get(), EXPRESSION_OPS, parent_frame_index, child_slot + result_idx);
 	}
-	child_slot += expression_children_2.size();
+	if (trim_source_opt_1.HasResult()) {
+		child_slot--;
+		stack.PushFrame(trim_source_opt_1.GetResult(), TRIM_SOURCE_OPS, parent_frame_index, child_slot);
+	}
+	if (trim_direction_opt_0.HasResult()) {
+		child_slot--;
+		stack.PushFrame(trim_direction_opt_0.GetResult(), TRIM_DIRECTION_OPS, parent_frame_index, child_slot);
+	}
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeTrimArguments
@@ -18227,10 +18227,10 @@ void PEGTransformerFactory::InitializeTrimSource(PEGTransformer &transformer, Tr
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
 	if (expression_opt_0.HasResult()) {
+		child_slot--;
 		stack.PushFrame(expression_opt_0.GetResult(), EXPRESSION_OPS, parent_frame_index, child_slot);
-		child_slot++;
 	}
 }
 
@@ -18256,9 +18256,9 @@ void PEGTransformerFactory::InitializeOverlayExpression(PEGTransformer &transfor
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(ExtractResultFromParens(list_pr.GetChild(1)), OVERLAY_ARGUMENTS_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeOverlayExpression
@@ -18304,17 +18304,17 @@ void PEGTransformerFactory::InitializeOverlayParameters(PEGTransformer &transfor
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
-	stack.PushFrame(list_pr.GetChild(2), EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
-	stack.PushFrame(list_pr.GetChild(3), FROM_EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
 	if (for_expression_opt_3.HasResult()) {
+		child_slot--;
 		stack.PushFrame(for_expression_opt_3.GetResult(), FOR_EXPRESSION_OPS, parent_frame_index, child_slot);
-		child_slot++;
 	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(3), FROM_EXPRESSION_OPS, parent_frame_index, child_slot);
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(2), EXPRESSION_OPS, parent_frame_index, child_slot);
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), EXPRESSION_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeOverlayParameters
@@ -18345,9 +18345,9 @@ void PEGTransformerFactory::InitializeFromExpression(PEGTransformer &transformer
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeFromExpression
@@ -18366,9 +18366,9 @@ void PEGTransformerFactory::InitializeForExpression(PEGTransformer &transformer,
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeForExpression
@@ -18388,12 +18388,12 @@ void PEGTransformerFactory::InitializeOverlayExpressionList(PEGTransformer &tran
 	child_result_count += expression_children_0.size();
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot -= expression_children_0.size();
 	for (idx_t child_idx = expression_children_0.size(); child_idx > 0; child_idx--) {
 		auto result_idx = child_idx - 1;
 		stack.PushFrame(expression_children_0[result_idx].get(), EXPRESSION_OPS, parent_frame_index, child_slot + result_idx);
 	}
-	child_slot += expression_children_0.size();
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeOverlayExpressionList
@@ -18440,9 +18440,9 @@ void PEGTransformerFactory::InitializeExtractDatePartArgument(PEGTransformer &tr
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(0), EXTRACT_DATE_PART_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeExtractDatePartArgument
@@ -18531,34 +18531,34 @@ void PEGTransformerFactory::InitializeInsertStatement(PEGTransformer &transforme
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	if (with_clause_opt_0.HasResult()) {
-		stack.PushFrame(with_clause_opt_0.GetResult(), WITH_CLAUSE_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
-	if (or_action_opt_1.HasResult()) {
-		stack.PushFrame(or_action_opt_1.GetResult(), OR_ACTION_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
-	stack.PushFrame(list_pr.GetChild(4), INSERT_TARGET_OPS, parent_frame_index, child_slot);
-	child_slot++;
-	if (by_name_or_position_opt_3.HasResult()) {
-		stack.PushFrame(by_name_or_position_opt_3.GetResult(), BY_NAME_OR_POSITION_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
-	if (insert_column_list_opt_4.HasResult()) {
-		stack.PushFrame(insert_column_list_opt_4.GetResult(), INSERT_COLUMN_LIST_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
-	stack.PushFrame(list_pr.GetChild(7), INSERT_VALUES_OPS, parent_frame_index, child_slot);
-	child_slot++;
-	if (on_conflict_clause_opt_6.HasResult()) {
-		stack.PushFrame(on_conflict_clause_opt_6.GetResult(), ON_CONFLICT_CLAUSE_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
+	idx_t child_slot = child_result_count;
 	if (returning_clause_opt_7.HasResult()) {
+		child_slot--;
 		stack.PushFrame(returning_clause_opt_7.GetResult(), RETURNING_CLAUSE_OPS, parent_frame_index, child_slot);
-		child_slot++;
+	}
+	if (on_conflict_clause_opt_6.HasResult()) {
+		child_slot--;
+		stack.PushFrame(on_conflict_clause_opt_6.GetResult(), ON_CONFLICT_CLAUSE_OPS, parent_frame_index, child_slot);
+	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(7), INSERT_VALUES_OPS, parent_frame_index, child_slot);
+	if (insert_column_list_opt_4.HasResult()) {
+		child_slot--;
+		stack.PushFrame(insert_column_list_opt_4.GetResult(), INSERT_COLUMN_LIST_OPS, parent_frame_index, child_slot);
+	}
+	if (by_name_or_position_opt_3.HasResult()) {
+		child_slot--;
+		stack.PushFrame(by_name_or_position_opt_3.GetResult(), BY_NAME_OR_POSITION_OPS, parent_frame_index, child_slot);
+	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(4), INSERT_TARGET_OPS, parent_frame_index, child_slot);
+	if (or_action_opt_1.HasResult()) {
+		child_slot--;
+		stack.PushFrame(or_action_opt_1.GetResult(), OR_ACTION_OPS, parent_frame_index, child_slot);
+	}
+	if (with_clause_opt_0.HasResult()) {
+		child_slot--;
+		stack.PushFrame(with_clause_opt_0.GetResult(), WITH_CLAUSE_OPS, parent_frame_index, child_slot);
 	}
 }
 
@@ -18683,9 +18683,9 @@ void PEGTransformerFactory::InitializeInsertByNameOrder(PEGTransformer &transfor
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), INSERT_BY_NAME_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeInsertByNameOrder
@@ -18704,9 +18704,9 @@ void PEGTransformerFactory::InitializeInsertByPositionOrder(PEGTransformer &tran
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), INSERT_BY_POSITION_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeInsertByPositionOrder
@@ -18747,13 +18747,13 @@ void PEGTransformerFactory::InitializeInsertTarget(PEGTransformer &transformer, 
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), BASE_TABLE_NAME_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
 	if (insert_alias_opt_1.HasResult()) {
+		child_slot--;
 		stack.PushFrame(insert_alias_opt_1.GetResult(), INSERT_ALIAS_OPS, parent_frame_index, child_slot);
-		child_slot++;
 	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), BASE_TABLE_NAME_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeInsertTarget
@@ -18793,12 +18793,12 @@ void PEGTransformerFactory::InitializeColumnList(PEGTransformer &transformer, Tr
 	child_result_count += col_id_children_0.size();
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot -= col_id_children_0.size();
 	for (idx_t child_idx = col_id_children_0.size(); child_idx > 0; child_idx--) {
 		auto result_idx = child_idx - 1;
 		stack.PushFrame(col_id_children_0[result_idx].get(), COL_ID_OPS, parent_frame_index, child_slot + result_idx);
 	}
-	child_slot += col_id_children_0.size();
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeColumnList
@@ -18824,9 +18824,9 @@ void PEGTransformerFactory::InitializeInsertColumnList(PEGTransformer &transform
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(ExtractResultFromParens(list_pr.GetChild(0)), COLUMN_LIST_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeInsertColumnList
@@ -18866,9 +18866,9 @@ void PEGTransformerFactory::InitializeSelectInsertValues(PEGTransformer &transfo
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(0), SELECT_STATEMENT_INTERNAL_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeSelectInsertValues
@@ -18900,13 +18900,13 @@ void PEGTransformerFactory::InitializeOnConflictClause(PEGTransformer &transform
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	if (on_conflict_target_opt_0.HasResult()) {
-		stack.PushFrame(on_conflict_target_opt_0.GetResult(), ON_CONFLICT_TARGET_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(3), ON_CONFLICT_ACTION_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	if (on_conflict_target_opt_0.HasResult()) {
+		child_slot--;
+		stack.PushFrame(on_conflict_target_opt_0.GetResult(), ON_CONFLICT_TARGET_OPS, parent_frame_index, child_slot);
+	}
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeOnConflictClause
@@ -18958,13 +18958,13 @@ void PEGTransformerFactory::InitializeOnConflictExpressionTarget(PEGTransformer 
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), COLUMN_ID_LIST_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
 	if (where_clause_opt_1.HasResult()) {
+		child_slot--;
 		stack.PushFrame(where_clause_opt_1.GetResult(), WHERE_CLAUSE_OPS, parent_frame_index, child_slot);
-		child_slot++;
 	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), COLUMN_ID_LIST_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeOnConflictExpressionTarget
@@ -18991,9 +18991,9 @@ void PEGTransformerFactory::InitializeOnConflictIndexTarget(PEGTransformer &tran
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(2), CONSTRAINT_NAME_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeOnConflictIndexTarget
@@ -19037,13 +19037,13 @@ void PEGTransformerFactory::InitializeOnConflictUpdate(PEGTransformer &transform
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(3), UPDATE_SET_CLAUSE_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
 	if (where_clause_opt_1.HasResult()) {
+		child_slot--;
 		stack.PushFrame(where_clause_opt_1.GetResult(), WHERE_CLAUSE_OPS, parent_frame_index, child_slot);
-		child_slot++;
 	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(3), UPDATE_SET_CLAUSE_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeOnConflictUpdate
@@ -19079,9 +19079,9 @@ void PEGTransformerFactory::InitializeReturningClause(PEGTransformer &transforme
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), TARGET_LIST_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeReturningClause
@@ -19104,13 +19104,13 @@ void PEGTransformerFactory::InitializeLoadStatement(PEGTransformer &transformer,
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(1), COL_ID_OR_STRING_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
 	if (extension_alias_opt_1.HasResult()) {
+		child_slot--;
 		stack.PushFrame(extension_alias_opt_1.GetResult(), EXTENSION_ALIAS_OPS, parent_frame_index, child_slot);
-		child_slot++;
 	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(1), COL_ID_OR_STRING_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeLoadStatement
@@ -19157,17 +19157,17 @@ void PEGTransformerFactory::InitializeInstallStatement(PEGTransformer &transform
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(2), IDENTIFIER_OR_STRING_LITERAL_OPS, parent_frame_index, child_slot);
-	child_slot++;
-	if (from_source_opt_1.HasResult()) {
-		stack.PushFrame(from_source_opt_1.GetResult(), FROM_SOURCE_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
+	idx_t child_slot = child_result_count;
 	if (version_number_opt_2.HasResult()) {
+		child_slot--;
 		stack.PushFrame(version_number_opt_2.GetResult(), VERSION_NUMBER_OPS, parent_frame_index, child_slot);
-		child_slot++;
 	}
+	if (from_source_opt_1.HasResult()) {
+		child_slot--;
+		stack.PushFrame(from_source_opt_1.GetResult(), FROM_SOURCE_OPS, parent_frame_index, child_slot);
+	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(2), IDENTIFIER_OR_STRING_LITERAL_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeInstallStatement
@@ -19272,9 +19272,9 @@ void PEGTransformerFactory::InitializeVersionNumber(PEGTransformer &transformer,
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), IDENTIFIER_OR_STRING_LITERAL_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeVersionNumber
@@ -19305,26 +19305,26 @@ void PEGTransformerFactory::InitializeMergeIntoStatement(PEGTransformer &transfo
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	if (with_clause_opt_0.HasResult()) {
-		stack.PushFrame(with_clause_opt_0.GetResult(), WITH_CLAUSE_OPS, parent_frame_index, child_slot);
-		child_slot++;
+	idx_t child_slot = child_result_count;
+	if (returning_clause_opt_5.HasResult()) {
+		child_slot--;
+		stack.PushFrame(returning_clause_opt_5.GetResult(), RETURNING_CLAUSE_OPS, parent_frame_index, child_slot);
 	}
-	stack.PushFrame(list_pr.GetChild(3), TARGET_OPT_ALIAS_OPS, parent_frame_index, child_slot);
-	child_slot++;
-	stack.PushFrame(list_pr.GetChild(4), MERGE_INTO_USING_CLAUSE_OPS, parent_frame_index, child_slot);
-	child_slot++;
-	stack.PushFrame(list_pr.GetChild(5), JOIN_QUALIFIER_OPS, parent_frame_index, child_slot);
-	child_slot++;
 	auto merge_match_children_4 = merge_match_repeat_4.GetChildren();
+	child_slot -= merge_match_children_4.size();
 	for (idx_t child_idx = merge_match_children_4.size(); child_idx > 0; child_idx--) {
 		auto result_idx = child_idx - 1;
 		stack.PushFrame(merge_match_children_4[result_idx].get(), MERGE_MATCH_OPS, parent_frame_index, child_slot + result_idx);
 	}
-	child_slot += merge_match_children_4.size();
-	if (returning_clause_opt_5.HasResult()) {
-		stack.PushFrame(returning_clause_opt_5.GetResult(), RETURNING_CLAUSE_OPS, parent_frame_index, child_slot);
-		child_slot++;
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(5), JOIN_QUALIFIER_OPS, parent_frame_index, child_slot);
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(4), MERGE_INTO_USING_CLAUSE_OPS, parent_frame_index, child_slot);
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(3), TARGET_OPT_ALIAS_OPS, parent_frame_index, child_slot);
+	if (with_clause_opt_0.HasResult()) {
+		child_slot--;
+		stack.PushFrame(with_clause_opt_0.GetResult(), WITH_CLAUSE_OPS, parent_frame_index, child_slot);
 	}
 }
 
@@ -19370,9 +19370,9 @@ void PEGTransformerFactory::InitializeMergeIntoUsingClause(PEGTransformer &trans
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), TABLE_REF_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeMergeIntoUsingClause
@@ -19416,13 +19416,13 @@ void PEGTransformerFactory::InitializeMatchedClause(PEGTransformer &transformer,
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	if (and_expression_opt_0.HasResult()) {
-		stack.PushFrame(and_expression_opt_0.GetResult(), AND_EXPRESSION_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(4), MATCHED_CLAUSE_ACTION_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	if (and_expression_opt_0.HasResult()) {
+		child_slot--;
+		stack.PushFrame(and_expression_opt_0.GetResult(), AND_EXPRESSION_OPS, parent_frame_index, child_slot);
+	}
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeMatchedClause
@@ -19473,10 +19473,10 @@ void PEGTransformerFactory::InitializeUpdateMatchClause(PEGTransformer &transfor
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
 	if (update_match_info_opt_0.HasResult()) {
+		child_slot--;
 		stack.PushFrame(update_match_info_opt_0.GetResult(), UPDATE_MATCH_INFO_OPS, parent_frame_index, child_slot);
-		child_slot++;
 	}
 }
 
@@ -19523,9 +19523,9 @@ void PEGTransformerFactory::InitializeUpdateMatchSetAction(PEGTransformer &trans
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(0), UPDATE_MATCH_SET_CLAUSE_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeUpdateMatchSetAction
@@ -19544,9 +19544,9 @@ void PEGTransformerFactory::InitializeUpdateByNameOrPosition(PEGTransformer &tra
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(0), BY_NAME_OR_POSITION_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeUpdateByNameOrPosition
@@ -19577,10 +19577,10 @@ void PEGTransformerFactory::InitializeInsertMatchClause(PEGTransformer &transfor
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
 	if (insert_match_info_opt_0.HasResult()) {
+		child_slot--;
 		stack.PushFrame(insert_match_info_opt_0.GetResult(), INSERT_MATCH_INFO_OPS, parent_frame_index, child_slot);
-		child_slot++;
 	}
 }
 
@@ -19639,10 +19639,10 @@ void PEGTransformerFactory::InitializeInsertByNameOrPosition(PEGTransformer &tra
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
 	if (by_name_or_position_opt_0.HasResult()) {
+		child_slot--;
 		stack.PushFrame(by_name_or_position_opt_0.GetResult(), BY_NAME_OR_POSITION_OPS, parent_frame_index, child_slot);
-		child_slot++;
 	}
 }
 
@@ -19676,16 +19676,16 @@ void PEGTransformerFactory::InitializeInsertValuesList(PEGTransformer &transform
 	child_result_count += expression_children_1.size();
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	if (insert_column_list_opt_0.HasResult()) {
-		stack.PushFrame(insert_column_list_opt_0.GetResult(), INSERT_COLUMN_LIST_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
+	idx_t child_slot = child_result_count;
+	child_slot -= expression_children_1.size();
 	for (idx_t child_idx = expression_children_1.size(); child_idx > 0; child_idx--) {
 		auto result_idx = child_idx - 1;
 		stack.PushFrame(expression_children_1[result_idx].get(), EXPRESSION_OPS, parent_frame_index, child_slot + result_idx);
 	}
-	child_slot += expression_children_1.size();
+	if (insert_column_list_opt_0.HasResult()) {
+		child_slot--;
+		stack.PushFrame(insert_column_list_opt_0.GetResult(), INSERT_COLUMN_LIST_OPS, parent_frame_index, child_slot);
+	}
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeInsertValuesList
@@ -19730,10 +19730,10 @@ void PEGTransformerFactory::InitializeErrorMatchClause(PEGTransformer &transform
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
 	if (expression_opt_0.HasResult()) {
+		child_slot--;
 		stack.PushFrame(expression_opt_0.GetResult(), EXPRESSION_OPS, parent_frame_index, child_slot);
-		child_slot++;
 	}
 }
 
@@ -19759,9 +19759,9 @@ void PEGTransformerFactory::InitializeUpdateMatchSetClause(PEGTransformer &trans
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), UPDATE_MATCH_SET_INFO_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeUpdateMatchSetClause
@@ -19805,9 +19805,9 @@ void PEGTransformerFactory::InitializeAndExpression(PEGTransformer &transformer,
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeAndExpression
@@ -19834,17 +19834,17 @@ void PEGTransformerFactory::InitializeNotMatchedClause(PEGTransformer &transform
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	if (by_source_or_target_opt_0.HasResult()) {
-		stack.PushFrame(by_source_or_target_opt_0.GetResult(), BY_SOURCE_OR_TARGET_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
-	if (and_expression_opt_1.HasResult()) {
-		stack.PushFrame(and_expression_opt_1.GetResult(), AND_EXPRESSION_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(6), MATCHED_CLAUSE_ACTION_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	if (and_expression_opt_1.HasResult()) {
+		child_slot--;
+		stack.PushFrame(and_expression_opt_1.GetResult(), AND_EXPRESSION_OPS, parent_frame_index, child_slot);
+	}
+	if (by_source_or_target_opt_0.HasResult()) {
+		child_slot--;
+		stack.PushFrame(by_source_or_target_opt_0.GetResult(), BY_SOURCE_OR_TARGET_OPS, parent_frame_index, child_slot);
+	}
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeNotMatchedClause
@@ -19927,9 +19927,9 @@ void PEGTransformerFactory::InitializePivotOn(PEGTransformer &transformer, Trans
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), PIVOT_COLUMN_LIST_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizePivotOn
@@ -19948,9 +19948,9 @@ void PEGTransformerFactory::InitializePivotUsing(PEGTransformer &transformer, Tr
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), TARGET_LIST_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizePivotUsing
@@ -19970,12 +19970,12 @@ void PEGTransformerFactory::InitializePivotColumnList(PEGTransformer &transforme
 	child_result_count += pivot_column_entry_children_0.size();
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot -= pivot_column_entry_children_0.size();
 	for (idx_t child_idx = pivot_column_entry_children_0.size(); child_idx > 0; child_idx--) {
 		auto result_idx = child_idx - 1;
 		stack.PushFrame(pivot_column_entry_children_0[result_idx].get(), PIVOT_COLUMN_ENTRY_OPS, parent_frame_index, child_slot + result_idx);
 	}
-	child_slot += pivot_column_entry_children_0.size();
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizePivotColumnList
@@ -20022,9 +20022,9 @@ void PEGTransformerFactory::InitializePivotColumnExpression(PEGTransformer &tran
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(0), EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizePivotColumnExpression
@@ -20044,11 +20044,11 @@ void PEGTransformerFactory::InitializePivotColumnSubquery(PEGTransformer &transf
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), BASE_EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(ExtractResultFromParens(list_pr.GetChild(2)), SELECT_STATEMENT_INTERNAL_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), BASE_EXPRESSION_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizePivotColumnSubquery
@@ -20079,9 +20079,9 @@ void PEGTransformerFactory::InitializeIntoNameValues(PEGTransformer &transformer
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(2), COL_ID_OR_STRING_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeIntoNameValues
@@ -20168,9 +20168,9 @@ void PEGTransformerFactory::InitializeUnpivotHeaderSingle(PEGTransformer &transf
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(0), COL_ID_OR_STRING_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeUnpivotHeaderSingle
@@ -20190,12 +20190,12 @@ void PEGTransformerFactory::InitializeUnpivotHeaderList(PEGTransformer &transfor
 	child_result_count += col_id_or_string_children_0.size();
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot -= col_id_or_string_children_0.size();
 	for (idx_t child_idx = col_id_or_string_children_0.size(); child_idx > 0; child_idx--) {
 		auto result_idx = child_idx - 1;
 		stack.PushFrame(col_id_or_string_children_0[result_idx].get(), COL_ID_OR_STRING_OPS, parent_frame_index, child_slot + result_idx);
 	}
-	child_slot += col_id_or_string_children_0.size();
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeUnpivotHeaderList
@@ -20221,9 +20221,9 @@ void PEGTransformerFactory::InitializePragmaStatement(PEGTransformer &transforme
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), PRAGMA_ASSIGN_OR_FUNCTION_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizePragmaStatement
@@ -20266,9 +20266,9 @@ void PEGTransformerFactory::InitializePragmaAssign(PEGTransformer &transformer, 
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(2), VARIABLE_LIST_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizePragmaAssign
@@ -20292,10 +20292,10 @@ void PEGTransformerFactory::InitializePragmaFunction(PEGTransformer &transformer
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
 	if (pragma_parameters_opt_0.HasResult()) {
+		child_slot--;
 		stack.PushFrame(pragma_parameters_opt_0.GetResult(), PRAGMA_PARAMETERS_OPS, parent_frame_index, child_slot);
-		child_slot++;
 	}
 }
 
@@ -20323,12 +20323,12 @@ void PEGTransformerFactory::InitializePragmaParameters(PEGTransformer &transform
 	child_result_count += expression_children_0.size();
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot -= expression_children_0.size();
 	for (idx_t child_idx = expression_children_0.size(); child_idx > 0; child_idx--) {
 		auto result_idx = child_idx - 1;
 		stack.PushFrame(expression_children_0[result_idx].get(), EXPRESSION_OPS, parent_frame_index, child_slot + result_idx);
 	}
-	child_slot += expression_children_0.size();
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizePragmaParameters
@@ -20358,13 +20358,13 @@ void PEGTransformerFactory::InitializePrepareStatement(PEGTransformer &transform
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	if (type_list_opt_0.HasResult()) {
-		stack.PushFrame(type_list_opt_0.GetResult(), TYPE_LIST_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(4), STATEMENT_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	if (type_list_opt_0.HasResult()) {
+		child_slot--;
+		stack.PushFrame(type_list_opt_0.GetResult(), TYPE_LIST_OPS, parent_frame_index, child_slot);
+	}
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizePrepareStatement
@@ -20393,12 +20393,12 @@ void PEGTransformerFactory::InitializeTypeList(PEGTransformer &transformer, Tran
 	child_result_count += type_children_0.size();
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot -= type_children_0.size();
 	for (idx_t child_idx = type_children_0.size(); child_idx > 0; child_idx--) {
 		auto result_idx = child_idx - 1;
 		stack.PushFrame(type_children_0[result_idx].get(), TYPE_OPS, parent_frame_index, child_slot + result_idx);
 	}
-	child_slot += type_children_0.size();
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeTypeList
@@ -20424,9 +20424,9 @@ void PEGTransformerFactory::InitializeSelectStatement(PEGTransformer &transforme
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(0), SELECT_STATEMENT_INTERNAL_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeSelectStatement
@@ -20460,18 +20460,18 @@ void PEGTransformerFactory::InitializeSelectSetOpChain(PEGTransformer &transform
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), INTERSECT_CHAIN_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
 	if (select_set_op_chain_tail_opt_1.HasResult()) {
 		auto &select_set_op_chain_tail_repeat_1 = select_set_op_chain_tail_opt_1.GetResult().Cast<RepeatParseResult>();
 		auto select_set_op_chain_tail_children_1 = select_set_op_chain_tail_repeat_1.GetChildren();
+		child_slot -= select_set_op_chain_tail_children_1.size();
 		for (idx_t child_idx = select_set_op_chain_tail_children_1.size(); child_idx > 0; child_idx--) {
 			auto result_idx = child_idx - 1;
 			stack.PushFrame(select_set_op_chain_tail_children_1[result_idx].get(), SELECT_SET_OP_CHAIN_TAIL_OPS, parent_frame_index, child_slot + result_idx);
 		}
-		child_slot += select_set_op_chain_tail_children_1.size();
 	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), INTERSECT_CHAIN_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeSelectSetOpChain
@@ -20504,11 +20504,11 @@ void PEGTransformerFactory::InitializeSelectSetOpChainTail(PEGTransformer &trans
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), SETOP_CLAUSE_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), INTERSECT_CHAIN_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), SETOP_CLAUSE_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeSelectSetOpChainTail
@@ -20534,18 +20534,18 @@ void PEGTransformerFactory::InitializeIntersectChain(PEGTransformer &transformer
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), SELECT_ATOM_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
 	if (intersect_chain_tail_opt_1.HasResult()) {
 		auto &intersect_chain_tail_repeat_1 = intersect_chain_tail_opt_1.GetResult().Cast<RepeatParseResult>();
 		auto intersect_chain_tail_children_1 = intersect_chain_tail_repeat_1.GetChildren();
+		child_slot -= intersect_chain_tail_children_1.size();
 		for (idx_t child_idx = intersect_chain_tail_children_1.size(); child_idx > 0; child_idx--) {
 			auto result_idx = child_idx - 1;
 			stack.PushFrame(intersect_chain_tail_children_1[result_idx].get(), INTERSECT_CHAIN_TAIL_OPS, parent_frame_index, child_slot + result_idx);
 		}
-		child_slot += intersect_chain_tail_children_1.size();
 	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), SELECT_ATOM_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeIntersectChain
@@ -20578,11 +20578,11 @@ void PEGTransformerFactory::InitializeIntersectChainTail(PEGTransformer &transfo
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), SET_INTERSECT_CLAUSE_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), SELECT_ATOM_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), SET_INTERSECT_CLAUSE_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeIntersectChainTail
@@ -20606,10 +20606,10 @@ void PEGTransformerFactory::InitializeSetIntersectClause(PEGTransformer &transfo
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
 	if (distinct_or_all_opt_0.HasResult()) {
+		child_slot--;
 		stack.PushFrame(distinct_or_all_opt_0.GetResult(), DISTINCT_OR_ALL_OPS, parent_frame_index, child_slot);
-		child_slot++;
 	}
 }
 
@@ -20656,9 +20656,9 @@ void PEGTransformerFactory::InitializeSelectParens(PEGTransformer &transformer, 
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(ExtractResultFromParens(list_pr.GetChild(0)), SELECT_STATEMENT_INTERNAL_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeSelectParens
@@ -20681,13 +20681,13 @@ void PEGTransformerFactory::InitializeSetopClause(PEGTransformer &transformer, T
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), SETOP_TYPE_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
 	if (distinct_or_all_opt_1.HasResult()) {
+		child_slot--;
 		stack.PushFrame(distinct_or_all_opt_1.GetResult(), DISTINCT_OR_ALL_OPS, parent_frame_index, child_slot);
-		child_slot++;
 	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), SETOP_TYPE_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeSetopClause
@@ -20784,14 +20784,14 @@ void PEGTransformerFactory::InitializeResultModifiers(PEGTransformer &transforme
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	if (order_by_clause_opt_0.HasResult()) {
-		stack.PushFrame(order_by_clause_opt_0.GetResult(), ORDER_BY_CLAUSE_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
+	idx_t child_slot = child_result_count;
 	if (limit_offset_opt_1.HasResult()) {
+		child_slot--;
 		stack.PushFrame(limit_offset_opt_1.GetResult(), LIMIT_OFFSET_OPS, parent_frame_index, child_slot);
-		child_slot++;
+	}
+	if (order_by_clause_opt_0.HasResult()) {
+		child_slot--;
+		stack.PushFrame(order_by_clause_opt_0.GetResult(), ORDER_BY_CLAUSE_OPS, parent_frame_index, child_slot);
 	}
 }
 
@@ -20849,13 +20849,13 @@ void PEGTransformerFactory::InitializeLimitOffsetClause(PEGTransformer &transfor
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), LIMIT_CLAUSE_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
 	if (offset_clause_opt_1.HasResult()) {
+		child_slot--;
 		stack.PushFrame(offset_clause_opt_1.GetResult(), OFFSET_CLAUSE_OPS, parent_frame_index, child_slot);
-		child_slot++;
 	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), LIMIT_CLAUSE_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeLimitOffsetClause
@@ -20886,13 +20886,13 @@ void PEGTransformerFactory::InitializeOffsetLimitClause(PEGTransformer &transfor
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), OFFSET_CLAUSE_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
 	if (limit_clause_opt_1.HasResult()) {
+		child_slot--;
 		stack.PushFrame(limit_clause_opt_1.GetResult(), LIMIT_CLAUSE_OPS, parent_frame_index, child_slot);
-		child_slot++;
 	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), OFFSET_CLAUSE_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeOffsetLimitClause
@@ -20919,9 +20919,9 @@ void PEGTransformerFactory::InitializeTableStatement(PEGTransformer &transformer
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), BASE_TABLE_NAME_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeTableStatement
@@ -20961,9 +20961,9 @@ void PEGTransformerFactory::InitializeSimpleSelectParens(PEGTransformer &transfo
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(ExtractResultFromParens(list_pr.GetChild(0)), SIMPLE_SELECT_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeSimpleSelectParens
@@ -21017,13 +21017,13 @@ void PEGTransformerFactory::InitializeSelectFromClause(PEGTransformer &transform
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), SELECT_CLAUSE_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
 	if (from_clause_opt_1.HasResult()) {
+		child_slot--;
 		stack.PushFrame(from_clause_opt_1.GetResult(), FROM_CLAUSE_OPS, parent_frame_index, child_slot);
-		child_slot++;
 	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), SELECT_CLAUSE_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeSelectFromClause
@@ -21054,13 +21054,13 @@ void PEGTransformerFactory::InitializeFromSelectClause(PEGTransformer &transform
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), FROM_CLAUSE_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
 	if (select_clause_opt_1.HasResult()) {
+		child_slot--;
 		stack.PushFrame(select_clause_opt_1.GetResult(), SELECT_CLAUSE_OPS, parent_frame_index, child_slot);
-		child_slot++;
 	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), FROM_CLAUSE_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeFromSelectClause
@@ -21100,23 +21100,23 @@ void PEGTransformerFactory::InitializeWithStatement(PEGTransformer &transformer,
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), COL_ID_OR_STRING_OPS, parent_frame_index, child_slot);
-	child_slot++;
-	if (insert_column_list_opt_1.HasResult()) {
-		stack.PushFrame(insert_column_list_opt_1.GetResult(), INSERT_COLUMN_LIST_OPS, parent_frame_index, child_slot);
-		child_slot++;
+	idx_t child_slot = child_result_count;
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(5), CTE_BODY_OPS, parent_frame_index, child_slot);
+	if (materialized_opt_3.HasResult()) {
+		child_slot--;
+		stack.PushFrame(materialized_opt_3.GetResult(), MATERIALIZED_OPS, parent_frame_index, child_slot);
 	}
 	if (using_key_opt_2.HasResult()) {
+		child_slot--;
 		stack.PushFrame(using_key_opt_2.GetResult(), USING_KEY_OPS, parent_frame_index, child_slot);
-		child_slot++;
 	}
-	if (materialized_opt_3.HasResult()) {
-		stack.PushFrame(materialized_opt_3.GetResult(), MATERIALIZED_OPS, parent_frame_index, child_slot);
-		child_slot++;
+	if (insert_column_list_opt_1.HasResult()) {
+		child_slot--;
+		stack.PushFrame(insert_column_list_opt_1.GetResult(), INSERT_COLUMN_LIST_OPS, parent_frame_index, child_slot);
 	}
-	stack.PushFrame(list_pr.GetChild(5), CTE_BODY_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), COL_ID_OR_STRING_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeWithStatement
@@ -21180,9 +21180,9 @@ void PEGTransformerFactory::InitializeCTESelectBody(PEGTransformer &transformer,
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(ExtractResultFromParens(list_pr.GetChild(0)), SELECT_STATEMENT_INTERNAL_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeCTESelectBody
@@ -21201,9 +21201,9 @@ void PEGTransformerFactory::InitializeCTEDMLBody(PEGTransformer &transformer, Tr
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(ExtractResultFromParens(list_pr.GetChild(0)), STATEMENT_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeCTEDMLBody
@@ -21222,9 +21222,9 @@ void PEGTransformerFactory::InitializeUsingKey(PEGTransformer &transformer, Tran
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(ExtractResultFromParens(list_pr.GetChild(2)), TARGET_LIST_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeUsingKey
@@ -21274,14 +21274,14 @@ void PEGTransformerFactory::InitializeSelectClause(PEGTransformer &transformer, 
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	if (distinct_clause_opt_0.HasResult()) {
-		stack.PushFrame(distinct_clause_opt_0.GetResult(), DISTINCT_CLAUSE_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
+	idx_t child_slot = child_result_count;
 	if (target_list_opt_1.HasResult()) {
+		child_slot--;
 		stack.PushFrame(target_list_opt_1.GetResult(), TARGET_LIST_OPS, parent_frame_index, child_slot);
-		child_slot++;
+	}
+	if (distinct_clause_opt_0.HasResult()) {
+		child_slot--;
+		stack.PushFrame(distinct_clause_opt_0.GetResult(), DISTINCT_CLAUSE_OPS, parent_frame_index, child_slot);
 	}
 }
 
@@ -21315,12 +21315,12 @@ void PEGTransformerFactory::InitializeTargetList(PEGTransformer &transformer, Tr
 	child_result_count += aliased_expression_children_0.size();
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot -= aliased_expression_children_0.size();
 	for (idx_t child_idx = aliased_expression_children_0.size(); child_idx > 0; child_idx--) {
 		auto result_idx = child_idx - 1;
 		stack.PushFrame(aliased_expression_children_0[result_idx].get(), ALIASED_EXPRESSION_OPS, parent_frame_index, child_slot + result_idx);
 	}
-	child_slot += aliased_expression_children_0.size();
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeTargetList
@@ -21347,12 +21347,12 @@ void PEGTransformerFactory::InitializeColumnAliases(PEGTransformer &transformer,
 	child_result_count += col_id_or_string_children_0.size();
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot -= col_id_or_string_children_0.size();
 	for (idx_t child_idx = col_id_or_string_children_0.size(); child_idx > 0; child_idx--) {
 		auto result_idx = child_idx - 1;
 		stack.PushFrame(col_id_or_string_children_0[result_idx].get(), COL_ID_OR_STRING_OPS, parent_frame_index, child_slot + result_idx);
 	}
-	child_slot += col_id_or_string_children_0.size();
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeColumnAliases
@@ -21411,10 +21411,10 @@ void PEGTransformerFactory::InitializeDistinctOn(PEGTransformer &transformer, Tr
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
 	if (distinct_on_targets_opt_0.HasResult()) {
+		child_slot--;
 		stack.PushFrame(distinct_on_targets_opt_0.GetResult(), DISTINCT_ON_TARGETS_OPS, parent_frame_index, child_slot);
-		child_slot++;
 	}
 }
 
@@ -21441,12 +21441,12 @@ void PEGTransformerFactory::InitializeDistinctOnTargets(PEGTransformer &transfor
 	child_result_count += expression_children_0.size();
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot -= expression_children_0.size();
 	for (idx_t child_idx = expression_children_0.size(); child_idx > 0; child_idx--) {
 		auto result_idx = child_idx - 1;
 		stack.PushFrame(expression_children_0[result_idx].get(), EXPRESSION_OPS, parent_frame_index, child_slot + result_idx);
 	}
-	child_slot += expression_children_0.size();
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeDistinctOnTargets
@@ -21511,16 +21511,16 @@ void PEGTransformerFactory::InitializeTableSubquery(PEGTransformer &transformer,
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	if (lateral_opt_0.HasResult()) {
-		stack.PushFrame(lateral_opt_0.GetResult(), LATERAL_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
-	stack.PushFrame(list_pr.GetChild(1), SUBQUERY_REFERENCE_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
 	if (table_alias_opt_2.HasResult()) {
+		child_slot--;
 		stack.PushFrame(table_alias_opt_2.GetResult(), TABLE_ALIAS_OPS, parent_frame_index, child_slot);
-		child_slot++;
+	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(1), SUBQUERY_REFERENCE_OPS, parent_frame_index, child_slot);
+	if (lateral_opt_0.HasResult()) {
+		child_slot--;
+		stack.PushFrame(lateral_opt_0.GetResult(), LATERAL_OPS, parent_frame_index, child_slot);
 	}
 }
 
@@ -21571,24 +21571,24 @@ void PEGTransformerFactory::InitializeBaseTableRef(PEGTransformer &transformer, 
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	if (table_alias_colon_opt_0.HasResult()) {
-		stack.PushFrame(table_alias_colon_opt_0.GetResult(), TABLE_ALIAS_COLON_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
-	stack.PushFrame(list_pr.GetChild(1), BASE_TABLE_NAME_OPS, parent_frame_index, child_slot);
-	child_slot++;
-	if (table_alias_opt_2.HasResult()) {
-		stack.PushFrame(table_alias_opt_2.GetResult(), TABLE_ALIAS_OPS, parent_frame_index, child_slot);
-		child_slot++;
+	idx_t child_slot = child_result_count;
+	if (sample_clause_opt_4.HasResult()) {
+		child_slot--;
+		stack.PushFrame(sample_clause_opt_4.GetResult(), SAMPLE_CLAUSE_OPS, parent_frame_index, child_slot);
 	}
 	if (at_clause_opt_3.HasResult()) {
+		child_slot--;
 		stack.PushFrame(at_clause_opt_3.GetResult(), AT_CLAUSE_OPS, parent_frame_index, child_slot);
-		child_slot++;
 	}
-	if (sample_clause_opt_4.HasResult()) {
-		stack.PushFrame(sample_clause_opt_4.GetResult(), SAMPLE_CLAUSE_OPS, parent_frame_index, child_slot);
-		child_slot++;
+	if (table_alias_opt_2.HasResult()) {
+		child_slot--;
+		stack.PushFrame(table_alias_opt_2.GetResult(), TABLE_ALIAS_OPS, parent_frame_index, child_slot);
+	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(1), BASE_TABLE_NAME_OPS, parent_frame_index, child_slot);
+	if (table_alias_colon_opt_0.HasResult()) {
+		child_slot--;
+		stack.PushFrame(table_alias_colon_opt_0.GetResult(), TABLE_ALIAS_COLON_OPS, parent_frame_index, child_slot);
 	}
 }
 
@@ -21637,9 +21637,9 @@ void PEGTransformerFactory::InitializeTableAliasColon(PEGTransformer &transforme
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(0), COL_ID_OR_STRING_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeTableAliasColon
@@ -21662,13 +21662,13 @@ void PEGTransformerFactory::InitializeValuesRef(PEGTransformer &transformer, Tra
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), VALUES_CLAUSE_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
 	if (table_alias_opt_1.HasResult()) {
+		child_slot--;
 		stack.PushFrame(table_alias_opt_1.GetResult(), TABLE_ALIAS_OPS, parent_frame_index, child_slot);
-		child_slot++;
 	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), VALUES_CLAUSE_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeValuesRef
@@ -21707,20 +21707,20 @@ void PEGTransformerFactory::InitializeParensTableRef(PEGTransformer &transformer
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	if (table_alias_colon_opt_0.HasResult()) {
-		stack.PushFrame(table_alias_colon_opt_0.GetResult(), TABLE_ALIAS_COLON_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
-	stack.PushFrame(ExtractResultFromParens(list_pr.GetChild(1)), TABLE_REF_OPS, parent_frame_index, child_slot);
-	child_slot++;
-	if (table_alias_opt_2.HasResult()) {
-		stack.PushFrame(table_alias_opt_2.GetResult(), TABLE_ALIAS_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
+	idx_t child_slot = child_result_count;
 	if (sample_clause_opt_3.HasResult()) {
+		child_slot--;
 		stack.PushFrame(sample_clause_opt_3.GetResult(), SAMPLE_CLAUSE_OPS, parent_frame_index, child_slot);
-		child_slot++;
+	}
+	if (table_alias_opt_2.HasResult()) {
+		child_slot--;
+		stack.PushFrame(table_alias_opt_2.GetResult(), TABLE_ALIAS_OPS, parent_frame_index, child_slot);
+	}
+	child_slot--;
+	stack.PushFrame(ExtractResultFromParens(list_pr.GetChild(1)), TABLE_REF_OPS, parent_frame_index, child_slot);
+	if (table_alias_colon_opt_0.HasResult()) {
+		child_slot--;
+		stack.PushFrame(table_alias_colon_opt_0.GetResult(), TABLE_ALIAS_COLON_OPS, parent_frame_index, child_slot);
 	}
 }
 
@@ -21787,13 +21787,13 @@ void PEGTransformerFactory::InitializeTablePivotClause(PEGTransformer &transform
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(ExtractResultFromParens(list_pr.GetChild(1)), TABLE_PIVOT_CLAUSE_BODY_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
 	if (table_alias_opt_1.HasResult()) {
+		child_slot--;
 		stack.PushFrame(table_alias_opt_1.GetResult(), TABLE_ALIAS_OPS, parent_frame_index, child_slot);
-		child_slot++;
 	}
+	child_slot--;
+	stack.PushFrame(ExtractResultFromParens(list_pr.GetChild(1)), TABLE_PIVOT_CLAUSE_BODY_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeTablePivotClause
@@ -21826,19 +21826,19 @@ void PEGTransformerFactory::InitializeTablePivotClauseBody(PEGTransformer &trans
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), TARGET_LIST_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
+	if (pivot_group_by_list_opt_2.HasResult()) {
+		child_slot--;
+		stack.PushFrame(pivot_group_by_list_opt_2.GetResult(), PIVOT_GROUP_BY_LIST_OPS, parent_frame_index, child_slot);
+	}
 	auto pivot_value_list_children_1 = pivot_value_list_repeat_1.GetChildren();
+	child_slot -= pivot_value_list_children_1.size();
 	for (idx_t child_idx = pivot_value_list_children_1.size(); child_idx > 0; child_idx--) {
 		auto result_idx = child_idx - 1;
 		stack.PushFrame(pivot_value_list_children_1[result_idx].get(), PIVOT_VALUE_LIST_OPS, parent_frame_index, child_slot + result_idx);
 	}
-	child_slot += pivot_value_list_children_1.size();
-	if (pivot_group_by_list_opt_2.HasResult()) {
-		stack.PushFrame(pivot_group_by_list_opt_2.GetResult(), PIVOT_GROUP_BY_LIST_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), TARGET_LIST_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeTablePivotClauseBody
@@ -21873,12 +21873,12 @@ void PEGTransformerFactory::InitializePivotGroupByList(PEGTransformer &transform
 	child_result_count += col_id_or_string_children_0.size();
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot -= col_id_or_string_children_0.size();
 	for (idx_t child_idx = col_id_or_string_children_0.size(); child_idx > 0; child_idx--) {
 		auto result_idx = child_idx - 1;
 		stack.PushFrame(col_id_or_string_children_0[result_idx].get(), COL_ID_OR_STRING_OPS, parent_frame_index, child_slot + result_idx);
 	}
-	child_slot += col_id_or_string_children_0.size();
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizePivotGroupByList
@@ -21912,16 +21912,16 @@ void PEGTransformerFactory::InitializeTableUnpivotClause(PEGTransformer &transfo
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	if (include_or_exclude_nulls_opt_0.HasResult()) {
-		stack.PushFrame(include_or_exclude_nulls_opt_0.GetResult(), INCLUDE_OR_EXCLUDE_NULLS_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
-	stack.PushFrame(ExtractResultFromParens(list_pr.GetChild(2)), TABLE_UNPIVOT_CLAUSE_BODY_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
 	if (table_alias_opt_2.HasResult()) {
+		child_slot--;
 		stack.PushFrame(table_alias_opt_2.GetResult(), TABLE_ALIAS_OPS, parent_frame_index, child_slot);
-		child_slot++;
+	}
+	child_slot--;
+	stack.PushFrame(ExtractResultFromParens(list_pr.GetChild(2)), TABLE_UNPIVOT_CLAUSE_BODY_OPS, parent_frame_index, child_slot);
+	if (include_or_exclude_nulls_opt_0.HasResult()) {
+		child_slot--;
+		stack.PushFrame(include_or_exclude_nulls_opt_0.GetResult(), INCLUDE_OR_EXCLUDE_NULLS_OPS, parent_frame_index, child_slot);
 	}
 }
 
@@ -21958,15 +21958,15 @@ void PEGTransformerFactory::InitializeTableUnpivotClauseBody(PEGTransformer &tra
 	child_result_count += unpivot_value_list_repeat_1.GetChildren().size();
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), UNPIVOT_HEADER_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
 	auto unpivot_value_list_children_1 = unpivot_value_list_repeat_1.GetChildren();
+	child_slot -= unpivot_value_list_children_1.size();
 	for (idx_t child_idx = unpivot_value_list_children_1.size(); child_idx > 0; child_idx--) {
 		auto result_idx = child_idx - 1;
 		stack.PushFrame(unpivot_value_list_children_1[result_idx].get(), UNPIVOT_VALUE_LIST_OPS, parent_frame_index, child_slot + result_idx);
 	}
-	child_slot += unpivot_value_list_children_1.size();
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), UNPIVOT_HEADER_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeTableUnpivotClauseBody
@@ -21993,9 +21993,9 @@ void PEGTransformerFactory::InitializePivotHeader(PEGTransformer &transformer, T
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(0), BASE_EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizePivotHeader
@@ -22015,11 +22015,11 @@ void PEGTransformerFactory::InitializePivotValueList(PEGTransformer &transformer
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), PIVOT_HEADER_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(2), PIVOT_VALUE_TARGET_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), PIVOT_HEADER_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizePivotValueList
@@ -22052,11 +22052,11 @@ void PEGTransformerFactory::InitializeUnpivotValueList(PEGTransformer &transform
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), UNPIVOT_HEADER_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(2), UNPIVOT_TARGET_LIST_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), UNPIVOT_HEADER_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeUnpivotValueList
@@ -22077,9 +22077,9 @@ void PEGTransformerFactory::InitializePivotTargetList(PEGTransformer &transforme
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(ExtractResultFromParens(list_pr.GetChild(0)), TARGET_LIST_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizePivotTargetList
@@ -22098,9 +22098,9 @@ void PEGTransformerFactory::InitializeUnpivotTargetList(PEGTransformer &transfor
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(ExtractResultFromParens(list_pr.GetChild(0)), TARGET_LIST_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeUnpivotTargetList
@@ -22161,9 +22161,9 @@ void PEGTransformerFactory::InitializeSchemaReservedTable(PEGTransformer &transf
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(0), SCHEMA_QUALIFICATION_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeSchemaReservedTable
@@ -22185,11 +22185,11 @@ void PEGTransformerFactory::InitializeCatalogReservedSchemaTable(PEGTransformer 
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), CATALOG_QUALIFICATION_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), RESERVED_SCHEMA_QUALIFICATION_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), CATALOG_QUALIFICATION_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeCatalogReservedSchemaTable
@@ -22246,22 +22246,22 @@ void PEGTransformerFactory::InitializeTableFunctionLateralOpt(PEGTransformer &tr
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	if (lateral_opt_0.HasResult()) {
-		stack.PushFrame(lateral_opt_0.GetResult(), LATERAL_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
-	stack.PushFrame(list_pr.GetChild(1), QUALIFIED_TABLE_FUNCTION_OPS, parent_frame_index, child_slot);
-	child_slot++;
-	stack.PushFrame(list_pr.GetChild(2), TABLE_FUNCTION_ARGUMENTS_OPS, parent_frame_index, child_slot);
-	child_slot++;
-	if (with_ordinality_opt_3.HasResult()) {
-		stack.PushFrame(with_ordinality_opt_3.GetResult(), WITH_ORDINALITY_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
+	idx_t child_slot = child_result_count;
 	if (table_alias_opt_4.HasResult()) {
+		child_slot--;
 		stack.PushFrame(table_alias_opt_4.GetResult(), TABLE_ALIAS_OPS, parent_frame_index, child_slot);
-		child_slot++;
+	}
+	if (with_ordinality_opt_3.HasResult()) {
+		child_slot--;
+		stack.PushFrame(with_ordinality_opt_3.GetResult(), WITH_ORDINALITY_OPS, parent_frame_index, child_slot);
+	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(2), TABLE_FUNCTION_ARGUMENTS_OPS, parent_frame_index, child_slot);
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(1), QUALIFIED_TABLE_FUNCTION_OPS, parent_frame_index, child_slot);
+	if (lateral_opt_0.HasResult()) {
+		child_slot--;
+		stack.PushFrame(lateral_opt_0.GetResult(), LATERAL_OPS, parent_frame_index, child_slot);
 	}
 }
 
@@ -22315,21 +22315,21 @@ void PEGTransformerFactory::InitializeTableFunctionAliasColon(PEGTransformer &tr
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), TABLE_ALIAS_COLON_OPS, parent_frame_index, child_slot);
-	child_slot++;
-	stack.PushFrame(list_pr.GetChild(1), QUALIFIED_TABLE_FUNCTION_OPS, parent_frame_index, child_slot);
-	child_slot++;
-	stack.PushFrame(list_pr.GetChild(2), TABLE_FUNCTION_ARGUMENTS_OPS, parent_frame_index, child_slot);
-	child_slot++;
-	if (with_ordinality_opt_3.HasResult()) {
-		stack.PushFrame(with_ordinality_opt_3.GetResult(), WITH_ORDINALITY_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
+	idx_t child_slot = child_result_count;
 	if (sample_clause_opt_4.HasResult()) {
+		child_slot--;
 		stack.PushFrame(sample_clause_opt_4.GetResult(), SAMPLE_CLAUSE_OPS, parent_frame_index, child_slot);
-		child_slot++;
 	}
+	if (with_ordinality_opt_3.HasResult()) {
+		child_slot--;
+		stack.PushFrame(with_ordinality_opt_3.GetResult(), WITH_ORDINALITY_OPS, parent_frame_index, child_slot);
+	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(2), TABLE_FUNCTION_ARGUMENTS_OPS, parent_frame_index, child_slot);
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(1), QUALIFIED_TABLE_FUNCTION_OPS, parent_frame_index, child_slot);
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), TABLE_ALIAS_COLON_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeTableFunctionAliasColon
@@ -22383,14 +22383,14 @@ void PEGTransformerFactory::InitializeQualifiedTableFunction(PEGTransformer &tra
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	if (catalog_qualification_opt_0.HasResult()) {
-		stack.PushFrame(catalog_qualification_opt_0.GetResult(), CATALOG_QUALIFICATION_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
+	idx_t child_slot = child_result_count;
 	if (schema_qualification_opt_1.HasResult()) {
+		child_slot--;
 		stack.PushFrame(schema_qualification_opt_1.GetResult(), SCHEMA_QUALIFICATION_OPS, parent_frame_index, child_slot);
-		child_slot++;
+	}
+	if (catalog_qualification_opt_0.HasResult()) {
+		child_slot--;
+		stack.PushFrame(catalog_qualification_opt_0.GetResult(), CATALOG_QUALIFICATION_OPS, parent_frame_index, child_slot);
 	}
 }
 
@@ -22428,14 +22428,14 @@ void PEGTransformerFactory::InitializeTableFunctionArguments(PEGTransformer &tra
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
 	if (function_argument_opt_0.HasResult()) {
 		auto function_argument_children_0 = ExtractParseResultsFromList(function_argument_opt_0.GetResult());
+		child_slot -= function_argument_children_0.size();
 		for (idx_t child_idx = function_argument_children_0.size(); child_idx > 0; child_idx--) {
 			auto result_idx = child_idx - 1;
 			stack.PushFrame(function_argument_children_0[result_idx].get(), FUNCTION_ARGUMENT_OPS, parent_frame_index, child_slot + result_idx);
 		}
-		child_slot += function_argument_children_0.size();
 	}
 }
 
@@ -22486,9 +22486,9 @@ void PEGTransformerFactory::InitializeNamedFunctionArgument(PEGTransformer &tran
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(0), NAMED_PARAMETER_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeNamedFunctionArgument
@@ -22507,9 +22507,9 @@ void PEGTransformerFactory::InitializePositionalFunctionArgument(PEGTransformer 
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(0), EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizePositionalFunctionArgument
@@ -22533,15 +22533,15 @@ void PEGTransformerFactory::InitializeNamedParameter(PEGTransformer &transformer
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), TYPE_FUNC_NAME_OPS, parent_frame_index, child_slot);
-	child_slot++;
-	if (type_opt_1.HasResult()) {
-		stack.PushFrame(type_opt_1.GetResult(), TYPE_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(3), EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	if (type_opt_1.HasResult()) {
+		child_slot--;
+		stack.PushFrame(type_opt_1.GetResult(), TYPE_OPS, parent_frame_index, child_slot);
+	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), TYPE_FUNC_NAME_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeNamedParameter
@@ -22595,13 +22595,13 @@ void PEGTransformerFactory::InitializeTableAliasAs(PEGTransformer &transformer, 
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(1), IDENTIFIER_OR_STRING_LITERAL_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
 	if (column_aliases_opt_1.HasResult()) {
+		child_slot--;
 		stack.PushFrame(column_aliases_opt_1.GetResult(), COLUMN_ALIASES_OPS, parent_frame_index, child_slot);
-		child_slot++;
 	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(1), IDENTIFIER_OR_STRING_LITERAL_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeTableAliasAs
@@ -22631,10 +22631,10 @@ void PEGTransformerFactory::InitializeTableAliasWithoutAs(PEGTransformer &transf
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
 	if (column_aliases_opt_0.HasResult()) {
+		child_slot--;
 		stack.PushFrame(column_aliases_opt_0.GetResult(), COLUMN_ALIASES_OPS, parent_frame_index, child_slot);
-		child_slot++;
 	}
 }
 
@@ -22661,9 +22661,9 @@ void PEGTransformerFactory::InitializeAtClause(PEGTransformer &transformer, Tran
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(ExtractResultFromParens(list_pr.GetChild(1)), AT_SPECIFIER_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeAtClause
@@ -22683,11 +22683,11 @@ void PEGTransformerFactory::InitializeAtSpecifier(PEGTransformer &transformer, T
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), AT_UNIT_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(2), EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), AT_UNIT_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeAtSpecifier
@@ -22777,19 +22777,19 @@ void PEGTransformerFactory::InitializeRegularJoinClause(PEGTransformer &transfor
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	if (asof_opt_0.HasResult()) {
-		stack.PushFrame(asof_opt_0.GetResult(), ASOF_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
-	if (join_type_opt_1.HasResult()) {
-		stack.PushFrame(join_type_opt_1.GetResult(), JOIN_TYPE_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
-	stack.PushFrame(list_pr.GetChild(3), TABLE_REF_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(4), JOIN_QUALIFIER_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(3), TABLE_REF_OPS, parent_frame_index, child_slot);
+	if (join_type_opt_1.HasResult()) {
+		child_slot--;
+		stack.PushFrame(join_type_opt_1.GetResult(), JOIN_TYPE_OPS, parent_frame_index, child_slot);
+	}
+	if (asof_opt_0.HasResult()) {
+		child_slot--;
+		stack.PushFrame(asof_opt_0.GetResult(), ASOF_OPS, parent_frame_index, child_slot);
+	}
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeRegularJoinClause
@@ -22835,11 +22835,11 @@ void PEGTransformerFactory::InitializeJoinWithoutOnClause(PEGTransformer &transf
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), JOIN_PREFIX_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(2), TABLE_REF_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), JOIN_PREFIX_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeJoinWithoutOnClause
@@ -22881,9 +22881,9 @@ void PEGTransformerFactory::InitializeOnClause(PEGTransformer &transformer, Tran
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeOnClause
@@ -22974,10 +22974,10 @@ void PEGTransformerFactory::InitializeNaturalJoinPrefix(PEGTransformer &transfor
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
 	if (join_type_opt_0.HasResult()) {
+		child_slot--;
 		stack.PushFrame(join_type_opt_0.GetResult(), JOIN_TYPE_OPS, parent_frame_index, child_slot);
-		child_slot++;
 	}
 }
 
@@ -23082,12 +23082,12 @@ void PEGTransformerFactory::InitializeFromClause(PEGTransformer &transformer, Tr
 	child_result_count += table_ref_children_0.size();
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot -= table_ref_children_0.size();
 	for (idx_t child_idx = table_ref_children_0.size(); child_idx > 0; child_idx--) {
 		auto result_idx = child_idx - 1;
 		stack.PushFrame(table_ref_children_0[result_idx].get(), TABLE_REF_OPS, parent_frame_index, child_slot + result_idx);
 	}
-	child_slot += table_ref_children_0.size();
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeFromClause
@@ -23113,9 +23113,9 @@ void PEGTransformerFactory::InitializeWhereClause(PEGTransformer &transformer, T
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeWhereClause
@@ -23134,9 +23134,9 @@ void PEGTransformerFactory::InitializeGroupByClause(PEGTransformer &transformer,
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(2), GROUP_BY_EXPRESSIONS_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeGroupByClause
@@ -23155,9 +23155,9 @@ void PEGTransformerFactory::InitializeHavingClause(PEGTransformer &transformer, 
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeHavingClause
@@ -23176,9 +23176,9 @@ void PEGTransformerFactory::InitializeQualifyClause(PEGTransformer &transformer,
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeQualifyClause
@@ -23197,9 +23197,9 @@ void PEGTransformerFactory::InitializeSampleClause(PEGTransformer &transformer, 
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), SAMPLE_ENTRY_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeSampleClause
@@ -23219,12 +23219,12 @@ void PEGTransformerFactory::InitializeWindowClause(PEGTransformer &transformer, 
 	child_result_count += window_definition_children_0.size();
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot -= window_definition_children_0.size();
 	for (idx_t child_idx = window_definition_children_0.size(); child_idx > 0; child_idx--) {
 		auto result_idx = child_idx - 1;
 		stack.PushFrame(window_definition_children_0[result_idx].get(), WINDOW_DEFINITION_OPS, parent_frame_index, child_slot + result_idx);
 	}
-	child_slot += window_definition_children_0.size();
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeWindowClause
@@ -23285,13 +23285,13 @@ void PEGTransformerFactory::InitializeSampleEntryCount(PEGTransformer &transform
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), SAMPLE_COUNT_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
 	if (sample_properties_opt_1.HasResult()) {
+		child_slot--;
 		stack.PushFrame(ExtractResultFromParens(sample_properties_opt_1.GetResult()), SAMPLE_PROPERTIES_OPS, parent_frame_index, child_slot);
-		child_slot++;
 	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), SAMPLE_COUNT_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeSampleEntryCount
@@ -23326,16 +23326,16 @@ void PEGTransformerFactory::InitializeSampleEntryFunction(PEGTransformer &transf
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	if (sample_function_opt_0.HasResult()) {
-		stack.PushFrame(sample_function_opt_0.GetResult(), SAMPLE_FUNCTION_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
-	stack.PushFrame(ExtractResultFromParens(list_pr.GetChild(1)), SAMPLE_COUNT_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
 	if (repeatable_sample_opt_2.HasResult()) {
+		child_slot--;
 		stack.PushFrame(repeatable_sample_opt_2.GetResult(), REPEATABLE_SAMPLE_OPS, parent_frame_index, child_slot);
-		child_slot++;
+	}
+	child_slot--;
+	stack.PushFrame(ExtractResultFromParens(list_pr.GetChild(1)), SAMPLE_COUNT_OPS, parent_frame_index, child_slot);
+	if (sample_function_opt_0.HasResult()) {
+		child_slot--;
+		stack.PushFrame(sample_function_opt_0.GetResult(), SAMPLE_FUNCTION_OPS, parent_frame_index, child_slot);
 	}
 }
 
@@ -23370,9 +23370,9 @@ void PEGTransformerFactory::InitializeSampleFunction(PEGTransformer &transformer
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(0), COL_ID_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeSampleFunction
@@ -23395,13 +23395,13 @@ void PEGTransformerFactory::InitializeSampleProperties(PEGTransformer &transform
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), COL_ID_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
 	if (sample_seed_opt_1.HasResult()) {
+		child_slot--;
 		stack.PushFrame(sample_seed_opt_1.GetResult().Cast<ListParseResult>().GetChild(1), SAMPLE_SEED_OPS, parent_frame_index, child_slot);
-		child_slot++;
 	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), COL_ID_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeSampleProperties
@@ -23428,9 +23428,9 @@ void PEGTransformerFactory::InitializeRepeatableSample(PEGTransformer &transform
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(ExtractResultFromParens(list_pr.GetChild(1)), SAMPLE_SEED_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeRepeatableSample
@@ -23465,13 +23465,13 @@ void PEGTransformerFactory::InitializeSampleCount(PEGTransformer &transformer, T
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), SAMPLE_VALUE_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
 	if (sample_unit_opt_1.HasResult()) {
+		child_slot--;
 		stack.PushFrame(sample_unit_opt_1.GetResult(), SAMPLE_UNIT_OPS, parent_frame_index, child_slot);
-		child_slot++;
 	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), SAMPLE_VALUE_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeSampleCount
@@ -23597,12 +23597,12 @@ void PEGTransformerFactory::InitializeGroupByList(PEGTransformer &transformer, T
 	child_result_count += group_by_expression_children_0.size();
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot -= group_by_expression_children_0.size();
 	for (idx_t child_idx = group_by_expression_children_0.size(); child_idx > 0; child_idx--) {
 		auto result_idx = child_idx - 1;
 		stack.PushFrame(group_by_expression_children_0[result_idx].get(), GROUP_BY_EXPRESSION_OPS, parent_frame_index, child_slot + result_idx);
 	}
-	child_slot += group_by_expression_children_0.size();
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeGroupByList
@@ -23649,9 +23649,9 @@ void PEGTransformerFactory::InitializeGroupByBaseExpression(PEGTransformer &tran
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(0), EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeGroupByBaseExpression
@@ -23684,17 +23684,17 @@ void PEGTransformerFactory::InitializeCubeOrRollupClause(PEGTransformer &transfo
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), CUBE_OR_ROLLUP_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
 	if (expression_opt_1.HasResult()) {
 		auto expression_children_1 = ExtractParseResultsFromList(expression_opt_1.GetResult());
+		child_slot -= expression_children_1.size();
 		for (idx_t child_idx = expression_children_1.size(); child_idx > 0; child_idx--) {
 			auto result_idx = child_idx - 1;
 			stack.PushFrame(expression_children_1[result_idx].get(), EXPRESSION_OPS, parent_frame_index, child_slot + result_idx);
 		}
-		child_slot += expression_children_1.size();
 	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), CUBE_OR_ROLLUP_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeCubeOrRollupClause
@@ -23765,12 +23765,12 @@ void PEGTransformerFactory::InitializeGroupingSetsClause(PEGTransformer &transfo
 	child_result_count += group_by_expression_children_0.size();
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot -= group_by_expression_children_0.size();
 	for (idx_t child_idx = group_by_expression_children_0.size(); child_idx > 0; child_idx--) {
 		auto result_idx = child_idx - 1;
 		stack.PushFrame(group_by_expression_children_0[result_idx].get(), GROUP_BY_EXPRESSION_OPS, parent_frame_index, child_slot + result_idx);
 	}
-	child_slot += group_by_expression_children_0.size();
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeGroupingSetsClause
@@ -23796,9 +23796,9 @@ void PEGTransformerFactory::InitializeSubqueryReference(PEGTransformer &transfor
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(ExtractResultFromParens(list_pr.GetChild(0)), SELECT_STATEMENT_INTERNAL_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeSubqueryReference
@@ -23825,17 +23825,17 @@ void PEGTransformerFactory::InitializeOrderByExpression(PEGTransformer &transfor
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
-	if (desc_or_asc_opt_1.HasResult()) {
-		stack.PushFrame(desc_or_asc_opt_1.GetResult(), DESC_OR_ASC_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
+	idx_t child_slot = child_result_count;
 	if (nulls_first_or_last_opt_2.HasResult()) {
+		child_slot--;
 		stack.PushFrame(nulls_first_or_last_opt_2.GetResult(), NULLS_FIRST_OR_LAST_OPS, parent_frame_index, child_slot);
-		child_slot++;
 	}
+	if (desc_or_asc_opt_1.HasResult()) {
+		child_slot--;
+		stack.PushFrame(desc_or_asc_opt_1.GetResult(), DESC_OR_ASC_OPS, parent_frame_index, child_slot);
+	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), EXPRESSION_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeOrderByExpression
@@ -23947,9 +23947,9 @@ void PEGTransformerFactory::InitializeOrderByClause(PEGTransformer &transformer,
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(2), ORDER_BY_EXPRESSIONS_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeOrderByClause
@@ -23990,12 +23990,12 @@ void PEGTransformerFactory::InitializeOrderByExpressionList(PEGTransformer &tran
 	child_result_count += order_by_expression_children_0.size();
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot -= order_by_expression_children_0.size();
 	for (idx_t child_idx = order_by_expression_children_0.size(); child_idx > 0; child_idx--) {
 		auto result_idx = child_idx - 1;
 		stack.PushFrame(order_by_expression_children_0[result_idx].get(), ORDER_BY_EXPRESSION_OPS, parent_frame_index, child_slot + result_idx);
 	}
-	child_slot += order_by_expression_children_0.size();
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeOrderByExpressionList
@@ -24028,14 +24028,14 @@ void PEGTransformerFactory::InitializeOrderByAll(PEGTransformer &transformer, Tr
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	if (desc_or_asc_opt_0.HasResult()) {
-		stack.PushFrame(desc_or_asc_opt_0.GetResult(), DESC_OR_ASC_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
+	idx_t child_slot = child_result_count;
 	if (nulls_first_or_last_opt_1.HasResult()) {
+		child_slot--;
 		stack.PushFrame(nulls_first_or_last_opt_1.GetResult(), NULLS_FIRST_OR_LAST_OPS, parent_frame_index, child_slot);
-		child_slot++;
+	}
+	if (desc_or_asc_opt_0.HasResult()) {
+		child_slot--;
+		stack.PushFrame(desc_or_asc_opt_0.GetResult(), DESC_OR_ASC_OPS, parent_frame_index, child_slot);
 	}
 }
 
@@ -24068,9 +24068,9 @@ void PEGTransformerFactory::InitializeLimitClause(PEGTransformer &transformer, T
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), LIMIT_VALUE_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeLimitClause
@@ -24089,9 +24089,9 @@ void PEGTransformerFactory::InitializeOffsetClause(PEGTransformer &transformer, 
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), OFFSET_VALUE_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeOffsetClause
@@ -24110,9 +24110,9 @@ void PEGTransformerFactory::InitializeOffsetValue(PEGTransformer &transformer, T
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(0), EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeOffsetValue
@@ -24177,9 +24177,9 @@ void PEGTransformerFactory::InitializeLimitExpression(PEGTransformer &transforme
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(0), EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeLimitExpression
@@ -24224,11 +24224,11 @@ void PEGTransformerFactory::InitializeColIdExpression(PEGTransformer &transforme
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), COL_ID_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(2), EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), COL_ID_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeColIdExpression
@@ -24250,11 +24250,11 @@ void PEGTransformerFactory::InitializeExpressionAsCollabel(PEGTransformer &trans
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(2), COL_LABEL_OR_STRING_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), EXPRESSION_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeExpressionAsCollabel
@@ -24275,9 +24275,9 @@ void PEGTransformerFactory::InitializeExpressionOptIdentifier(PEGTransformer &tr
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(0), EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeExpressionOptIdentifier
@@ -24304,12 +24304,12 @@ void PEGTransformerFactory::InitializeValuesClause(PEGTransformer &transformer, 
 	child_result_count += values_expressions_children_0.size();
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot -= values_expressions_children_0.size();
 	for (idx_t child_idx = values_expressions_children_0.size(); child_idx > 0; child_idx--) {
 		auto result_idx = child_idx - 1;
 		stack.PushFrame(values_expressions_children_0[result_idx].get(), VALUES_EXPRESSIONS_OPS, parent_frame_index, child_slot + result_idx);
 	}
-	child_slot += values_expressions_children_0.size();
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeValuesClause
@@ -24336,12 +24336,12 @@ void PEGTransformerFactory::InitializeValuesExpressions(PEGTransformer &transfor
 	child_result_count += expression_children_0.size();
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot -= expression_children_0.size();
 	for (idx_t child_idx = expression_children_0.size(); child_idx > 0; child_idx--) {
 		auto result_idx = child_idx - 1;
 		stack.PushFrame(expression_children_0[result_idx].get(), EXPRESSION_OPS, parent_frame_index, child_slot + result_idx);
 	}
-	child_slot += expression_children_0.size();
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeValuesExpressions
@@ -24367,9 +24367,9 @@ void PEGTransformerFactory::InitializeSetStatement(PEGTransformer &transformer, 
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), SET_ASSIGNMENT_OR_TIME_ZONE_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeSetStatement
@@ -24409,9 +24409,9 @@ void PEGTransformerFactory::InitializeResetStatement(PEGTransformer &transformer
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), SET_VARIABLE_OR_SETTING_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeResetStatement
@@ -24431,11 +24431,11 @@ void PEGTransformerFactory::InitializeStandardAssignment(PEGTransformer &transfo
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), SET_VARIABLE_OR_SETTING_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), SET_ASSIGNMENT_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), SET_VARIABLE_OR_SETTING_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeStandardAssignment
@@ -24477,9 +24477,9 @@ void PEGTransformerFactory::InitializeSetTimeZone(PEGTransformer &transformer, T
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(2), ZONE_VALUE_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeSetTimeZone
@@ -24572,10 +24572,10 @@ void PEGTransformerFactory::InitializeZoneIntervalWithInterval(PEGTransformer &t
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
 	if (interval_opt_0.HasResult()) {
+		child_slot--;
 		stack.PushFrame(interval_opt_0.GetResult(), INTERVAL_OPS, parent_frame_index, child_slot);
-		child_slot++;
 	}
 }
 
@@ -24618,10 +24618,10 @@ void PEGTransformerFactory::InitializeSetSetting(PEGTransformer &transformer, Tr
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
 	if (setting_scope_opt_0.HasResult()) {
+		child_slot--;
 		stack.PushFrame(setting_scope_opt_0.GetResult(), SETTING_SCOPE_OPS, parent_frame_index, child_slot);
-		child_slot++;
 	}
 }
 
@@ -24648,9 +24648,9 @@ void PEGTransformerFactory::InitializeSetVariable(PEGTransformer &transformer, T
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(0), VARIABLE_SCOPE_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeSetVariable
@@ -24728,9 +24728,9 @@ void PEGTransformerFactory::InitializeSetAssignment(PEGTransformer &transformer,
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), VARIABLE_LIST_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeSetAssignment
@@ -24750,12 +24750,12 @@ void PEGTransformerFactory::InitializeVariableList(PEGTransformer &transformer, 
 	child_result_count += expression_children_0.size();
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot -= expression_children_0.size();
 	for (idx_t child_idx = expression_children_0.size(); child_idx > 0; child_idx--) {
 		auto result_idx = child_idx - 1;
 		stack.PushFrame(expression_children_0[result_idx].get(), EXPRESSION_OPS, parent_frame_index, child_slot + result_idx);
 	}
-	child_slot += expression_children_0.size();
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeVariableList
@@ -24808,10 +24808,10 @@ void PEGTransformerFactory::InitializeBeginTransaction(PEGTransformer &transform
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
 	if (read_or_write_opt_0.HasResult()) {
+		child_slot--;
 		stack.PushFrame(read_or_write_opt_0.GetResult(), READ_OR_WRITE_OPS, parent_frame_index, child_slot);
-		child_slot++;
 	}
 }
 
@@ -24868,9 +24868,9 @@ void PEGTransformerFactory::InitializeReadOrWrite(PEGTransformer &transformer, T
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), READ_ONLY_OR_READ_WRITE_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeReadOrWrite
@@ -24945,26 +24945,26 @@ void PEGTransformerFactory::InitializeUpdateStatement(PEGTransformer &transforme
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	if (with_clause_opt_0.HasResult()) {
-		stack.PushFrame(with_clause_opt_0.GetResult(), WITH_CLAUSE_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
-	stack.PushFrame(list_pr.GetChild(2), UPDATE_TARGET_OPS, parent_frame_index, child_slot);
-	child_slot++;
-	stack.PushFrame(list_pr.GetChild(3), UPDATE_SET_CLAUSE_OPS, parent_frame_index, child_slot);
-	child_slot++;
-	if (from_clause_opt_3.HasResult()) {
-		stack.PushFrame(from_clause_opt_3.GetResult(), FROM_CLAUSE_OPS, parent_frame_index, child_slot);
-		child_slot++;
+	idx_t child_slot = child_result_count;
+	if (returning_clause_opt_5.HasResult()) {
+		child_slot--;
+		stack.PushFrame(returning_clause_opt_5.GetResult(), RETURNING_CLAUSE_OPS, parent_frame_index, child_slot);
 	}
 	if (where_clause_opt_4.HasResult()) {
+		child_slot--;
 		stack.PushFrame(where_clause_opt_4.GetResult(), WHERE_CLAUSE_OPS, parent_frame_index, child_slot);
-		child_slot++;
 	}
-	if (returning_clause_opt_5.HasResult()) {
-		stack.PushFrame(returning_clause_opt_5.GetResult(), RETURNING_CLAUSE_OPS, parent_frame_index, child_slot);
-		child_slot++;
+	if (from_clause_opt_3.HasResult()) {
+		child_slot--;
+		stack.PushFrame(from_clause_opt_3.GetResult(), FROM_CLAUSE_OPS, parent_frame_index, child_slot);
+	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(3), UPDATE_SET_CLAUSE_OPS, parent_frame_index, child_slot);
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(2), UPDATE_TARGET_OPS, parent_frame_index, child_slot);
+	if (with_clause_opt_0.HasResult()) {
+		child_slot--;
+		stack.PushFrame(with_clause_opt_0.GetResult(), WITH_CLAUSE_OPS, parent_frame_index, child_slot);
 	}
 }
 
@@ -25036,9 +25036,9 @@ void PEGTransformerFactory::InitializeBaseTableSet(PEGTransformer &transformer, 
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(0), BASE_TABLE_NAME_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeBaseTableSet
@@ -25061,13 +25061,13 @@ void PEGTransformerFactory::InitializeBaseTableAliasSet(PEGTransformer &transfor
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), BASE_TABLE_NAME_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
 	if (update_alias_opt_1.HasResult()) {
+		child_slot--;
 		stack.PushFrame(update_alias_opt_1.GetResult(), UPDATE_ALIAS_OPS, parent_frame_index, child_slot);
-		child_slot++;
 	}
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), BASE_TABLE_NAME_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeBaseTableAliasSet
@@ -25094,9 +25094,9 @@ void PEGTransformerFactory::InitializeUpdateAlias(PEGTransformer &transformer, T
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), COL_ID_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeUpdateAlias
@@ -25140,9 +25140,9 @@ void PEGTransformerFactory::InitializeUpdateSetTuple(PEGTransformer &transformer
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(2), EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeUpdateSetTuple
@@ -25170,12 +25170,12 @@ void PEGTransformerFactory::InitializeUpdateSetElementList(PEGTransformer &trans
 	child_result_count += update_set_element_children_0.size();
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot -= update_set_element_children_0.size();
 	for (idx_t child_idx = update_set_element_children_0.size(); child_idx > 0; child_idx--) {
 		auto result_idx = child_idx - 1;
 		stack.PushFrame(update_set_element_children_0[result_idx].get(), UPDATE_SET_ELEMENT_OPS, parent_frame_index, child_slot + result_idx);
 	}
-	child_slot += update_set_element_children_0.size();
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeUpdateSetElementList
@@ -25202,11 +25202,11 @@ void PEGTransformerFactory::InitializeUpdateSetElement(PEGTransformer &transform
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	stack.PushFrame(list_pr.GetChild(0), UPDATE_SET_COLUMN_TARGET_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(2), EXPRESSION_OPS, parent_frame_index, child_slot);
-	child_slot++;
+	child_slot--;
+	stack.PushFrame(list_pr.GetChild(0), UPDATE_SET_COLUMN_TARGET_OPS, parent_frame_index, child_slot);
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeUpdateSetElement
@@ -25231,15 +25231,15 @@ void PEGTransformerFactory::InitializeUpdateSetColumnTarget(PEGTransformer &tran
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
 	if (dot_identifier_opt_0.HasResult()) {
 		auto &dot_identifier_repeat_0 = dot_identifier_opt_0.GetResult().Cast<RepeatParseResult>();
 		auto dot_identifier_children_0 = dot_identifier_repeat_0.GetChildren();
+		child_slot -= dot_identifier_children_0.size();
 		for (idx_t child_idx = dot_identifier_children_0.size(); child_idx > 0; child_idx--) {
 			auto result_idx = child_idx - 1;
 			stack.PushFrame(dot_identifier_children_0[result_idx].get(), DOT_IDENTIFIER_OPS, parent_frame_index, child_slot + result_idx);
 		}
-		child_slot += dot_identifier_children_0.size();
 	}
 }
 
@@ -25271,9 +25271,9 @@ void PEGTransformerFactory::InitializeUseStatement(PEGTransformer &transformer, 
 	child_result_count++;
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot--;
 	stack.PushFrame(list_pr.GetChild(1), USE_TARGET_OPS, parent_frame_index, child_slot);
-	child_slot++;
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeUseStatement
@@ -25341,15 +25341,15 @@ void PEGTransformerFactory::InitializeUseTargetCatalogSchema(PEGTransformer &tra
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
 	if (dot_identifier_opt_0.HasResult()) {
 		auto &dot_identifier_repeat_0 = dot_identifier_opt_0.GetResult().Cast<RepeatParseResult>();
 		auto dot_identifier_children_0 = dot_identifier_repeat_0.GetChildren();
+		child_slot -= dot_identifier_children_0.size();
 		for (idx_t child_idx = dot_identifier_children_0.size(); child_idx > 0; child_idx--) {
 			auto result_idx = child_idx - 1;
 			stack.PushFrame(dot_identifier_children_0[result_idx].get(), DOT_IDENTIFIER_OPS, parent_frame_index, child_slot + result_idx);
 		}
-		child_slot += dot_identifier_children_0.size();
 	}
 }
 
@@ -25401,14 +25401,14 @@ void PEGTransformerFactory::InitializeVacuumStatement(PEGTransformer &transforme
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	if (vacuum_options_opt_0.HasResult()) {
-		stack.PushFrame(vacuum_options_opt_0.GetResult(), VACUUM_OPTIONS_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
+	idx_t child_slot = child_result_count;
 	if (analyze_target_opt_1.HasResult()) {
+		child_slot--;
 		stack.PushFrame(analyze_target_opt_1.GetResult(), ANALYZE_TARGET_OPS, parent_frame_index, child_slot);
-		child_slot++;
+	}
+	if (vacuum_options_opt_0.HasResult()) {
+		child_slot--;
+		stack.PushFrame(vacuum_options_opt_0.GetResult(), VACUUM_OPTIONS_OPS, parent_frame_index, child_slot);
 	}
 }
 
@@ -25463,12 +25463,12 @@ void PEGTransformerFactory::InitializeVacuumParensOptions(PEGTransformer &transf
 	child_result_count += vacuum_option_children_0.size();
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot -= vacuum_option_children_0.size();
 	for (idx_t child_idx = vacuum_option_children_0.size(); child_idx > 0; child_idx--) {
 		auto result_idx = child_idx - 1;
 		stack.PushFrame(vacuum_option_children_0[result_idx].get(), VACUUM_OPTION_OPS, parent_frame_index, child_slot + result_idx);
 	}
-	child_slot += vacuum_option_children_0.size();
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeVacuumParensOptions
@@ -25509,22 +25509,22 @@ void PEGTransformerFactory::InitializeVacuumLegacyOptions(PEGTransformer &transf
 	}
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
-	if (opt_full_opt_0.HasResult()) {
-		stack.PushFrame(opt_full_opt_0.GetResult(), OPT_FULL_OPS, parent_frame_index, child_slot);
-		child_slot++;
-	}
-	if (opt_freeze_opt_1.HasResult()) {
-		stack.PushFrame(opt_freeze_opt_1.GetResult(), OPT_FREEZE_OPS, parent_frame_index, child_slot);
-		child_slot++;
+	idx_t child_slot = child_result_count;
+	if (opt_analyze_opt_3.HasResult()) {
+		child_slot--;
+		stack.PushFrame(opt_analyze_opt_3.GetResult(), OPT_ANALYZE_OPS, parent_frame_index, child_slot);
 	}
 	if (opt_verbose_opt_2.HasResult()) {
+		child_slot--;
 		stack.PushFrame(opt_verbose_opt_2.GetResult(), OPT_VERBOSE_OPS, parent_frame_index, child_slot);
-		child_slot++;
 	}
-	if (opt_analyze_opt_3.HasResult()) {
-		stack.PushFrame(opt_analyze_opt_3.GetResult(), OPT_ANALYZE_OPS, parent_frame_index, child_slot);
-		child_slot++;
+	if (opt_freeze_opt_1.HasResult()) {
+		child_slot--;
+		stack.PushFrame(opt_freeze_opt_1.GetResult(), OPT_FREEZE_OPS, parent_frame_index, child_slot);
+	}
+	if (opt_full_opt_0.HasResult()) {
+		child_slot--;
+		stack.PushFrame(opt_full_opt_0.GetResult(), OPT_FULL_OPS, parent_frame_index, child_slot);
 	}
 }
 
@@ -25643,12 +25643,12 @@ void PEGTransformerFactory::InitializeNameList(PEGTransformer &transformer, Tran
 	child_result_count += col_id_children_0.size();
 	frame.child_results.resize(child_result_count);
 	auto parent_frame_index = frame.frame_index;
-	idx_t child_slot = 0;
+	idx_t child_slot = child_result_count;
+	child_slot -= col_id_children_0.size();
 	for (idx_t child_idx = col_id_children_0.size(); child_idx > 0; child_idx--) {
 		auto result_idx = child_idx - 1;
 		stack.PushFrame(col_id_children_0[result_idx].get(), COL_ID_OPS, parent_frame_index, child_slot + result_idx);
 	}
-	child_slot += col_id_children_0.size();
 }
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeNameList

@@ -1008,15 +1008,15 @@ def generate_sequence_initialize(rule_name, ast, rules, rule_types, primitive_ru
         [
             "\tframe.child_results.resize(child_result_count);",
             "\tauto parent_frame_index = frame.frame_index;",
-            "\tidx_t child_slot = 0;",
+            "\tidx_t child_slot = child_result_count;",
         ]
     )
-    for child_idx, child in enumerate(stack_children):
+    for child_idx, child in reversed(list(enumerate(stack_children))):
         if isinstance(child, StackChild):
             lines.extend(
                 [
+                    "\tchild_slot--;",
                     f"\tstack.PushFrame({child.parse_expr}, {child_ops(child.rule_name)}, parent_frame_index, child_slot);",
-                    "\tchild_slot++;",
                 ]
             )
             continue
@@ -1031,8 +1031,8 @@ def generate_sequence_initialize(rule_name, ast, rules, rule_types, primitive_ru
             lines.extend(
                 [
                     f"\tif ({var_name}.HasResult()) {{",
+                    "\t\tchild_slot--;",
                     f"\t\tstack.PushFrame({child_result_expr}, {child_ops(child.rule_name)}, parent_frame_index, child_slot);",
-                    "\t\tchild_slot++;",
                     "\t}",
                 ]
             )
@@ -1047,6 +1047,7 @@ def generate_sequence_initialize(rule_name, ast, rules, rule_types, primitive_ru
                         f"\tif ({opt_var}.HasResult()) {{",
                         f"\t\tauto &{repeat_var} = {opt_var}.GetResult().Cast<RepeatParseResult>();",
                         f"\t\tauto {children_var} = {repeat_var}.GetChildren();",
+                        f"\t\tchild_slot -= {children_var}.size();",
                         f"\t\tfor (idx_t child_idx = {children_var}.size(); child_idx > 0; child_idx--) {{",
                         "\t\t\tauto result_idx = child_idx - 1;",
                         (
@@ -1054,7 +1055,6 @@ def generate_sequence_initialize(rule_name, ast, rules, rule_types, primitive_ru
                             "parent_frame_index, child_slot + result_idx);"
                         ),
                         "\t\t}",
-                        f"\t\tchild_slot += {children_var}.size();",
                         "\t}",
                     ]
                 )
@@ -1062,6 +1062,7 @@ def generate_sequence_initialize(rule_name, ast, rules, rule_types, primitive_ru
                 lines.extend(
                     [
                         f"\tauto {children_var} = {repeat_var}.GetChildren();",
+                        f"\tchild_slot -= {children_var}.size();",
                         f"\tfor (idx_t child_idx = {children_var}.size(); child_idx > 0; child_idx--) {{",
                         "\t\tauto result_idx = child_idx - 1;",
                         (
@@ -1069,7 +1070,6 @@ def generate_sequence_initialize(rule_name, ast, rules, rule_types, primitive_ru
                             "parent_frame_index, child_slot + result_idx);"
                         ),
                         "\t}",
-                        f"\tchild_slot += {children_var}.size();",
                     ]
                 )
             continue
@@ -1077,6 +1077,7 @@ def generate_sequence_initialize(rule_name, ast, rules, rule_types, primitive_ru
             children_var = f"{child.var_name}_children_{child_idx}"
             opt_var = f"{child.var_name}_opt_{child_idx}"
             push_lines = [
+                f"\tchild_slot -= {children_var}.size();",
                 f"\tfor (idx_t child_idx = {children_var}.size(); child_idx > 0; child_idx--) {{",
                 "\t\tauto result_idx = child_idx - 1;",
                 (
@@ -1084,7 +1085,6 @@ def generate_sequence_initialize(rule_name, ast, rules, rule_types, primitive_ru
                     "parent_frame_index, child_slot + result_idx);"
                 ),
                 "\t}",
-                f"\tchild_slot += {children_var}.size();",
             ]
             if child.mode in ("list", "parens_list"):
                 lines.extend(push_lines)
