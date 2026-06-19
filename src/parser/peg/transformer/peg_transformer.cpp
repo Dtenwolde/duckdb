@@ -34,8 +34,8 @@ void TransformStack::PushFrame(ParseResult &parse_result, const TransformFrameOp
 }
 
 unique_ptr<TransformResultValue> TransformStack::Execute(ParseResult &parse_result, const TransformFrameOps &ops) {
-	frames.clear();
-	frame_stack.clear();
+	D_ASSERT(frames.empty());
+	D_ASSERT(frame_stack.empty());
 	PushFrameInternal(parse_result, ops, DConstants::INVALID_INDEX, DConstants::INVALID_INDEX);
 
 	while (!frame_stack.empty()) {

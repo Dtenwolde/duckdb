@@ -1596,6 +1596,16 @@ struct ParallelizeSequentialSourcesSetting {
 	static constexpr idx_t SettingIndex = NEXT_SETTING_INDEX();
 };
 
+struct ParserTrampolineStyleSetting {
+	using RETURN_TYPE = bool;
+	static constexpr const char *Name = "parser_trampoline_style";
+	static constexpr const char *Description = "Whether to use the trampoline-style PEG transformer";
+	static constexpr const char *InputType = "BOOLEAN";
+	static constexpr const char *DefaultValue = "false";
+	static constexpr SettingScopeTarget Scope = SettingScopeTarget::LOCAL_DEFAULT;
+	static constexpr idx_t SettingIndex = NEXT_SETTING_INDEX();
+};
+
 struct PartitionedWriteFlushThresholdSetting {
 	using RETURN_TYPE = idx_t;
 	static constexpr const char *Name = "partitioned_write_flush_threshold";

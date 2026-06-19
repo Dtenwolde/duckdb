@@ -9793,6 +9793,7 @@ PEGTransformerFactory::TransformUpdateSetColumnTargetInternal(PEGTransformer &tr
 	return make_uniq<TypedTransformResult<string>>(result);
 }
 
+// BEGIN generated trampoline transformer rules for use.gram
 const TransformFrameOps PEGTransformerFactory::USE_STATEMENT_OPS = {
     "UseStatement", &PEGTransformerFactory::InitializeUseStatement, &PEGTransformerFactory::FinalizeUseStatement};
 const TransformFrameOps PEGTransformerFactory::USE_TARGET_OPS = {
@@ -9850,8 +9851,8 @@ void PEGTransformerFactory::InitializeSchemaNameAsUseTarget(PEGTransformer &tran
                                                             TransformStackFrame &frame) {
 }
 
-unique_ptr<TransformResultValue>
-PEGTransformerFactory::FinalizeSchemaNameAsUseTarget(PEGTransformer &transformer, TransformStackFrame &frame) {
+unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeSchemaNameAsUseTarget(PEGTransformer &transformer,
+                                                                                      TransformStackFrame &frame) {
 	auto &list_pr = frame.parse_result.Cast<ListParseResult>();
 	auto schema_name = list_pr.GetChild(0).Cast<IdentifierParseResult>().identifier;
 	auto result = TransformSchemaNameAsUseTarget(transformer, schema_name);
@@ -9862,8 +9863,8 @@ void PEGTransformerFactory::InitializeCatalogNameAsUseTarget(PEGTransformer &tra
                                                              TransformStackFrame &frame) {
 }
 
-unique_ptr<TransformResultValue>
-PEGTransformerFactory::FinalizeCatalogNameAsUseTarget(PEGTransformer &transformer, TransformStackFrame &frame) {
+unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeCatalogNameAsUseTarget(PEGTransformer &transformer,
+                                                                                       TransformStackFrame &frame) {
 	auto &list_pr = frame.parse_result.Cast<ListParseResult>();
 	auto catalog_name = list_pr.GetChild(0).Cast<IdentifierParseResult>().identifier;
 	auto result = TransformCatalogNameAsUseTarget(transformer, catalog_name);
@@ -9887,8 +9888,8 @@ void PEGTransformerFactory::InitializeUseTargetCatalogSchema(PEGTransformer &tra
 	}
 }
 
-unique_ptr<TransformResultValue>
-PEGTransformerFactory::FinalizeUseTargetCatalogSchema(PEGTransformer &transformer, TransformStackFrame &frame) {
+unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeUseTargetCatalogSchema(PEGTransformer &transformer,
+                                                                                       TransformStackFrame &frame) {
 	auto &list_pr = frame.parse_result.Cast<ListParseResult>();
 	auto catalog_name = list_pr.GetChild(0).Cast<IdentifierParseResult>().identifier;
 	auto reserved_schema_name = list_pr.GetChild(2).Cast<IdentifierParseResult>().identifier;
@@ -9917,41 +9918,48 @@ unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeDotIdentifier(PE
 	return make_uniq<TypedTransformResult<Identifier>>(result);
 }
 
+// Compatibility entrypoint: not used by generated trampoline child traversal.
 unique_ptr<TransformResultValue> PEGTransformerFactory::TransformUseStatementInternal(PEGTransformer &transformer,
                                                                                       ParseResult &parse_result) {
 	TransformStack stack(transformer);
 	return stack.Execute(parse_result, USE_STATEMENT_OPS);
 }
 
+// Compatibility entrypoint: not used by generated trampoline child traversal.
 unique_ptr<TransformResultValue> PEGTransformerFactory::TransformUseTargetInternal(PEGTransformer &transformer,
                                                                                    ParseResult &parse_result) {
 	TransformStack stack(transformer);
 	return stack.Execute(parse_result, USE_TARGET_OPS);
 }
 
+// Compatibility entrypoint: not used by generated trampoline child traversal.
 unique_ptr<TransformResultValue>
 PEGTransformerFactory::TransformSchemaNameAsUseTargetInternal(PEGTransformer &transformer, ParseResult &parse_result) {
 	TransformStack stack(transformer);
 	return stack.Execute(parse_result, SCHEMA_NAME_AS_USE_TARGET_OPS);
 }
 
+// Compatibility entrypoint: not used by generated trampoline child traversal.
 unique_ptr<TransformResultValue>
 PEGTransformerFactory::TransformCatalogNameAsUseTargetInternal(PEGTransformer &transformer, ParseResult &parse_result) {
 	TransformStack stack(transformer);
 	return stack.Execute(parse_result, CATALOG_NAME_AS_USE_TARGET_OPS);
 }
 
+// Compatibility entrypoint: not used by generated trampoline child traversal.
 unique_ptr<TransformResultValue>
 PEGTransformerFactory::TransformUseTargetCatalogSchemaInternal(PEGTransformer &transformer, ParseResult &parse_result) {
 	TransformStack stack(transformer);
 	return stack.Execute(parse_result, USE_TARGET_CATALOG_SCHEMA_OPS);
 }
 
+// Compatibility entrypoint: not used by generated trampoline child traversal.
 unique_ptr<TransformResultValue> PEGTransformerFactory::TransformDotIdentifierInternal(PEGTransformer &transformer,
                                                                                        ParseResult &parse_result) {
 	TransformStack stack(transformer);
 	return stack.Execute(parse_result, DOT_IDENTIFIER_OPS);
 }
+// END generated trampoline transformer rules for use.gram
 
 unique_ptr<TransformResultValue> PEGTransformerFactory::TransformVacuumStatementInternal(PEGTransformer &transformer,
                                                                                          ParseResult &parse_result) {

@@ -15,11 +15,28 @@
 
 namespace duckdb {
 
+static unique_ptr<SQLStatement> ExecuteSQLStatementTrampoline(PEGTransformer &transformer, ParseResult &parse_result,
+                                                              const TransformFrameOps &ops) {
+	TransformStack stack(transformer);
+	auto base_result = stack.Execute(parse_result, ops);
+	auto *typed_result = dynamic_cast<TypedTransformResult<unique_ptr<SQLStatement>> *>(base_result.get());
+	if (!typed_result) {
+		throw InternalException("Trampoline transformer for rule '%s' returned an unexpected type.", parse_result.name);
+	}
+	return std::move(typed_result->value);
+}
+
 unique_ptr<SQLStatement> PEGTransformerFactory::TransformStatement(PEGTransformer &transformer,
                                                                    ParseResult &parse_result) {
 	auto &list_pr = parse_result.Cast<ListParseResult>();
 	auto &choice_pr = list_pr.Child<ChoiceParseResult>(0);
-	auto result = transformer.Transform<unique_ptr<SQLStatement>>(choice_pr.GetResult());
+	auto &choice_result = choice_pr.GetResult();
+	unique_ptr<SQLStatement> result;
+	if (choice_result.name == "UseStatement") {
+		result = ExecuteSQLStatementTrampoline(transformer, choice_result, USE_STATEMENT_OPS);
+	} else {
+		result = transformer.Transform<unique_ptr<SQLStatement>>(choice_result);
+	}
 	if (!transformer.named_parameter_map.empty()) {
 		// Avoid overriding a previous move with nothing
 		result->named_param_map = transformer.named_parameter_map;

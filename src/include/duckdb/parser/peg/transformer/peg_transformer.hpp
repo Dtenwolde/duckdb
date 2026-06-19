@@ -3819,22 +3819,20 @@ private:
 	                                                                               ParseResult &parse_result);
 	static string TransformUpdateSetColumnTarget(PEGTransformer &transformer, const Identifier &column_name,
 	                                             const optional<vector<Identifier>> &dot_identifier);
+	// BEGIN generated trampoline transformer rules for use.gram
 	static const TransformFrameOps USE_STATEMENT_OPS;
-	static const TransformFrameOps USE_TARGET_OPS;
-	static const TransformFrameOps SCHEMA_NAME_AS_USE_TARGET_OPS;
-	static const TransformFrameOps CATALOG_NAME_AS_USE_TARGET_OPS;
-	static const TransformFrameOps USE_TARGET_CATALOG_SCHEMA_OPS;
-	static const TransformFrameOps DOT_IDENTIFIER_OPS;
 	static unique_ptr<TransformResultValue> TransformUseStatementInternal(PEGTransformer &transformer,
 	                                                                      ParseResult &parse_result);
 	static void InitializeUseStatement(PEGTransformer &transformer, TransformStack &stack, TransformStackFrame &frame);
 	static unique_ptr<TransformResultValue> FinalizeUseStatement(PEGTransformer &transformer,
 	                                                             TransformStackFrame &frame);
 	static unique_ptr<SQLStatement> TransformUseStatement(PEGTransformer &transformer, const QualifiedName &use_target);
+	static const TransformFrameOps USE_TARGET_OPS;
 	static unique_ptr<TransformResultValue> TransformUseTargetInternal(PEGTransformer &transformer,
 	                                                                   ParseResult &parse_result);
 	static void InitializeUseTarget(PEGTransformer &transformer, TransformStack &stack, TransformStackFrame &frame);
 	static unique_ptr<TransformResultValue> FinalizeUseTarget(PEGTransformer &transformer, TransformStackFrame &frame);
+	static const TransformFrameOps SCHEMA_NAME_AS_USE_TARGET_OPS;
 	static unique_ptr<TransformResultValue> TransformSchemaNameAsUseTargetInternal(PEGTransformer &transformer,
 	                                                                               ParseResult &parse_result);
 	static void InitializeSchemaNameAsUseTarget(PEGTransformer &transformer, TransformStack &stack,
@@ -3842,6 +3840,7 @@ private:
 	static unique_ptr<TransformResultValue> FinalizeSchemaNameAsUseTarget(PEGTransformer &transformer,
 	                                                                      TransformStackFrame &frame);
 	static QualifiedName TransformSchemaNameAsUseTarget(PEGTransformer &transformer, const Identifier &schema_name);
+	static const TransformFrameOps CATALOG_NAME_AS_USE_TARGET_OPS;
 	static unique_ptr<TransformResultValue> TransformCatalogNameAsUseTargetInternal(PEGTransformer &transformer,
 	                                                                                ParseResult &parse_result);
 	static void InitializeCatalogNameAsUseTarget(PEGTransformer &transformer, TransformStack &stack,
@@ -3849,6 +3848,7 @@ private:
 	static unique_ptr<TransformResultValue> FinalizeCatalogNameAsUseTarget(PEGTransformer &transformer,
 	                                                                       TransformStackFrame &frame);
 	static QualifiedName TransformCatalogNameAsUseTarget(PEGTransformer &transformer, const Identifier &catalog_name);
+	static const TransformFrameOps USE_TARGET_CATALOG_SCHEMA_OPS;
 	static unique_ptr<TransformResultValue> TransformUseTargetCatalogSchemaInternal(PEGTransformer &transformer,
 	                                                                                ParseResult &parse_result);
 	static void InitializeUseTargetCatalogSchema(PEGTransformer &transformer, TransformStack &stack,
@@ -3858,12 +3858,15 @@ private:
 	static QualifiedName TransformUseTargetCatalogSchema(PEGTransformer &transformer, const Identifier &catalog_name,
 	                                                     const Identifier &reserved_schema_name,
 	                                                     const optional<vector<Identifier>> &dot_identifier);
+	static const TransformFrameOps DOT_IDENTIFIER_OPS;
 	static unique_ptr<TransformResultValue> TransformDotIdentifierInternal(PEGTransformer &transformer,
 	                                                                       ParseResult &parse_result);
 	static void InitializeDotIdentifier(PEGTransformer &transformer, TransformStack &stack, TransformStackFrame &frame);
 	static unique_ptr<TransformResultValue> FinalizeDotIdentifier(PEGTransformer &transformer,
 	                                                              TransformStackFrame &frame);
 	static Identifier TransformDotIdentifier(PEGTransformer &transformer, const Identifier &identifier);
+	// END generated trampoline transformer rules for use.gram
+
 	static unique_ptr<TransformResultValue> TransformVacuumStatementInternal(PEGTransformer &transformer,
 	                                                                         ParseResult &parse_result);
 	static unique_ptr<SQLStatement> TransformVacuumStatement(PEGTransformer &transformer,
