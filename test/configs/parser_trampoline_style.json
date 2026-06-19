@@ -1,0 +1,5 @@
+{
+  "description": "Run with the trampoline-style PEG transformer enabled.",
+  "on_init": "SET parser_trampoline_style=true;",
+  "skip_compiled": "true"
+}
