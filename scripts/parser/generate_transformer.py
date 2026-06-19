@@ -506,9 +506,7 @@ def collect_generated(
 
         # Normalize a single token or syntax-only choice to a one-element sequence so
         # the all-skip path generates a no-argument semantic body.
-        ast_plan = plan_extraction(
-            ast, rule_types, excluded_rules, identifier_override_rules, optional_semantic_values
-        )
+        ast_plan = plan_extraction(ast, rule_types, excluded_rules, identifier_override_rules, optional_semantic_values)
         if not isinstance(ast, (SequenceNode, ChoiceNode)) or (
             ast_plan is not None and ast_plan.kind == ExtractionKind.SKIP
         ):

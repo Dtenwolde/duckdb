@@ -444,6 +444,76 @@ private:
 	static const TransformFrameOps CHECKPOINT_FORCE_OPS;
 	static void InitializeCheckpointForce(PEGTransformer &transformer, TransformStack &stack, TransformStackFrame &frame);
 	static unique_ptr<TransformResultValue> FinalizeCheckpointForce(PEGTransformer &transformer, TransformStackFrame &frame);
+	static const TransformFrameOps CONNECT_STATEMENT_OPS;
+	static void InitializeConnectStatement(PEGTransformer &transformer, TransformStack &stack, TransformStackFrame &frame);
+	static unique_ptr<TransformResultValue> FinalizeConnectStatement(
+	    PEGTransformer &transformer, TransformStackFrame &frame);
+	static const TransformFrameOps DISCONNECT_STATEMENT_OPS;
+	static void InitializeDisconnectStatement(
+	    PEGTransformer &transformer, TransformStack &stack, TransformStackFrame &frame);
+	static unique_ptr<TransformResultValue> FinalizeDisconnectStatement(
+	    PEGTransformer &transformer, TransformStackFrame &frame);
+	static const TransformFrameOps SESSION_TARGET_OPS;
+	static void InitializeSessionTarget(PEGTransformer &transformer, TransformStack &stack, TransformStackFrame &frame);
+	static unique_ptr<TransformResultValue> FinalizeSessionTarget(PEGTransformer &transformer, TransformStackFrame &frame);
+	static const TransformFrameOps LOCAL_SESSION_TARGET_OPS;
+	static void InitializeLocalSessionTarget(PEGTransformer &transformer, TransformStack &stack, TransformStackFrame &frame);
+	static unique_ptr<TransformResultValue> FinalizeLocalSessionTarget(
+	    PEGTransformer &transformer, TransformStackFrame &frame);
+	static const TransformFrameOps STRING_SESSION_TARGET_OPS;
+	static void InitializeStringSessionTarget(
+	    PEGTransformer &transformer, TransformStack &stack, TransformStackFrame &frame);
+	static unique_ptr<TransformResultValue> FinalizeStringSessionTarget(
+	    PEGTransformer &transformer, TransformStackFrame &frame);
+	static const TransformFrameOps CATALOG_SESSION_TARGET_OPS;
+	static void InitializeCatalogSessionTarget(
+	    PEGTransformer &transformer, TransformStack &stack, TransformStackFrame &frame);
+	static unique_ptr<TransformResultValue> FinalizeCatalogSessionTarget(
+	    PEGTransformer &transformer, TransformStackFrame &frame);
+	static const TransformFrameOps DEALLOCATE_STATEMENT_OPS;
+	static void InitializeDeallocateStatement(
+	    PEGTransformer &transformer, TransformStack &stack, TransformStackFrame &frame);
+	static unique_ptr<TransformResultValue> FinalizeDeallocateStatement(
+	    PEGTransformer &transformer, TransformStackFrame &frame);
+	static const TransformFrameOps DEALLOCATE_PREPARE_OPS;
+	static void InitializeDeallocatePrepare(PEGTransformer &transformer, TransformStack &stack, TransformStackFrame &frame);
+	static unique_ptr<TransformResultValue> FinalizeDeallocatePrepare(
+	    PEGTransformer &transformer, TransformStackFrame &frame);
+	static const TransformFrameOps DETACH_STATEMENT_OPS;
+	static void InitializeDetachStatement(PEGTransformer &transformer, TransformStack &stack, TransformStackFrame &frame);
+	static unique_ptr<TransformResultValue> FinalizeDetachStatement(PEGTransformer &transformer, TransformStackFrame &frame);
+	static const TransformFrameOps TRANSACTION_STATEMENT_OPS;
+	static void InitializeTransactionStatement(
+	    PEGTransformer &transformer, TransformStack &stack, TransformStackFrame &frame);
+	static unique_ptr<TransformResultValue> FinalizeTransactionStatement(
+	    PEGTransformer &transformer, TransformStackFrame &frame);
+	static const TransformFrameOps BEGIN_TRANSACTION_OPS;
+	static void InitializeBeginTransaction(PEGTransformer &transformer, TransformStack &stack, TransformStackFrame &frame);
+	static unique_ptr<TransformResultValue> FinalizeBeginTransaction(
+	    PEGTransformer &transformer, TransformStackFrame &frame);
+	static const TransformFrameOps ROLLBACK_TRANSACTION_OPS;
+	static void InitializeRollbackTransaction(
+	    PEGTransformer &transformer, TransformStack &stack, TransformStackFrame &frame);
+	static unique_ptr<TransformResultValue> FinalizeRollbackTransaction(
+	    PEGTransformer &transformer, TransformStackFrame &frame);
+	static const TransformFrameOps COMMIT_TRANSACTION_OPS;
+	static void InitializeCommitTransaction(PEGTransformer &transformer, TransformStack &stack, TransformStackFrame &frame);
+	static unique_ptr<TransformResultValue> FinalizeCommitTransaction(
+	    PEGTransformer &transformer, TransformStackFrame &frame);
+	static const TransformFrameOps READ_OR_WRITE_OPS;
+	static void InitializeReadOrWrite(PEGTransformer &transformer, TransformStack &stack, TransformStackFrame &frame);
+	static unique_ptr<TransformResultValue> FinalizeReadOrWrite(PEGTransformer &transformer, TransformStackFrame &frame);
+	static const TransformFrameOps READ_ONLY_OR_READ_WRITE_OPS;
+	static void InitializeReadOnlyOrReadWrite(
+	    PEGTransformer &transformer, TransformStack &stack, TransformStackFrame &frame);
+	static unique_ptr<TransformResultValue> FinalizeReadOnlyOrReadWrite(
+	    PEGTransformer &transformer, TransformStackFrame &frame);
+	static const TransformFrameOps READ_ONLY_OPS;
+	static void InitializeReadOnly(PEGTransformer &transformer, TransformStack &stack, TransformStackFrame &frame);
+	static unique_ptr<TransformResultValue> FinalizeReadOnly(PEGTransformer &transformer, TransformStackFrame &frame);
+	static const TransformFrameOps READ_WRITE_OPS;
+	static void InitializeReadWrite(PEGTransformer &transformer, TransformStack &stack, TransformStackFrame &frame);
+	static unique_ptr<TransformResultValue> FinalizeReadWrite(PEGTransformer &transformer, TransformStackFrame &frame);
 	static const TransformFrameOps USE_STATEMENT_OPS;
 	static void InitializeUseStatement(PEGTransformer &transformer, TransformStack &stack, TransformStackFrame &frame);
 	static unique_ptr<TransformResultValue> FinalizeUseStatement(PEGTransformer &transformer, TransformStackFrame &frame);
@@ -468,6 +538,9 @@ private:
 	static const TransformFrameOps DOT_IDENTIFIER_OPS;
 	static void InitializeDotIdentifier(PEGTransformer &transformer, TransformStack &stack, TransformStackFrame &frame);
 	static unique_ptr<TransformResultValue> FinalizeDotIdentifier(PEGTransformer &transformer, TransformStackFrame &frame);
+	static const TransformFrameOps IF_EXISTS_OPS;
+	static void InitializeIfExists(PEGTransformer &transformer, TransformStack &stack, TransformStackFrame &frame);
+	static unique_ptr<TransformResultValue> FinalizeIfExists(PEGTransformer &transformer, TransformStackFrame &frame);
 // END generated trampoline transformer declarations
 
 	// comment.gram

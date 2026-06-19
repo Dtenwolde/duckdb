@@ -9,8 +9,11 @@ from grammar_types import load_grammar_types, load_matcher_rule_overrides
 from inline_grammar import parse_peg_grammar
 from transformer_plan import (
     ChoiceNode,
+    FunctionCallNode,
     LiteralNode,
+    ListMacroNode,
     OptionalNode,
+    ParensNode,
     ReferenceNode,
     RepeatNode,
     SequenceNode,
@@ -29,7 +32,15 @@ transformer_header = src_dir / "include" / "duckdb" / "parser" / "peg" / "transf
 transformer_source = peg_dir / "transformer" / "transform_generated.cpp"
 transformer_trampoline_source = peg_dir / "transformer" / "transform_generated_trampoline.cpp"
 
-TRAMPOLINE_GRAMMARS = ["checkpoint.gram", "use.gram"]
+TRAMPOLINE_GRAMMARS = [
+    "checkpoint.gram",
+    "connect.gram",
+    "deallocate.gram",
+    "detach.gram",
+    "transaction.gram",
+    "use.gram",
+]
+TRAMPOLINE_HELPER_RULE_SOURCES = {}
 
 
 @dataclass
@@ -64,13 +75,18 @@ class FinalizeArg:
     lines: list[str]
 
 
-def load_identifier_override_rules(grammar_types_file):
+def load_primitive_override_rules(grammar_types_file):
     matcher_overrides = load_matcher_rule_overrides(grammar_types_file)
-    return {
-        rule_name
-        for rule_name, info in matcher_overrides.items()
-        if isinstance(info, dict) and info.get("matcher") in ("identifier", "reserved_identifier")
-    }
+    primitive_rules = {}
+    for rule_name, info in matcher_overrides.items():
+        if not isinstance(info, dict):
+            continue
+        matcher = info.get("matcher")
+        if matcher in ("identifier", "reserved_identifier"):
+            primitive_rules[rule_name] = ("Identifier", "IdentifierParseResult", "identifier")
+        elif matcher == "string_literal":
+            primitive_rules[rule_name] = ("string", "StringLiteralParseResult", "GetRawString()")
+    return primitive_rules
 
 
 def to_upper_snake_case(name):
@@ -384,7 +400,7 @@ def generate_initialize(rule_name, ast, rules, rule_types):
     return generate_sequence_initialize(rule_name, ast, rules, rule_types)
 
 
-def sequence_finalize_args(sequence, rules, rule_types, identifier_override_rules):
+def sequence_finalize_args(sequence, rules, rule_types, excluded_rules, primitive_rules):
     args = []
     stack_slot_expr = "child_slot"
     needs_child_slot = False
@@ -392,17 +408,20 @@ def sequence_finalize_args(sequence, rules, rule_types, identifier_override_rule
         if isinstance(child, LiteralNode):
             continue
         if isinstance(child, ReferenceNode):
-            if child.name in identifier_override_rules:
+            if child.name in excluded_rules:
+                continue
+            if child.name in primitive_rules:
+                cpp_type, parse_result_type, accessor = primitive_rules[child.name]
                 var_name = to_snake_case(child.name)
                 args.append(
                     FinalizeArg(
                         var_name=var_name,
-                        cpp_type="Identifier",
+                        cpp_type=cpp_type,
                         by_value=False,
                         lines=[
                             (
                                 f"\tauto {var_name} = "
-                                f"list_pr.GetChild({child_idx}).Cast<IdentifierParseResult>().identifier;"
+                                f"list_pr.GetChild({child_idx}).Cast<{parse_result_type}>().{accessor};"
                             )
                         ],
                     )
@@ -427,20 +446,35 @@ def sequence_finalize_args(sequence, rules, rule_types, identifier_override_rule
                 )
                 continue
         if isinstance(child, OptionalNode) and isinstance(child.child, ReferenceNode):
-            if child.child.name in identifier_override_rules:
+            if child.child.name in excluded_rules:
+                args.append(
+                    FinalizeArg(
+                        var_name="has_result",
+                        cpp_type="bool",
+                        by_value=False,
+                        lines=[
+                            "\tbool has_result {};",
+                            f"\tauto &has_result_opt = list_pr.GetChild({child_idx}).Cast<OptionalParseResult>();",
+                            "\thas_result = has_result_opt.HasResult();",
+                        ],
+                    )
+                )
+                continue
+            if child.child.name in primitive_rules:
+                cpp_type, parse_result_type, accessor = primitive_rules[child.child.name]
                 var_name = to_snake_case(child.child.name)
                 args.append(
                     FinalizeArg(
                         var_name=var_name,
-                        cpp_type=f"optional<Identifier>",
+                        cpp_type=f"optional<{cpp_type}>",
                         by_value=False,
                         lines=[
-                            f"\toptional<Identifier> {var_name} {{}};",
+                            f"\toptional<{cpp_type}> {var_name} {{}};",
                             f"\tauto &{var_name}_opt = list_pr.GetChild({child_idx}).Cast<OptionalParseResult>();",
                             f"\tif ({var_name}_opt.HasResult()) {{",
                             (
                                 f"\t\tauto {var_name}_value = "
-                                f"{var_name}_opt.GetResult().Cast<IdentifierParseResult>().identifier;"
+                                f"{var_name}_opt.GetResult().Cast<{parse_result_type}>().{accessor};"
                             ),
                             f"\t\t{var_name} = {var_name}_value;",
                             "\t}",
@@ -453,17 +487,19 @@ def sequence_finalize_args(sequence, rules, rule_types, identifier_override_rule
                 child_rule = child.child.name
                 var_name = to_snake_case(child_rule)
                 cpp_type = rule_type(child_rule, rule_types)
+                by_value = rule_by_value(child_rule, rule_types)
+                value_expr = f"std::move({var_name}_value)" if by_value else f"{var_name}_value"
                 args.append(
                     FinalizeArg(
                         var_name=var_name,
                         cpp_type=f"optional<{cpp_type}>",
-                        by_value=False,
+                        by_value=by_value,
                         lines=[
                             f"\toptional<{cpp_type}> {var_name} {{}};",
                             f"\tauto &{var_name}_opt = list_pr.GetChild({child_idx}).Cast<OptionalParseResult>();",
                             f"\tif ({var_name}_opt.HasResult()) {{",
                             f"\t\tauto {var_name}_value = frame.TakeResult<{cpp_type}>({stack_slot_expr});",
-                            f"\t\t{var_name} = {var_name}_value;",
+                            f"\t\t{var_name} = {value_expr};",
                             "\t\tchild_slot++;",
                             "\t}",
                         ],
@@ -542,11 +578,13 @@ def generate_choice_finalize(rule_name, return_type, return_by_value):
     )
 
 
-def generate_sequence_finalize(rule_name, ast, rules, rule_types, identifier_override_rules):
+def generate_sequence_finalize(rule_name, ast, rules, rule_types, excluded_rules, primitive_rules):
     sequence = ensure_sequence(ast)
     return_type = rule_type(rule_name, rule_types)
     return_by_value = rule_by_value(rule_name, rule_types)
-    args, needs_child_slot = sequence_finalize_args(sequence, rules, rule_types, identifier_override_rules)
+    args, needs_child_slot = sequence_finalize_args(
+        sequence, rules, rule_types, excluded_rules, primitive_rules
+    )
 
     lines = [
         f"unique_ptr<TransformResultValue> PEGTransformerFactory::{finalize_name(rule_name)}",
@@ -568,12 +606,12 @@ def generate_sequence_finalize(rule_name, ast, rules, rule_types, identifier_ove
     return "\n".join(lines)
 
 
-def generate_finalize(rule_name, ast, rules, rule_types, identifier_override_rules):
+def generate_finalize(rule_name, ast, rules, rule_types, excluded_rules, primitive_rules):
     return_type = rule_type(rule_name, rule_types)
     return_by_value = rule_by_value(rule_name, rule_types)
     if is_pure_reference_choice(ast):
         return generate_choice_finalize(rule_name, return_type, return_by_value)
-    return generate_sequence_finalize(rule_name, ast, rules, rule_types, identifier_override_rules)
+    return generate_sequence_finalize(rule_name, ast, rules, rule_types, excluded_rules, primitive_rules)
 
 
 def generated_block(begin_label, body):
@@ -581,37 +619,40 @@ def generated_block(begin_label, body):
 
 
 def generate_trampoline_header_section(grammar_names):
+    context = load_rule_context(grammar_names)
     lines = []
-    for grammar_name in grammar_names:
-        _, rules, rule_types, excluded_rules, identifier_override_rules = load_rules(grammar_name)
-        del rule_types, excluded_rules, identifier_override_rules
-        for rule_name in rules:
-            lines.extend(generate_trampoline_rule_declarations(rule_name))
+    for rule_name in context.emit_rule_names:
+        lines.extend(generate_trampoline_rule_declarations(rule_name))
     return "\n".join(lines) + "\n"
 
 
 def generate_trampoline_source_section(grammar_names):
+    context = load_rule_context(grammar_names)
     lines = []
-    rule_names = []
-    for grammar_name in grammar_names:
-        _, rules, rule_types, excluded_rules, identifier_override_rules = load_rules(grammar_name)
-        del excluded_rules
-        rule_asts = {rule_name: rule_to_ast(rule) for rule_name, rule in rules.items()}
-        for rule_name in rules:
-            rule_names.append(rule_name)
-            lines.append(generate_ops_definition(rule_name))
+    for rule_name in context.emit_rule_names:
+        lines.append(generate_ops_definition(rule_name))
+    lines.append("")
+    for rule_name in context.emit_rule_names:
+        ast = rule_to_ast(context.rules[rule_name])
+        lines.append(generate_initialize(rule_name, ast, context.rules, context.rule_types))
         lines.append("")
-        for rule_name, ast in rule_asts.items():
-            lines.append(generate_initialize(rule_name, ast, rules, rule_types))
-            lines.append("")
-            lines.append(generate_finalize(rule_name, ast, rules, rule_types, identifier_override_rules))
-            lines.append("")
+        lines.append(
+            generate_finalize(
+                rule_name,
+                ast,
+                context.rules,
+                context.rule_types,
+                context.excluded_rules,
+                context.primitive_rules,
+            )
+        )
+        lines.append("")
 
     ops_registry = [
         "const case_insensitive_map_t<const TransformFrameOps *> &PEGTransformerFactory::GeneratedTrampolineOps() {",
         "\tstatic const case_insensitive_map_t<const TransformFrameOps *> rule_ops = {",
     ]
-    for rule_name in rule_names:
+    for rule_name in context.emit_rule_names:
         ops_registry.append(f'\t    {{"{rule_name}", &{ops_name(rule_name)}}},')
     ops_registry.extend(
         [
@@ -624,17 +665,126 @@ def generate_trampoline_source_section(grammar_names):
     return "\n".join(lines + ops_registry).rstrip() + "\n"
 
 
-def load_rules(grammar_name):
-    grammar_types_file = type_dir / "grammar_types.yml"
-    rule_types, excluded_rules = load_grammar_types(grammar_types_file)
-    identifier_override_rules = load_identifier_override_rules(grammar_types_file)
+@dataclass
+class RuleContext:
+    rules: dict
+    rule_types: dict
+    excluded_rules: set
+    primitive_rules: dict
+    emit_rule_names: list[str]
+    source_files: list[Path]
+
+
+def load_rule_file(grammar_name):
     grammar_file = statements_dir / grammar_name
     rules = parse_peg_grammar(grammar_file.read_text())
+    return grammar_file, rules
+
+
+def load_rule_context(grammar_names):
+    grammar_types_file = type_dir / "grammar_types.yml"
+    rule_types, excluded_rules = load_grammar_types(grammar_types_file)
+    primitive_rules = load_primitive_override_rules(grammar_types_file)
+    rules = {}
+    emit_rule_names = []
+    source_files = []
+    loaded_grammars = {}
+    rule_sources = build_rule_source_index()
+
+    def load_grammar(grammar_name):
+        if grammar_name not in loaded_grammars:
+            grammar_file, grammar_rules = load_rule_file(grammar_name)
+            loaded_grammars[grammar_name] = (grammar_file, grammar_rules)
+            source_files.append(grammar_file)
+            for rule_name, rule in grammar_rules.items():
+                existing = rules.get(rule_name)
+                if existing is not None and existing.expression != rule.expression:
+                    raise RuntimeError(f"duplicate grammar rule with different bodies: {rule_name}")
+                rules[rule_name] = rule
+        return loaded_grammars[grammar_name]
+
+    def ensure_rule_loaded(rule_name):
+        if rule_name in rules:
+            return
+        grammar_name = TRAMPOLINE_HELPER_RULE_SOURCES.get(rule_name) or rule_sources.get(rule_name)
+        if grammar_name is None:
+            return
+        load_grammar(grammar_name)
+
+    def add_emit_rule(rule_name):
+        if rule_name in primitive_rules:
+            return
+        if rule_name not in rule_types or rule_name in emit_rule_names:
+            return
+        ensure_rule_loaded(rule_name)
+        if rule_name not in rules:
+            raise RuntimeError(f"typed rule {rule_name} is not defined in any statement grammar")
+        emit_rule_names.append(rule_name)
+
+    for grammar_name in grammar_names:
+        _, grammar_rules = load_grammar(grammar_name)
+        for rule_name in grammar_rules:
+            add_emit_rule(rule_name)
+
+    processed_rule_names = set()
+    for rule_name in emit_rule_names:
+        if rule_name in processed_rule_names:
+            continue
+        processed_rule_names.add(rule_name)
+        ast = rule_to_ast(rules[rule_name])
+        for dependency_name in referenced_rule_names(ast):
+            if dependency_name in primitive_rules:
+                continue
+            if dependency_name in rule_types:
+                add_emit_rule(dependency_name)
+            else:
+                ensure_rule_loaded(dependency_name)
+
+    for rule_name, grammar_name in TRAMPOLINE_HELPER_RULE_SOURCES.items():
+        _, grammar_rules = load_grammar(grammar_name)
+        if rule_name not in grammar_rules:
+            raise RuntimeError(f"helper rule {rule_name} not found in {grammar_name}")
+        if rule_name in rule_types and rule_name not in emit_rule_names:
+            emit_rule_names.append(rule_name)
 
     for rule_name, rule in rules.items():
         if rule_name in rule_types:
             rule.return_type = rule_types[rule_name].cpp_type
-    return grammar_file, rules, rule_types, excluded_rules, identifier_override_rules
+    return RuleContext(rules, rule_types, excluded_rules, primitive_rules, emit_rule_names, source_files)
+
+
+def build_rule_source_index():
+    rule_sources = {}
+    for grammar_file in sorted(statements_dir.glob("*.gram")):
+        grammar_rules = parse_peg_grammar(grammar_file.read_text())
+        for rule_name in grammar_rules:
+            existing = rule_sources.get(rule_name)
+            if existing is not None:
+                raise RuntimeError(f"duplicate grammar rule {rule_name} in {existing} and {grammar_file.name}")
+            rule_sources[rule_name] = grammar_file.name
+    return rule_sources
+
+
+def referenced_rule_names(ast):
+    if isinstance(ast, ReferenceNode):
+        return [ast.name]
+    if isinstance(ast, SequenceNode):
+        result = []
+        for child in ast.children:
+            result.extend(referenced_rule_names(child))
+        return result
+    if isinstance(ast, ChoiceNode):
+        result = []
+        for alternative in ast.alternatives:
+            result.extend(referenced_rule_names(alternative))
+        return result
+    if isinstance(ast, (OptionalNode, RepeatNode)):
+        return referenced_rule_names(ast.child)
+    if isinstance(ast, (ParensNode, ListMacroNode, FunctionCallNode)):
+        return referenced_rule_names(ast.inner)
+    if isinstance(ast, LiteralNode):
+        return []
+    raise NotImplementedError(f"unsupported grammar node while collecting dependencies: {ast}")
 
 
 def replace_between_markers(text, label, replacement):
@@ -694,7 +844,7 @@ def main():
     parser.add_argument(
         "--grammar",
         default="use.gram",
-        choices=["use.gram", "checkpoint.gram"],
+        choices=TRAMPOLINE_GRAMMARS,
         help="Grammar file to preview. --write always writes the full trampoline backend.",
     )
     parser.add_argument(
@@ -706,18 +856,17 @@ def main():
     if args.write:
         write_generated_files()
         return
-    grammar_file, rules, rule_types, excluded_rules, identifier_override_rules = load_rules(args.grammar)
-    del excluded_rules
-    rule_asts = {rule_name: rule_to_ast(rule) for rule_name, rule in rules.items()}
+    context = load_rule_context([args.grammar])
     header_section = "\n".join(
-        line for rule_name in rules for line in generate_trampoline_rule_declarations(rule_name)
+        line for rule_name in context.emit_rule_names for line in generate_trampoline_rule_declarations(rule_name)
     )
     source_section = generate_trampoline_source_section([args.grammar])
+    source_files = ", ".join(str(source_file) for source_file in context.source_files)
     print(
         "\n".join(
             [
                 "// AUTO-GENERATED PREVIEW by scripts/parser/generate_transformer_trampoline.py",
-                f"// Source grammar: {grammar_file}",
+                f"// Source grammars: {source_files}",
                 "",
                 "// Header declarations:",
                 header_section.rstrip(),
