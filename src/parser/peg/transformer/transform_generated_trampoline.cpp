@@ -4372,6 +4372,9 @@ void PEGTransformerFactory::InitializeStatement(PEGTransformer &transformer, Tra
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeStatement
     (PEGTransformer &transformer, TransformStackFrame &frame) {
 	auto result = frame.TakeResult<unique_ptr<SQLStatement>>(0);
+	if (!transformer.named_parameter_map.empty()) {
+		result->named_param_map = transformer.named_parameter_map;
+	}
 	return make_uniq<TypedTransformResult<unique_ptr<SQLStatement>>>(std::move(result));
 }
 
@@ -6061,6 +6064,9 @@ void PEGTransformerFactory::InitializeCopyVariations(PEGTransformer &transformer
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeCopyVariations
     (PEGTransformer &transformer, TransformStackFrame &frame) {
 	auto result = frame.TakeResult<unique_ptr<SQLStatement>>(0);
+	if (!transformer.named_parameter_map.empty()) {
+		result->named_param_map = transformer.named_parameter_map;
+	}
 	return make_uniq<TypedTransformResult<unique_ptr<SQLStatement>>>(std::move(result));
 }
 
@@ -6870,6 +6876,9 @@ void PEGTransformerFactory::InitializeCopyFromDatabase(PEGTransformer &transform
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeCopyFromDatabase
     (PEGTransformer &transformer, TransformStackFrame &frame) {
 	auto result = frame.TakeResult<unique_ptr<SQLStatement>>(0);
+	if (!transformer.named_parameter_map.empty()) {
+		result->named_param_map = transformer.named_parameter_map;
+	}
 	return make_uniq<TypedTransformResult<unique_ptr<SQLStatement>>>(std::move(result));
 }
 
@@ -10097,6 +10106,9 @@ void PEGTransformerFactory::InitializeTriggerBody(PEGTransformer &transformer, T
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeTriggerBody
     (PEGTransformer &transformer, TransformStackFrame &frame) {
 	auto result = frame.TakeResult<unique_ptr<SQLStatement>>(0);
+	if (!transformer.named_parameter_map.empty()) {
+		result->named_param_map = transformer.named_parameter_map;
+	}
 	return make_uniq<TypedTransformResult<unique_ptr<SQLStatement>>>(std::move(result));
 }
 
@@ -12202,6 +12214,9 @@ void PEGTransformerFactory::InitializeExplainableStatements(PEGTransformer &tran
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeExplainableStatements
     (PEGTransformer &transformer, TransformStackFrame &frame) {
 	auto result = frame.TakeResult<unique_ptr<SQLStatement>>(0);
+	if (!transformer.named_parameter_map.empty()) {
+		result->named_param_map = transformer.named_parameter_map;
+	}
 	return make_uniq<TypedTransformResult<unique_ptr<SQLStatement>>>(std::move(result));
 }
 
@@ -20238,6 +20253,9 @@ void PEGTransformerFactory::InitializePragmaAssignOrFunction(PEGTransformer &tra
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizePragmaAssignOrFunction
     (PEGTransformer &transformer, TransformStackFrame &frame) {
 	auto result = frame.TakeResult<unique_ptr<SQLStatement>>(0);
+	if (!transformer.named_parameter_map.empty()) {
+		result->named_param_map = transformer.named_parameter_map;
+	}
 	return make_uniq<TypedTransformResult<unique_ptr<SQLStatement>>>(std::move(result));
 }
 
@@ -24774,6 +24792,9 @@ void PEGTransformerFactory::InitializeTransactionStatement(PEGTransformer &trans
 unique_ptr<TransformResultValue> PEGTransformerFactory::FinalizeTransactionStatement
     (PEGTransformer &transformer, TransformStackFrame &frame) {
 	auto result = frame.TakeResult<unique_ptr<SQLStatement>>(0);
+	if (!transformer.named_parameter_map.empty()) {
+		result->named_param_map = transformer.named_parameter_map;
+	}
 	return make_uniq<TypedTransformResult<unique_ptr<SQLStatement>>>(std::move(result));
 }
 

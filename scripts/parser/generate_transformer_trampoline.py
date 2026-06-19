@@ -1568,6 +1568,18 @@ def generate_choice_finalize(rule_name, ast, rules, rule_types, excluded_rules, 
         lines.extend(
             [
                 f"\tauto result = frame.TakeResult<{return_type}>(0);",
+            ]
+        )
+        if return_type == "unique_ptr<SQLStatement>":
+            lines.extend(
+                [
+                    "\tif (!transformer.named_parameter_map.empty()) {",
+                    "\t\tresult->named_param_map = transformer.named_parameter_map;",
+                    "\t}",
+                ]
+            )
+        lines.extend(
+            [
                 f"{box_result(return_type, return_by_value)}",
                 "}",
             ]

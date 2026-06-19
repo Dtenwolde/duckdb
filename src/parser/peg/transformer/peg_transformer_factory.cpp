@@ -49,6 +49,9 @@ PEGTransformerFactory::TransformStatementTrampolineInternal(PEGTransformer &tran
 		throw NotImplementedException("Trampoline transformer does not support rule '%s' yet", choice_result.name);
 	}
 	auto result = ExecuteSQLStatementTrampoline(transformer, choice_result, *entry->second);
+	if (!transformer.named_parameter_map.empty()) {
+		result->named_param_map = transformer.named_parameter_map;
+	}
 	return make_uniq<TypedTransformResult<unique_ptr<SQLStatement>>>(std::move(result));
 }
 
