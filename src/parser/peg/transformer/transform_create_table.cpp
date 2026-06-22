@@ -208,6 +208,17 @@ Identifier PEGTransformerFactory::TransformColIdOrString(PEGTransformer &transfo
 	return transformer.Transform<Identifier>(choice_result);
 }
 
+Identifier PEGTransformerFactory::TransformColIdOrStringTrampoline(PEGTransformer &transformer,
+                                                                   TransformStackFrame &frame) {
+	auto &list_pr = frame.parse_result.Cast<ListParseResult>();
+	auto &choice_pr = list_pr.Child<ChoiceParseResult>(0);
+	auto &choice_result = choice_pr.GetResult();
+	if (choice_result.type == ParseResultType::STRING) {
+		return Identifier(choice_result.Cast<StringLiteralParseResult>().result);
+	}
+	return frame.TakeResult<Identifier>(0);
+}
+
 string PEGTransformerFactory::TransformIdentifier(PEGTransformer &transformer, ParseResult &parse_result) {
 	auto &list_pr = parse_result.Cast<ListParseResult>();
 	return list_pr.Child<IdentifierParseResult>(0).identifier.GetIdentifierName();
@@ -353,6 +364,18 @@ unique_ptr<Constraint> PEGTransformerFactory::TransformTopLevelConstraintList(PE
 		return std::move(cc_entry.constraint);
 	}
 	return transformer.Transform<unique_ptr<Constraint>>(choice_result);
+}
+
+unique_ptr<Constraint> PEGTransformerFactory::TransformTopLevelConstraintListTrampoline(PEGTransformer &transformer,
+                                                                                       TransformStackFrame &frame) {
+	auto &list_pr = frame.parse_result.Cast<ListParseResult>();
+	auto &choice_pr = list_pr.Child<ChoiceParseResult>(0);
+	auto &choice_result = choice_pr.GetResult();
+	if (choice_result.name == "CheckConstraint") {
+		auto cc_entry = frame.TakeResult<ColumnConstraintEntry>(0);
+		return std::move(cc_entry.constraint);
+	}
+	return frame.TakeResult<unique_ptr<Constraint>>(0);
 }
 
 unique_ptr<Constraint> PEGTransformerFactory::TransformTopPrimaryKeyConstraint(PEGTransformer &transformer,

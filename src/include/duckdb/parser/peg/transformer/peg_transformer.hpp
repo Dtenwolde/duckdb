@@ -3955,8 +3955,12 @@ private:
 
 	// expression.gram
 	static unique_ptr<ParsedExpression> TransformExpression(PEGTransformer &transformer, ParseResult &parse_result);
+	static unique_ptr<ParsedExpression> TransformExpressionTrampoline(PEGTransformer &transformer,
+	                                                                  TransformStackFrame &frame);
 	static unique_ptr<ParsedExpression> TransformPrefixExpression(PEGTransformer &transformer,
 	                                                              ParseResult &parse_result);
+	static unique_ptr<ParsedExpression> TransformPrefixExpressionTrampoline(PEGTransformer &transformer,
+	                                                                       TransformStackFrame &frame);
 	static unique_ptr<WindowExpression> TransformOverClause(PEGTransformer &transformer, ParseResult &parse_result);
 
 	// pivot.gram
@@ -3967,9 +3971,14 @@ private:
 	// select.gram
 	static unique_ptr<SelectStatement> TransformSelectStatementInternalRule(PEGTransformer &transformer,
 	                                                                        ParseResult &parse_result);
+	static unique_ptr<SelectStatement> TransformSelectStatementInternalTrampoline(PEGTransformer &transformer,
+	                                                                              TransformStackFrame &frame);
 	static unique_ptr<SelectStatement> TransformSimpleSelect(PEGTransformer &transformer, ParseResult &parse_result);
+	static unique_ptr<SelectStatement> TransformSimpleSelectTrampoline(PEGTransformer &transformer,
+	                                                                    TransformStackFrame &frame);
 
 	static unique_ptr<TableRef> TransformTableRef(PEGTransformer &transformer, ParseResult &parse_result);
+	static unique_ptr<TableRef> TransformTableRefTrampoline(PEGTransformer &transformer, TransformStackFrame &frame);
 
 	static CommonTableExpressionMap TransformWithClause(PEGTransformer &transformer, ParseResult &parse_result);
 	static unique_ptr<ParsedExpression> TransformWindowDefinition(PEGTransformer &transformer,
@@ -4115,6 +4124,8 @@ private:
 	static unique_ptr<TransformResultValue> TransformAlterSequenceOptionsInternal(PEGTransformer &transformer,
 	                                                                              ParseResult &parse_result);
 	static unique_ptr<AlterInfo> TransformAlterSequenceOptions(PEGTransformer &transformer, ParseResult &choice_result);
+	static unique_ptr<AlterInfo> TransformAlterSequenceOptionsTrampoline(PEGTransformer &transformer,
+	                                                                     TransformStackFrame &frame);
 	static unique_ptr<TransformResultValue> TransformSetSequenceOptionInternal(PEGTransformer &transformer,
 	                                                                           ParseResult &parse_result);
 	static unique_ptr<AlterInfo>
@@ -5037,6 +5048,8 @@ private:
 	                                                                                ParseResult &parse_result);
 	static unique_ptr<Constraint> TransformTopLevelConstraintList(PEGTransformer &transformer,
 	                                                              ParseResult &choice_result);
+	static unique_ptr<Constraint> TransformTopLevelConstraintListTrampoline(PEGTransformer &transformer,
+	                                                                        TransformStackFrame &frame);
 	static unique_ptr<TransformResultValue> TransformTopPrimaryKeyConstraintInternal(PEGTransformer &transformer,
 	                                                                                 ParseResult &parse_result);
 	static unique_ptr<Constraint> TransformTopPrimaryKeyConstraint(PEGTransformer &transformer,
@@ -5064,6 +5077,7 @@ private:
 	static unique_ptr<TransformResultValue> TransformColIdOrStringInternal(PEGTransformer &transformer,
 	                                                                       ParseResult &parse_result);
 	static Identifier TransformColIdOrString(PEGTransformer &transformer, ParseResult &choice_result);
+	static Identifier TransformColIdOrStringTrampoline(PEGTransformer &transformer, TransformStackFrame &frame);
 	static unique_ptr<TransformResultValue> TransformTypeFuncNameInternal(PEGTransformer &transformer,
 	                                                                      ParseResult &parse_result);
 	static unique_ptr<TransformResultValue> TransformGeneratedColumnInternal(PEGTransformer &transformer,
@@ -5461,6 +5475,7 @@ private:
 	static unique_ptr<TransformResultValue> TransformFunctionIdentifierInternal(PEGTransformer &transformer,
 	                                                                            ParseResult &parse_result);
 	static QualifiedName TransformFunctionIdentifier(PEGTransformer &transformer, ParseResult &choice_result);
+	static QualifiedName TransformFunctionIdentifierTrampoline(PEGTransformer &transformer, TransformStackFrame &frame);
 	static unique_ptr<TransformResultValue>
 	TransformCatalogReservedSchemaFunctionNameInternal(PEGTransformer &transformer, ParseResult &parse_result);
 	static QualifiedName
@@ -5513,6 +5528,8 @@ private:
 	                                                                           ParseResult &parse_result);
 	static unique_ptr<ParsedExpression> TransformLiteralExpression(PEGTransformer &transformer,
 	                                                               ParseResult &choice_result);
+	static unique_ptr<ParsedExpression> TransformLiteralExpressionTrampoline(PEGTransformer &transformer,
+	                                                                         TransformStackFrame &frame);
 	static unique_ptr<TransformResultValue> TransformConstantLiteralInternal(PEGTransformer &transformer,
 	                                                                         ParseResult &parse_result);
 	static unique_ptr<ParsedExpression> TransformConstantLiteral(PEGTransformer &transformer, const Value &child);
@@ -5729,6 +5746,8 @@ private:
 	static unique_ptr<TransformResultValue> TransformWindowFrameInternal(PEGTransformer &transformer,
 	                                                                     ParseResult &parse_result);
 	static unique_ptr<WindowExpression> TransformWindowFrame(PEGTransformer &transformer, ParseResult &choice_result);
+	static unique_ptr<WindowExpression> TransformWindowFrameTrampoline(PEGTransformer &transformer,
+	                                                                   TransformStackFrame &frame);
 	static unique_ptr<TransformResultValue> TransformParensIdentifierInternal(PEGTransformer &transformer,
 	                                                                          ParseResult &parse_result);
 	static unique_ptr<WindowExpression> TransformParensIdentifier(PEGTransformer &transformer,
@@ -6053,6 +6072,7 @@ private:
 	static unique_ptr<TransformResultValue> TransformOtherOperatorInternal(PEGTransformer &transformer,
 	                                                                       ParseResult &parse_result);
 	static ParsedOperator TransformOtherOperator(PEGTransformer &transformer, ParseResult &choice_result);
+	static ParsedOperator TransformOtherOperatorTrampoline(PEGTransformer &transformer, TransformStackFrame &frame);
 	static unique_ptr<TransformResultValue> TransformAnyAllOperatorInternal(PEGTransformer &transformer,
 	                                                                        ParseResult &parse_result);
 	static pair<string, bool> TransformAnyAllOperator(PEGTransformer &transformer, const string &any_op,
@@ -6837,6 +6857,7 @@ private:
 	static unique_ptr<TransformResultValue> TransformPivotValueTargetInternal(PEGTransformer &transformer,
 	                                                                          ParseResult &parse_result);
 	static PivotColumn TransformPivotValueTarget(PEGTransformer &transformer, ParseResult &choice_result);
+	static PivotColumn TransformPivotValueTargetTrampoline(PEGTransformer &transformer, TransformStackFrame &frame);
 	static unique_ptr<TransformResultValue> TransformUnpivotValueListInternal(PEGTransformer &transformer,
 	                                                                          ParseResult &parse_result);
 	static PivotColumn TransformUnpivotValueList(PEGTransformer &transformer, const vector<string> &unpivot_header,

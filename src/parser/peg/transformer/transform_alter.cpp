@@ -120,6 +120,17 @@ unique_ptr<AlterInfo> PEGTransformerFactory::TransformAlterSequenceOptions(PEGTr
 	return transformer.Transform<unique_ptr<AlterInfo>>(choice_result);
 }
 
+unique_ptr<AlterInfo> PEGTransformerFactory::TransformAlterSequenceOptionsTrampoline(PEGTransformer &transformer,
+                                                                                     TransformStackFrame &frame) {
+	auto &list_pr = frame.parse_result.Cast<ListParseResult>();
+	auto &choice_pr = list_pr.Child<ChoiceParseResult>(0);
+	auto &choice_result = choice_pr.GetResult();
+	if (choice_result.name == "RenameAlter") {
+		return frame.TakeResult<unique_ptr<AlterTableInfo>>(0);
+	}
+	return frame.TakeResult<unique_ptr<AlterInfo>>(0);
+}
+
 unique_ptr<AlterInfo>
 PEGTransformerFactory::TransformSetSequenceOption(PEGTransformer &transformer,
                                                   vector<pair<string, unique_ptr<SequenceOption>>> sequence_option) {

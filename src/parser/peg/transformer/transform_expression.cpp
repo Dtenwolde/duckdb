@@ -379,6 +379,21 @@ QualifiedName PEGTransformerFactory::TransformFunctionIdentifier(PEGTransformer 
 	return transformer.Transform<QualifiedName>(choice_result);
 }
 
+QualifiedName PEGTransformerFactory::TransformFunctionIdentifierTrampoline(PEGTransformer &transformer,
+                                                                          TransformStackFrame &frame) {
+	auto &list_pr = frame.parse_result.Cast<ListParseResult>();
+	auto &choice_pr = list_pr.Child<ChoiceParseResult>(0);
+	auto &choice_result = choice_pr.GetResult();
+	if (choice_result.type == ParseResultType::IDENTIFIER) {
+		QualifiedName result;
+		result.catalog = INVALID_CATALOG;
+		result.schema = INVALID_SCHEMA;
+		result.name = choice_result.Cast<IdentifierParseResult>().identifier;
+		return result;
+	}
+	return frame.TakeResult<QualifiedName>(0);
+}
+
 QualifiedName PEGTransformerFactory::TransformSchemaReservedFunctionName(PEGTransformer &transformer,
                                                                          const Identifier &schema_qualification,
                                                                          const Identifier &reserved_function_name) {
@@ -571,6 +586,11 @@ unique_ptr<ParsedExpression> PEGTransformerFactory::TransformExpression(PEGTrans
 	auto stack_check = transformer.StackCheck();
 	auto &list_pr = parse_result.Cast<ListParseResult>();
 	return transformer.Transform<unique_ptr<ParsedExpression>>(list_pr.Child<ListParseResult>(0));
+}
+
+unique_ptr<ParsedExpression> PEGTransformerFactory::TransformExpressionTrampoline(PEGTransformer &transformer,
+                                                                                  TransformStackFrame &frame) {
+	return frame.TakeResult<unique_ptr<ParsedExpression>>(0);
 }
 
 unique_ptr<ParsedExpression> PEGTransformerFactory::TransformLambdaArrowExpression(
@@ -1080,6 +1100,27 @@ ParsedOperator PEGTransformerFactory::TransformOtherOperator(PEGTransformer &tra
 	return result;
 }
 
+ParsedOperator PEGTransformerFactory::TransformOtherOperatorTrampoline(PEGTransformer &transformer,
+                                                                      TransformStackFrame &frame) {
+	auto &list_pr = frame.parse_result.Cast<ListParseResult>();
+	auto &choice_pr = list_pr.Child<ChoiceParseResult>(0);
+	auto &choice_result = choice_pr.GetResult();
+	ParsedOperator result;
+	if (choice_result.type == ParseResultType::OPERATOR) {
+		result.name = choice_result.Cast<OperatorParseResult>().operator_token;
+		return result;
+	}
+	if (StringUtil::CIEquals(choice_result.name, "AnyAllOperator")) {
+		auto any_all = frame.TakeResult<pair<string, bool>>(0);
+		result.name = any_all.first;
+		result.is_any_all = true;
+		result.is_any = any_all.second;
+		return result;
+	}
+	result.name = frame.TakeResult<string>(0);
+	return result;
+}
+
 string PEGTransformerFactory::TransformQualifiedOperator(PEGTransformer &transformer,
                                                          const string &qualified_operator_contents) {
 	return qualified_operator_contents;
@@ -1344,6 +1385,49 @@ unique_ptr<ParsedExpression> PEGTransformerFactory::TransformPrefixExpression(PE
 	}
 	return expr;
 }
+
+unique_ptr<ParsedExpression> PEGTransformerFactory::TransformPrefixExpressionTrampoline(PEGTransformer &transformer,
+                                                                                        TransformStackFrame &frame) {
+	auto &list_pr = frame.parse_result.Cast<ListParseResult>();
+	auto &prefix_opt = list_pr.Child<OptionalParseResult>(0);
+	auto &base_expr_pr = list_pr.Child<ListParseResult>(1);
+
+	if (!prefix_opt.HasResult()) {
+		return frame.TakeResult<unique_ptr<ParsedExpression>>(0);
+	}
+
+	auto &prefix_repeat = prefix_opt.GetResult().Cast<RepeatParseResult>();
+	vector<string> prefixes;
+	for (idx_t prefix_idx = 0; prefix_idx < prefix_repeat.GetChildren().size(); prefix_idx++) {
+		prefixes.push_back(frame.TakeResult<string>(prefix_idx));
+	}
+	if (prefixes.size() == 1 && prefixes[0] == "-" && IsNumberLiteral(base_expr_pr)) {
+		string raw_number = GetRawText(base_expr_pr);
+		string full_text = "-" + raw_number;
+		return ConvertNumberToValue(full_text);
+	}
+
+	auto expr = frame.TakeResult<unique_ptr<ParsedExpression>>(prefixes.size());
+	for (auto it = prefixes.rbegin(); it != prefixes.rend(); ++it) {
+		const string &prefix = *it;
+
+		if (prefix == "-" && expr->GetExpressionType() == ExpressionType::VALUE_CONSTANT) {
+			auto &const_expr = expr->Cast<ConstantExpression>();
+			if (auto negated_expr = TryNegateValue(const_expr)) {
+				expr = std::move(negated_expr);
+				continue;
+			}
+		}
+
+		vector<unique_ptr<ParsedExpression>> children;
+		children.push_back(std::move(expr));
+		auto func_expr = make_uniq<FunctionExpression>(Identifier(prefix), std::move(children));
+		func_expr->IsOperatorMutable() = true;
+		expr = std::move(func_expr);
+	}
+	return expr;
+}
+
 unique_ptr<ParsedExpression> PEGTransformerFactory::TransformAnonymousParameter(PEGTransformer &transformer) {
 	// AnonymousParameter <- '?'
 	auto expr = make_uniq<ParameterExpression>();
@@ -1454,6 +1538,21 @@ unique_ptr<ParsedExpression> PEGTransformerFactory::TransformLiteralExpression(P
 		return string_literal.ToExpression();
 	}
 	return transformer.Transform<unique_ptr<ParsedExpression>>(choice_result);
+}
+
+unique_ptr<ParsedExpression> PEGTransformerFactory::TransformLiteralExpressionTrampoline(PEGTransformer &transformer,
+                                                                                        TransformStackFrame &frame) {
+	auto &list_pr = frame.parse_result.Cast<ListParseResult>();
+	auto &choice_pr = list_pr.Child<ChoiceParseResult>(0);
+	auto &choice_result = choice_pr.GetResult();
+	if (choice_result.name == "StringLiteral") {
+		auto &string_literal = choice_result.Cast<StringLiteralParseResult>();
+		return string_literal.ToExpression();
+	}
+	if (choice_result.type == ParseResultType::NUMBER) {
+		return TransformNumberLiteral(transformer, choice_result);
+	}
+	return frame.TakeResult<unique_ptr<ParsedExpression>>(0);
 }
 
 unique_ptr<ParsedExpression> PEGTransformerFactory::TransformParensExpression(PEGTransformer &transformer,
@@ -1734,6 +1833,18 @@ unique_ptr<WindowExpression> PEGTransformerFactory::TransformWindowFrame(PEGTran
 		return transformer.GetWindowClause(window_name);
 	}
 	return transformer.Transform<unique_ptr<WindowExpression>>(choice_result);
+}
+
+unique_ptr<WindowExpression> PEGTransformerFactory::TransformWindowFrameTrampoline(PEGTransformer &transformer,
+                                                                                  TransformStackFrame &frame) {
+	auto &list_pr = frame.parse_result.Cast<ListParseResult>();
+	auto &choice_pr = list_pr.Child<ChoiceParseResult>(0);
+	auto &choice_result = choice_pr.GetResult();
+	if (choice_result.type == ParseResultType::IDENTIFIER) {
+		auto window_name = choice_result.Cast<IdentifierParseResult>().identifier;
+		return transformer.GetWindowClause(window_name);
+	}
+	return frame.TakeResult<unique_ptr<WindowExpression>>(0);
 }
 
 unique_ptr<WindowExpression> PEGTransformerFactory::TransformParensIdentifier(PEGTransformer &transformer,

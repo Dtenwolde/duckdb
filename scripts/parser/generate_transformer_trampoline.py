@@ -533,12 +533,24 @@ def generate_list_finalize_arg(child_idx, child, rules, rule_types, primitive_ru
         lines.append("\t}")
         return FinalizeArg(var_name, f"optional<vector<{child_type}>>", list_by_value, lines), needs_child_slot
 
-    lines = [f"\tvector<{child_type}> {var_name};"]
+    optional_vector = mode == "parens_optional_list" and optional_inner_type(expected_type or "") is not None
+    if optional_vector:
+        lines = [f"\toptional<vector<{child_type}>> {var_name} {{}};"]
+        value_var = f"{var_name}_value"
+    else:
+        lines = [f"\tvector<{child_type}> {var_name};"]
+        value_var = var_name
     if mode == "parens_optional_list":
         lines.extend(
             [
                 f"\tauto &{var_name}_opt = ExtractResultFromParens({source_expr}).Cast<OptionalParseResult>();",
                 f"\tif ({var_name}_opt.HasResult()) {{",
+            ]
+        )
+        if optional_vector:
+            lines.append(f"\t\tvector<{child_type}> {value_var};")
+        lines.extend(
+            [
                 f"\t\tauto {var_name}_items = ExtractParseResultsFromList({var_name}_opt.GetResult());",
                 f"\t\tfor (idx_t child_idx = 0; child_idx < {var_name}_items.size(); child_idx++) {{",
                 f"\t\t\tauto &{item_name} = {var_name}_items[child_idx];",
@@ -566,15 +578,18 @@ def generate_list_finalize_arg(child_idx, child, rules, rule_types, primitive_ru
     push_expr = f"std::move({value_name})" if child_by_value else value_name
     lines.extend(
         [
-            f"{indent}{var_name}.push_back({push_expr});",
+            f"{indent}{value_var}.push_back({push_expr});",
             f"{close_indent}}}",
         ]
     )
+    if optional_vector:
+        lines.append(f"\t\t{var_name} = std::move({value_var});")
     if needs_child_slot:
         lines.append(f"\tchild_slot += {var_name}_items.size();")
     if mode == "parens_optional_list":
         lines.append("\t}")
-    return FinalizeArg(var_name, f"vector<{child_type}>", list_by_value, lines), needs_child_slot
+    result_type = f"optional<vector<{child_type}>>" if optional_vector else f"vector<{child_type}>"
+    return FinalizeArg(var_name, result_type, list_by_value, lines), needs_child_slot
 
 
 def sequence_stack_children(sequence, rules, rule_types, primitive_rules):
@@ -1117,7 +1132,7 @@ def generate_initialize(rule_name, ast, rules, rule_types, excluded_rules, primi
             "                                                TransformStackFrame &frame) {\n"
             "}"
         )
-    if manual_transform_parse_result_exists(rule_name, rule_type(rule_name, rule_types)):
+    if manual_transform_parse_result_exists(rule_name, rule_type(rule_name, rule_types)) and not manual_trampoline_transform_exists(rule_name):
         return (
             f"void PEGTransformerFactory::{initialize_name(rule_name)}(PEGTransformer &transformer, TransformStack &stack,\n"
             "                                                TransformStackFrame &frame) {\n"
@@ -1720,24 +1735,29 @@ def manual_transform_parse_result_exists(rule_name, return_type=None):
     return return_type is None or manual_return_type == return_type
 
 
+@lru_cache(maxsize=None)
+def manual_trampoline_transform_exists(rule_name):
+    pattern = re.compile(rf"\bPEGTransformerFactory::Transform{re.escape(rule_name)}Trampoline\s*\(")
+    return any(pattern.search(path.read_text()) for path in transformer_dir.glob("transform_*.cpp"))
+
+
 def generate_finalize(rule_name, ast, rules, rule_types, excluded_rules, primitive_rules):
     return_type = rule_type(rule_name, rule_types)
     return_by_value = rule_by_value(rule_name, rule_types)
-    if manual_transform_parse_result_exists(rule_name, return_type):
-        body_name = manual_transform_parse_result_name(rule_name)
-        parse_result_lines = []
-        parse_result_expr = "frame.parse_result"
-        if isinstance(ast, ChoiceNode):
-            parse_result_lines = [
-                "\tauto &list_pr = frame.parse_result.Cast<ListParseResult>();",
-                "\tauto &choice_pr = list_pr.Child<ChoiceParseResult>(0);",
-            ]
-            parse_result_expr = "choice_pr.GetResult()"
+    if manual_trampoline_transform_exists(rule_name):
         return (
             f"unique_ptr<TransformResultValue> PEGTransformerFactory::{finalize_name(rule_name)}"
             f"(PEGTransformer &transformer, TransformStackFrame &frame) {{\n"
-            f"{chr(10).join(parse_result_lines)}\n"
-            f"\tauto result = {body_name}(transformer, {parse_result_expr});\n"
+            f"\tauto result = Transform{rule_name}Trampoline(transformer, frame);\n"
+            f"{box_result(return_type, return_by_value)}\n"
+            f"}}"
+        )
+    if manual_transform_parse_result_exists(rule_name, return_type):
+        body_name = manual_transform_parse_result_name(rule_name)
+        return (
+            f"unique_ptr<TransformResultValue> PEGTransformerFactory::{finalize_name(rule_name)}"
+            f"(PEGTransformer &transformer, TransformStackFrame &frame) {{\n"
+            f"\tauto result = {body_name}(transformer, frame.parse_result);\n"
             f"{box_result(return_type, return_by_value)}\n"
             f"}}"
         )
