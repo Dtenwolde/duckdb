@@ -214,7 +214,9 @@ def primitive_value_expr(rule_name, source_expr, expected_type, primitive_rules)
     raise NotImplementedError(f"primitive rule {rule_name} cannot produce {expected_type}")
 
 
-def generate_terminal_choice_extraction(var_name, source_expr, result_type, primitive_alternatives=None, primitive_rules=None):
+def generate_terminal_choice_extraction(
+    var_name, source_expr, result_type, primitive_alternatives=None, primitive_rules=None
+):
     def as_result(expr):
         return f"Identifier({expr})" if result_type == "Identifier" else expr
 
@@ -314,7 +316,9 @@ def ast_has_semantic_rule(ast, rules, rule_types, primitive_rules):
     if isinstance(ast, SequenceNode):
         return any(ast_has_semantic_rule(child, rules, rule_types, primitive_rules) for child in ast.children)
     if isinstance(ast, ChoiceNode):
-        return any(ast_has_semantic_rule(alternative, rules, rule_types, primitive_rules) for alternative in ast.alternatives)
+        return any(
+            ast_has_semantic_rule(alternative, rules, rule_types, primitive_rules) for alternative in ast.alternatives
+        )
     if isinstance(ast, OptionalNode):
         return ast_has_semantic_rule(ast.child, rules, rule_types, primitive_rules)
     if isinstance(ast, RepeatNode):
@@ -370,9 +374,7 @@ def optional_sequence_reference_node(node):
     if not isinstance(node, OptionalNode) or not isinstance(node.child, SequenceNode):
         return None
     semantic_children = [
-        (idx, child)
-        for idx, child in enumerate(node.child.children)
-        if isinstance(child, ReferenceNode)
+        (idx, child) for idx, child in enumerate(node.child.children) if isinstance(child, ReferenceNode)
     ]
     if len(semantic_children) != 1:
         return None
@@ -628,9 +630,8 @@ def sequence_stack_children(sequence, rules, rule_types, primitive_rules):
         optional_sequence_ref = optional_sequence_reference_node(child)
         if optional_sequence_ref:
             sequence_child_idx, sequence_ref = optional_sequence_ref
-            if (
-                sequence_ref.name not in primitive_rules
-                and is_transformer_rule(sequence_ref.name, rules, rule_types, primitive_rules)
+            if sequence_ref.name not in primitive_rules and is_transformer_rule(
+                sequence_ref.name, rules, rule_types, primitive_rules
             ):
                 children.append(
                     OptionalStackChild(
@@ -890,7 +891,9 @@ def generate_choice_initialize(rule_name, ast, rules, rule_types, excluded_rules
     ]
     if unsupported:
         raise NotImplementedError(f"{rule_name}: unsupported choice alternatives: {unsupported}")
-    has_transformer_alternative = any(is_transformer_rule(name, rules, rule_types, primitive_rules) for name in alternatives)
+    has_transformer_alternative = any(
+        is_transformer_rule(name, rules, rule_types, primitive_rules) for name in alternatives
+    )
 
     lines = [
         f"void PEGTransformerFactory::{initialize_name(rule_name)}(PEGTransformer &transformer, TransformStack &stack,",
@@ -909,15 +912,15 @@ def generate_choice_initialize(rule_name, ast, rules, rule_types, excluded_rules
         return "\n".join(lines)
     lines.extend(
         [
-        "\tauto &trampoline_ops = GeneratedTrampolineOps();",
-        "\tauto entry = trampoline_ops.find(choice_result.name);",
-        "\tif (entry == trampoline_ops.end()) {",
-        "\t\tframe.child_results.resize(0);",
-        "\t\treturn;",
-        "\t}",
-        "\tframe.child_results.resize(1);",
-        "\tstack.PushFrame(choice_result, *entry->second, frame, 0);",
-        "}",
+            "\tauto &trampoline_ops = GeneratedTrampolineOps();",
+            "\tauto entry = trampoline_ops.find(choice_result.name);",
+            "\tif (entry == trampoline_ops.end()) {",
+            "\t\tframe.child_results.resize(0);",
+            "\t\treturn;",
+            "\t}",
+            "\tframe.child_results.resize(1);",
+            "\tstack.PushFrame(choice_result, *entry->second, frame, 0);",
+            "}",
         ]
     )
     return "\n".join(lines)
@@ -1038,7 +1041,9 @@ def generate_sequence_initialize(rule_name, ast, rules, rule_types, primitive_ru
         if isinstance(child, OptionalStackChild):
             var_name = f"{to_snake_case(child.rule_name)}_opt_{child_idx}"
             if child.sequence_child_idx is not None:
-                child_result_expr = f"{var_name}.GetResult().Cast<ListParseResult>().GetChild({child.sequence_child_idx})"
+                child_result_expr = (
+                    f"{var_name}.GetResult().Cast<ListParseResult>().GetChild({child.sequence_child_idx})"
+                )
             elif child.parens:
                 child_result_expr = f"ExtractResultFromParens({var_name}.GetResult())"
             else:
@@ -1132,7 +1137,9 @@ def generate_initialize(rule_name, ast, rules, rule_types, excluded_rules, primi
             "                                                TransformStackFrame &frame) {\n"
             "}"
         )
-    if manual_transform_parse_result_exists(rule_name, rule_type(rule_name, rule_types)) and not manual_trampoline_transform_exists(rule_name):
+    if manual_transform_parse_result_exists(
+        rule_name, rule_type(rule_name, rule_types)
+    ) and not manual_trampoline_transform_exists(rule_name):
         return (
             f"void PEGTransformerFactory::{initialize_name(rule_name)}(PEGTransformer &transformer, TransformStack &stack,\n"
             "                                                TransformStackFrame &frame) {\n"
@@ -1161,7 +1168,9 @@ def sequence_finalize_args(rule_name, sequence, rules, rule_types, excluded_rule
     for child_idx, child in enumerate(sequence.children):
         if isinstance(child, LiteralNode):
             continue
-        if is_literal_only_choice(child) or is_syntax_only_reference_choice(child, excluded_rules, rule_types, primitive_rules):
+        if is_literal_only_choice(child) or is_syntax_only_reference_choice(
+            child, excluded_rules, rule_types, primitive_rules
+        ):
             continue
         list_arg, list_needs_child_slot = generate_list_finalize_arg(
             child_idx,
@@ -1243,7 +1252,11 @@ def sequence_finalize_args(rule_name, sequence, rules, rule_types, excluded_rule
                 )
                 continue
         if isinstance(child, OptionalNode) and isinstance(child.child, ReferenceNode):
-            if child.child.name in excluded_rules and child.child.name not in rule_types and child.child.name not in primitive_rules:
+            if (
+                child.child.name in excluded_rules
+                and child.child.name not in rule_types
+                and child.child.name not in primitive_rules
+            ):
                 args.append(
                     FinalizeArg(
                         var_name="has_result",
@@ -1536,7 +1549,9 @@ def generate_syntax_only_string_finalize(rule_name, ast, return_type, return_by_
     return "\n".join(lines)
 
 
-def generate_choice_finalize(rule_name, ast, rules, rule_types, excluded_rules, primitive_rules, return_type, return_by_value):
+def generate_choice_finalize(
+    rule_name, ast, rules, rule_types, excluded_rules, primitive_rules, return_type, return_by_value
+):
     alternatives = [alternative.name for alternative in ast.alternatives]
     has_primitive_alternative = any(name in primitive_rules for name in alternatives)
     has_excluded_alternative = any(
@@ -1552,9 +1567,7 @@ def generate_choice_finalize(rule_name, ast, rules, rule_types, excluded_rules, 
         use_body = bool(body_name and len(body_params) == 1 and len(alternative_types) == 1)
         child_type = next(iter(alternative_types)) if use_body else return_type
         child_by_value = (
-            any(rule_by_value(name, rule_types) for name in transformer_alternatives)
-            if use_body
-            else return_by_value
+            any(rule_by_value(name, rule_types) for name in transformer_alternatives) if use_body else return_by_value
         )
         result_expr = "std::move(child)" if child_by_value else "child"
         lines = [
@@ -1712,9 +1725,18 @@ def manual_transform_parse_result_return_types():
             for match in pattern.finditer(text):
                 function_rule_name = match.group(2)
                 normalized_return_type = re.sub(r"\s+", " ", match.group(1)).strip()
-                result[function_rule_name] = (match.group(0).split("PEGTransformerFactory::", 1)[1].split("(", 1)[0], normalized_return_type)
+                result[function_rule_name] = (
+                    match.group(0).split("PEGTransformerFactory::", 1)[1].split("(", 1)[0],
+                    normalized_return_type,
+                )
                 if function_rule_name.endswith("Rule"):
-                    result.setdefault(function_rule_name[: -len("Rule")], (match.group(0).split("PEGTransformerFactory::", 1)[1].split("(", 1)[0], normalized_return_type))
+                    result.setdefault(
+                        function_rule_name[: -len("Rule")],
+                        (
+                            match.group(0).split("PEGTransformerFactory::", 1)[1].split("(", 1)[0],
+                            normalized_return_type,
+                        ),
+                    )
     return result
 
 
@@ -2019,7 +2041,9 @@ def replace_between(text, start_text, end_text, replacement):
 def generate_trampoline_source_file(grammar_names):
     source_section = generate_trampoline_source_section(grammar_names)
     context = load_rule_context(grammar_names)
-    registrations = ['\ttrampoline_transform_functions["Statement"] = &PEGTransformerFactory::TransformStatementTrampolineInternal;']
+    registrations = [
+        '\ttrampoline_transform_functions["Statement"] = &PEGTransformerFactory::TransformStatementTrampolineInternal;'
+    ]
     for rule_name in sorted(context.primitive_rules):
         if rule_name not in context.rule_types:
             continue

@@ -367,7 +367,7 @@ unique_ptr<Constraint> PEGTransformerFactory::TransformTopLevelConstraintList(PE
 }
 
 unique_ptr<Constraint> PEGTransformerFactory::TransformTopLevelConstraintListTrampoline(PEGTransformer &transformer,
-                                                                                       TransformStackFrame &frame) {
+                                                                                        TransformStackFrame &frame) {
 	auto &list_pr = frame.parse_result.Cast<ListParseResult>();
 	auto &choice_pr = list_pr.Child<ChoiceParseResult>(0);
 	auto &choice_result = choice_pr.GetResult();

@@ -66,8 +66,9 @@ unique_ptr<SelectStatement> PEGTransformerFactory::TransformSelectStatementInter
 	return select_statement;
 }
 
-unique_ptr<SelectStatement> PEGTransformerFactory::TransformSelectStatementInternalTrampoline(
-    PEGTransformer &transformer, TransformStackFrame &frame) {
+unique_ptr<SelectStatement>
+PEGTransformerFactory::TransformSelectStatementInternalTrampoline(PEGTransformer &transformer,
+                                                                  TransformStackFrame &frame) {
 	auto &list_pr = frame.parse_result.Cast<ListParseResult>();
 	idx_t child_slot = 0;
 	CommonTableExpressionMap cte_map;
@@ -250,8 +251,8 @@ unique_ptr<SelectStatement> PEGTransformerFactory::TransformSimpleSelect(PEGTran
 	return select_statement;
 }
 
-unique_ptr<SelectStatement>
-PEGTransformerFactory::TransformSimpleSelectTrampoline(PEGTransformer &transformer, TransformStackFrame &frame) {
+unique_ptr<SelectStatement> PEGTransformerFactory::TransformSimpleSelectTrampoline(PEGTransformer &transformer,
+                                                                                   TransformStackFrame &frame) {
 	auto &list_pr = frame.parse_result.Cast<ListParseResult>();
 	idx_t child_slot = 0;
 
@@ -264,8 +265,7 @@ PEGTransformerFactory::TransformSimpleSelectTrampoline(PEGTransformer &transform
 	if (list_pr.Child<OptionalParseResult>(2).HasResult()) {
 		auto group_by_node = frame.TakeResult<GroupByNode>(child_slot);
 		child_slot++;
-		if (group_by_node.group_expressions.size() == 1 &&
-		    ExpressionIsEmptyStar(*group_by_node.group_expressions[0])) {
+		if (group_by_node.group_expressions.size() == 1 && ExpressionIsEmptyStar(*group_by_node.group_expressions[0])) {
 			select_node->aggregate_handling = AggregateHandling::FORCE_AGGREGATES;
 			group_by_node.group_expressions.clear();
 			group_by_node.grouping_sets.clear();

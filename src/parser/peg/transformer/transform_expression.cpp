@@ -380,7 +380,7 @@ QualifiedName PEGTransformerFactory::TransformFunctionIdentifier(PEGTransformer 
 }
 
 QualifiedName PEGTransformerFactory::TransformFunctionIdentifierTrampoline(PEGTransformer &transformer,
-                                                                          TransformStackFrame &frame) {
+                                                                           TransformStackFrame &frame) {
 	auto &list_pr = frame.parse_result.Cast<ListParseResult>();
 	auto &choice_pr = list_pr.Child<ChoiceParseResult>(0);
 	auto &choice_result = choice_pr.GetResult();
@@ -1101,7 +1101,7 @@ ParsedOperator PEGTransformerFactory::TransformOtherOperator(PEGTransformer &tra
 }
 
 ParsedOperator PEGTransformerFactory::TransformOtherOperatorTrampoline(PEGTransformer &transformer,
-                                                                      TransformStackFrame &frame) {
+                                                                       TransformStackFrame &frame) {
 	auto &list_pr = frame.parse_result.Cast<ListParseResult>();
 	auto &choice_pr = list_pr.Child<ChoiceParseResult>(0);
 	auto &choice_result = choice_pr.GetResult();
@@ -1541,7 +1541,7 @@ unique_ptr<ParsedExpression> PEGTransformerFactory::TransformLiteralExpression(P
 }
 
 unique_ptr<ParsedExpression> PEGTransformerFactory::TransformLiteralExpressionTrampoline(PEGTransformer &transformer,
-                                                                                        TransformStackFrame &frame) {
+                                                                                         TransformStackFrame &frame) {
 	auto &list_pr = frame.parse_result.Cast<ListParseResult>();
 	auto &choice_pr = list_pr.Child<ChoiceParseResult>(0);
 	auto &choice_result = choice_pr.GetResult();
@@ -1836,7 +1836,7 @@ unique_ptr<WindowExpression> PEGTransformerFactory::TransformWindowFrame(PEGTran
 }
 
 unique_ptr<WindowExpression> PEGTransformerFactory::TransformWindowFrameTrampoline(PEGTransformer &transformer,
-                                                                                  TransformStackFrame &frame) {
+                                                                                   TransformStackFrame &frame) {
 	auto &list_pr = frame.parse_result.Cast<ListParseResult>();
 	auto &choice_pr = list_pr.Child<ChoiceParseResult>(0);
 	auto &choice_result = choice_pr.GetResult();
