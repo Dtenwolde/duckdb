@@ -2,8 +2,31 @@
 
 #include "duckdb/common/exception.hpp"
 #include "duckdb/main/extension_callback_manager.hpp"
+#include "duckdb/parser/parser.hpp"
+#include "duckdb/parser/peg/transformer/peg_transformer.hpp"
 
 using namespace duckdb;
+
+struct TestParserExtensionData : public ParserExtensionParseData {
+	unique_ptr<ParserExtensionParseData> Copy() const override {
+		return make_uniq<TestParserExtensionData>();
+	}
+
+	string ToString() const override {
+		return "API_EXTENSION";
+	}
+};
+
+static unique_ptr<ParserExtensionParseData> TransformTestGrammarExtensionBody(ParserExtensionInfo *, PEGTransformer &,
+                                                                              ParseResult &) {
+	return make_uniq<TestParserExtensionData>();
+}
+
+static unique_ptr<ParserExtensionParseData>
+TransformTestGrammarExtension(ParserExtensionInfo *, PEGTransformer &transformer, ParseResult &parse_result) {
+	auto &list = parse_result.Cast<ListParseResult>();
+	return transformer.Transform<unique_ptr<ParserExtensionParseData>>(list.GetChild(1));
+}
 
 TEST_CASE("Parser keyword registration validates keyword spelling", "[api][parser]") {
 	ExtensionCallbackManager manager;
@@ -42,4 +65,55 @@ TEST_CASE("Promoted built-in parser keywords do not duplicate metadata", "[api][
 		}
 	}
 	REQUIRE(generated_count == 1);
+}
+
+TEST_CASE("Grammar extensions can add a statement alternative", "[api][parser]") {
+	ExtensionCallbackManager manager;
+	ParserExtension extension;
+	extension.grammar_extension.grammar = "ApiExtensionStatement <- 'API_EXTENSION' ApiExtensionBody\n"
+	                                      "ApiExtensionBody <- Expression\n";
+	extension.grammar_extension.statement_rule = "ApiExtensionStatement";
+	extension.grammar_extension.transform_functions["ApiExtensionStatement"] = TransformTestGrammarExtension;
+	extension.grammar_extension.transform_functions["ApiExtensionBody"] = TransformTestGrammarExtensionBody;
+	manager.Register(std::move(extension));
+
+	for (const auto trampoline : {false, true}) {
+		ParserOptions options;
+		options.parser_extensions = manager.GetParserExtensions();
+		options.debug_transformer_trampoline_style = trampoline;
+		Parser parser(std::move(options));
+		REQUIRE_NOTHROW(parser.ParseQuery("API_EXTENSION 42"));
+		REQUIRE(parser.statements.size() == 1);
+		REQUIRE(parser.statements[0]->type == StatementType::EXTENSION_STATEMENT);
+	}
+}
+
+TEST_CASE("Grammar extension registration is atomic", "[api][parser]") {
+	ExtensionCallbackManager manager;
+	for (const auto &entry :
+	     vector<pair<string, string>> {{"DefinedRule <- 'DEFINED'\n", "MissingRule"},
+	                                   {"NullableRule <- 'OPTIONAL'?\n", "NullableRule"},
+	                                   {"ExtensionStatement <- 'INVALID'\n", "ExtensionStatement"}}) {
+		ParserExtension extension;
+		extension.grammar_extension.grammar = entry.first;
+		extension.grammar_extension.statement_rule = entry.second;
+		extension.grammar_extension.transform_functions[entry.second] = TransformTestGrammarExtension;
+		REQUIRE_THROWS(manager.Register(std::move(extension)));
+	}
+	{
+		ParserExtension extension;
+		extension.grammar_extension.grammar = "RootRule <- ChildRule\nChildRule <- 'CHILD'\n";
+		extension.grammar_extension.statement_rule = "RootRule";
+		extension.grammar_extension.transform_functions["ChildRule"] = TransformTestGrammarExtensionBody;
+		REQUIRE_THROWS(manager.Register(std::move(extension)));
+	}
+	{
+		ParserExtension extension;
+		extension.grammar_extension.grammar = "RootRule <- 'ROOT'\n";
+		extension.grammar_extension.statement_rule = "RootRule";
+		extension.grammar_extension.transform_functions["RootRule"] = TransformTestGrammarExtension;
+		extension.grammar_extension.transform_functions["MissingRule"] = TransformTestGrammarExtensionBody;
+		REQUIRE_THROWS(manager.Register(std::move(extension)));
+	}
+	REQUIRE_FALSE(manager.HasParserExtensions());
 }

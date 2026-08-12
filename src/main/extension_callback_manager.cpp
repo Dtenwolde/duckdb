@@ -7,6 +7,7 @@
 #include "duckdb/planner/extension_callback.hpp"
 #include "duckdb/main/profiler_extension.hpp"
 #include "duckdb/main/config.hpp"
+#include "duckdb/parser/peg/matcher.hpp"
 
 namespace duckdb {
 
@@ -28,6 +29,13 @@ struct ExtensionCallbackRegistry {
 	//! Pluggable profiler / EXPLAIN tree renderers, keyed by format name
 	case_insensitive_map_t<shared_ptr<ProfilerExtension>> profiler_extensions;
 };
+
+static void ValidateParserExtensions(const shared_ptr<ExtensionCallbackRegistry> &registry) {
+	auto extensions = shared_ptr<const vector<ParserExtension>>(registry, &registry->parser_extensions);
+	ParserCache validation_cache;
+	validation_cache.GetMatcher(extensions);
+	validation_cache.GetTransformerFactory(std::move(extensions));
+}
 
 ExtensionCallbackManager &ExtensionCallbackManager::Get(ClientContext &context) {
 	return DBConfig::GetConfig(context).GetCallbackManager();
@@ -58,6 +66,7 @@ void ExtensionCallbackManager::Register(ParserExtension extension) {
 	lock_guard<mutex> guard(registry_lock);
 	auto new_registry = make_shared_ptr<ExtensionCallbackRegistry>(*callback_registry);
 	new_registry->parser_extensions.push_back(std::move(extension));
+	ValidateParserExtensions(new_registry);
 	callback_registry.atomic_store(new_registry);
 }
 
@@ -66,6 +75,22 @@ void ExtensionCallbackManager::Register(const vector<ExtensionKeyword> &keywords
 	auto new_registry = make_shared_ptr<ExtensionCallbackRegistry>(*callback_registry);
 	for (const auto &keyword : keywords) {
 		new_registry->keyword_extension.RegisterKeyword(keyword);
+	}
+	callback_registry.atomic_store(new_registry);
+}
+
+void ExtensionCallbackManager::Register(vector<ParserExtension> parser_extensions,
+                                        const vector<ExtensionKeyword> &keywords) {
+	lock_guard<mutex> guard(registry_lock);
+	auto new_registry = make_shared_ptr<ExtensionCallbackRegistry>(*callback_registry);
+	for (auto &extension : parser_extensions) {
+		new_registry->parser_extensions.push_back(std::move(extension));
+	}
+	for (const auto &keyword : keywords) {
+		new_registry->keyword_extension.RegisterKeyword(keyword);
+	}
+	if (!parser_extensions.empty()) {
+		ValidateParserExtensions(new_registry);
 	}
 	callback_registry.atomic_store(new_registry);
 }

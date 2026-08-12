@@ -41,6 +41,7 @@ const char INLINED_PEG_GRAMMAR[] = {
 	"	MergeIntoStatement /\n"
 	"	ConnectStatement /\n"
 	"	DisconnectStatement /\n"
+	"	ExtensionStatement /\n"
 	"	ExpressionStatement\n"
 	"AnalyzeKeyword <- 'ANALYZE' / 'ANALYSE'\n"
 	"ExpressionStatement <- List(ExpressionAlias)\n"

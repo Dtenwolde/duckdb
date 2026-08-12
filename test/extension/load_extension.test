@@ -38,6 +38,18 @@ QUACK
 QUACK
 QUACK
 
+# The extension grammar composes extension-owned rules with DuckDB's Expression rule. The legacy
+# QUACK PEG-error fallback cannot claim this distinct input.
+query I
+THIS GRAMMAR IS EXTENDED BY 40 + 2
+----
+QUACK
+
+statement error
+THIS GRAMMAR IS EXTENDED BY
+----
+<REGEX>:Parser Error:.*
+
 query I
 quACk QUaCk QUACK
 ----

@@ -15,6 +15,7 @@
 #include "duckdb/main/secret/secret.hpp"
 #include "duckdb/parser/parsed_data/create_type_info.hpp"
 #include "duckdb/parser/simplified_token.hpp"
+#include "duckdb/parser/parser_extension.hpp"
 #include "duckdb/main/extension_install_info.hpp"
 #include "duckdb/main/extension_manager.hpp"
 
@@ -140,6 +141,8 @@ public:
 
 	//! Registers an extension-owned parser keyword.
 	DUCKDB_API void RegisterKeyword(const string &keyword, ExtensionKeywordCategory category);
+	//! Registers a parser extension after the extension finishes loading successfully.
+	DUCKDB_API void RegisterParserExtension(ParserExtension extension);
 
 private:
 	void FinalizeLoad();
@@ -149,6 +152,7 @@ private:
 	ExtensionLoaderInfo loader_info;
 	optional_ptr<ExtensionInfo> extension_info;
 	vector<ExtensionKeyword> parser_keywords;
+	vector<ParserExtension> parser_extensions;
 };
 
 } // namespace duckdb

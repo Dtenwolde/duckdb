@@ -118,8 +118,9 @@ void ExtensionLoader::FinalizeLoad() {
 		extension_info->load_info = std::move(info);
 	}
 
-	if (!parser_keywords.empty()) {
-		DBConfig::GetConfig(db).GetCallbackManager().Register(parser_keywords);
+	if (!parser_keywords.empty() || !parser_extensions.empty()) {
+		DBConfig::GetConfig(db).GetCallbackManager().Register(std::move(parser_extensions), parser_keywords);
+		db.GetParserCache().Invalidate();
 	}
 }
 
@@ -395,6 +396,10 @@ void ExtensionLoader::RegisterMetric(MetricInfo info) {
 
 void ExtensionLoader::RegisterKeyword(const string &keyword, ExtensionKeywordCategory category) {
 	parser_keywords.push_back({keyword, category});
+}
+
+void ExtensionLoader::RegisterParserExtension(ParserExtension extension) {
+	parser_extensions.push_back(std::move(extension));
 }
 
 } // namespace duckdb

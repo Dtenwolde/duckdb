@@ -67,6 +67,7 @@ struct QualifiedName;
 struct MatcherToken;
 struct GroupingExpressionMap;
 class Matcher;
+class ParserExtension;
 
 enum class GroupByExpressionInfoType : uint8_t { EXPRESSION, EMPTY, CUBE, ROLLUP, GROUPING_SETS };
 
@@ -390,7 +391,7 @@ struct TransformRule {
 
 class PEGTransformerFactory {
 public:
-	explicit PEGTransformerFactory();
+	explicit PEGTransformerFactory(shared_ptr<const vector<ParserExtension>> parser_extensions = nullptr);
 
 	//! Match a single TopLevelStatement from `tokens` starting at `token_cursor` and transform it
 	//! into a SQLStatement. Returns nullptr if the matched TLS was separator-only (no statement).
@@ -4754,6 +4755,7 @@ public:
 	void RegisterKeywordsAndIdentifiers();
 	void RegisterGenerated();
 	void RegisterGeneratedTrampoline();
+	void RegisterParserExtensions();
 
 	template <class FUNC>
 	void Register(const string &rule_name, FUNC function) {
@@ -8417,6 +8419,7 @@ private:
 	PEGParser parser;
 	case_insensitive_map_t<PEGTransformer::AnyTransformFunction> sql_transform_functions;
 	case_insensitive_map_t<PEGTransformer::AnyTransformFunction> trampoline_transform_functions;
+	shared_ptr<const vector<ParserExtension>> parser_extensions;
 };
 
 } // namespace duckdb

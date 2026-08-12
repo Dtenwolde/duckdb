@@ -9,7 +9,7 @@ statements_dir = peg_dir / 'grammar' / 'statements'
 keywords_dir = peg_dir / 'grammar' / 'keywords'
 target_file = scripts_dir.parent / 'src' / 'include' / 'duckdb' / 'parser' / 'peg' / 'inlined_grammar.hpp'
 
-IMPLICIT_RULES = {'%whitespace', 'EndOfInput'}
+IMPLICIT_RULES = {'%whitespace', 'EndOfInput', 'ExtensionStatement'}
 
 # Maps filenames to string categories.
 # typefunc_keyword_map is the union of type name and func name keywords.

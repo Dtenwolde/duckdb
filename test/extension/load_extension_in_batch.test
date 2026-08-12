@@ -10,7 +10,7 @@ require allow_unsigned_extensions
 
 statement error
 LOAD '{BUILD_DIRECTORY}/test/extension/loadable_extension_demo.duckdb_extension';
-QUACK QUACK QUACK;
+THIS GRAMMAR IS EXTENDED BY 40 + 2;
 SELECT quack_reserved_keyword;
 ----
 <REGEX>:Parser Error: syntax error at or near "quack_reserved_keyword".*

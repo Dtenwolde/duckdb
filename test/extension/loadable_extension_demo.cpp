@@ -35,6 +35,8 @@
 #include "duckdb/parser/query_node/select_node.hpp"
 #include "duckdb/parser/expression/constant_expression.hpp"
 #include "duckdb/parser/tableref/emptytableref.hpp"
+#include "duckdb/parser/peg/transformer/parse_result.hpp"
+#include "duckdb/parser/peg/transformer/peg_transformer.hpp"
 
 using namespace duckdb; // NOLINT
 
@@ -339,14 +341,24 @@ public:
 struct QuackExtensionData : public ParserExtensionParseData {
 	explicit QuackExtensionData(idx_t number_of_quacks) : number_of_quacks(number_of_quacks) {
 	}
+	explicit QuackExtensionData(unique_ptr<ParsedExpression> expression_p)
+	    : number_of_quacks(1), expression(std::move(expression_p)) {
+	}
 
 	idx_t number_of_quacks;
+	unique_ptr<ParsedExpression> expression;
 
 	duckdb::unique_ptr<ParserExtensionParseData> Copy() const override {
+		if (expression) {
+			return make_uniq<QuackExtensionData>(expression->Copy());
+		}
 		return make_uniq<QuackExtensionData>(number_of_quacks);
 	}
 
 	string ToString() const override {
+		if (expression) {
+			return "THIS GRAMMAR IS EXTENDED BY " + expression->ToString();
+		}
 		vector<string> quacks;
 		for (idx_t i = 0; i < number_of_quacks; i++) {
 			quacks.push_back("QUACK");
@@ -361,6 +373,25 @@ public:
 		parse_function = QuackParseFunction;
 		plan_function = QuackPlanFunction;
 		parser_override = QuackParser;
+		grammar_extension.grammar = "GrammarExtension <- 'THIS' GrammarExtensionBody\n"
+		                            "GrammarExtensionBody <- 'GRAMMAR' 'IS' 'EXTENDED' 'BY' Expression\n";
+		grammar_extension.statement_rule = "GrammarExtension";
+		grammar_extension.transform_functions["GrammarExtension"] = GrammarExtensionTransformFunction;
+		grammar_extension.transform_functions["GrammarExtensionBody"] = GrammarExtensionBodyTransformFunction;
+	}
+
+	static unique_ptr<ParserExtensionParseData>
+	GrammarExtensionTransformFunction(ParserExtensionInfo *, PEGTransformer &transformer, ParseResult &parse_result) {
+		auto &statement = parse_result.Cast<ListParseResult>();
+		return transformer.Transform<unique_ptr<ParserExtensionParseData>>(statement.GetChild(1));
+	}
+
+	static unique_ptr<ParserExtensionParseData> GrammarExtensionBodyTransformFunction(ParserExtensionInfo *,
+	                                                                                  PEGTransformer &transformer,
+	                                                                                  ParseResult &parse_result) {
+		auto &body = parse_result.Cast<ListParseResult>();
+		auto expression = transformer.Transform<unique_ptr<ParsedExpression>>(body.GetChild(4));
+		return make_uniq<QuackExtensionData>(std::move(expression));
 	}
 
 	static ParserExtensionParseResult QuackParseFunction(ParserExtensionInfo *info, const vector<SimpleToken> &tokens) {
@@ -1268,7 +1299,7 @@ DUCKDB_CPP_EXTENSION_ENTRY(loadable_extension_demo, loader) {
 	loader.RegisterKeyword("generated", ExtensionKeywordCategory::COLUMN_NAME);
 
 	auto &config = DBConfig::GetConfig(db);
-	ParserExtension::Register(config, QuackExtension());
+	loader.RegisterParserExtension(QuackExtension());
 	ExtensionCallback::Register(config, make_shared_ptr<QuackLoadExtension>());
 
 	// add a planner extension that adds an extra column to queries

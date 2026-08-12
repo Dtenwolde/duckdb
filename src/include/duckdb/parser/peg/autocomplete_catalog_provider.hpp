@@ -82,7 +82,7 @@ public:
 		return {};
 	}
 	shared_ptr<PEGMatcher> GetPEGMatcher() override {
-		return cache.GetMatcher();
+		return cache.GetMatcher(nullptr);
 	}
 
 private:

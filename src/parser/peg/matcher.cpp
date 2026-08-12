@@ -1,6 +1,8 @@
 #include "duckdb/parser/peg/matcher.hpp"
 #include "duckdb/main/database.hpp"
+#include "duckdb/main/extension_callback_manager.hpp"
 #include "duckdb/parser/keyword_extension.hpp"
+#include "duckdb/parser/parser_extension.hpp"
 #include "duckdb/parser/peg/transformer/peg_transformer.hpp"
 
 // uncomment to dynamically read the PEG parser from a file instead of compiling it in (useful for testing)
@@ -1067,7 +1069,8 @@ public:
 	}
 
 	//! Create a matcher from a PEG grammar
-	Matcher &CreateMatcher(const char *grammar, const char *root_rule);
+	Matcher &CreateMatcher(const char *grammar, const char *root_rule,
+	                       const shared_ptr<const vector<ParserExtension>> &parser_extensions);
 	//! Look up a matcher for a rule that was already built (as a sub-rule of a previous
 	//! CreateMatcher call). Throws if the rule has not been built.
 	Matcher &GetMatcher(const string &rule_name);
@@ -1415,10 +1418,58 @@ void MatcherFactory::SuppressSuggestions(const char *name) {
 	no_suggestion_rules.insert(name);
 }
 
-Matcher &MatcherFactory::CreateMatcher(const char *grammar, const char *root_rule) {
+Matcher &MatcherFactory::CreateMatcher(const char *grammar, const char *root_rule,
+                                       const shared_ptr<const vector<ParserExtension>> &parser_extensions) {
 	// parse the grammar into a set of rules
 	PEGParser parser;
 	parser.ParseRules(grammar);
+
+	// ExtensionStatement is an implicit rule whose choices are populated at runtime.
+	auto &extension_statement = Choice(vector<reference<Matcher>> {});
+	AddRuleOverride("ExtensionStatement", extension_statement);
+	if (parser_extensions) {
+		// Parse every fragment before constructing any matcher so extensions can reference rules
+		// contributed by another registered extension.
+		for (const auto &extension : *parser_extensions) {
+			const auto &extension_grammar = extension.grammar_extension;
+			if (extension_grammar.grammar.empty() && extension_grammar.statement_rule.empty() &&
+			    extension_grammar.transform_functions.empty()) {
+				continue;
+			}
+			if (extension_grammar.grammar.empty() || extension_grammar.statement_rule.empty() ||
+			    extension_grammar.transform_functions.empty()) {
+				throw InvalidInputException(
+				    "Grammar extension requires a grammar, statement rule, and transform functions");
+			}
+			PEGParser fragment_parser;
+			fragment_parser.ParseRules(extension_grammar.grammar.c_str());
+			for (const auto &implicit_rule : {"ExtensionStatement", "EndOfInput", "%whitespace"}) {
+				if (fragment_parser.rules.find(implicit_rule) != fragment_parser.rules.end()) {
+					throw InvalidInputException("Grammar extension cannot define implicit rule '%s'", implicit_rule);
+				}
+			}
+			if (fragment_parser.rules.find(extension_grammar.statement_rule) == fragment_parser.rules.end()) {
+				throw InvalidInputException(
+				    "Parser extension statement rule '%s' is not defined by its grammar fragment",
+				    extension_grammar.statement_rule);
+			}
+			if (extension_grammar.transform_functions.find(extension_grammar.statement_rule) ==
+			    extension_grammar.transform_functions.end()) {
+				throw InvalidInputException("Grammar extension statement rule '%s' has no transformer",
+				                            extension_grammar.statement_rule);
+			}
+			for (const auto &entry : extension_grammar.transform_functions) {
+				if (!entry.second) {
+					throw InvalidInputException("Grammar extension transformer for rule '%s' is nullptr", entry.first);
+				}
+				if (fragment_parser.rules.find(entry.first) == fragment_parser.rules.end()) {
+					throw InvalidInputException(
+					    "Grammar extension transformer rule '%s' is not defined by its grammar fragment", entry.first);
+				}
+			}
+			parser.ParseRules(extension_grammar.grammar.c_str());
+		}
+	}
 
 	// keyword overrides
 	AddKeywordOverride("TABLE", 1, ' ');
@@ -1508,6 +1559,25 @@ Matcher &MatcherFactory::CreateMatcher(const char *grammar, const char *root_rul
 
 	// suppress suggestions for catch-all rules that would pollute statement-level autocomplete
 	SuppressSuggestions("ExpressionStatement");
+	if (parser_extensions) {
+		for (const auto &extension : *parser_extensions) {
+			if (extension.grammar_extension.grammar.empty()) {
+				continue;
+			}
+			auto &extension_matcher = CreateMatcher(parser, string_t(extension.grammar_extension.statement_rule));
+			vector<MatcherToken> empty_tokens;
+			empty_tokens.emplace_back("", 0, TokenType::END_OF_INPUT);
+			vector<MatcherSuggestion> suggestions;
+			ParseResultAllocator parse_result_allocator;
+			idx_t max_token_index = 0;
+			MatchState empty_state(empty_tokens, suggestions, parse_result_allocator, max_token_index);
+			if (extension_matcher.Match(empty_state) == MatchResultType::SUCCESS) {
+				throw InvalidInputException("Parser extension statement rule '%s' can match empty input",
+				                            extension.grammar_extension.statement_rule);
+			}
+			extension_statement.Cast<ChoiceMatcher>().matchers.push_back(extension_matcher);
+		}
+	}
 
 	// now create the matchers for each of the rules recursively - starting at the root rule
 	return CreateMatcher(parser, root_rule);
@@ -1520,17 +1590,21 @@ shared_ptr<PEGMatcher> PEGMatcher::Get(ClientContext &context) {
 
 shared_ptr<PEGMatcher> PEGMatcher::Get(DatabaseInstance &db) {
 	auto &parser_cache = db.GetParserCache();
-	return parser_cache.GetMatcher();
+	return parser_cache.GetMatcher(ExtensionCallbackManager::Get(db).GetParserExtensions());
 }
 
-shared_ptr<PEGMatcher> ParserCache::GetMatcher() {
-	{
-		std::unique_lock<std::mutex> lock(mutex);
-		if (matcher) {
-			return matcher;
-		}
+shared_ptr<PEGMatcher> ParserCache::GetMatcher(shared_ptr<const vector<ParserExtension>> extensions) {
+	std::unique_lock<std::mutex> lock(mutex);
+	if (parser_extensions.get() != extensions.get()) {
+		matcher = nullptr;
+		transformer_factory = nullptr;
+		parser_extensions = extensions;
+	}
+	if (matcher) {
+		return matcher;
 	}
 	auto new_matcher = make_shared_ptr<PEGMatcher>();
+	new_matcher->parser_extensions = extensions;
 	MatcherFactory factory(new_matcher->allocator);
 #ifdef PEG_PARSER_SOURCE_FILE
 	std::ifstream t(PEG_PARSER_SOURCE_FILE);
@@ -1538,31 +1612,29 @@ shared_ptr<PEGMatcher> ParserCache::GetMatcher() {
 	buffer << t.rdbuf();
 	auto grammar_string = buffer.str();
 
-	new_matcher->program_matcher = factory.CreateMatcher(grammar_string.c_str(), "Program");
+	new_matcher->program_matcher = factory.CreateMatcher(grammar_string.c_str(), "Program", extensions);
 #else
-	new_matcher->program_matcher = factory.CreateMatcher(const_char_ptr_cast(INLINED_PEG_GRAMMAR), "Program");
+	new_matcher->program_matcher =
+	    factory.CreateMatcher(const_char_ptr_cast(INLINED_PEG_GRAMMAR), "Program", extensions);
 #endif
 	// TopLevelStatement is referenced by Program, so it has already been built and cached.
 	new_matcher->top_level_statement_matcher = factory.GetMatcher("TopLevelStatement");
-	std::unique_lock<std::mutex> lock(mutex);
-	if (!matcher) {
-		matcher = std::move(new_matcher);
-	}
+	matcher = std::move(new_matcher);
 	return matcher;
 }
 
-shared_ptr<PEGTransformerFactory> ParserCache::GetTransformerFactory() {
-	{
-		std::unique_lock<std::mutex> lock(mutex);
-		if (transformer_factory) {
-			return transformer_factory;
-		}
-	}
-	auto new_factory = make_shared_ptr<PEGTransformerFactory>();
+shared_ptr<PEGTransformerFactory>
+ParserCache::GetTransformerFactory(shared_ptr<const vector<ParserExtension>> extensions) {
 	std::unique_lock<std::mutex> lock(mutex);
-	if (!transformer_factory) {
-		transformer_factory = std::move(new_factory);
+	if (parser_extensions.get() != extensions.get()) {
+		matcher = nullptr;
+		transformer_factory = nullptr;
+		parser_extensions = extensions;
 	}
+	if (transformer_factory) {
+		return transformer_factory;
+	}
+	transformer_factory = make_shared_ptr<PEGTransformerFactory>(extensions);
 	return transformer_factory;
 }
 
@@ -1570,6 +1642,7 @@ void ParserCache::Invalidate() {
 	std::unique_lock<std::mutex> lock(mutex);
 	matcher = nullptr;
 	transformer_factory = nullptr;
+	parser_extensions = nullptr;
 }
 
 } // namespace duckdb

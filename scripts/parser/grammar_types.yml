@@ -53,6 +53,7 @@ SQLStatement:
   by_value: true
   rules:
     - Statement
+    - ExtensionStatement
     - AlterStatement
     - AnalyzeStatement
     - AttachStatement

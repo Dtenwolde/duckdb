@@ -20,6 +20,7 @@
 namespace duckdb {
 class ClientContext;
 class KeywordExtension;
+class ParserExtension;
 class PEGTransformerFactory;
 class ParseResultAllocator;
 class Matcher;
@@ -268,19 +269,22 @@ private:
 	friend struct ParserCache;
 	optional_ptr<Matcher> program_matcher;
 	optional_ptr<Matcher> top_level_statement_matcher;
+	shared_ptr<const vector<ParserExtension>> parser_extensions;
 };
 
 //! Per-database cache holder for the compiled PEG root matcher and transformer factory.
 //! Both are always invalidated together, so they share one mutex and one Invalidate() call.
 struct ParserCache {
-	shared_ptr<PEGMatcher> GetMatcher();
-	shared_ptr<PEGTransformerFactory> GetTransformerFactory();
+	shared_ptr<PEGMatcher> GetMatcher(shared_ptr<const vector<ParserExtension>> parser_extensions = nullptr);
+	shared_ptr<PEGTransformerFactory>
+	GetTransformerFactory(shared_ptr<const vector<ParserExtension>> parser_extensions = nullptr);
 	void Invalidate();
 
 private:
 	mutable std::mutex mutex;
 	shared_ptr<PEGMatcher> matcher;
 	shared_ptr<PEGTransformerFactory> transformer_factory;
+	shared_ptr<const vector<ParserExtension>> parser_extensions;
 };
 
 } // namespace duckdb

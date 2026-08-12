@@ -12,6 +12,8 @@
 #include "duckdb/parser/expression/cast_expression.hpp"
 #include "duckdb/parser/query_node/set_operation_node.hpp"
 #include "duckdb/parser/statement/merge_into_statement.hpp"
+#include "duckdb/parser/statement/extension_statement.hpp"
+#include "duckdb/parser/parser_extension.hpp"
 #include "duckdb/parser/constraints/foreign_key_constraint.hpp"
 
 namespace duckdb {
@@ -35,8 +37,15 @@ unique_ptr<SQLStatement> PEGTransformerFactory::TransformStatementTrampoline(PEG
 	auto &choice_pr = list_pr.Child<ChoiceParseResult>(0);
 	auto &choice_result = choice_pr.GetResult();
 
-	TransformStack stack(transformer);
-	auto result = stack.Execute<unique_ptr<SQLStatement>>(choice_result, GetTrampolineOps(choice_result.name));
+	unique_ptr<SQLStatement> result;
+	auto &ops_map = GeneratedTrampolineOps();
+	auto ops_entry = ops_map.find(choice_result.name);
+	if (ops_entry == ops_map.end()) {
+		result = transformer.Transform<unique_ptr<SQLStatement>>(choice_result);
+	} else {
+		TransformStack stack(transformer);
+		result = stack.Execute<unique_ptr<SQLStatement>>(choice_result, *ops_entry->second);
+	}
 	if (!transformer.named_parameter_map.empty()) {
 		result->named_param_map = transformer.named_parameter_map;
 	}
@@ -200,7 +209,8 @@ void PEGTransformerFactory::RegisterKeywordsAndIdentifiers() {
 	Register("SettingName", &TransformIdentifierOrKeyword);
 }
 
-PEGTransformerFactory::PEGTransformerFactory() {
+PEGTransformerFactory::PEGTransformerFactory(shared_ptr<const vector<ParserExtension>> parser_extensions_p)
+    : parser_extensions(std::move(parser_extensions_p)) {
 	RegisterGenerated();
 	RegisterGeneratedTrampoline();
 	REGISTER_TRANSFORM(TransformStatement);
@@ -210,6 +220,55 @@ PEGTransformerFactory::PEGTransformerFactory() {
 	RegisterPivot();
 	RegisterSelect();
 	RegisterKeywordsAndIdentifiers();
+	RegisterParserExtensions();
+}
+
+void PEGTransformerFactory::RegisterParserExtensions() {
+	if (!parser_extensions) {
+		return;
+	}
+	for (const auto &extension : *parser_extensions) {
+		const auto &extension_grammar = extension.grammar_extension;
+		if (extension_grammar.grammar.empty()) {
+			continue;
+		}
+		for (const auto &entry : extension_grammar.transform_functions) {
+			const auto &rule_name = entry.first;
+			if (sql_transform_functions.find(rule_name) != sql_transform_functions.end()) {
+				throw InvalidInputException("Grammar extension transformer rule '%s' is already registered", rule_name);
+			}
+			PEGTransformer::AnyTransformFunction transform;
+			if (StringUtil::CIEquals(rule_name, extension_grammar.statement_rule)) {
+				transform = [extension, transform_function = entry.second](
+				                PEGTransformer &transformer,
+				                ParseResult &parse_result) -> unique_ptr<TransformResultValue> {
+					auto &extension_choice = parse_result.Cast<ChoiceParseResult>();
+					auto parse_data =
+					    transform_function(extension.parser_info.get(), transformer, extension_choice.GetResult());
+					if (!parse_data) {
+						throw InternalException("Grammar extension transformer for rule '%s' returned nullptr",
+						                        extension.grammar_extension.statement_rule);
+					}
+					unique_ptr<SQLStatement> statement =
+					    make_uniq<ExtensionStatement>(extension, std::move(parse_data));
+					return make_uniq<TypedTransformResult<unique_ptr<SQLStatement>>>(std::move(statement));
+				};
+			} else {
+				transform = [parser_info = extension.parser_info, transform_function = entry.second,
+				             rule_name](PEGTransformer &transformer,
+				                        ParseResult &parse_result) -> unique_ptr<TransformResultValue> {
+					auto parse_data = transform_function(parser_info.get(), transformer, parse_result);
+					if (!parse_data) {
+						throw InternalException("Grammar extension transformer for rule '%s' returned nullptr",
+						                        rule_name);
+					}
+					return make_uniq<TypedTransformResult<unique_ptr<ParserExtensionParseData>>>(std::move(parse_data));
+				};
+			}
+			sql_transform_functions[rule_name] = transform;
+			trampoline_transform_functions[rule_name] = std::move(transform);
+		}
+	}
 }
 
 const case_insensitive_map_t<PEGTransformer::AnyTransformFunction> &

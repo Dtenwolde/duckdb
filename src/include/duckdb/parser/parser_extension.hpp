@@ -10,6 +10,7 @@
 
 #include "duckdb/common/error_data.hpp"
 #include "duckdb/common/common.hpp"
+#include "duckdb/common/case_insensitive_map.hpp"
 #include "duckdb/common/enums/statement_type.hpp"
 #include "duckdb/function/table_function.hpp"
 #include "duckdb/parser/sql_statement.hpp"
@@ -19,6 +20,8 @@
 
 namespace duckdb {
 struct DBConfig;
+class PEGTransformer;
+class ParseResult;
 
 //! A minimal token view handed to parser extensions: the token text together with its classified
 //! TokenType.
@@ -107,6 +110,21 @@ struct ParserExtensionParseResult {
 //! token stream and reports, via `ParserExtensionParseResult::consumed_tokens`, how many leading
 //! tokens it claimed (> 0 success, 0 = ran but claimed nothing, < 0 = throw).
 typedef ParserExtensionParseResult (*parse_function_t)(ParserExtensionInfo *info, const vector<SimpleToken> &tokens);
+
+//! Transforms the parse result of an extension-owned statement grammar rule.
+typedef unique_ptr<ParserExtensionParseData> (*grammar_extension_transform_function_t)(ParserExtensionInfo *info,
+                                                                                       PEGTransformer &transformer,
+                                                                                       ParseResult &parse_result);
+
+//! A grammar fragment that contributes one additional alternative to the Statement rule.
+struct GrammarExtension {
+	//! PEG rules owned by the extension.
+	string grammar;
+	//! The rule from grammar that is added to Statement.
+	string statement_rule;
+	//! Handwritten transformers for extension-owned grammar rules.
+	case_insensitive_map_t<grammar_extension_transform_function_t> transform_functions;
+};
 //===--------------------------------------------------------------------===//
 // Plan
 //===--------------------------------------------------------------------===//
@@ -164,6 +182,9 @@ public:
 
 	//! Additional parser info passed to the parse function
 	shared_ptr<ParserExtensionInfo> parser_info;
+
+	//! Optional PEG grammar contribution for parsing an extension statement.
+	GrammarExtension grammar_extension;
 
 	static void Register(DBConfig &config, ParserExtension extension);
 };

@@ -37,6 +37,7 @@ Statement <-
 	MergeIntoStatement /
 	ConnectStatement /
 	DisconnectStatement /
+	ExtensionStatement /
 	ExpressionStatement
 
 AnalyzeKeyword <- 'ANALYZE' / 'ANALYSE'

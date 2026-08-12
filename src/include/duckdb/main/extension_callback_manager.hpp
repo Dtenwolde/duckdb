@@ -44,6 +44,7 @@ public:
 
 	void Register(ParserExtension extension);
 	void Register(const vector<ExtensionKeyword> &keywords);
+	void Register(vector<ParserExtension> parser_extensions, const vector<ExtensionKeyword> &keywords);
 	void Register(PlannerExtension extension);
 	void Register(OptimizerExtension extension);
 	void Register(shared_ptr<OperatorExtension> extension);
