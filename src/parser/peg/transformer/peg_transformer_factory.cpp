@@ -232,7 +232,7 @@ void PEGTransformerFactory::RegisterParserExtensions() {
 		if (extension_grammar.grammar.empty()) {
 			continue;
 		}
-		for (const auto &entry : extension_grammar.transform_functions) {
+		for (const auto &entry : extension_grammar.GetTransformFunctions()) {
 			const auto &rule_name = entry.first;
 			if (sql_transform_functions.find(rule_name) != sql_transform_functions.end()) {
 				throw InvalidInputException("Grammar extension transformer rule '%s' is already registered", rule_name);

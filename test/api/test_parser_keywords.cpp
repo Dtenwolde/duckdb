@@ -73,8 +73,8 @@ TEST_CASE("Grammar extensions can add a statement alternative", "[api][parser]")
 	extension.grammar_extension.grammar = "ApiExtensionStatement <- 'API_EXTENSION' ApiExtensionBody\n"
 	                                      "ApiExtensionBody <- Expression\n";
 	extension.grammar_extension.statement_rule = "ApiExtensionStatement";
-	extension.grammar_extension.transform_functions["ApiExtensionStatement"] = TransformTestGrammarExtension;
-	extension.grammar_extension.transform_functions["ApiExtensionBody"] = TransformTestGrammarExtensionBody;
+	extension.grammar_extension.RegisterTransformer("ApiExtensionStatement", TransformTestGrammarExtension);
+	extension.grammar_extension.RegisterTransformer("ApiExtensionBody", TransformTestGrammarExtensionBody);
 	manager.Register(std::move(extension));
 
 	for (const auto trampoline : {false, true}) {
@@ -90,6 +90,12 @@ TEST_CASE("Grammar extensions can add a statement alternative", "[api][parser]")
 
 TEST_CASE("Grammar extension registration is atomic", "[api][parser]") {
 	ExtensionCallbackManager manager;
+	{
+		GrammarExtension extension;
+		REQUIRE_THROWS(extension.RegisterTransformer("NullRule", nullptr));
+		extension.RegisterTransformer("DuplicateRule", TransformTestGrammarExtension);
+		REQUIRE_THROWS(extension.RegisterTransformer("duplicaterule", TransformTestGrammarExtensionBody));
+	}
 	for (const auto &entry :
 	     vector<pair<string, string>> {{"DefinedRule <- 'DEFINED'\n", "MissingRule"},
 	                                   {"NullableRule <- 'OPTIONAL'?\n", "NullableRule"},
@@ -97,22 +103,22 @@ TEST_CASE("Grammar extension registration is atomic", "[api][parser]") {
 		ParserExtension extension;
 		extension.grammar_extension.grammar = entry.first;
 		extension.grammar_extension.statement_rule = entry.second;
-		extension.grammar_extension.transform_functions[entry.second] = TransformTestGrammarExtension;
+		extension.grammar_extension.RegisterTransformer(entry.second, TransformTestGrammarExtension);
 		REQUIRE_THROWS(manager.Register(std::move(extension)));
 	}
 	{
 		ParserExtension extension;
 		extension.grammar_extension.grammar = "RootRule <- ChildRule\nChildRule <- 'CHILD'\n";
 		extension.grammar_extension.statement_rule = "RootRule";
-		extension.grammar_extension.transform_functions["ChildRule"] = TransformTestGrammarExtensionBody;
+		extension.grammar_extension.RegisterTransformer("ChildRule", TransformTestGrammarExtensionBody);
 		REQUIRE_THROWS(manager.Register(std::move(extension)));
 	}
 	{
 		ParserExtension extension;
 		extension.grammar_extension.grammar = "RootRule <- 'ROOT'\n";
 		extension.grammar_extension.statement_rule = "RootRule";
-		extension.grammar_extension.transform_functions["RootRule"] = TransformTestGrammarExtension;
-		extension.grammar_extension.transform_functions["MissingRule"] = TransformTestGrammarExtensionBody;
+		extension.grammar_extension.RegisterTransformer("RootRule", TransformTestGrammarExtension);
+		extension.grammar_extension.RegisterTransformer("MissingRule", TransformTestGrammarExtensionBody);
 		REQUIRE_THROWS(manager.Register(std::move(extension)));
 	}
 	REQUIRE_FALSE(manager.HasParserExtensions());

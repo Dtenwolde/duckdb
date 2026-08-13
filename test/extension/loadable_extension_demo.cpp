@@ -376,8 +376,8 @@ public:
 		grammar_extension.grammar = "GrammarExtension <- 'THIS' GrammarExtensionBody\n"
 		                            "GrammarExtensionBody <- 'GRAMMAR' 'IS' 'EXTENDED' 'BY' Expression\n";
 		grammar_extension.statement_rule = "GrammarExtension";
-		grammar_extension.transform_functions["GrammarExtension"] = GrammarExtensionTransformFunction;
-		grammar_extension.transform_functions["GrammarExtensionBody"] = GrammarExtensionBodyTransformFunction;
+		grammar_extension.RegisterTransformer("GrammarExtension", GrammarExtensionTransformFunction);
+		grammar_extension.RegisterTransformer("GrammarExtensionBody", GrammarExtensionBodyTransformFunction);
 	}
 
 	static unique_ptr<ParserExtensionParseData>

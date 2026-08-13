@@ -1432,12 +1432,13 @@ Matcher &MatcherFactory::CreateMatcher(const char *grammar, const char *root_rul
 		// contributed by another registered extension.
 		for (const auto &extension : *parser_extensions) {
 			const auto &extension_grammar = extension.grammar_extension;
+			const auto &transform_functions = extension_grammar.GetTransformFunctions();
 			if (extension_grammar.grammar.empty() && extension_grammar.statement_rule.empty() &&
-			    extension_grammar.transform_functions.empty()) {
+			    transform_functions.empty()) {
 				continue;
 			}
 			if (extension_grammar.grammar.empty() || extension_grammar.statement_rule.empty() ||
-			    extension_grammar.transform_functions.empty()) {
+			    transform_functions.empty()) {
 				throw InvalidInputException(
 				    "Grammar extension requires a grammar, statement rule, and transform functions");
 			}
@@ -1453,12 +1454,11 @@ Matcher &MatcherFactory::CreateMatcher(const char *grammar, const char *root_rul
 				    "Parser extension statement rule '%s' is not defined by its grammar fragment",
 				    extension_grammar.statement_rule);
 			}
-			if (extension_grammar.transform_functions.find(extension_grammar.statement_rule) ==
-			    extension_grammar.transform_functions.end()) {
+			if (transform_functions.find(extension_grammar.statement_rule) == transform_functions.end()) {
 				throw InvalidInputException("Grammar extension statement rule '%s' has no transformer",
 				                            extension_grammar.statement_rule);
 			}
-			for (const auto &entry : extension_grammar.transform_functions) {
+			for (const auto &entry : transform_functions) {
 				if (!entry.second) {
 					throw InvalidInputException("Grammar extension transformer for rule '%s' is nullptr", entry.first);
 				}

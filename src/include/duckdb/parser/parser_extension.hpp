@@ -118,10 +118,27 @@ typedef unique_ptr<ParserExtensionParseData> (*grammar_extension_transform_funct
 
 //! A grammar fragment that contributes one additional alternative to the Statement rule.
 struct GrammarExtension {
+	//! Registers a handwritten transformer for an extension-owned grammar rule.
+	void RegisterTransformer(const string &rule_name, grammar_extension_transform_function_t transform_function) {
+		if (!transform_function) {
+			throw InvalidInputException("Grammar extension transformer for rule '%s' is nullptr", rule_name);
+		}
+		auto entry = transform_functions.emplace(rule_name, transform_function);
+		if (!entry.second) {
+			throw InvalidInputException("Grammar extension transformer for rule '%s' is already registered", rule_name);
+		}
+	}
+
+	const case_insensitive_map_t<grammar_extension_transform_function_t> &GetTransformFunctions() const {
+		return transform_functions;
+	}
+
 	//! PEG rules owned by the extension.
 	string grammar;
 	//! The rule from grammar that is added to Statement.
 	string statement_rule;
+
+private:
 	//! Handwritten transformers for extension-owned grammar rules.
 	case_insensitive_map_t<grammar_extension_transform_function_t> transform_functions;
 };
