@@ -120,6 +120,7 @@ TEST_CASE("Grammar extensions can produce a SQLStatement", "[api][parser]") {
 	}
 }
 
+
 TEST_CASE("Grammar extension registration is atomic", "[api][parser]") {
 	ExtensionCallbackManager manager;
 	{
