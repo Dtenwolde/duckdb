@@ -155,7 +155,8 @@ unique_ptr<SQLStatement> PEGTransformerFactory::TransformTopLevelStatement(vecto
 	ArenaAllocator transformer_allocator(Allocator::DefaultAllocator());
 	PEGTransformerState transformer_state(tokens);
 	auto &transform_functions = GetTransformFunctions(options);
-	PEGTransformer transformer(transformer_allocator, transformer_state, transform_functions, parser.rules, options);
+	PEGTransformer transformer(transformer_allocator, transformer_state, transform_functions, sql_transform_functions,
+	                           parser.rules, options);
 
 	return ExtractAndTransformStatement(transformer, tokens, stmt_opt.GetResult(), terminator_offset);
 }
@@ -268,6 +269,27 @@ void PEGTransformerFactory::RegisterParserExtensions() {
 			sql_transform_functions[rule_name] = transform;
 			trampoline_transform_functions[rule_name] = std::move(transform);
 		}
+		auto statement_transform_function = extension_grammar.GetStatementTransformFunction();
+		if (!statement_transform_function) {
+			continue;
+		}
+		const auto &rule_name = extension_grammar.GetStatementTransformRule();
+		if (sql_transform_functions.find(rule_name) != sql_transform_functions.end()) {
+			throw InvalidInputException("Grammar extension transformer rule '%s' is already registered", rule_name);
+		}
+		PEGTransformer::AnyTransformFunction transform =
+		    [parser_info = extension.parser_info, statement_transform_function,
+		     rule_name](PEGTransformer &transformer, ParseResult &parse_result) -> unique_ptr<TransformResultValue> {
+			auto &extension_choice = parse_result.Cast<ChoiceParseResult>();
+			auto statement = statement_transform_function(parser_info.get(), transformer, extension_choice.GetResult());
+			if (!statement) {
+				throw InternalException("Grammar extension statement transformer for rule '%s' returned nullptr",
+				                        rule_name);
+			}
+			return make_uniq<TypedTransformResult<unique_ptr<SQLStatement>>>(std::move(statement));
+		};
+		sql_transform_functions[rule_name] = transform;
+		trampoline_transform_functions[rule_name] = std::move(transform);
 	}
 }
 

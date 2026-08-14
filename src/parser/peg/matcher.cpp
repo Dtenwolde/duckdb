@@ -1433,14 +1433,13 @@ Matcher &MatcherFactory::CreateMatcher(const char *grammar, const char *root_rul
 		for (const auto &extension : *parser_extensions) {
 			const auto &extension_grammar = extension.grammar_extension;
 			const auto &transform_functions = extension_grammar.GetTransformFunctions();
-			if (extension_grammar.grammar.empty() && extension_grammar.statement_rule.empty() &&
-			    transform_functions.empty()) {
+			const auto statement_transform_function = extension_grammar.GetStatementTransformFunction();
+			if (extension_grammar.IsEmpty()) {
 				continue;
 			}
 			if (extension_grammar.grammar.empty() || extension_grammar.statement_rule.empty() ||
-			    transform_functions.empty()) {
-				throw InvalidInputException(
-				    "Grammar extension requires a grammar, statement rule, and transform functions");
+			    !extension_grammar.HasTransformers()) {
+				throw InvalidInputException("Grammar extension requires a grammar, statement rule, and transformer");
 			}
 			PEGParser fragment_parser;
 			fragment_parser.ParseRules(extension_grammar.grammar.c_str());
@@ -1454,9 +1453,22 @@ Matcher &MatcherFactory::CreateMatcher(const char *grammar, const char *root_rul
 				    "Parser extension statement rule '%s' is not defined by its grammar fragment",
 				    extension_grammar.statement_rule);
 			}
-			if (transform_functions.find(extension_grammar.statement_rule) == transform_functions.end()) {
+			const auto parse_data_root = transform_functions.find(extension_grammar.statement_rule);
+			const bool has_parse_data_root = parse_data_root != transform_functions.end();
+			const bool has_statement_root = statement_transform_function != nullptr;
+			if (!has_parse_data_root && !has_statement_root) {
 				throw InvalidInputException("Grammar extension statement rule '%s' has no transformer",
 				                            extension_grammar.statement_rule);
+			}
+			if (has_parse_data_root && has_statement_root) {
+				throw InvalidInputException("Grammar extension statement rule '%s' has multiple transformers",
+				                            extension_grammar.statement_rule);
+			}
+			if (has_statement_root && !StringUtil::CIEquals(extension_grammar.GetStatementTransformRule(),
+			                                                extension_grammar.statement_rule)) {
+				throw InvalidInputException(
+				    "Grammar extension statement transformer rule '%s' does not match statement rule '%s'",
+				    extension_grammar.GetStatementTransformRule(), extension_grammar.statement_rule);
 			}
 			for (const auto &entry : transform_functions) {
 				if (!entry.second) {

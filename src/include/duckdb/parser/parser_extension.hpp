@@ -11,6 +11,7 @@
 #include "duckdb/common/error_data.hpp"
 #include "duckdb/common/common.hpp"
 #include "duckdb/common/case_insensitive_map.hpp"
+#include "duckdb/common/string_util.hpp"
 #include "duckdb/common/enums/statement_type.hpp"
 #include "duckdb/function/table_function.hpp"
 #include "duckdb/parser/sql_statement.hpp"
@@ -116,6 +117,11 @@ typedef unique_ptr<ParserExtensionParseData> (*grammar_extension_transform_funct
                                                                                        PEGTransformer &transformer,
                                                                                        ParseResult &parse_result);
 
+//! Transforms an extension-owned statement grammar rule into a native DuckDB statement.
+typedef unique_ptr<SQLStatement> (*grammar_extension_statement_transform_function_t)(ParserExtensionInfo *info,
+                                                                                     PEGTransformer &transformer,
+                                                                                     ParseResult &parse_result);
+
 //! A grammar fragment that contributes one additional alternative to the Statement rule.
 struct GrammarExtension {
 	//! Registers a handwritten transformer for an extension-owned grammar rule.
@@ -123,14 +129,46 @@ struct GrammarExtension {
 		if (!transform_function) {
 			throw InvalidInputException("Grammar extension transformer for rule '%s' is nullptr", rule_name);
 		}
+		if (StringUtil::CIEquals(rule_name, statement_transform_rule)) {
+			throw InvalidInputException("Grammar extension transformer for rule '%s' is already registered", rule_name);
+		}
 		auto entry = transform_functions.emplace(rule_name, transform_function);
 		if (!entry.second) {
 			throw InvalidInputException("Grammar extension transformer for rule '%s' is already registered", rule_name);
 		}
 	}
 
+	//! Registers a transformer that returns a native DuckDB statement for the statement rule.
+	void RegisterStatementTransformer(const string &rule_name,
+	                                  grammar_extension_statement_transform_function_t transform_function) {
+		if (!transform_function) {
+			throw InvalidInputException("Grammar extension statement transformer for rule '%s' is nullptr", rule_name);
+		}
+		if (statement_transform_function || transform_functions.find(rule_name) != transform_functions.end()) {
+			throw InvalidInputException("Grammar extension transformer for rule '%s' is already registered", rule_name);
+		}
+		statement_transform_rule = rule_name;
+		statement_transform_function = transform_function;
+	}
+
 	const case_insensitive_map_t<grammar_extension_transform_function_t> &GetTransformFunctions() const {
 		return transform_functions;
+	}
+
+	const string &GetStatementTransformRule() const {
+		return statement_transform_rule;
+	}
+
+	grammar_extension_statement_transform_function_t GetStatementTransformFunction() const {
+		return statement_transform_function;
+	}
+
+	bool HasTransformers() const {
+		return !transform_functions.empty() || statement_transform_function;
+	}
+
+	bool IsEmpty() const {
+		return grammar.empty() && statement_rule.empty() && !HasTransformers();
 	}
 
 	//! PEG rules owned by the extension.
@@ -141,6 +179,9 @@ struct GrammarExtension {
 private:
 	//! Handwritten transformers for extension-owned grammar rules.
 	case_insensitive_map_t<grammar_extension_transform_function_t> transform_functions;
+	//! Optional transformer that lowers the statement rule to a native DuckDB statement.
+	string statement_transform_rule;
+	grammar_extension_statement_transform_function_t statement_transform_function = nullptr;
 };
 //===--------------------------------------------------------------------===//
 // Plan

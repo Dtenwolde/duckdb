@@ -4,6 +4,8 @@
 #include "duckdb/main/extension_callback_manager.hpp"
 #include "duckdb/parser/parser.hpp"
 #include "duckdb/parser/peg/transformer/peg_transformer.hpp"
+#include "duckdb/parser/query_node/select_node.hpp"
+#include "duckdb/parser/statement/select_statement.hpp"
 
 using namespace duckdb;
 
@@ -26,6 +28,16 @@ static unique_ptr<ParserExtensionParseData>
 TransformTestGrammarExtension(ParserExtensionInfo *, PEGTransformer &transformer, ParseResult &parse_result) {
 	auto &list = parse_result.Cast<ListParseResult>();
 	return transformer.Transform<unique_ptr<ParserExtensionParseData>>(list.GetChild(1));
+}
+
+static unique_ptr<SQLStatement> TransformTestNativeGrammarExtension(ParserExtensionInfo *, PEGTransformer &transformer,
+                                                                    ParseResult &parse_result) {
+	auto &list = parse_result.Cast<ListParseResult>();
+	auto select_node = make_uniq<SelectNode>();
+	select_node->select_list.push_back(transformer.Transform<unique_ptr<ParsedExpression>>(list.GetChild(1)));
+	auto statement = make_uniq<SelectStatement>();
+	statement->node = std::move(select_node);
+	return std::move(statement);
 }
 
 TEST_CASE("Parser keyword registration validates keyword spelling", "[api][parser]") {
@@ -88,13 +100,41 @@ TEST_CASE("Grammar extensions can add a statement alternative", "[api][parser]")
 	}
 }
 
+TEST_CASE("Grammar extensions can produce a SQLStatement", "[api][parser]") {
+	ExtensionCallbackManager manager;
+	ParserExtension extension;
+	extension.grammar_extension.grammar = "BeepBoopStatement <- 'BEEP' 'BOOP' Expression\n";
+	extension.grammar_extension.statement_rule = "BeepBoopStatement";
+	extension.grammar_extension.RegisterStatementTransformer("BeepBoopStatement", TransformTestNativeGrammarExtension);
+	manager.Register(std::move(extension));
+
+	for (const auto trampoline : {false, true}) {
+		ParserOptions options;
+		options.parser_extensions = manager.GetParserExtensions();
+		options.debug_transformer_trampoline_style = trampoline;
+		Parser parser(std::move(options));
+		parser.ParseQuery("BEEP BOOP 40 + 2");
+		REQUIRE(parser.statements.size() == 1);
+		REQUIRE(parser.statements[0]->type == StatementType::SELECT_STATEMENT);
+		REQUIRE(parser.statements[0]->ToString() == "SELECT (40 + 2)");
+	}
+}
+
 TEST_CASE("Grammar extension registration is atomic", "[api][parser]") {
 	ExtensionCallbackManager manager;
 	{
 		GrammarExtension extension;
 		REQUIRE_THROWS(extension.RegisterTransformer("NullRule", nullptr));
+		REQUIRE_THROWS(extension.RegisterStatementTransformer("NullStatementRule", nullptr));
 		extension.RegisterTransformer("DuplicateRule", TransformTestGrammarExtension);
 		REQUIRE_THROWS(extension.RegisterTransformer("duplicaterule", TransformTestGrammarExtensionBody));
+		REQUIRE_THROWS(extension.RegisterStatementTransformer("DUPLICATERULE", TransformTestNativeGrammarExtension));
+	}
+	{
+		GrammarExtension extension;
+		extension.RegisterStatementTransformer("StatementRule", TransformTestNativeGrammarExtension);
+		REQUIRE_THROWS(extension.RegisterStatementTransformer("OtherRule", TransformTestNativeGrammarExtension));
+		REQUIRE_THROWS(extension.RegisterTransformer("statementrule", TransformTestGrammarExtension));
 	}
 	for (const auto &entry :
 	     vector<pair<string, string>> {{"DefinedRule <- 'DEFINED'\n", "MissingRule"},
@@ -119,6 +159,13 @@ TEST_CASE("Grammar extension registration is atomic", "[api][parser]") {
 		extension.grammar_extension.statement_rule = "RootRule";
 		extension.grammar_extension.RegisterTransformer("RootRule", TransformTestGrammarExtension);
 		extension.grammar_extension.RegisterTransformer("MissingRule", TransformTestGrammarExtensionBody);
+		REQUIRE_THROWS(manager.Register(std::move(extension)));
+	}
+	{
+		ParserExtension extension;
+		extension.grammar_extension.grammar = "RootRule <- 'ROOT'\nOtherRule <- 'OTHER'\n";
+		extension.grammar_extension.statement_rule = "RootRule";
+		extension.grammar_extension.RegisterStatementTransformer("OtherRule", TransformTestNativeGrammarExtension);
 		REQUIRE_THROWS(manager.Register(std::move(extension)));
 	}
 	REQUIRE_FALSE(manager.HasParserExtensions());

@@ -206,9 +206,10 @@ public:
 
 	PEGTransformer(ArenaAllocator &allocator, PEGTransformerState &state,
 	               const case_insensitive_map_t<AnyTransformFunction> &transform_functions,
+	               const case_insensitive_map_t<AnyTransformFunction> &fallback_transform_functions,
 	               const case_insensitive_map_t<PEGRule> &grammar_rules, ParserOptions &options_p)
 	    : allocator(allocator), state(state), grammar_rules(grammar_rules), transform_functions(transform_functions),
-	      options(options_p) {
+	      fallback_transform_functions(fallback_transform_functions), options(options_p) {
 	}
 
 public:
@@ -216,7 +217,10 @@ public:
 	T Transform(ParseResult &parse_result) {
 		auto it = transform_functions.find(parse_result.name);
 		if (it == transform_functions.end()) {
-			throw NotImplementedException("No transformer function found for rule '%s'", parse_result.name);
+			it = fallback_transform_functions.find(parse_result.name);
+			if (it == fallback_transform_functions.end()) {
+				throw NotImplementedException("No transformer function found for rule '%s'", parse_result.name);
+			}
 		}
 		auto &func = it->second;
 
@@ -311,6 +315,7 @@ public:
 	PEGTransformerState &state;
 	const case_insensitive_map_t<PEGRule> &grammar_rules;
 	const case_insensitive_map_t<AnyTransformFunction> &transform_functions;
+	const case_insensitive_map_t<AnyTransformFunction> &fallback_transform_functions;
 	identifier_map_t<idx_t> named_parameter_map;
 	idx_t prepared_statement_parameter_index = 0;
 	PreparedParamType last_param_type = PreparedParamType::INVALID;
