@@ -7,7 +7,6 @@
 namespace duckdb {
 
 MatchStack::MatchStack() : frame_allocator(Allocator::DefaultAllocator(), FrameSegmentSize() / 2) {
-	frame_segments.reserve(1);
 	frames.reserve(FRAME_SEGMENT_CAPACITY);
 }
 
@@ -34,6 +33,35 @@ idx_t MatchStack::FrameSegmentSize() {
 	return FrameSlotSize() * FRAME_SEGMENT_CAPACITY;
 }
 
+void MatchStack::AllocateFrameSegment() {
+	auto frame_segment = frame_allocator.AllocateAligned(FrameSegmentSize());
+	if (frame_segment_count < INLINE_FRAME_SEGMENT_COUNT) {
+		inline_frame_segments[frame_segment_count] = frame_segment;
+	} else {
+		overflow_frame_segments.push_back(frame_segment);
+	}
+	frame_segment_count++;
+}
+
+data_ptr_t MatchStack::GetFrameSegment(idx_t segment_index) const {
+	D_ASSERT(segment_index < frame_segment_count);
+	if (segment_index < INLINE_FRAME_SEGMENT_COUNT) {
+		return inline_frame_segments[segment_index];
+	}
+	return overflow_frame_segments[segment_index - INLINE_FRAME_SEGMENT_COUNT];
+}
+
+void MatchStack::SetActiveFrameSegment(idx_t segment_index) {
+	if (segment_index >= frame_segment_count) {
+		frames.reserve((segment_index + 1) * FRAME_SEGMENT_CAPACITY);
+		do {
+			AllocateFrameSegment();
+		} while (segment_index >= frame_segment_count);
+	}
+	active_frame_segment = GetFrameSegment(segment_index);
+	active_frame_segment_index = segment_index;
+}
+
 data_ptr_t MatchStack::AllocateFrameSlot(idx_t size) {
 	if (size > FrameSlotSize()) {
 		return frame_allocator.AllocateAligned(size);
@@ -44,14 +72,11 @@ data_ptr_t MatchStack::AllocateFrameSlot(idx_t size) {
 data_ptr_t MatchStack::AllocateFrameSlot() {
 	auto frame_index = frames.size();
 	auto segment_index = frame_index / FRAME_SEGMENT_CAPACITY;
-	if (segment_index == frame_segments.size()) {
-		frames.reserve((segment_index + 1) * FRAME_SEGMENT_CAPACITY);
-		frame_segments.reserve(segment_index + 1);
-		frame_segments.push_back(frame_allocator.AllocateAligned(FrameSegmentSize()));
+	if (segment_index != active_frame_segment_index) {
+		SetActiveFrameSegment(segment_index);
 	}
-	D_ASSERT(segment_index < frame_segments.size());
 	auto slot_index = frame_index % FRAME_SEGMENT_CAPACITY;
-	return frame_segments[segment_index] + slot_index * FrameSlotSize();
+	return active_frame_segment + slot_index * FrameSlotSize();
 }
 
 void MatchStack::DestroyTopFrame() {

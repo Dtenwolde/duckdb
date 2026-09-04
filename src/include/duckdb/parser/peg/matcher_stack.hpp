@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include "duckdb/common/array.hpp"
 #include "duckdb/common/optional.hpp"
 #include "duckdb/common/optional_idx.hpp"
 #include "duckdb/parser/peg/matcher.hpp"
@@ -67,11 +68,15 @@ public:
 
 private:
 	static constexpr idx_t FRAME_SEGMENT_CAPACITY = 32;
+	static constexpr idx_t INLINE_FRAME_SEGMENT_COUNT = 2;
 
 	static bool IsTerminalMatcher(const Matcher &matcher);
 	static idx_t FrameSlotSize();
 	static idx_t FrameSegmentSize();
 	MatcherResult ExecuteTerminalMatcher(const Matcher &matcher, MatchState &state);
+	void AllocateFrameSegment();
+	data_ptr_t GetFrameSegment(idx_t segment_index) const;
+	void SetActiveFrameSegment(idx_t segment_index);
 	data_ptr_t AllocateFrameSlot();
 	data_ptr_t AllocateFrameSlot(idx_t size);
 	void DestroyTopFrame();
@@ -92,7 +97,11 @@ private:
 
 private:
 	ArenaAllocator frame_allocator;
-	vector<data_ptr_t> frame_segments;
+	array<data_ptr_t, INLINE_FRAME_SEGMENT_COUNT> inline_frame_segments {};
+	vector<data_ptr_t> overflow_frame_segments;
+	idx_t frame_segment_count = 0;
+	data_ptr_t active_frame_segment = nullptr;
+	idx_t active_frame_segment_index = DConstants::INVALID_INDEX;
 	vector<MatchStackFrame *> frames;
 };
 
