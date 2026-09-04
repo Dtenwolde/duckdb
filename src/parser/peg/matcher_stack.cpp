@@ -6,6 +6,61 @@
 
 namespace duckdb {
 
+MatchStack::MatchStack() : frame_allocator(Allocator::DefaultAllocator(), FrameSegmentSize() / 2) {
+	frame_segments.reserve(1);
+	frames.reserve(FRAME_SEGMENT_CAPACITY);
+}
+
+MatchStack::~MatchStack() {
+	while (!frames.empty()) {
+		DestroyTopFrame();
+	}
+}
+
+idx_t MatchStack::FrameSlotSize() {
+	static_assert(alignof(OptionalMatchStackFrame) <= alignof(idx_t), "Optional matcher frame alignment is too large");
+	static_assert(alignof(ChoiceMatchStackFrame) <= alignof(idx_t), "Choice matcher frame alignment is too large");
+	static_assert(alignof(ListMatchStackFrame) <= alignof(idx_t), "List matcher frame alignment is too large");
+	static_assert(alignof(RepeatMatchStackFrame) <= alignof(idx_t), "Repeat matcher frame alignment is too large");
+
+	idx_t result = sizeof(OptionalMatchStackFrame);
+	result = MaxValue<idx_t>(result, sizeof(ChoiceMatchStackFrame));
+	result = MaxValue<idx_t>(result, sizeof(ListMatchStackFrame));
+	result = MaxValue<idx_t>(result, sizeof(RepeatMatchStackFrame));
+	return AlignValue<idx_t>(result);
+}
+
+idx_t MatchStack::FrameSegmentSize() {
+	return FrameSlotSize() * FRAME_SEGMENT_CAPACITY;
+}
+
+data_ptr_t MatchStack::AllocateFrameSlot(idx_t size) {
+	if (size > FrameSlotSize()) {
+		return frame_allocator.AllocateAligned(size);
+	}
+	return AllocateFrameSlot();
+}
+
+data_ptr_t MatchStack::AllocateFrameSlot() {
+	auto frame_index = frames.size();
+	auto segment_index = frame_index / FRAME_SEGMENT_CAPACITY;
+	if (segment_index == frame_segments.size()) {
+		frames.reserve((segment_index + 1) * FRAME_SEGMENT_CAPACITY);
+		frame_segments.reserve(segment_index + 1);
+		frame_segments.push_back(frame_allocator.AllocateAligned(FrameSegmentSize()));
+	}
+	D_ASSERT(segment_index < frame_segments.size());
+	auto slot_index = frame_index % FRAME_SEGMENT_CAPACITY;
+	return frame_segments[segment_index] + slot_index * FrameSlotSize();
+}
+
+void MatchStack::DestroyTopFrame() {
+	D_ASSERT(!frames.empty());
+	auto frame = frames.back();
+	frames.pop_back();
+	frame->~MatchStackFrame();
+}
+
 optional<MatcherResult> PackratMatchState::TryLoadCachedResult(const Matcher &matcher, MatchState &state) {
 	D_ASSERT(IsEnabled(matcher, state));
 	auto token_index = state.token_iterator.Position();
@@ -95,7 +150,8 @@ bool MatchStack::IsTerminalMatcher(const Matcher &matcher) {
 	case MatcherType::REPEAT:
 		return false;
 	default:
-		throw InternalException("Unsupported matcher type in heap-based parser");
+		// Extension matchers execute through their virtual implementation.
+		return true;
 	}
 }
 
@@ -120,18 +176,20 @@ MatcherResult MatchStack::ExecuteTerminalMatcher(const Matcher &matcher, MatchSt
 void MatchStack::PushFrame(const Matcher &matcher, MatchState &state) {
 	state.rule = matcher.GetRule();
 	auto frame_index = frames.size();
+	auto frame_slot = AllocateFrameSlot();
+	MatchStackFrame *frame;
 	switch (matcher.Type()) {
 	case MatcherType::OPTIONAL:
-		frames.push_back(make_uniq<OptionalMatchStackFrame>(frame_index, matcher.Cast<OptionalMatcher>(), state));
+		frame = new (frame_slot) OptionalMatchStackFrame(frame_index, matcher.Cast<OptionalMatcher>(), state);
 		break;
 	case MatcherType::CHOICE:
-		frames.push_back(make_uniq<ChoiceMatchStackFrame>(frame_index, matcher.Cast<ChoiceMatcher>(), state));
+		frame = new (frame_slot) ChoiceMatchStackFrame(frame_index, matcher.Cast<ChoiceMatcher>(), state);
 		break;
 	case MatcherType::LIST:
-		frames.push_back(make_uniq<ListMatchStackFrame>(frame_index, matcher.Cast<ListMatcher>(), state));
+		frame = new (frame_slot) ListMatchStackFrame(frame_index, matcher.Cast<ListMatcher>(), state);
 		break;
 	case MatcherType::REPEAT:
-		frames.push_back(make_uniq<RepeatMatchStackFrame>(frame_index, matcher.Cast<RepeatMatcher>(), state));
+		frame = new (frame_slot) RepeatMatchStackFrame(frame_index, matcher.Cast<RepeatMatcher>(), state);
 		break;
 	case MatcherType::KEYWORD:
 	case MatcherType::VARIABLE:
@@ -143,6 +201,7 @@ void MatchStack::PushFrame(const Matcher &matcher, MatchState &state) {
 	default:
 		throw InternalException("Unsupported matcher type in heap-based parser");
 	}
+	frames.push_back(frame);
 }
 
 void MatchStack::PushChildFrame(MatchStackFrame &parent, const Matcher &matcher, MatchState &state) {
@@ -201,7 +260,7 @@ MatcherResult MatchStack::ExecuteInternal(const Matcher &matcher, MatchState &st
 			continue;
 		}
 		auto result = FinalizeFrame(frame);
-		frames.pop_back();
+		DestroyTopFrame();
 		if (frames.empty()) {
 			return result;
 		}

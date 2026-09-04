@@ -10,6 +10,7 @@
 #include "duckdb/common/optional.hpp"
 #include "duckdb/common/optional_idx.hpp"
 #include "duckdb/parser/peg/matcher.hpp"
+#include "duckdb/storage/arena_allocator.hpp"
 
 namespace duckdb {
 
@@ -58,20 +59,41 @@ struct MatchStackFrame {
 
 class MatchStack {
 public:
+	MatchStack();
+	~MatchStack();
+
 	MatcherResult Execute(const Matcher &matcher, MatchState &state);
 	void PushChildFrame(MatchStackFrame &parent, const Matcher &matcher, MatchState &state);
 
 private:
+	static constexpr idx_t FRAME_SEGMENT_CAPACITY = 32;
+
 	static bool IsTerminalMatcher(const Matcher &matcher);
+	static idx_t FrameSlotSize();
+	static idx_t FrameSegmentSize();
 	MatcherResult ExecuteTerminalMatcher(const Matcher &matcher, MatchState &state);
+	data_ptr_t AllocateFrameSlot();
+	data_ptr_t AllocateFrameSlot(idx_t size);
+	void DestroyTopFrame();
 	void PushFrame(const Matcher &matcher, MatchState &state);
+	template <class FRAME, class MATCHER>
+	void PushFrameInternal(match_frame_index_t frame_index, const MATCHER &matcher, MatchState &state) {
+		static_assert(alignof(FRAME) <= alignof(idx_t), "Matcher frame alignment is too large");
+		if (frames.size() == frames.capacity()) {
+			frames.reserve(frames.size() + FRAME_SEGMENT_CAPACITY);
+		}
+		auto frame_slot = AllocateFrameSlot(sizeof(FRAME));
+		frames.push_back(new (frame_slot) FRAME(frame_index, matcher, state));
+	}
 	void InitializeFrame(MatchStackFrame &frame);
 	void ExecuteFrame(MatchStackFrame &frame);
 	MatcherResult FinalizeFrame(MatchStackFrame &frame);
 	MatcherResult ExecuteInternal(const Matcher &matcher, MatchState &state);
 
 private:
-	vector<unique_ptr<MatchStackFrame>> frames;
+	ArenaAllocator frame_allocator;
+	vector<data_ptr_t> frame_segments;
+	vector<MatchStackFrame *> frames;
 };
 
 } // namespace duckdb
