@@ -3,6 +3,7 @@
 #include "duckdb/parser/peg/matcher/list.hpp"
 #include "duckdb/parser/peg/compiled_grammar.hpp"
 #include "duckdb/parser/peg/matcher/literal_choice_matcher.hpp"
+#include "duckdb/parser/peg/matcher/first_choice_matcher.hpp"
 
 namespace duckdb {
 
@@ -268,6 +269,10 @@ Matcher &MatcherFactory::CreateRootMatcher(const string &root_rule) {
 	while (construction_state.HasScheduled()) {
 		CreateMatcher(construction_state.TakeNext());
 	}
+	auto literal_table = compiled.GetKeywordHelper().GetLiteralTable();
+	if (literal_table && !first_set_choices.empty()) {
+		InitializeMatcherFirstSets(first_set_builtins, first_set_choices, *literal_table);
+	}
 	return GetMatcher(root_rule);
 }
 
@@ -276,7 +281,9 @@ unique_ptr<KeywordMatcher> MatcherFactory::CreateKeyword(const string &keyword, 
 }
 
 unique_ptr<ListMatcher> MatcherFactory::CreateList() const {
-	return make_uniq<ListMatcher>();
+	auto result = make_uniq<ListMatcher>();
+	first_set_builtins.push_back(*result);
+	return result;
 }
 
 unique_ptr<ChoiceMatcher> MatcherFactory::CreateChoice(vector<reference<Matcher>> &&matchers) const {
@@ -286,26 +293,43 @@ unique_ptr<ChoiceMatcher> MatcherFactory::CreateChoice(vector<reference<Matcher>
 		for (idx_t i = 0; i < matchers.size(); i++) {
 			auto &matcher = matchers[i].get();
 			if (matcher.Type() != MatcherType::KEYWORD) {
-				return make_uniq<ChoiceMatcher>(std::move(matchers));
+				return CreateGeneralChoice(std::move(matchers));
 			}
 			auto literal = matcher.Cast<KeywordMatcher>().GetDispatchLiteral(*table);
 			if (!literal.IsValid()) {
-				return make_uniq<ChoiceMatcher>(std::move(matchers));
+				return CreateGeneralChoice(std::move(matchers));
 			}
 			// Preserve the first alternative when spellings share an ID.
 			literal_children.emplace(static_cast<uint32_t>(literal.GetIndex()), i);
 		}
-		return make_uniq<LiteralChoiceMatcher>(std::move(matchers), *table, std::move(literal_children));
+		auto result = make_uniq<LiteralChoiceMatcher>(std::move(matchers), *table, std::move(literal_children));
+		first_set_builtins.push_back(*result);
+		return result;
 	}
-	return make_uniq<ChoiceMatcher>(std::move(matchers));
+	return CreateGeneralChoice(std::move(matchers));
+}
+
+unique_ptr<ChoiceMatcher> MatcherFactory::CreateGeneralChoice(vector<reference<Matcher>> &&matchers) const {
+	auto table = compiled.GetKeywordHelper().GetLiteralTable();
+	if (!table) {
+		return make_uniq<ChoiceMatcher>(std::move(matchers));
+	}
+	auto result = make_uniq<FirstChoiceMatcher>(std::move(matchers), *table);
+	first_set_builtins.push_back(*result);
+	first_set_choices.push_back(*result);
+	return result;
 }
 
 unique_ptr<OptionalMatcher> MatcherFactory::CreateOptional(Matcher &matcher) const {
-	return make_uniq<OptionalMatcher>(matcher);
+	auto result = make_uniq<OptionalMatcher>(matcher);
+	first_set_builtins.push_back(*result);
+	return result;
 }
 
 unique_ptr<RepeatMatcher> MatcherFactory::CreateRepeat(Matcher &matcher) const {
-	return make_uniq<RepeatMatcher>(matcher);
+	auto result = make_uniq<RepeatMatcher>(matcher);
+	first_set_builtins.push_back(*result);
+	return result;
 }
 
 KeywordMatcher &MatcherFactory::Keyword(const string &keyword) const {

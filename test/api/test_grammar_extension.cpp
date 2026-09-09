@@ -8,6 +8,7 @@
 #include "duckdb/parser/peg/compiled_grammar.hpp"
 #include "duckdb/parser/peg/keyword_helper/default_keyword_maps.hpp"
 #include "duckdb/parser/peg/matcher/identifier_matcher.hpp"
+#include "duckdb/parser/peg/matcher/first_choice_matcher.hpp"
 #include "duckdb/parser/peg/matcher/keyword_matcher.hpp"
 #include "duckdb/parser/peg/matcher/list_matcher.hpp"
 #include "duckdb/parser/peg/matcher_stack.hpp"
@@ -202,6 +203,284 @@ TEST_CASE("Literal dispatch leaves mixed and unregistered alternatives unchanged
 			}
 		}
 	}
+}
+
+class SequentialFirstSetMatcherFactory final : public MatcherFactory {
+public:
+	using MatcherFactory::MatcherFactory;
+
+private:
+	unique_ptr<ChoiceMatcher> CreateChoice(vector<reference<Matcher>> &&children) const override {
+		return make_uniq<ChoiceMatcher>(std::move(children));
+	}
+};
+
+static LiteralChoiceTestResult MatchFirstSetTest(const Matcher &matcher, const CompiledGrammar &compiled,
+                                                 const string &text, bool heap, MatchMode mode, bool autocomplete,
+                                                 vector<MatcherSuggestion> &suggestions) {
+	vector<MatcherToken> tokens;
+	TokenizerBehavior behavior(text, tokens);
+	compiled.GetTokenizer().TokenizeInput(behavior);
+	if (autocomplete) {
+		tokens.back().type = TokenType::END_OF_INPUT_AUTOCOMPLETE;
+	}
+	TokenIterator iterator(tokens);
+	ParseResultAllocator allocator;
+	ParserPackratCache packrat;
+	idx_t max_position = 0;
+	ArenaAllocator process_allocator(Allocator::DefaultAllocator());
+	MatchContext context(suggestions, allocator, process_allocator, max_position, mode,
+	                     IdentifierCaseMode::PRESERVE_CASE, heap, &packrat);
+	MatchState state(iterator, context);
+	auto result = matcher.MatchParseResult(state);
+	return {result.IsSuccess(), state.token_iterator.Position(), max_position,
+	        result.HasParseResult() ? result.GetParseResult()->ToString() : string()};
+}
+
+static void CheckFirstSetMatch(const Matcher &actual, const Matcher &expected, const CompiledGrammar &compiled,
+                               const string &text) {
+	for (bool heap : {false, true}) {
+		for (auto mode : {MatchMode::BUILD_PARSE_RESULT, MatchMode::RECOGNIZE_ONLY}) {
+			for (bool autocomplete : {false, true}) {
+				vector<MatcherSuggestion> actual_suggestions;
+				vector<MatcherSuggestion> expected_suggestions;
+				auto a = MatchFirstSetTest(actual, compiled, text, heap, mode, autocomplete, actual_suggestions);
+				auto b = MatchFirstSetTest(expected, compiled, text, heap, mode, autocomplete, expected_suggestions);
+				REQUIRE(a.success == b.success);
+				REQUIRE(a.position == b.position);
+				REQUIRE(a.max_position == b.max_position);
+				REQUIRE(a.tree == b.tree);
+				REQUIRE(actual_suggestions.size() == expected_suggestions.size());
+				for (idx_t i = 0; i < actual_suggestions.size(); i++) {
+					REQUIRE(actual_suggestions[i].type == expected_suggestions[i].type);
+					REQUIRE(actual_suggestions[i].keyword.candidate == expected_suggestions[i].keyword.candidate);
+					REQUIRE(actual_suggestions[i].keyword.score_bonus == expected_suggestions[i].keyword.score_bonus);
+					REQUIRE(actual_suggestions[i].keyword.extra_char == expected_suggestions[i].keyword.extra_char);
+				}
+			}
+		}
+	}
+}
+
+TEST_CASE("FIRST sets skip impossible sequences without changing choice results", "[api][grammar_extension]") {
+	auto compiled = CompiledGrammar::Create();
+	vector<string> definitions {
+	    "Program <- ('CREATE' 'TABLE' 'SELECT') / ('DROP' 'TABLE' 'SELECT')",
+	    "Program <- ('CREATE' 'TABLE') / ('CREATE' 'VIEW') / ('DROP' 'TABLE')",
+	    "Program <- ('CREATE'? 'TABLE') / ('DROP' 'TABLE')",
+	    "Program <- ('CREATE'+ 'TABLE') / ('DROP' 'TABLE')",
+	    "Program <- ('CREATE'* 'TABLE') / ('DROP' 'TABLE')",
+	    "Program <- ('CREATE' 'TABLE')? / ('DROP' 'TABLE')",
+	    "Program <- ('CREATE' 'TABLE')* / ('DROP' 'TABLE')",
+	    "Program <- (('CREATE' 'TABLE')? 'VIEW') / ('DROP' 'TABLE')",
+	    "Program <- TopLevelStatement / ('DROP' 'TABLE')\nTopLevelStatement <- 'CREATE' 'TABLE'",
+	    "Program <- Expression / ('DROP' 'TABLE')\nExpression <- ('(' Expression ')') / 'SELECT'"};
+	for (auto &definition : definitions) {
+		INFO(definition);
+		auto grammar = ParsedGrammar::Parse(definition);
+		MatcherAllocator actual_allocator;
+		MatcherAllocator expected_allocator;
+		MatcherFactory factory(actual_allocator, grammar, *compiled, {});
+		SequentialFirstSetMatcherFactory sequential(expected_allocator, grammar, *compiled, {});
+		auto &actual = factory.CreateRootMatcher("Program");
+		auto &expected = sequential.CreateRootMatcher("Program");
+		for (auto &text : vector<string> {"DROP TABLE SELECT", "CREATE TABLE SELECT", "create view", "TABLE", "VIEW",
+		                                  "DROP", "CREATE", "CREATE WHERE", "CREATE CREATE TABLE", "(", "( SELECT )",
+		                                  "( ( SELECT ) )", "unknown_literal", ""}) {
+			INFO(text);
+			CheckFirstSetMatch(actual, expected, *compiled, text);
+		}
+	}
+}
+
+TEST_CASE("FIRST pruning does not schedule rejected branches", "[api][grammar_extension]") {
+	auto compiled = CompiledGrammar::Create();
+	auto grammar = ParsedGrammar::Parse("Program <- ('CREATE' 'TABLE') / ('DROP' 'TABLE')");
+	MatcherAllocator allocator;
+	MatcherFactory factory(allocator, grammar, *compiled, {});
+	auto &root = factory.CreateRootMatcher("Program").Cast<ListMatcher>();
+	auto &choice = root.matchers[0].get().Cast<ChoiceMatcher>();
+	for (auto &text : vector<string> {"DROP", "CREATE", "unknown_literal"}) {
+		vector<MatcherToken> tokens {MatcherToken(text, 0, TokenType::IDENTIFIER)};
+		TokenIterator iterator(tokens);
+		vector<MatcherSuggestion> suggestions;
+		ParseResultAllocator results;
+		ArenaAllocator processes(Allocator::DefaultAllocator());
+		idx_t max_position = 0;
+		MatchContext context(suggestions, results, processes, max_position);
+		MatchState state(iterator, context);
+		auto process = choice.StartMatch(state);
+		auto step = process->Resume(nullopt);
+		if (text == "unknown_literal") {
+			REQUIRE_FALSE(step.GetChild());
+			REQUIRE_FALSE(step.GetResult().IsSuccess());
+		} else {
+			REQUIRE(step.GetChild());
+			idx_t index = text == "CREATE" ? 0 : 1;
+			REQUIRE(&step.GetChild()->matcher == &choice.matchers[index].get());
+		}
+	}
+}
+
+class FirstSetCustomKeyword final : public KeywordMatcher {
+public:
+	FirstSetCustomKeyword(bool known, idx_t &calls)
+	    : KeywordMatcher("SELECT", KeywordInfo()), known(known), calls(calls) {
+	}
+
+	MatcherFirstSet GetFirstSet(const GrammarLiteralTable &table) const override {
+		return known ? MatcherFirstSet({table.Lookup("SELECT").LiteralId()}) : MatcherFirstSet();
+	}
+
+	MatcherResult MatchAtomic(MatchState &state) const override {
+		calls++;
+		return KeywordMatcher::MatchAtomic(state);
+	}
+
+private:
+	bool known;
+	idx_t &calls;
+};
+
+TEST_CASE("Custom FIRST metadata is optional and grammar rule text cannot override it", "[api][grammar_extension]") {
+	auto compiled = CompiledGrammar::Create();
+	auto grammar = ParsedGrammar::Parse("Program <- (Identifier 'TABLE') / ('DROP' 'TABLE')\nIdentifier <- 'CREATE'");
+	for (bool known : {false, true}) {
+		for (bool heap : {false, true}) {
+			idx_t calls = 0;
+			terminal_rule_overrides_t overrides;
+			overrides.emplace("Identifier", make_uniq<FirstSetCustomKeyword>(known, calls));
+			MatcherAllocator allocator;
+			MatcherFactory factory(allocator, grammar, *compiled, std::move(overrides));
+			auto &root = factory.CreateRootMatcher("Program");
+			vector<MatcherSuggestion> suggestions;
+			auto result =
+			    MatchFirstSetTest(root, *compiled, "DROP TABLE", heap, MatchMode::RECOGNIZE_ONLY, false, suggestions);
+			REQUIRE(result.success);
+			REQUIRE(calls == (known ? 0 : 1));
+			result =
+			    MatchFirstSetTest(root, *compiled, "SELECT TABLE", heap, MatchMode::RECOGNIZE_ONLY, false, suggestions);
+			REQUIRE(result.success);
+			REQUIRE(calls == (known ? 1 : 2));
+		}
+	}
+}
+
+TEST_CASE("FIRST sets with missing literal IDs stay unknown", "[api][grammar_extension]") {
+	MatcherFirstSet missing({0});
+	REQUIRE(missing.IsUnknown());
+	REQUIRE(missing.CanStartWith(1));
+	MatcherFirstSet nullable({2, 1, 2}, true);
+	REQUIRE(nullable.CanMatchEmpty());
+	REQUIRE(nullable.CanStartWith(0));
+	MatcherFirstSet known({2, 1, 2});
+	REQUIRE_FALSE(known.CanMatchEmpty());
+	REQUIRE(known.CanStartWith(1));
+	REQUIRE(known.CanStartWith(2));
+	REQUIRE_FALSE(known.CanStartWith(3));
+}
+
+class FirstSetCustomList final : public ListMatcher {
+public:
+	explicit FirstSetCustomList(idx_t &calls)
+	    : calls(calls), declared("CREATE", KeywordInfo()), actual("SELECT", KeywordInfo()) {
+		matchers.push_back(declared);
+	}
+
+	arena_ptr<MatchProcess> StartMatch(MatchState &state) const override {
+		calls++;
+		return actual.StartMatch(state);
+	}
+
+private:
+	idx_t &calls;
+	KeywordMatcher declared;
+	KeywordMatcher actual;
+};
+
+TEST_CASE("FIRST analysis does not infer derived list behavior from its children", "[api][grammar_extension]") {
+	auto compiled = CompiledGrammar::Create();
+	auto grammar = ParsedGrammar::Parse("Program <- (Identifier 'TABLE') / ('DROP' 'TABLE')\nIdentifier <- 'CREATE'");
+	idx_t calls = 0;
+	terminal_rule_overrides_t overrides;
+	overrides.emplace("Identifier", make_uniq<FirstSetCustomList>(calls));
+	MatcherAllocator allocator;
+	MatcherFactory factory(allocator, grammar, *compiled, std::move(overrides));
+	auto &root = factory.CreateRootMatcher("Program");
+	for (bool heap : {false, true}) {
+		calls = 0;
+		vector<MatcherSuggestion> suggestions;
+		auto result =
+		    MatchFirstSetTest(root, *compiled, "SELECT TABLE", heap, MatchMode::RECOGNIZE_ONLY, false, suggestions);
+		REQUIRE(result.success);
+		REQUIRE(calls == 1);
+		result = MatchFirstSetTest(root, *compiled, "DROP TABLE", heap, MatchMode::RECOGNIZE_ONLY, false, suggestions);
+		REQUIRE(result.success);
+		REQUIRE(calls == 2);
+	}
+}
+
+TEST_CASE("Unresolved recursive FIRST sets remain eligible", "[api][grammar_extension]") {
+	auto compiled = CompiledGrammar::Create();
+	auto grammar = ParsedGrammar::Parse("Program <- Expression / ('DROP' 'TABLE')\nExpression <- Expression");
+	MatcherAllocator allocator;
+	MatcherFactory factory(allocator, grammar, *compiled, {});
+	auto &root = factory.CreateRootMatcher("Program").Cast<ListMatcher>();
+	auto &choice = root.matchers[0].get().Cast<ChoiceMatcher>();
+	vector<MatcherToken> tokens {MatcherToken("DROP", 0, TokenType::KEYWORD)};
+	TokenIterator iterator(tokens);
+	vector<MatcherSuggestion> suggestions;
+	ParseResultAllocator results;
+	ArenaAllocator processes(Allocator::DefaultAllocator());
+	idx_t max_position = 0;
+	MatchContext context(suggestions, results, processes, max_position);
+	MatchState state(iterator, context);
+	auto process = choice.StartMatch(state);
+	auto step = process->Resume(nullopt);
+	REQUIRE(step.GetChild());
+	REQUIRE(&step.GetChild()->matcher == &choice.matchers[0].get());
+}
+
+class FirstSetGrammarExtension final : public GrammarExtension {
+public:
+	FirstSetGrammarExtension() : GrammarExtension("first_set_test", "FIRST-set test syntax") {
+	}
+
+	vector<GrammarChange> GetChanges() const override {
+		return {GrammarChange::ReplaceRule(
+		    "TopLevelStatement <- ('FIRST_SET_CREATE' 'TABLE') / ('FIRST_SET_DROP' 'TABLE')")};
+	}
+};
+
+TEST_CASE("FIRST sets use the extension-modified grammar and its literal table", "[api][grammar_extension]") {
+	DuckDB db(nullptr);
+	Connection con(db);
+	auto base = CompiledGrammar::Get(*con.context);
+	GrammarExtension::Register(*db.instance, make_shared_ptr<FirstSetGrammarExtension>());
+	auto extended = CompiledGrammar::Create(*con.context, {"first_set_test"});
+	REQUIRE(base->GetKeywordHelper().GetLiteralTable()->Lookup("FIRST_SET_DROP").LiteralId() == 0);
+	REQUIRE(extended->GetKeywordHelper().GetLiteralTable()->Lookup("FIRST_SET_DROP").LiteralId() != 0);
+	auto &root = extended->TopLevelStatementMatcher().Cast<ListMatcher>();
+	auto &choice = root.matchers[0].get().Cast<ChoiceMatcher>();
+	vector<MatcherToken> tokens {MatcherToken("first_set_drop", 0, TokenType::IDENTIFIER)};
+	TokenIterator iterator(tokens);
+	vector<MatcherSuggestion> suggestions;
+	ParseResultAllocator results;
+	ArenaAllocator processes(Allocator::DefaultAllocator());
+	idx_t max_position = 0;
+	MatchContext context(suggestions, results, processes, max_position);
+	MatchState state(iterator, context);
+	auto process = choice.StartMatch(state);
+	auto step = process->Resume(nullopt);
+	REQUIRE(step.GetChild());
+	REQUIRE(&step.GetChild()->matcher == &choice.matchers[1].get());
+	for (bool heap : {false, true}) {
+		auto result = MatchFirstSetTest(root, *extended, "first_set_drop TABLE", heap, MatchMode::RECOGNIZE_ONLY, false,
+		                                suggestions);
+		REQUIRE(result.success);
+		REQUIRE(result.position == 2);
+	}
+	REQUIRE(CompiledGrammar::Get(*con.context) == base);
 }
 
 TEST_CASE("Grammar literal IDs include category-only words and overlapping categories", "[api][grammar_extension]") {

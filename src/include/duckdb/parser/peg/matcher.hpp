@@ -20,6 +20,7 @@
 #include "duckdb/parser/peg/parser_packrat.hpp"
 #include "duckdb/parser/peg/tokenizer/tokenizer.hpp"
 #include "duckdb/parser/peg/parsed_grammar.hpp"
+#include "duckdb/parser/peg/matcher_first_set.hpp"
 #include "duckdb/parser/peg/transformer/parse_result.hpp"
 #include "duckdb/storage/arena_allocator.hpp"
 
@@ -185,10 +186,10 @@ struct MatchState {
 	}
 
 	template <class RESULT, class... ARGS>
-	MatcherResult AllocateParseResult(ARGS &&... args);
+	MatcherResult AllocateParseResult(ARGS &&...args);
 
 	template <class PROCESS, class... ARGS>
-	arena_ptr<MatchProcess> Make(ARGS &&... args);
+	arena_ptr<MatchProcess> Make(ARGS &&...args);
 
 	void UpdateMaxTokenIndex() {
 		if (token_iterator.Position() > context.max_token_index) {
@@ -277,6 +278,10 @@ public:
 	virtual arena_ptr<MatchProcess> StartMatch(MatchState &state) const = 0;
 	virtual bool IsAtomic() const {
 		return false;
+	}
+	//! Outside these starts, neither failure nor empty success may consume input or change matching state.
+	virtual MatcherFirstSet GetFirstSet(const GrammarLiteralTable &) const {
+		return MatcherFirstSet();
 	}
 	virtual SuggestionType AddSuggestion(MatchState &state) const;
 	virtual SuggestionType AddSuggestionInternal(MatchState &state) const = 0;
@@ -378,13 +383,13 @@ private:
 };
 
 template <class PROCESS, class... ARGS>
-arena_ptr<MatchProcess> MatchState::Make(ARGS &&... args) {
+arena_ptr<MatchProcess> MatchState::Make(ARGS &&...args) {
 	static_assert(std::is_base_of<MatchProcess, PROCESS>::value, "Expected a matcher process");
 	return arena_ptr<MatchProcess>(context.process_allocator.Make<PROCESS>(std::forward<ARGS>(args)...));
 }
 
 template <class RESULT, class... ARGS>
-MatcherResult MatchState::AllocateParseResult(ARGS &&... args) {
+MatcherResult MatchState::AllocateParseResult(ARGS &&...args) {
 	if (!BuildParseResult()) {
 		return MatcherResult::Success();
 	}

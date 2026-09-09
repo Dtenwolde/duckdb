@@ -59,6 +59,11 @@ public:
 		return optional_idx();
 	}
 
+	MatcherFirstSet GetFirstSet(const GrammarLiteralTable &table) const override {
+		auto literal = GetDispatchLiteral(table);
+		return literal.IsValid() ? MatcherFirstSet({static_cast<uint32_t>(literal.GetIndex())}) : MatcherFirstSet();
+	}
+
 private:
 	bool MatchKeyword(MatchState &state) const {
 		auto token = state.token_iterator.Current();

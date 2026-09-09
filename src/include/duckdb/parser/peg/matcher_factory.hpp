@@ -49,6 +49,7 @@ private:
 	virtual unique_ptr<KeywordMatcher> CreateKeyword(const string &keyword, const KeywordInfo &info) const;
 	virtual unique_ptr<ListMatcher> CreateList() const;
 	virtual unique_ptr<ChoiceMatcher> CreateChoice(vector<reference<Matcher>> &&matchers) const;
+	unique_ptr<ChoiceMatcher> CreateGeneralChoice(vector<reference<Matcher>> &&matchers) const;
 	virtual unique_ptr<OptionalMatcher> CreateOptional(Matcher &matcher) const;
 	virtual unique_ptr<RepeatMatcher> CreateRepeat(Matcher &matcher) const;
 
@@ -72,6 +73,9 @@ private:
 	string_map_t<reference<Matcher>> matchers;
 	MatcherConstructionState construction_state;
 	mutable case_insensitive_map_t<reference<KeywordMatcher>> keywords;
+	//! Only exact built-ins constructed by this factory participate in structural FIRST analysis.
+	mutable vector<reference<Matcher>> first_set_builtins;
+	mutable vector<reference<FirstChoiceMatcher>> first_set_choices;
 	case_insensitive_map_t<KeywordInfo> keyword_overrides;
 	string_set_t no_suggestion_rules;
 	string_set_t packrat_memoized_rules;

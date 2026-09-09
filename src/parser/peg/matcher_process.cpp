@@ -1,5 +1,6 @@
 #include "duckdb/parser/peg/matcher.hpp"
 #include "duckdb/parser/peg/matcher/choice_matcher.hpp"
+#include "duckdb/parser/peg/matcher/first_choice_matcher.hpp"
 #include "duckdb/parser/peg/matcher/literal_choice_matcher.hpp"
 #include "duckdb/parser/peg/matcher/list_matcher.hpp"
 #include "duckdb/parser/peg/matcher/optional_matcher.hpp"
@@ -120,7 +121,7 @@ arena_ptr<MatchProcess> ListMatcher::StartMatch(MatchState &state) const {
 	return state.Make<ListMatchProcess>(*this, state);
 }
 
-template <bool SINGLE_CHILD>
+template <bool SINGLE_CHILD, bool FIRST_SETS = false>
 class ChoiceMatchProcess : public MatchProcess {
 public:
 	ChoiceMatchProcess(const ChoiceMatcher &matcher_p, MatchState &state_p, idx_t child_index_p = 0)
@@ -149,6 +150,9 @@ public:
 			child_index++;
 			child_state.reset();
 		}
+		if (FIRST_SETS) {
+			child_index = static_cast<const FirstChoiceMatcher &>(matcher).NextChild(state, child_index);
+		}
 		if (child_index >= matcher.matchers.size()) {
 			return MatchStep::Complete(MatcherResult::Failure());
 		}
@@ -175,6 +179,13 @@ arena_ptr<MatchProcess> LiteralChoiceMatcher::StartMatch(MatchState &state) cons
 	auto entry = literal_children.find(literal.LiteralId());
 	auto child_index = entry == literal_children.end() ? matchers.size() : entry->second;
 	return state.Make<ChoiceMatchProcess<true>>(*this, state, child_index);
+}
+
+arena_ptr<MatchProcess> FirstChoiceMatcher::StartMatch(MatchState &state) const {
+	if (first_sets.empty()) {
+		return ChoiceMatcher::StartMatch(state);
+	}
+	return state.Make<ChoiceMatchProcess<false, true>>(*this, state);
 }
 
 class OptionalMatchProcess : public MatchProcess {

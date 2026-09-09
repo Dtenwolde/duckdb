@@ -13,6 +13,7 @@ add_library_unity(
   compiled_grammar.cpp
   grammar_change.cpp
   matcher_factory.cpp
+  matcher_first_set.cpp
   parser_packrat.cpp
   peg_parser.cpp
   parsed_grammar.cpp
