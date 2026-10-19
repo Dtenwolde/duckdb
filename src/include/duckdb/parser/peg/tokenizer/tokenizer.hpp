@@ -65,6 +65,7 @@ protected:
 	virtual bool BackslashEscapesStringLiterals() const;
 	virtual bool IsQuotedIdentifierDelimiter(char character) const;
 	virtual void PushOperatorToken(TokenizerBehavior &behavior, idx_t start, idx_t end) const;
+	void PushWordToken(TokenizerBehavior &behavior, idx_t start, idx_t end) const;
 	virtual void HandleLastToken(TokenizerBehavior &behavior, TokenizeState state, const string &sql,
 	                             idx_t last_pos) const;
 

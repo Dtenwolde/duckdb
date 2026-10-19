@@ -50,6 +50,11 @@ struct MatcherToken {
 	//! MatcherTokenClass bits - fixed at tokenization, unaffected by later re-typing of the token
 	uint8_t token_class = 0;
 
+	//! The tokenizer looks every token up once; later lookups against the same table hit this cache
+	void SetLiteralInfo(const GrammarLiteralTable &table, LiteralInfo info) {
+		literal_info = info;
+		literal_table_id = table.CacheId();
+	}
 	LiteralInfo GetLiteralInfo(const GrammarLiteralTable &table) {
 		if (literal_table_id != table.CacheId()) {
 			literal_info = table.Lookup(text);

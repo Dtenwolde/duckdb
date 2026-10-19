@@ -143,8 +143,8 @@ bool Tokenizer::CharacterIsControlFlow(char c) {
 	}
 }
 
-bool Tokenizer::CharacterIsKeyword(char c) {
-	if (IsSingleByteOperator(c)) {
+static bool CharacterIsKeywordSlow(char c) {
+	if (Tokenizer::IsSingleByteOperator(c)) {
 		return false;
 	}
 	if (StringUtil::CharacterIsOperator(c)) {
@@ -153,10 +153,33 @@ bool Tokenizer::CharacterIsKeyword(char c) {
 	if (StringUtil::CharacterIsSpace(c)) {
 		return false;
 	}
-	if (CharacterIsControlFlow(c)) {
+	if (Tokenizer::CharacterIsControlFlow(c)) {
 		return false;
 	}
 	return true;
+}
+
+//! Byte classification table for the hot word scan
+struct TokenizerCharacterTable {
+	TokenizerCharacterTable() {
+		for (idx_t i = 0; i < 256; i++) {
+			auto c = static_cast<char>(i);
+			is_keyword[i] = CharacterIsKeywordSlow(c);
+			// '$' is valid as a non-initial identifier character in PostgreSQL
+			is_word[i] = is_keyword[i] || c == '$';
+		}
+	}
+	bool is_keyword[256];
+	bool is_word[256];
+};
+
+static const TokenizerCharacterTable &CharacterTable() {
+	static const TokenizerCharacterTable table;
+	return table;
+}
+
+bool Tokenizer::CharacterIsKeyword(char c) {
+	return CharacterTable().is_keyword[static_cast<uint8_t>(c)];
 }
 
 bool Tokenizer::CharacterIsOperator(char c) {
@@ -308,6 +331,19 @@ void Tokenizer::PushOperatorToken(TokenizerBehavior &behavior, idx_t start, idx_
 	// Push any trimmed '+' or '-' characters as individual tokens
 	for (idx_t pos = end_pos; pos < end; pos++) {
 		tokens.emplace_back(string(1, sql[pos]), pos, TokenType::OPERATOR);
+	}
+}
+
+//! Classify a word once: its literal info decides between keyword and identifier and is kept on the token
+void Tokenizer::PushWordToken(TokenizerBehavior &behavior, idx_t start, idx_t end) const {
+	auto &tokens = behavior.tokens;
+	auto word = behavior.sql.substr(start, end - start);
+	auto &table = keyword_helper.GetLiteralTable();
+	auto info = table.Lookup(word);
+	auto count = tokens.size();
+	behavior.PushToken(start, end, info.IsKeyword() ? TokenType::KEYWORD : TokenType::IDENTIFIER);
+	if (tokens.size() > count) {
+		tokens.back().SetLiteralInfo(table, info);
 	}
 }
 
@@ -467,9 +503,24 @@ bool Tokenizer::TokenizeInputInternal(TokenizerBehavior &behavior) const {
 				last_pos = i;
 				break;
 			}
-			state = TokenizeState::KEYWORD;
-			last_pos = i;
-			break;
+			{
+				// scan the whole word at once; PushToken classifies it as a keyword or an identifier
+				auto &is_word = CharacterTable().is_word;
+				idx_t end = i + 1;
+				while (end < sql.size() && is_word[static_cast<uint8_t>(sql[end])]) {
+					end++;
+				}
+				if (end == sql.size()) {
+					state = TokenizeState::KEYWORD;
+					last_pos = i;
+					i = end - 1;
+					break;
+				}
+				PushWordToken(behavior, i, end);
+				last_pos = end;
+				i = end - 1;
+				break;
+			}
 		case TokenizeState::NUMERIC:
 			// Check for "always allowed" numeric characters
 			if (CharacterIsInitialNumber(c)) {
@@ -543,9 +594,7 @@ bool Tokenizer::TokenizeInputInternal(TokenizerBehavior &behavior) const {
 			// '$' is valid as a non-initial identifier character in PostgreSQL
 			if (c != '$' && !CharacterIsKeyword(c)) {
 				// not a keyword - return to standard state
-				auto word = sql.substr(last_pos, i - last_pos);
-				auto token_type = keyword_helper.IsKeyword(word) ? TokenType::KEYWORD : TokenType::IDENTIFIER;
-				behavior.PushToken(last_pos, i, token_type);
+				PushWordToken(behavior, last_pos, i);
 				state = TokenizeState::STANDARD;
 				last_pos = i;
 				i--;
