@@ -266,12 +266,13 @@ struct EndOfInputParseResult : ParseResult {
 	}
 };
 
+//! The matched token's text, which the tokens of the query keep alive for as long as any parse result exists
 struct KeywordParseResult : ParseResult {
 	static constexpr ParseResultType TYPE = ParseResultType::KEYWORD;
-	string keyword;
+	const string &keyword;
 
-	explicit KeywordParseResult(string keyword_p, optional_idx offset, optional_idx length = optional_idx())
-	    : ParseResult(TYPE, offset, length), keyword(std::move(keyword_p)) {
+	explicit KeywordParseResult(const string &keyword_p, optional_idx offset, optional_idx length = optional_idx())
+	    : ParseResult(TYPE, offset, length), keyword(keyword_p) {
 	}
 
 	void ToStringInternal(std::stringstream &ss, std::unordered_set<const ParseResult *> &visited,
@@ -474,15 +475,18 @@ template <>
 struct ParseResultNeedsDestructor<OptionalParseResult> : std::false_type {};
 template <>
 struct ParseResultNeedsDestructor<ChoiceParseResult> : std::false_type {};
+template <>
+struct ParseResultNeedsDestructor<KeywordParseResult> : std::false_type {};
 
 class NumberParseResult : public ParseResult {
 public:
 	static constexpr ParseResultType TYPE = ParseResultType::NUMBER;
 
-	explicit NumberParseResult(string number_p, optional_idx offset, optional_idx length = optional_idx())
-	    : ParseResult(TYPE, offset, length), number(std::move(number_p)) {
+	//! References the token text, see KeywordParseResult
+	explicit NumberParseResult(const string &number_p, optional_idx offset, optional_idx length = optional_idx())
+	    : ParseResult(TYPE, offset, length), number(number_p) {
 	}
-	string number;
+	const string &number;
 
 	void ToStringInternal(std::stringstream &ss, std::unordered_set<const ParseResult *> &visited,
 	                      const std::string &indent, bool is_last) const override {
@@ -626,10 +630,11 @@ class OperatorParseResult : public ParseResult {
 public:
 	static constexpr ParseResultType TYPE = ParseResultType::OPERATOR;
 
-	explicit OperatorParseResult(string operator_p, optional_idx offset, optional_idx length = optional_idx())
-	    : ParseResult(TYPE, offset, length), operator_token(std::move(operator_p)) {
+	//! References the token text, see KeywordParseResult
+	explicit OperatorParseResult(const string &operator_p, optional_idx offset, optional_idx length = optional_idx())
+	    : ParseResult(TYPE, offset, length), operator_token(operator_p) {
 	}
-	string operator_token;
+	const string &operator_token;
 
 	void ToStringInternal(std::stringstream &ss, std::unordered_set<const ParseResult *> &visited,
 	                      const std::string &indent, bool is_last) const override {
@@ -637,5 +642,10 @@ public:
 		ss << ": " << operator_token << "\n";
 	}
 };
+
+template <>
+struct ParseResultNeedsDestructor<NumberParseResult> : std::false_type {};
+template <>
+struct ParseResultNeedsDestructor<OperatorParseResult> : std::false_type {};
 
 } // namespace duckdb

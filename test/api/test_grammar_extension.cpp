@@ -3210,7 +3210,8 @@ TEST_CASE("Generated list finalization validates its tree before consuming child
 			return *results.Make<ListParseResult>(children(input), nullptr, optional_idx());
 		};
 		IdentifierParseResult first("alpha", optional_idx()), second("beta", optional_idx());
-		KeywordParseResult punctuation(",", optional_idx());
+		const string comma = ",";
+		KeywordParseResult punctuation(comma, optional_idx());
 		OptionalParseResult absent;
 		auto &pair = shape == 3 ? list({punctuation}) : list({punctuation, second});
 		auto repeated_child = shape == 2 ? reference<ParseResult>(second) : reference<ParseResult>(pair);
