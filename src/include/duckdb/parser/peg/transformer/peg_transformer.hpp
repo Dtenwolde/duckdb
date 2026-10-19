@@ -5,6 +5,7 @@
 #include "duckdb/parser/qualified_name_set.hpp"
 #include "duckdb/parser/peg/transformer/parse_result.hpp"
 #include "duckdb/parser/peg/matcher.hpp"
+#include "duckdb/parser/peg/matcher_stack.hpp"
 #include "duckdb/parser/peg/transformer/transform_result.hpp"
 #include "duckdb/parser/peg/ast/add_column_entry.hpp"
 #include "duckdb/parser/peg/ast/column_constraint_entry.hpp"
@@ -265,6 +266,7 @@ class TransformStack;
 class TransformProcess;
 class GeneratedTransformProcess;
 class TransformStep;
+class PEGStatementResources;
 
 using transform_process_initialize_t = void (*)(PEGTransformer &transformer, GeneratedTransformProcess &process);
 using transform_process_finalize_t = arena_ptr<TransformResultValue> (*)(PEGTransformer &transformer,
@@ -574,6 +576,10 @@ public:
 	}
 
 	void Clear();
+	//! Release the process storage of the previous statement, keeping the arena's first block
+	void ResetProcesses() {
+		process_allocator.Reset();
+	}
 	void ClearParameters();
 	static void ParamTypeCheck(PreparedParamType last_type, PreparedParamType new_type);
 	void SetParam(const Identifier &name, idx_t index, PreparedParamType type);
@@ -660,6 +666,30 @@ private:
 	friend class TransformStack;
 };
 
+//! Matching and transformation storage shared by the statements of one query: the arenas keep their first block
+//! and the stacks their frame capacity, so a statement does not pay for them again
+class PEGStatementResources {
+public:
+	PEGStatementResources();
+	~PEGStatementResources();
+
+	//! The transformer for a query, constructed on first use and cleared between statements by the caller
+	PEGTransformer &GetTransformer(TokenIterator &token_iterator, ParserOptions &options,
+	                               const CompiledGrammar &grammar);
+	//! Release everything the previous statement allocated
+	void Reset();
+
+	vector<MatcherSuggestion> suggestions;
+	ParseResultAllocator parse_results;
+	ArenaAllocator process_allocator;
+	ArenaAllocator packrat_allocator;
+	ArenaAllocator transformer_allocator;
+	MatchStack match_stack;
+
+private:
+	unique_ptr<PEGTransformer> transformer;
+};
+
 template <typename T>
 inline unique_ptr<TypedTransformResult<T>> TryBridgeTransformResultValue(TransformResultValue &base_result) {
 	return nullptr;
@@ -710,6 +740,9 @@ public:
 	//! into a SQLStatement. Returns nullptr if the matched TLS was separator-only (no statement).
 	//! Throws on syntax error. `token_cursor` is in/out: it's the token index where matching
 	//! starts, and on return holds the token index immediately past the last consumed token.
+	static unique_ptr<SQLStatement> TransformTopLevelStatement(TokenIterator &token_iterator, ParserOptions &options,
+	                                                           const CompiledGrammar &grammar,
+	                                                           PEGStatementResources &resources);
 	static unique_ptr<SQLStatement> TransformTopLevelStatement(TokenIterator &token_iterator, ParserOptions &options,
 	                                                           const CompiledGrammar &grammar);
 	static ParseResult &ExtractResultFromParens(ParseResult &parse_result);

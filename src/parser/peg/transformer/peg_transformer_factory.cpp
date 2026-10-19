@@ -48,24 +48,57 @@ static unique_ptr<SQLStatement> ExtractAndTransformStatement(PEGTransformer &tra
 	return stmt;
 }
 
+PEGStatementResources::PEGStatementResources()
+    : process_allocator(Allocator::DefaultAllocator(), 16384), packrat_allocator(Allocator::DefaultAllocator(), 16384),
+      transformer_allocator(Allocator::DefaultAllocator(), 16384) {
+}
+
+PEGStatementResources::~PEGStatementResources() = default;
+
+PEGTransformer &PEGStatementResources::GetTransformer(TokenIterator &token_iterator, ParserOptions &options,
+                                                      const CompiledGrammar &grammar) {
+	if (!transformer) {
+		transformer = make_uniq<PEGTransformer>(transformer_allocator, token_iterator, options, grammar);
+	}
+	return *transformer;
+}
+
+void PEGStatementResources::Reset() {
+	suggestions.clear();
+	parse_results.Reset();
+	process_allocator.Reset();
+	packrat_allocator.Reset();
+	transformer_allocator.Reset();
+	if (transformer) {
+		transformer->Clear();
+		transformer->ResetProcesses();
+	}
+}
+
 unique_ptr<SQLStatement> PEGTransformerFactory::TransformTopLevelStatement(TokenIterator &token_iterator,
                                                                            ParserOptions &options,
                                                                            const CompiledGrammar &grammar) {
+	PEGStatementResources resources;
+	return TransformTopLevelStatement(token_iterator, options, grammar, resources);
+}
+
+unique_ptr<SQLStatement> PEGTransformerFactory::TransformTopLevelStatement(TokenIterator &token_iterator,
+                                                                           ParserOptions &options,
+                                                                           const CompiledGrammar &grammar,
+                                                                           PEGStatementResources &resources) {
 	if (!token_iterator.Current()) {
 		return nullptr;
 	}
-	vector<MatcherSuggestion> suggestions;
-	ParseResultAllocator parse_result_allocator;
+	resources.Reset();
 	idx_t max_token_index = token_iterator.Position();
 	// the packrat cache outlives the match processes, so they need separate arenas
-	ArenaAllocator process_allocator(Allocator::DefaultAllocator(), 16384);
-	ArenaAllocator packrat_allocator(Allocator::DefaultAllocator(), 16384);
-	ParserPackratCache packrat_cache(packrat_allocator, token_iterator.Position(), token_iterator.Size());
-	MatchContext match_context(suggestions, parse_result_allocator, process_allocator, max_token_index,
-	                           MatchMode::BUILD_PARSE_RESULT, options.identifier_case_mode, &packrat_cache);
+	ParserPackratCache packrat_cache(resources.packrat_allocator, token_iterator.Position(), token_iterator.Size());
+	MatchContext match_context(resources.suggestions, resources.parse_results, resources.process_allocator,
+	                           max_token_index, MatchMode::BUILD_PARSE_RESULT, options.identifier_case_mode,
+	                           &packrat_cache);
 	MatchState state(token_iterator, match_context);
-	auto match_result = grammar.TopLevelStatementMatcher().MatchParseResult(state);
-	process_allocator.FreeAll();
+	auto match_result = grammar.TopLevelStatementMatcher().MatchParseResult(state, resources.match_stack);
+	resources.process_allocator.Reset();
 	if (!match_result.IsSuccess()) {
 		// syntax error — surface as a parser exception in the same shape as Transform()
 		auto token_stream = token_iterator.ToString();
@@ -108,9 +141,7 @@ unique_ptr<SQLStatement> PEGTransformerFactory::TransformTopLevelStatement(Token
 		}
 	}
 
-	ArenaAllocator transformer_allocator(Allocator::DefaultAllocator(), 16384);
-	PEGTransformer transformer(transformer_allocator, token_iterator, options, grammar);
-
+	auto &transformer = resources.GetTransformer(token_iterator, options, grammar);
 	return ExtractAndTransformStatement(transformer, token_iterator, stmt_opt.GetResult(), terminator_offset);
 }
 

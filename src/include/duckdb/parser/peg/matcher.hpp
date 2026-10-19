@@ -32,6 +32,7 @@ class Matcher;
 class MatcherAllocator;
 struct ListMatchChain;
 class MatchProcess;
+class MatchStack;
 
 enum class SuggestionState : uint8_t {
 	SUGGEST_KEYWORD,
@@ -372,6 +373,8 @@ public:
 
 	//! Match and construct the parse result
 	MatcherResult MatchParseResult(MatchState &state) const;
+	//! Match with a caller-provided (empty) stack whose frame storage is reused across calls
+	MatcherResult MatchParseResult(MatchState &state, MatchStack &stack) const;
 	//! Create matcher-local state with state.Make<PROCESS>() for incremental execution.
 	virtual arena_ptr<MatchProcess> StartMatch(MatchState &state) const = 0;
 	//! Whether the matcher is an AtomicMatcher, which matches in one step without a process
@@ -512,6 +515,9 @@ public:
 	ParseResultAllocator();
 	~ParseResultAllocator();
 
+	//! Destroy the results and release their memory, keeping the arena's first block for the next statement
+	void Reset();
+
 	template <class RESULT, class... ARGS>
 	optional_ptr<ParseResult> Make(ARGS &&... args) {
 		static_assert(std::is_base_of<ParseResult, RESULT>::value, "Expected a parse result");
@@ -551,8 +557,8 @@ private:
 	//! Dropping the arena reclaims the memory of every result at once but calls no destructors, so a result that
 	//! owns something has to be destroyed before that happens. An `arena_ptr` destroys what it points at without
 	//! freeing it, which is all these are here for. Only the node types that `ParseResultNeedsDestructor` selects end
-	//! up in the list, and nothing ever reads it.
-	arena_vector<arena_ptr<ParseResult>> pending_destructors;
+	//! up in the list, and nothing ever reads it. The list keeps its capacity across statements.
+	vector<arena_ptr<ParseResult>> pending_destructors;
 };
 
 template <class PROCESS, class... ARGS>
