@@ -24,6 +24,8 @@ struct MatcherTokenClass {
 	static constexpr uint8_t GENERIC_OPERATOR = 4;
 	static constexpr uint8_t STRING = 8;
 	static constexpr uint8_t NUMBER = 16;
+	//! a word that is not a keyword of the grammar
+	static constexpr uint8_t IDENTIFIER = 32;
 };
 
 //! The token class of a token as emitted by the tokenizer (implemented in base_tokenizer.cpp)
