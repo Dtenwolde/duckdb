@@ -17999,7 +17999,7 @@ GeneratedSingleChildTransform::FinalizeIdentifierListTrampoline(PEGTransformer &
 	auto identifier_items = PEGTransformerFactory::ExtractParseResultsFromList(
 	    PEGTransformerFactory::ExtractResultFromParens(list_pr.GetChild(0)));
 	identifier.reserve(identifier_items.size());
-	for (auto &identifier_item : identifier_items) {
+	for (auto identifier_item : identifier_items) {
 		identifier.push_back(identifier_item.get().Cast<IdentifierParseResult>().identifier);
 	}
 	return transformer.MakeResult<ColumnList>(PEGTransformerFactory::TransformIdentifierList(transformer, identifier));
@@ -20225,7 +20225,7 @@ PEGTransformerFactory::FinalizeEnumStringLiteralListTrampoline(PEGTransformer &t
 		vector<string> string_literal_value;
 		auto string_literal_items = PEGTransformerFactory::ExtractParseResultsFromList(string_literal_opt.GetResult());
 		string_literal_value.reserve(string_literal_items.size());
-		for (auto &string_literal_item : string_literal_items) {
+		for (auto string_literal_item : string_literal_items) {
 			auto string_literal_item_value =
 			    PEGTransformerFactory::TransformStringLiteral(transformer, string_literal_item.get());
 			string_literal_value.push_back(string_literal_item_value);
@@ -29058,7 +29058,7 @@ arena_ptr<TransformResultValue> GeneratedSingleChildTransform::FinalizeUpdateExt
 		auto identifier_items = PEGTransformerFactory::ExtractParseResultsFromList(
 		    PEGTransformerFactory::ExtractResultFromParens(identifier_opt.GetResult()));
 		identifier_value.reserve(identifier_items.size());
-		for (auto &identifier_item : identifier_items) {
+		for (auto identifier_item : identifier_items) {
 			auto identifier_item_value = identifier_item.get().Cast<IdentifierParseResult>().identifier;
 			identifier_value.push_back(identifier_item_value);
 		}
@@ -29242,7 +29242,7 @@ GeneratedSingleChildTransform::FinalizeRepositoryPublicKeyTrampoline(PEGTransfor
 	vector<string> string_literal;
 	auto string_literal_items = PEGTransformerFactory::ExtractParseResultsFromList(list_pr.GetChild(3));
 	string_literal.reserve(string_literal_items.size());
-	for (auto &string_literal_item : string_literal_items) {
+	for (auto string_literal_item : string_literal_items) {
 		auto string_literal_value =
 		    PEGTransformerFactory::TransformStringLiteral(transformer, string_literal_item.get());
 		string_literal.push_back(string_literal_value);
@@ -36261,7 +36261,7 @@ GeneratedSingleChildTransform::FinalizeUpdateSetTupleTrampoline(PEGTransformer &
 	auto column_name_items = PEGTransformerFactory::ExtractParseResultsFromList(
 	    PEGTransformerFactory::ExtractResultFromParens(list_pr.GetChild(0)));
 	column_name.reserve(column_name_items.size());
-	for (auto &column_name_item : column_name_items) {
+	for (auto column_name_item : column_name_items) {
 		column_name.push_back(column_name_item.get().Cast<IdentifierParseResult>().identifier);
 	}
 	auto expression = process.template TakeResult<unique_ptr<ParsedExpression>>(0);

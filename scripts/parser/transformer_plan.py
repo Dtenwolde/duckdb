@@ -1089,7 +1089,7 @@ def emit_extraction(plan, source_expr, target_name=None, indent="\t", declare=Tr
             repeat_name = _temp_name(target_name, "repeat", depth)
             lines.append(f"{indent}auto &{repeat_name} = {source_expr}.Cast<RepeatParseResult>();")
             children_expr = f"{repeat_name}.GetChildren()"
-        lines.append(f"{indent}for (auto &{item_name} : {children_expr}) {{")
+        lines.append(f"{indent}for (auto {item_name} : {children_expr}) {{")
         lines.extend(
             emit_extraction(
                 plan.child,

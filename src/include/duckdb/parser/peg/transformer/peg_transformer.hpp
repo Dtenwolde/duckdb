@@ -746,7 +746,7 @@ public:
 	static unique_ptr<SQLStatement> TransformTopLevelStatement(TokenIterator &token_iterator, ParserOptions &options,
 	                                                           const CompiledGrammar &grammar);
 	static ParseResult &ExtractResultFromParens(ParseResult &parse_result);
-	static vector<reference<ParseResult>> ExtractParseResultsFromList(ParseResult &parse_result);
+	static ParseResultListItems ExtractParseResultsFromList(ParseResult &parse_result);
 	static bool ExpressionIsEmptyStar(const ParsedExpression &expr);
 	static QualifiedName StringToQualifiedName(vector<string> input);
 	static QualifiedColumnName StringToQualifiedColumnName(const vector<string> &input);

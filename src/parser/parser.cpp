@@ -237,20 +237,25 @@ void Parser::ThrowParserOverrideError(ParserOverrideResult &result) {
 	}
 }
 
-string Parser::NormalizeSQLString(const string &query) {
+const string &Parser::NormalizeSQLString(const string &query, string &normalized) {
 	// Validate before strip: StripUnicodeSpaces walks multi-byte sequences and assumes valid UTF-8.
 	if (ValidateUTF8Query(query) == UnicodeType::ASCII) {
 		return query;
 	}
-	string normalized;
 	if (StripUnicodeSpaces(query, normalized)) {
 		return normalized;
 	}
 	return query;
 }
 
+string Parser::NormalizeSQLString(const string &query) {
+	string normalized;
+	return NormalizeSQLString(query, normalized);
+}
+
 void Parser::ParseQuery(const string &query_p) {
-	const string query = NormalizeSQLString(query_p);
+	string normalized;
+	const string &query = NormalizeSQLString(query_p, normalized);
 	if (options.extensions) {
 		bool has_strict_extension_error = false;
 		ErrorData last_strict_extension_error;
@@ -284,6 +289,7 @@ void Parser::ParseQuery(const string &query_p) {
 	// failure, hand the rest of the query to parse_function extensions; the extension reports
 	// how many bytes it consumed and we advance the token cursor past them.
 	auto owned_tokens = make_uniq<vector<MatcherToken>>();
+	owned_tokens->reserve(query.size() / 8 + 16);
 	ParserTokenizerBehavior behavior(query, *owned_tokens);
 	auto &tokenizer = GetGrammar().GetTokenizer();
 	tokenizer.TokenizeInput(behavior);

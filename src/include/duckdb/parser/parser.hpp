@@ -115,6 +115,8 @@ public:
 	//! Normalize a query string before parsing: validate UTF-8 (throws on invalid), then strip
 	//! non-ASCII Unicode spaces
 	static string NormalizeSQLString(const string &query);
+	//! Returns the query itself when no normalization is needed, otherwise the normalized copy
+	static const string &NormalizeSQLString(const string &query, string &normalized);
 
 	void ThrowParserOverrideError(ParserOverrideResult &result);
 

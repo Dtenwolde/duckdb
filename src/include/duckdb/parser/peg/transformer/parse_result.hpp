@@ -648,4 +648,57 @@ struct ParseResultNeedsDestructor<NumberParseResult> : std::false_type {};
 template <>
 struct ParseResultNeedsDestructor<OperatorParseResult> : std::false_type {};
 
+//! Random-access view over the items of List(D) <- D (',' D)* ','?
+class ParseResultListItems {
+public:
+	explicit ParseResultListItems(ParseResult &parse_result) : list(parse_result.Cast<ListParseResult>()) {
+		auto &opt_child = list.Child<OptionalParseResult>(1);
+		if (opt_child.HasResult()) {
+			repeat = opt_child.GetResult().Cast<RepeatParseResult>();
+		}
+	}
+
+	class Iterator {
+	public:
+		Iterator(const ParseResultListItems &items_p, idx_t index_p) : items(items_p), index(index_p) {
+		}
+		reference<ParseResult> operator*() const {
+			return items[index];
+		}
+		Iterator &operator++() {
+			index++;
+			return *this;
+		}
+		bool operator!=(const Iterator &other) const {
+			return index != other.index;
+		}
+
+	private:
+		const ParseResultListItems &items;
+		idx_t index;
+	};
+
+public:
+	idx_t size() const {
+		return repeat ? 1 + repeat->GetChildren().size() : 1;
+	}
+	reference<ParseResult> operator[](idx_t index) const {
+		if (index == 0) {
+			return list.GetChild(0);
+		}
+		auto &separated = repeat->GetChildren()[index - 1].get().Cast<ListParseResult>();
+		return separated.GetChild(1);
+	}
+	Iterator begin() const {
+		return Iterator(*this, 0);
+	}
+	Iterator end() const {
+		return Iterator(*this, size());
+	}
+
+private:
+	ListParseResult &list;
+	optional_ptr<RepeatParseResult> repeat;
+};
+
 } // namespace duckdb

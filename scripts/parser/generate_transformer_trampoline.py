@@ -1325,7 +1325,7 @@ class UseGramPreviewEmitter:
                     f"\tauto {arg.var_name}_items = PEGTransformerFactory::ExtractParseResultsFromList({arg.parse_expr});"
                 )
                 lines.append(f"\t{arg.var_name}.reserve({arg.var_name}_items.size());")
-                lines.append(f"\tfor (auto &{arg.var_name}_item : {arg.var_name}_items) {{")
+                lines.append(f"\tfor (auto {arg.var_name}_item : {arg.var_name}_items) {{")
                 if self.is_identifier_matcher(arg.rule_name):
                     lines.append(
                         f"\t\t{arg.var_name}.push_back("
@@ -1353,7 +1353,7 @@ class UseGramPreviewEmitter:
                     f"\t\tauto {arg.var_name}_items = PEGTransformerFactory::ExtractParseResultsFromList({child_expr});"
                 )
                 lines.append(f"\t\t{arg.var_name}_value.reserve({arg.var_name}_items.size());")
-                lines.append(f"\t\tfor (auto &{arg.var_name}_item : {arg.var_name}_items) {{")
+                lines.append(f"\t\tfor (auto {arg.var_name}_item : {arg.var_name}_items) {{")
                 lines.append(
                     f"\t\t\tauto {arg.var_name}_item_value = "
                     f"{self.direct_matcher_value_expr(arg.rule_name, f'{arg.var_name}_item.get()')};"

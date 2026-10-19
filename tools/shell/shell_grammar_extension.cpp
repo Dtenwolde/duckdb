@@ -35,7 +35,7 @@ static arena_ptr<TransformResultValue> FinalizeExpressionStatement(PEGTransforme
 	auto &list_pr = parse_result.Cast<ListParseResult>();
 	auto items = PEGTransformerFactory::ExtractParseResultsFromList(list_pr.GetChild(0));
 	vector<unique_ptr<ParsedExpression>> expressions;
-	for (auto &item : items) {
+	for (auto item : items) {
 		// ExpressionAlias is a choice - transform whichever alternative matched
 		auto &choice = item.get().Cast<ListParseResult>().Child<ChoiceParseResult>(0).GetResult();
 		expressions.push_back(transformer.Transform<unique_ptr<ParsedExpression>>(choice));

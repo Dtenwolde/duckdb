@@ -430,10 +430,8 @@ static idx_t VisitParseResultsFromList(ParseResult &parse_result, FUNC &&func) {
 	return count;
 }
 
-vector<reference<ParseResult>> PEGTransformerFactory::ExtractParseResultsFromList(ParseResult &parse_result) {
-	vector<reference<ParseResult>> result;
-	VisitParseResultsFromList(parse_result, [&result](ParseResult &child) { result.push_back(child); });
-	return result;
+ParseResultListItems PEGTransformerFactory::ExtractParseResultsFromList(ParseResult &parse_result) {
+	return ParseResultListItems(parse_result);
 }
 
 idx_t PEGTransformerFactory::CountParseResultsFromList(ParseResult &parse_result) {
