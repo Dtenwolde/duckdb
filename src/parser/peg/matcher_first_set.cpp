@@ -103,10 +103,52 @@ bool MatcherFirstSet::MightMatchSecond(MatchState &state) const {
 		}
 		return false;
 	}
-	if (!tail_check_index || !state.context.tail_checks) {
+	if (!sequence_check_index || !state.context.sequence_checks) {
 		return true;
 	}
-	return MightMatchTail(*(*state.context.tail_checks)[tail_check_index - 1], state);
+	auto &check = *(*state.context.sequence_checks)[sequence_check_index - 1];
+	if (check.leading_choice && !MightMatchLeadingChoice(check, state)) {
+		return false;
+	}
+	return !check.has_tail || MightMatchTail(check, state);
+}
+
+bool MatcherFirstSet::MightMatchLeadingChoice(const MatcherSequenceCheck &check, MatchState &state) const {
+	auto &iterator = state.token_iterator;
+	auto token = iterator.Current();
+	auto next = iterator.Peek(1);
+	// the autocomplete cursor can stand for any token
+	if (!next || next->type == TokenType::END_OF_INPUT_AUTOCOMPLETE) {
+		return true;
+	}
+	auto current_literal = [&]() {
+		return iterator.CurrentLiteralInfo(*table);
+	};
+	auto next_literal = [&]() {
+		return iterator.PeekLiteralInfo(*table, 1);
+	};
+	for (auto &alternative : check.leading_choice->matchers) {
+		auto &first = alternative.get().first_set;
+		if (!first.computed || first.any || first.nullable) {
+			return true;
+		}
+		if (!first.Contains(*token, current_literal)) {
+			continue;
+		}
+		if (first.second.Contains(*next, next_literal)) {
+			return true;
+		}
+		// a one-token alternative is followed by the rest of the sequence
+		if (first.one.Contains(*token, current_literal) &&
+		    (check.rest_nullable || check.rest_first.Contains(*next, next_literal))) {
+			return true;
+		}
+	}
+	// the sequence would have consumed the current token before failing: keep the error position
+	if (iterator.Position() + 1 > state.context.max_token_index) {
+		state.context.max_token_index = iterator.Position() + 1;
+	}
+	return false;
 }
 
 bool MatcherFirstSet::Merge(const MatcherFirstSet &other) {
@@ -322,7 +364,7 @@ static bool RejectTail(MatchState &state, idx_t stop_position) {
 	return false;
 }
 
-bool MatcherFirstSet::MightMatchTail(const MatcherTailCheck &check, MatchState &state) const {
+bool MatcherFirstSet::MightMatchTail(const MatcherSequenceCheck &check, MatchState &state) const {
 	auto &iterator = state.token_iterator;
 	idx_t depth = 0;
 	for (idx_t ahead = 0; ahead < MAX_TAIL_SCAN; ahead++) {

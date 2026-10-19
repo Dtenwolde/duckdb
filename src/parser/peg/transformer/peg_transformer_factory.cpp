@@ -86,7 +86,7 @@ unique_ptr<SQLStatement> PEGTransformerFactory::TransformTopLevelStatement(Token
 //! a tail check could have reached, and the position after the match
 static MatcherResult MatchTopLevelStatement(TokenIterator &token_iterator, ParserOptions &options,
                                             const CompiledGrammar &grammar, PEGStatementResources &resources,
-                                            bool tail_checks, idx_t &max_token_index, idx_t &tail_rejected_until,
+                                            bool sequence_checks, idx_t &max_token_index, idx_t &tail_rejected_until,
                                             idx_t &end_position) {
 	resources.Reset();
 	max_token_index = token_iterator.Position();
@@ -95,8 +95,8 @@ static MatcherResult MatchTopLevelStatement(TokenIterator &token_iterator, Parse
 	MatchContext match_context(resources.suggestions, resources.parse_results, resources.process_allocator,
 	                           max_token_index, MatchMode::BUILD_PARSE_RESULT, options.identifier_case_mode,
 	                           &packrat_cache);
-	if (tail_checks) {
-		match_context.tail_checks = grammar.GetTailChecks();
+	if (sequence_checks) {
+		match_context.sequence_checks = grammar.GetSequenceChecks();
 	}
 	MatchState state(token_iterator, match_context);
 	auto match_result = grammar.TopLevelStatementMatcher().MatchParseResult(state, resources.match_stack);

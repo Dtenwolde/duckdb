@@ -1977,7 +1977,7 @@ static bool TailCheckMightMatch(const CompiledGrammar &grammar, const MatcherAll
 	idx_t max_token_index = 0;
 	ArenaAllocator process_allocator(Allocator::DefaultAllocator());
 	MatchContext context(suggestions, allocator, process_allocator, max_token_index);
-	context.tail_checks = matcher_allocator.GetTailChecks();
+	context.sequence_checks = matcher_allocator.GetSequenceChecks();
 	MatchState state(iterator, context);
 	auto might_match = matcher.first_set.MightMatch(state);
 	if (!might_match) {
@@ -2026,16 +2026,21 @@ TEST_CASE("Tail checks skip sequences whose later element cannot follow the pref
 	auto &unbalanced = Structural(make_uniq<ListMatcher>(vector<reference<Matcher>> {name, close, number}));
 	// Overlapping <- Type Identifier: the element can start where the prefix ends
 	auto &overlapping = Structural(make_uniq<ListMatcher>(vector<reference<Matcher>> {type, identifier}));
-	auto &root =
-	    Structural(make_uniq<ChoiceMatcher>(vector<reference<Matcher>> {type_literal, unbalanced, overlapping, name}));
+	// Led <- (Identifier ',' Identifier / '.') StringLiteral: the second token depends on the alternative
+	auto &pair = Structural(make_uniq<ListMatcher>(vector<reference<Matcher>> {identifier, comma, identifier}));
+	auto &lead = Structural(make_uniq<ChoiceMatcher>(vector<reference<Matcher>> {pair, dot}));
+	auto &led = Structural(make_uniq<ListMatcher>(vector<reference<Matcher>> {lead, string_literal}));
+	auto &root = Structural(
+	    make_uniq<ChoiceMatcher>(vector<reference<Matcher>> {type_literal, unbalanced, overlapping, led, name}));
 	ComputeFirstSets(root, table);
-	matcher_allocator.InitializeTailChecks(table);
+	matcher_allocator.InitializeSequenceChecks(table);
 
-	REQUIRE(type_literal.first_set.tail_check_index != 0);
+	REQUIRE(type_literal.first_set.sequence_check_index != 0);
 	REQUIRE_FALSE(type_literal.first_set.first_suffices);
-	REQUIRE(unbalanced.first_set.tail_check_index == 0);
-	REQUIRE(overlapping.first_set.tail_check_index == 0);
-	REQUIRE(name.first_set.tail_check_index == 0);
+	REQUIRE(unbalanced.first_set.sequence_check_index == 0);
+	REQUIRE(overlapping.first_set.sequence_check_index == 0);
+	REQUIRE(name.first_set.sequence_check_index == 0);
+	REQUIRE(led.first_set.sequence_check_index != 0);
 
 	idx_t rejected_until = 0;
 	SECTION("The first token the prefix cannot consume has to start the element") {
@@ -2049,19 +2054,30 @@ TEST_CASE("Tail checks skip sequences whose later element cannot follow the pref
 	SECTION("Balanced brackets are skipped") {
 		REQUIRE(TailCheckMightMatch(*grammar, matcher_allocator, type_literal, "foo ( bar ) 'x'", rejected_until));
 		REQUIRE(TailCheckMightMatch(*grammar, matcher_allocator, type_literal, "foo ( 1 , 2 ) 'x'", rejected_until));
-		REQUIRE_FALSE(TailCheckMightMatch(*grammar, matcher_allocator, type_literal, "foo ( bar ) , 1", rejected_until));
+		REQUIRE_FALSE(
+		    TailCheckMightMatch(*grammar, matcher_allocator, type_literal, "foo ( bar ) , 1", rejected_until));
 		REQUIRE(rejected_until == 4);
 		REQUIRE_FALSE(TailCheckMightMatch(*grammar, matcher_allocator, type_literal, "foo . bar )", rejected_until));
 		REQUIRE(rejected_until == 3);
 		// an unterminated bracket is never rejected
 		REQUIRE(TailCheckMightMatch(*grammar, matcher_allocator, type_literal, "foo ( bar", rejected_until));
 	}
+	SECTION("A leading choice is checked per alternative") {
+		REQUIRE(TailCheckMightMatch(*grammar, matcher_allocator, led, "foo , bar 'x'", rejected_until));
+		REQUIRE(TailCheckMightMatch(*grammar, matcher_allocator, led, ". 'x'", rejected_until));
+		REQUIRE_FALSE(TailCheckMightMatch(*grammar, matcher_allocator, led, "foo 'x'", rejected_until));
+		REQUIRE_FALSE(TailCheckMightMatch(*grammar, matcher_allocator, led, ". foo", rejected_until));
+		// the merged second-token sets accept a string after any alternative
+		CheckFirstSet(*grammar, led, "foo 'x'", true);
+		CheckFirstSet(*grammar, led, ". foo", false);
+	}
 	SECTION("Without the grammar's tail checks the lookahead stops at the second token") {
 		CheckFirstSet(*grammar, type_literal, "foo . bar , 1", true);
 		CheckFirstSet(*grammar, type_literal, "foo , 1", false);
 	}
 	SECTION("The autocomplete cursor can stand for any token") {
-		vector<MatcherToken> tokens {MatcherToken("foo", 0, TokenType::IDENTIFIER), MatcherToken(".", 3, TokenType::OPERATOR),
+		vector<MatcherToken> tokens {MatcherToken("foo", 0, TokenType::IDENTIFIER),
+		                             MatcherToken(".", 3, TokenType::OPERATOR),
 		                             MatcherToken("", 4, TokenType::END_OF_INPUT_AUTOCOMPLETE)};
 		TokenIterator iterator(tokens);
 		vector<MatcherSuggestion> suggestions;
@@ -2069,7 +2085,7 @@ TEST_CASE("Tail checks skip sequences whose later element cannot follow the pref
 		idx_t max_token_index = 0;
 		ArenaAllocator process_allocator(Allocator::DefaultAllocator());
 		MatchContext context(suggestions, allocator, process_allocator, max_token_index);
-		context.tail_checks = matcher_allocator.GetTailChecks();
+		context.sequence_checks = matcher_allocator.GetSequenceChecks();
 		MatchState state(iterator, context);
 		REQUIRE(type_literal.first_set.MightMatch(state));
 	}

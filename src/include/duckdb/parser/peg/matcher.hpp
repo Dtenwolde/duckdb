@@ -31,7 +31,7 @@ class ParseResultAllocator;
 class Matcher;
 class MatcherAllocator;
 struct ListMatchChain;
-struct MatcherTailCheck;
+struct MatcherSequenceCheck;
 class MatchProcess;
 class MatchStack;
 
@@ -169,9 +169,9 @@ struct MatchContext {
 	IdentifierCaseMode identifier_case_mode;
 	ParserPackratCache *packrat_cache;
 	MatchMode mode;
-	//! The grammar's tail checks; unset when sequences must not be skipped, e.g. for the exact error position of a
-	//! failed match
-	optional_ptr<const vector<unique_ptr<MatcherTailCheck>>> tail_checks;
+	//! The grammar's sequence checks; unset when sequences must not be skipped, e.g. for the exact error position of
+	//! a failed match
+	optional_ptr<const vector<unique_ptr<MatcherSequenceCheck>>> sequence_checks;
 	//! Furthest token index a sequence skipped by a tail check could have reached
 	idx_t tail_rejected_until = 0;
 };
@@ -309,9 +309,18 @@ struct MatcherTokenSet {
 	}
 };
 
-//! Lookahead over a sequence whose prefix consumes only tokens of `alphabet` outside of balanced brackets: the first
-//! other token has to start the element after the prefix (`required`)
-struct MatcherTailCheck {
+class ChoiceMatcher;
+
+//! Lookahead refinements of a sequence, derived from the grammar once. A leading choice is checked per alternative:
+//! the second token has to continue the alternative that accepts the first one (or start the rest of the sequence
+//! after a one-token alternative). A tail check scans the tokens the prefix can consume outside of balanced brackets
+//! (`alphabet`): the first other token has to start the element after the prefix (`required`).
+struct MatcherSequenceCheck {
+	optional_ptr<const ChoiceMatcher> leading_choice;
+	//! FIRST set of the sequence after the leading choice
+	MatcherTokenSet rest_first;
+	bool rest_nullable = false;
+	bool has_tail = false;
 	MatcherTokenSet alphabet;
 	MatcherTokenSet required;
 };
@@ -325,8 +334,8 @@ struct MatcherFirstSet : public MatcherTokenSet {
 	bool nullable = false;
 	//! every token in FIRST passes the lookahead check, so only FIRST has to be tested
 	bool first_suffices = true;
-	//! one-based index of the tail check of this sequence in the grammar's tail checks, zero when there is none
-	uint16_t tail_check_index = 0;
+	//! one-based index into the grammar's sequence checks, zero when there is none
+	uint16_t sequence_check_index = 0;
 	optional_ptr<const GrammarLiteralTable> table;
 	//! first tokens for which a match consuming exactly one token is possible
 	MatcherTokenSet one;
@@ -378,8 +387,10 @@ struct MatcherFirstSet : public MatcherTokenSet {
 	}
 	//! The lookahead check for a token in FIRST: a one-token match or a valid second token, then the tail check
 	DUCKDB_API bool MightMatchSecond(MatchState &state) const;
+	//! The per-alternative second-token check of a sequence that starts with a choice
+	DUCKDB_API bool MightMatchLeadingChoice(const MatcherSequenceCheck &check, MatchState &state) const;
 	//! Scans past the tokens the prefix can consume and checks that the element after it can start there
-	DUCKDB_API bool MightMatchTail(const MatcherTailCheck &check, MatchState &state) const;
+	DUCKDB_API bool MightMatchTail(const MatcherSequenceCheck &check, MatchState &state) const;
 };
 
 class Matcher {
@@ -521,16 +532,16 @@ public:
 
 	Matcher &Allocate(unique_ptr<Matcher> matcher);
 	void InitializeListChains();
-	//! Derive tail checks for sequences after the FIRST sets are final
-	DUCKDB_API void InitializeTailChecks(const GrammarLiteralTable &table);
-	const vector<unique_ptr<MatcherTailCheck>> &GetTailChecks() const {
-		return tail_checks;
+	//! Derive the sequence checks after the FIRST sets are final
+	DUCKDB_API void InitializeSequenceChecks(const GrammarLiteralTable &table);
+	const vector<unique_ptr<MatcherSequenceCheck>> &GetSequenceChecks() const {
+		return sequence_checks;
 	}
 
 private:
 	vector<unique_ptr<Matcher>> matchers;
 	vector<unique_ptr<ListMatchChain>> list_chains;
-	vector<unique_ptr<MatcherTailCheck>> tail_checks;
+	vector<unique_ptr<MatcherSequenceCheck>> sequence_checks;
 };
 
 class ParseResultAllocator {

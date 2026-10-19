@@ -80,8 +80,8 @@ static void ForEachLiteralId(const MatcherTokenSet &set, FUN &&fun) {
 	}
 }
 
-struct TailCheckNode {
-	explicit TailCheckNode(Matcher &matcher_p) : matcher(matcher_p) {
+struct SequenceCheckNode {
+	explicit SequenceCheckNode(Matcher &matcher_p) : matcher(matcher_p) {
 	}
 
 	Matcher &matcher;
@@ -95,15 +95,16 @@ struct TailCheckNode {
 	bool queued = false;
 };
 
-class TailCheckAnalysis {
+class SequenceCheckAnalysis {
 public:
-	TailCheckAnalysis(const vector<unique_ptr<Matcher>> &all_matchers, const GrammarLiteralTable &table);
+	SequenceCheckAnalysis(const vector<unique_ptr<Matcher>> &all_matchers, const GrammarLiteralTable &table);
 
 	//! The tail check of every sequence that has one
-	vector<pair<reference<ListMatcher>, unique_ptr<MatcherTailCheck>>> CreateTailChecks();
+	vector<pair<reference<ListMatcher>, unique_ptr<MatcherSequenceCheck>>> CreateSequenceChecks();
 
 private:
 	static constexpr idx_t BRACKET_PAIRS = 3;
+	static constexpr idx_t MAX_LEADING_ALTERNATIVES = 6;
 
 	TailBracket BracketLiteral(idx_t literal_id, idx_t &pair) const;
 	//! Merges the tokens consumed by children[begin, end) outside of the bracket pairs among them into result
@@ -114,15 +115,15 @@ private:
 
 private:
 	const GrammarLiteralTable &table;
-	vector<TailCheckNode> nodes;
+	vector<SequenceCheckNode> nodes;
 	uint16_t open_literals[BRACKET_PAIRS];
 	uint16_t close_literals[BRACKET_PAIRS];
 	//! class of the token spelled like each literal
 	vector<uint8_t> literal_classes;
 };
 
-TailCheckAnalysis::TailCheckAnalysis(const vector<unique_ptr<Matcher>> &all_matchers,
-                                     const GrammarLiteralTable &table_p)
+SequenceCheckAnalysis::SequenceCheckAnalysis(const vector<unique_ptr<Matcher>> &all_matchers,
+                                             const GrammarLiteralTable &table_p)
     : table(table_p) {
 	static constexpr const char OPEN_BRACKETS[BRACKET_PAIRS] = {'(', '[', '{'};
 	static constexpr const char CLOSE_BRACKETS[BRACKET_PAIRS] = {')', ']', '}'};
@@ -202,7 +203,7 @@ TailCheckAnalysis::TailCheckAnalysis(const vector<unique_ptr<Matcher>> &all_matc
 	}
 }
 
-TailBracket TailCheckAnalysis::BracketLiteral(idx_t literal_id, idx_t &pair) const {
+TailBracket SequenceCheckAnalysis::BracketLiteral(idx_t literal_id, idx_t &pair) const {
 	for (pair = 0; pair < BRACKET_PAIRS; pair++) {
 		if (literal_id == open_literals[pair]) {
 			return TailBracket::OPEN;
@@ -214,8 +215,8 @@ TailBracket TailCheckAnalysis::BracketLiteral(idx_t literal_id, idx_t &pair) con
 	return TailBracket::NONE;
 }
 
-bool TailCheckAnalysis::AnalyzeSequence(const vector<idx_t> &children, idx_t begin, idx_t end,
-                                        ConsumedTokens &result) const {
+bool SequenceCheckAnalysis::AnalyzeSequence(const vector<idx_t> &children, idx_t begin, idx_t end,
+                                            ConsumedTokens &result) const {
 	bool changed = false;
 	idx_t i = begin;
 	while (i < end) {
@@ -259,7 +260,7 @@ bool TailCheckAnalysis::AnalyzeSequence(const vector<idx_t> &children, idx_t beg
 	return changed;
 }
 
-bool TailCheckAnalysis::Update(idx_t node_index) {
+bool SequenceCheckAnalysis::Update(idx_t node_index) {
 	auto &node = nodes[node_index];
 	if (node.matcher.Type() == MatcherType::LIST) {
 		return AnalyzeSequence(node.children, 0, node.children.size(), node.consumed);
@@ -271,7 +272,7 @@ bool TailCheckAnalysis::Update(idx_t node_index) {
 	return changed;
 }
 
-bool TailCheckAnalysis::Disjoint(const MatcherTokenSet &alphabet, const MatcherTokenSet &required) const {
+bool SequenceCheckAnalysis::Disjoint(const MatcherTokenSet &alphabet, const MatcherTokenSet &required) const {
 	// the classes the tokenizer assigns, so that a class in one set cannot share a token with a class in the other
 	static constexpr uint8_t TOKEN_CLASSES[] = {
 	    MatcherTokenClass::WORD,     MatcherTokenClass::WORD | MatcherTokenClass::IDENTIFIER,
@@ -298,7 +299,7 @@ bool TailCheckAnalysis::Disjoint(const MatcherTokenSet &alphabet, const MatcherT
 	return disjoint;
 }
 
-vector<pair<reference<ListMatcher>, unique_ptr<MatcherTailCheck>>> TailCheckAnalysis::CreateTailChecks() {
+vector<pair<reference<ListMatcher>, unique_ptr<MatcherSequenceCheck>>> SequenceCheckAnalysis::CreateSequenceChecks() {
 	// least fixed point over the recursive grammar: a change re-queues the parents
 	vector<idx_t> worklist;
 	for (idx_t node_index = 0; node_index < nodes.size(); node_index++) {
@@ -321,7 +322,7 @@ vector<pair<reference<ListMatcher>, unique_ptr<MatcherTailCheck>>> TailCheckAnal
 			}
 		}
 	}
-	vector<pair<reference<ListMatcher>, unique_ptr<MatcherTailCheck>>> tail_checks;
+	vector<pair<reference<ListMatcher>, unique_ptr<MatcherSequenceCheck>>> sequence_checks;
 	for (auto &node : nodes) {
 		auto &matcher = node.matcher;
 		if (!IsCompositeMatcher(matcher) || matcher.Type() != MatcherType::LIST) {
@@ -342,40 +343,111 @@ vector<pair<reference<ListMatcher>, unique_ptr<MatcherTailCheck>>> TailCheckAnal
 			if (!prefix.safe || !Disjoint(prefix.tokens, element_first)) {
 				continue;
 			}
-			auto check = make_uniq<MatcherTailCheck>();
+			auto check = make_uniq<MatcherSequenceCheck>();
+			check->has_tail = true;
 			check->alphabet = std::move(prefix.tokens);
 			check->required = static_cast<const MatcherTokenSet &>(element_first);
-			tail_checks.emplace_back(matcher.Cast<ListMatcher>(), std::move(check));
+			sequence_checks.emplace_back(matcher.Cast<ListMatcher>(), std::move(check));
 			break;
 		}
 	}
-	return tail_checks;
+	// a leading choice with few alternatives is checked per alternative
+	for (auto &node : nodes) {
+		auto &matcher = node.matcher;
+		if (!IsCompositeMatcher(matcher) || matcher.Type() != MatcherType::LIST || node.children.empty()) {
+			continue;
+		}
+		// rules wrap their body in a one-element sequence
+		auto leading_index = node.children[0];
+		while (true) {
+			auto &leading_node = nodes[leading_index];
+			if (IsCompositeMatcher(leading_node.matcher) && leading_node.matcher.Type() == MatcherType::LIST &&
+			    leading_node.children.size() == 1) {
+				leading_index = leading_node.children[0];
+				continue;
+			}
+			break;
+		}
+		auto &leading = nodes[leading_index].matcher;
+		if (!IsCompositeMatcher(leading) || leading.Type() != MatcherType::CHOICE) {
+			continue;
+		}
+		auto &choice = leading.Cast<ChoiceMatcher>();
+		if (choice.matchers.size() < 2 || choice.matchers.size() > MAX_LEADING_ALTERNATIVES) {
+			continue;
+		}
+		bool informative = false;
+		for (auto &alternative : choice.matchers) {
+			auto &first = alternative.get().first_set;
+			if (!first.computed || first.any || first.nullable) {
+				informative = false;
+				break;
+			}
+			// an alternative whose second token is constrained can reject what the merged sets accept
+			if (!first.first_suffices) {
+				informative = true;
+			}
+		}
+		if (!informative) {
+			continue;
+		}
+		optional_ptr<MatcherSequenceCheck> check;
+		for (auto &entry : sequence_checks) {
+			if (&entry.first.get() == &matcher) {
+				check = entry.second.get();
+			}
+		}
+		if (!check) {
+			sequence_checks.emplace_back(matcher.Cast<ListMatcher>(), make_uniq<MatcherSequenceCheck>());
+			check = sequence_checks.back().second.get();
+		}
+		check->leading_choice = choice;
+		check->rest_nullable = true;
+		for (idx_t i = 1; i < node.children.size() && check->rest_nullable; i++) {
+			auto &rest_first = nodes[node.children[i]].matcher.first_set;
+			check->rest_first.MergeTokens(rest_first);
+			check->rest_nullable = rest_first.nullable;
+		}
+	}
+	return sequence_checks;
 }
 
 } // namespace
 
-void MatcherAllocator::InitializeTailChecks(const GrammarLiteralTable &table) {
+void MatcherAllocator::InitializeSequenceChecks(const GrammarLiteralTable &table) {
 	// Clear borrowed links before releasing their owners or making any allocation that can throw.
 	for (auto &matcher : matchers) {
 		auto &first = matcher->first_set;
-		if (first.tail_check_index) {
-			first.tail_check_index = 0;
+		if (first.sequence_check_index) {
+			first.sequence_check_index = 0;
 			first.Finalize();
 		}
 	}
-	tail_checks.clear();
-	TailCheckAnalysis analysis(matchers, table);
-	auto checks = analysis.CreateTailChecks();
-	tail_checks.reserve(checks.size());
+	sequence_checks.clear();
+	SequenceCheckAnalysis analysis(matchers, table);
+	auto checks = analysis.CreateSequenceChecks();
+	sequence_checks.reserve(checks.size());
 	for (auto &entry : checks) {
-		if (tail_checks.size() >= NumericLimits<uint16_t>::Maximum()) {
+		if (sequence_checks.size() >= NumericLimits<uint16_t>::Maximum()) {
 			break;
 		}
 		auto &first = entry.first.get().first_set;
-		tail_checks.push_back(std::move(entry.second));
-		first.tail_check_index = NumericCast<uint16_t>(tail_checks.size());
-		// every token passing the FIRST check goes through MightMatchSecond, which runs the tail check
+		sequence_checks.push_back(std::move(entry.second));
+		first.sequence_check_index = NumericCast<uint16_t>(sequence_checks.size());
+		// every token passing the FIRST check goes through MightMatchSecond, which runs the checks
 		first.first_suffices = false;
+	}
+	// a repetition of a checked sequence starts like the sequence
+	for (auto &matcher : matchers) {
+		if (!matcher->IsStructural() || matcher->Type() != MatcherType::REPEAT) {
+			continue;
+		}
+		auto &child = matcher->Cast<RepeatMatcher>().GetChildMatcher();
+		if (!child.first_set.sequence_check_index || child.first_set.nullable) {
+			continue;
+		}
+		matcher->first_set.sequence_check_index = child.first_set.sequence_check_index;
+		matcher->first_set.first_suffices = false;
 	}
 }
 
