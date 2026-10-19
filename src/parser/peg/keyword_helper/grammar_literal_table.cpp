@@ -1,6 +1,7 @@
 #include "duckdb/parser/peg/grammar_literal_table.hpp"
 
 #include "duckdb/common/atomic.hpp"
+#include "duckdb/common/string_util.hpp"
 #include "duckdb/common/exception.hpp"
 #include "duckdb/parser/peg/parsed_grammar.hpp"
 
@@ -32,6 +33,22 @@ GrammarLiteralTable::GrammarLiteralTable(const ParsedGrammar &grammar,
 	}
 	for (auto &entry : keywords) {
 		Register(entry.first, entry.second.CategoryFlags());
+	}
+	Index();
+}
+
+void GrammarLiteralTable::Index() {
+	for (auto &entry : literals) {
+		auto &text = entry.first;
+		auto first = static_cast<uint8_t>(text[0]);
+		first_bytes[first] = true;
+		first_bytes[static_cast<uint8_t>(StringUtil::CharacterToLower(static_cast<char>(first)))] = true;
+		first_bytes[static_cast<uint8_t>(StringUtil::CharacterToUpper(static_cast<char>(first)))] = true;
+		if (text.size() == 1) {
+			single_byte[first] = entry.second;
+			single_byte[static_cast<uint8_t>(StringUtil::CharacterToLower(static_cast<char>(first)))] = entry.second;
+			single_byte[static_cast<uint8_t>(StringUtil::CharacterToUpper(static_cast<char>(first)))] = entry.second;
+		}
 	}
 }
 
