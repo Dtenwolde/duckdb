@@ -187,10 +187,10 @@ struct MatchState {
 	}
 
 	template <class RESULT, class... ARGS>
-	MatcherResult AllocateParseResult(ARGS &&...args);
+	MatcherResult AllocateParseResult(ARGS &&... args);
 
 	template <class PROCESS, class... ARGS>
-	arena_ptr<MatchProcess> Make(ARGS &&...args);
+	arena_ptr<MatchProcess> Make(ARGS &&... args);
 
 	void UpdateMaxTokenIndex() {
 		if (token_iterator.Position() > context.max_token_index) {
@@ -289,7 +289,20 @@ struct MatcherFirstSet {
 	//! Merge other into this set, returns whether anything changed
 	DUCKDB_API bool Merge(const MatcherFirstSet &other);
 	//! False only if the matcher certainly cannot match at the current token
-	DUCKDB_API bool MightMatch(MatchState &state) const;
+	bool MightMatch(MatchState &state) const {
+		if (!computed || any || nullable) {
+			return true;
+		}
+		auto token = state.token_iterator.Current();
+		if (!token) {
+			return false;
+		}
+		if (token->token_class & class_mask) {
+			return true;
+		}
+		auto literal_id = state.token_iterator.CurrentLiteralInfo(*table).LiteralId();
+		return literal_id && HasLiteral(literal_id);
+	}
 };
 
 class Matcher {
@@ -360,7 +373,7 @@ public:
 	template <class TARGET>
 	TARGET &Cast() {
 		if (type != TARGET::TYPE) {
-			throw InternalException("Failed to cast matcher to type - matcher type mismatch");
+			ThrowCastError();
 		}
 		return reinterpret_cast<TARGET &>(*this);
 	}
@@ -368,10 +381,11 @@ public:
 	template <class TARGET>
 	const TARGET &Cast() const {
 		if (type != TARGET::TYPE) {
-			throw InternalException("Failed to cast matcher to type - matcher type mismatch");
+			ThrowCastError();
 		}
 		return reinterpret_cast<const TARGET &>(*this);
 	}
+	DUCKDB_API void ThrowCastError() const;
 
 public:
 	MatcherFirstSet first_set;
@@ -440,7 +454,7 @@ public:
 	~ParseResultAllocator();
 
 	template <class RESULT, class... ARGS>
-	optional_ptr<ParseResult> Make(ARGS &&...args) {
+	optional_ptr<ParseResult> Make(ARGS &&... args) {
 		static_assert(std::is_base_of<ParseResult, RESULT>::value, "Expected a parse result");
 		auto result = arena.Make<RESULT>(std::forward<ARGS>(args)...);
 		if (ParseResultNeedsDestructor<RESULT>::value) {
@@ -483,7 +497,7 @@ private:
 };
 
 template <class PROCESS, class... ARGS>
-arena_ptr<MatchProcess> MatchState::Make(ARGS &&...args) {
+arena_ptr<MatchProcess> MatchState::Make(ARGS &&... args) {
 	static_assert(std::is_base_of<MatchProcess, PROCESS>::value, "Expected a matcher process");
 	return arena_ptr<MatchProcess>(context.process_allocator.Make<PROCESS>(std::forward<ARGS>(args)...));
 }
@@ -497,7 +511,7 @@ void ParseResult::SetNameFrom(const Matcher &matcher_p) {
 }
 
 template <class RESULT, class... ARGS>
-MatcherResult MatchState::AllocateParseResult(ARGS &&...args) {
+MatcherResult MatchState::AllocateParseResult(ARGS &&... args) {
 	if (!BuildParseResult()) {
 		return MatcherResult::Success();
 	}

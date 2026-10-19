@@ -50,6 +50,15 @@ void Matcher::Print() const {
 	Printer::Print(ToString());
 }
 
+void ParseResult::ThrowCastError(ParseResultType target) const {
+	throw InternalException("Failed to cast parse result of type %s to type %s for rule %s",
+	                        ParseResultToString(target), ParseResultToString(type), Name());
+}
+
+void Matcher::ThrowCastError() const {
+	throw InternalException("Failed to cast matcher to type - matcher type mismatch");
+}
+
 void MatchState::AddSuggestion(MatcherSuggestion suggestion) {
 	context.suggestions.push_back(std::move(suggestion));
 }
@@ -179,7 +188,7 @@ void MatcherAllocator::InitializeListChains() {
 	}
 }
 
-ParseResultAllocator::ParseResultAllocator() : arena(Allocator::DefaultAllocator()), pending_destructors(arena) {
+ParseResultAllocator::ParseResultAllocator() : arena(Allocator::DefaultAllocator(), 16384), pending_destructors(arena) {
 }
 
 ParseResultAllocator::~ParseResultAllocator() = default;
