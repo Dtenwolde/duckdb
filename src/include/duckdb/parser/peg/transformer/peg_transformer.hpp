@@ -597,6 +597,8 @@ public:
 
 private:
 	arena_ptr<TransformResultValue> TransformInternal(ParseResult &parse_result);
+	//! Stacks of completed transforms, reused for the next statement
+	vector<unique_ptr<TransformStack>> free_stacks;
 	void SetResultLocation(ParseResult &parse_result, TransformResultValue &result);
 
 	template <typename T>

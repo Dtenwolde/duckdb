@@ -281,8 +281,17 @@ arena_ptr<TransformResultValue> PEGTransformer::TransformInternal(ParseResult &p
 		throw InternalException("No registered data exists for rule '%s'", parse_result.Name());
 	}
 	TransformInput input {*rule, parse_result};
-	TransformStack stack(*this);
-	return stack.Execute(input);
+	unique_ptr<TransformStack> stack;
+	if (free_stacks.empty()) {
+		stack = make_uniq<TransformStack>(*this);
+	} else {
+		stack = std::move(free_stacks.back());
+		free_stacks.pop_back();
+	}
+	// a stack that threw is destroyed with its frames instead of being reused
+	auto result = stack->Execute(input);
+	free_stacks.push_back(std::move(stack));
+	return result;
 }
 
 //! The number of repeated elements directly in a rule's match: the links of an operator chain
