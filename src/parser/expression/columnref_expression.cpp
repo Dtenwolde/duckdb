@@ -34,11 +34,8 @@ ColumnRefExpression::ColumnRefExpression(Identifier column_name)
 }
 
 ColumnRefExpression::ColumnRefExpression(vector<Identifier> column_names_p)
-    : ParsedExpression(ExpressionType::COLUMN_REF, ExpressionClass::COLUMN_REF) {
-	column_names.reserve(column_names_p.size());
-	for (auto &col_name : column_names_p) {
-		column_names.emplace_back(std::move(col_name));
-	}
+    : ParsedExpression(ExpressionType::COLUMN_REF, ExpressionClass::COLUMN_REF),
+      column_names(std::move(column_names_p)) {
 #ifdef DEBUG
 	for (auto &col_name : column_names) {
 		D_ASSERT(!col_name.empty());
