@@ -36,6 +36,26 @@ struct SingleChildTransformState {
 	idx_t child_slots;
 };
 
+//! Runs a forwarding rule's initialize schedule only to find the child that stands in for the rule
+struct ForwardTransformState {
+	void ReserveChildSlots(idx_t count) {
+		D_ASSERT(count == 1);
+	}
+	void PushChild(TransformInput input, idx_t slot) {
+		D_ASSERT(slot == 0);
+		D_ASSERT(!child);
+		child.emplace(input);
+	}
+	TransformInput Take(ParseResult &parse_result) {
+		if (!child) {
+			throw InternalException("Forwarding rule '%s' selected no child", parse_result.Name());
+		}
+		return *child;
+	}
+
+	optional<TransformInput> child;
+};
+
 } // namespace
 
 namespace {
@@ -6508,3760 +6528,4339 @@ struct GeneratedSingleChildTransform {
 	                                      arena_ptr<TransformResultValue> child_result);
 	static TransformStep ExecuteOptVerbose(PEGTransformer &transformer, ParseResult &parse_result,
 	                                       arena_ptr<TransformResultValue> child_result);
+	static TransformInput ForwardAddOrDropDefault(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardAfterMatchSkip(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardAfterMatchSkipTarget(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardAliasedExpression(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardAllRowsEmptyMatches(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardAlterColumnEntry(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardAlterOptions(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardAlterSchemaOptions(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardAlterSequenceOptions(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardAlterTableOptions(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardAnyOrAll(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardApproxOrExact(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardArrayBounds(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardBaseTableName(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardBetweenLikeOpExpression(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardByNameOrPosition(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardBySourceOrTarget(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardCTEBody(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardCastOrTryCast(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardColumnConstraint(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardColumnConstraintElement(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardCommentOnType(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardCommentTarget(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardCommentValue(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardComparisonOperand(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardComparisonOperator(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardConstraintTiming(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardCopyFileName(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardCopyFileNameExpression(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardCopyFileNameSuffix(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardCopyFromDatabase(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardCopyGenericOption(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardCopyOptionList(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardCopyVariations(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardCreateStatementVariation(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardCreateTableColumnElement(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardCreateTableDefinition(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardCreateType(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardDecimalNumericType(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardDefArg(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardDescOrAsc(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardDescribeOrSummarize(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardDescribeRule(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardDescribeTarget(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardDistanceOrSimilarity(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardDistinctClause(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardDistinctOrAll(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardDotOperator(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardDropBehavior(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardDropEntries(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardExcludeName(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardExcludeNames(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardExplainableStatements(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardExpression(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardExtensionRepositoryStatement(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardExternalResourceCreationOptions(PEGTransformer &transformer,
+	                                                             ParseResult &parse_result);
+	static TransformInput ForwardExternalResourceSource(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardExternalResourceStatement(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardExtractArgument(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardExtractDatePart(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardFetchClause(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardFetchClauseWithValue(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardForEachClause(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardFrameBound(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardFrameExtent(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardFromOrTo(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardFromSource(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardFunctionArgument(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardFunctionIdentifier(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardFunctionTypeMacro(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardGenerated(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardGeneratedColumnType(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardGenericCopyOptionValue(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardGroupByExpression(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardGroupByExpressions(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardGroupingOrGroupingId(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardIgnoreOrRespectNulls(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardInExpression(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardIncludeOrExcludeNulls(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardIndirection(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardInnerTableRef(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardInsertByNameOrder(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardInsertByPositionOrder(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardInsertMatchInfo(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardInsertValues(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardInterval(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardIntervalInterval(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardIntervalParameter(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardIntervalToInterval(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardIntervalType(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardIntervalWithSpecifier(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardIsExpressionTail(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardIsLiteralValue(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardIsTest(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardJoinClause(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardJoinOrPivot(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardJoinPrefix(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardJoinQualifier(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardJoinType(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardKeyActions(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardLimitOffset(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardLimitValue(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardListExpression(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardMacroDefinitionBody(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardMacroOrFunction(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardMacroParameter(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardMatchRecognizeClause(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardMatchedClauseAction(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardMeasureSemantics(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardMergeMatch(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardNearestBareTableRef(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardNearestJoinClause(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardNotNull(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardNullsFirstOrLast(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardNumericType(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardOnConflictAction(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardOnConflictTarget(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardOptionalParensNameList(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardOptionalParensSimpleSelect(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardOrAction(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardOrderByExpressions(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardOtherOperator(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardOtherOperatorExpression(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardOverlayArguments(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardParameter(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardPartitionByColumnList(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardPartitionSortedOptions(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardPatternClause(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardPivotColumnEntry(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardPivotValueTarget(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardPragmaAssignOrFunction(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardPrecedingOrFollowing(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardPreserveOrDelete(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardQualifiedIndexName(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardQualifiedName(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardQualifiedTableName(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardQualifiedTypeName(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardQuantifierBounds(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardQuantifierRange(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardReadOnlyOrReadWrite(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardReferencingItem(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardRelOptionOrOids(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardRenameEntries(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardReplaceEntries(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardRowPatternAlternative(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardRowPatternAnchor(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardRowPatternGroup(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardRowPatternPrimary(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardRowPatternQuantifierKind(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardRowsPerMatch(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardSampleEntry(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardSampleUnit(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardSampleValue(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardSchemaOrData(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardSelectAtom(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardSelectFrom(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardSelectStatementType(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardSeqSetCycle(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardSequenceOption(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardSessionTarget(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardSetAssignmentOrTimeZone(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardSetVariableOrSetting(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardSetopType(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardSettingScope(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardShowOrDescribe(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardSimpleType(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardSingleExpression(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardSingleOption(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardSliceUpperBound(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardSpecialFunctionExpression(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardSpecializedOption(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardSubstringArguments(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardSubstringFromFor(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardTableAlias(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardTableFunction(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardTableOrView(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardTemporary(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardTimeOrTimestamp(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardTopLevelConstraintList(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardTransactionStatement(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardTriggerBody(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardTriggerEvent(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardTriggerTiming(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardTruncateOptions(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardTypeVariations(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardUnpivotHeader(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardUpdateMatchInfo(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardUpdateMatchSetClause(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardUpdateSetClause(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardUpdateTarget(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardUseTarget(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardVacuumOptions(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardWindowExcludeElement(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardWindowFrame(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardWindowFrameDefinition(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardWithData(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardWithOrWithout(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardWithOrWithoutOids(PEGTransformer &transformer, ParseResult &parse_result);
+	static TransformInput ForwardZoneValue(PEGTransformer &transformer, ParseResult &parse_result);
 };
 } // namespace
 
 static const TransformFrameOps STATEMENT_OPS = {"Statement", &PEGTransformerFactory::InitializeStatementTrampoline,
                                                 &PEGTransformerFactory::FinalizeStatementTrampoline,
-                                                &GeneratedSingleChildTransform::ExecuteStatement};
-static const TransformFrameOps PRAGMA_NAME_OPS = {
-    "PragmaName", &PEGTransformerFactory::InitializeIdentifierOrKeywordTrampoline,
-    &PEGTransformerFactory::FinalizeIdentifierOrKeywordTrampoline, &GeneratedSingleChildTransform::ExecutePragmaName};
-static const TransformFrameOps TYPE_NAME_OPS = {
-    "TypeName", &PEGTransformerFactory::InitializeIdentifierOrKeywordTrampoline,
-    &PEGTransformerFactory::FinalizeIdentifierOrKeywordTrampoline, &GeneratedSingleChildTransform::ExecuteTypeName};
+                                                &GeneratedSingleChildTransform::ExecuteStatement, nullptr};
+static const TransformFrameOps PRAGMA_NAME_OPS = {"PragmaName",
+                                                  &PEGTransformerFactory::InitializeIdentifierOrKeywordTrampoline,
+                                                  &PEGTransformerFactory::FinalizeIdentifierOrKeywordTrampoline,
+                                                  &GeneratedSingleChildTransform::ExecutePragmaName, nullptr};
+static const TransformFrameOps TYPE_NAME_OPS = {"TypeName",
+                                                &PEGTransformerFactory::InitializeIdentifierOrKeywordTrampoline,
+                                                &PEGTransformerFactory::FinalizeIdentifierOrKeywordTrampoline,
+                                                &GeneratedSingleChildTransform::ExecuteTypeName, nullptr};
 static const TransformFrameOps PLAIN_IDENTIFIER_OPS = {"PlainIdentifier",
                                                        &PEGTransformerFactory::InitializeIdentifierOrKeywordTrampoline,
                                                        &PEGTransformerFactory::FinalizeIdentifierOrKeywordTrampoline,
-                                                       &GeneratedSingleChildTransform::ExecutePlainIdentifier};
-static const TransformFrameOps QUOTED_IDENTIFIER_OPS = {"QuotedIdentifier",
-                                                        &PEGTransformerFactory::InitializeIdentifierOrKeywordTrampoline,
-                                                        &PEGTransformerFactory::FinalizeIdentifierOrKeywordTrampoline,
-                                                        &GeneratedSingleChildTransform::ExecuteQuotedIdentifier};
+                                                       &GeneratedSingleChildTransform::ExecutePlainIdentifier, nullptr};
+static const TransformFrameOps QUOTED_IDENTIFIER_OPS = {
+    "QuotedIdentifier", &PEGTransformerFactory::InitializeIdentifierOrKeywordTrampoline,
+    &PEGTransformerFactory::FinalizeIdentifierOrKeywordTrampoline,
+    &GeneratedSingleChildTransform::ExecuteQuotedIdentifier, nullptr};
 static const TransformFrameOps RESERVED_KEYWORD_OPS = {"ReservedKeyword",
                                                        &PEGTransformerFactory::InitializeIdentifierOrKeywordTrampoline,
                                                        &PEGTransformerFactory::FinalizeIdentifierOrKeywordTrampoline,
-                                                       &GeneratedSingleChildTransform::ExecuteReservedKeyword};
+                                                       &GeneratedSingleChildTransform::ExecuteReservedKeyword, nullptr};
 static const TransformFrameOps UNRESERVED_KEYWORD_OPS = {
     "UnreservedKeyword", &PEGTransformerFactory::InitializeIdentifierOrKeywordTrampoline,
     &PEGTransformerFactory::FinalizeIdentifierOrKeywordTrampoline,
-    &GeneratedSingleChildTransform::ExecuteUnreservedKeyword};
+    &GeneratedSingleChildTransform::ExecuteUnreservedKeyword, nullptr};
 static const TransformFrameOps COLUMN_NAME_KEYWORD_OPS = {
     "ColumnNameKeyword", &PEGTransformerFactory::InitializeIdentifierOrKeywordTrampoline,
     &PEGTransformerFactory::FinalizeIdentifierOrKeywordTrampoline,
-    &GeneratedSingleChildTransform::ExecuteColumnNameKeyword};
-static const TransformFrameOps FUNC_NAME_KEYWORD_OPS = {"FuncNameKeyword",
-                                                        &PEGTransformerFactory::InitializeIdentifierOrKeywordTrampoline,
-                                                        &PEGTransformerFactory::FinalizeIdentifierOrKeywordTrampoline,
-                                                        &GeneratedSingleChildTransform::ExecuteFuncNameKeyword};
-static const TransformFrameOps TYPE_NAME_KEYWORD_OPS = {"TypeNameKeyword",
-                                                        &PEGTransformerFactory::InitializeIdentifierOrKeywordTrampoline,
-                                                        &PEGTransformerFactory::FinalizeIdentifierOrKeywordTrampoline,
-                                                        &GeneratedSingleChildTransform::ExecuteTypeNameKeyword};
+    &GeneratedSingleChildTransform::ExecuteColumnNameKeyword, nullptr};
+static const TransformFrameOps FUNC_NAME_KEYWORD_OPS = {
+    "FuncNameKeyword", &PEGTransformerFactory::InitializeIdentifierOrKeywordTrampoline,
+    &PEGTransformerFactory::FinalizeIdentifierOrKeywordTrampoline,
+    &GeneratedSingleChildTransform::ExecuteFuncNameKeyword, nullptr};
+static const TransformFrameOps TYPE_NAME_KEYWORD_OPS = {
+    "TypeNameKeyword", &PEGTransformerFactory::InitializeIdentifierOrKeywordTrampoline,
+    &PEGTransformerFactory::FinalizeIdentifierOrKeywordTrampoline,
+    &GeneratedSingleChildTransform::ExecuteTypeNameKeyword, nullptr};
 static const TransformFrameOps BARE_LABEL_KEYWORD_OPS = {
     "BareLabelKeyword", &PEGTransformerFactory::InitializeIdentifierOrKeywordTrampoline,
     &PEGTransformerFactory::FinalizeIdentifierOrKeywordTrampoline,
-    &GeneratedSingleChildTransform::ExecuteBareLabelKeyword};
-static const TransformFrameOps SETTING_NAME_OPS = {
-    "SettingName", &PEGTransformerFactory::InitializeIdentifierOrKeywordTrampoline,
-    &PEGTransformerFactory::FinalizeIdentifierOrKeywordTrampoline, &GeneratedSingleChildTransform::ExecuteSettingName};
-static const TransformFrameOps ALTER_STATEMENT_OPS = {
-    "AlterStatement", &PEGTransformerFactory::InitializeAlterStatementTrampoline,
-    &PEGTransformerFactory::FinalizeAlterStatementTrampoline, &GeneratedSingleChildTransform::ExecuteAlterStatement};
+    &GeneratedSingleChildTransform::ExecuteBareLabelKeyword, nullptr};
+static const TransformFrameOps SETTING_NAME_OPS = {"SettingName",
+                                                   &PEGTransformerFactory::InitializeIdentifierOrKeywordTrampoline,
+                                                   &PEGTransformerFactory::FinalizeIdentifierOrKeywordTrampoline,
+                                                   &GeneratedSingleChildTransform::ExecuteSettingName, nullptr};
+static const TransformFrameOps ALTER_STATEMENT_OPS = {"AlterStatement",
+                                                      &PEGTransformerFactory::InitializeAlterStatementTrampoline,
+                                                      &PEGTransformerFactory::FinalizeAlterStatementTrampoline,
+                                                      &GeneratedSingleChildTransform::ExecuteAlterStatement, nullptr};
 static const TransformFrameOps ALTER_OPTIONS_OPS = {
     "AlterOptions", &PEGTransformerFactory::InitializeAlterOptionsTrampoline,
-    &PEGTransformerFactory::FinalizeAlterOptionsTrampoline, &GeneratedSingleChildTransform::ExecuteAlterOptions};
+    &PEGTransformerFactory::FinalizeAlterOptionsTrampoline, &GeneratedSingleChildTransform::ExecuteAlterOptions,
+    &GeneratedSingleChildTransform::ForwardAlterOptions};
 static const TransformFrameOps ALTER_TABLE_STMT_OPS = {
     "AlterTableStmt", &PEGTransformerFactory::InitializeAlterTableStmtTrampoline,
-    &PEGTransformerFactory::FinalizeAlterTableStmtTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeAlterTableStmtTrampoline, nullptr, nullptr};
 static const TransformFrameOps ALTER_SCHEMA_STMT_OPS = {
     "AlterSchemaStmt", &PEGTransformerFactory::InitializeAlterSchemaStmtTrampoline,
-    &PEGTransformerFactory::FinalizeAlterSchemaStmtTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeAlterSchemaStmtTrampoline, nullptr, nullptr};
 static const TransformFrameOps ALTER_SCHEMA_OPTIONS_OPS = {
     "AlterSchemaOptions", &PEGTransformerFactory::InitializeAlterSchemaOptionsTrampoline,
     &PEGTransformerFactory::FinalizeAlterSchemaOptionsTrampoline,
-    &GeneratedSingleChildTransform::ExecuteAlterSchemaOptions};
-static const TransformFrameOps ALTER_TABLE_OPTIONS_OPS = {"AlterTableOptions",
-                                                          &PEGTransformerFactory::InitializeAlterTableOptionsTrampoline,
-                                                          &PEGTransformerFactory::FinalizeAlterTableOptionsTrampoline,
-                                                          &GeneratedSingleChildTransform::ExecuteAlterTableOptions};
-static const TransformFrameOps ADD_CONSTRAINT_OPS = {
-    "AddConstraint", &PEGTransformerFactory::InitializeAddConstraintTrampoline,
-    &PEGTransformerFactory::FinalizeAddConstraintTrampoline, &GeneratedSingleChildTransform::ExecuteAddConstraint};
+    &GeneratedSingleChildTransform::ExecuteAlterSchemaOptions,
+    &GeneratedSingleChildTransform::ForwardAlterSchemaOptions};
+static const TransformFrameOps ALTER_TABLE_OPTIONS_OPS = {
+    "AlterTableOptions", &PEGTransformerFactory::InitializeAlterTableOptionsTrampoline,
+    &PEGTransformerFactory::FinalizeAlterTableOptionsTrampoline,
+    &GeneratedSingleChildTransform::ExecuteAlterTableOptions, &GeneratedSingleChildTransform::ForwardAlterTableOptions};
+static const TransformFrameOps ADD_CONSTRAINT_OPS = {"AddConstraint",
+                                                     &PEGTransformerFactory::InitializeAddConstraintTrampoline,
+                                                     &PEGTransformerFactory::FinalizeAddConstraintTrampoline,
+                                                     &GeneratedSingleChildTransform::ExecuteAddConstraint, nullptr};
 static const TransformFrameOps DROP_CONSTRAINT_OPS = {
     "DropConstraint", &PEGTransformerFactory::InitializeDropConstraintTrampoline,
-    &PEGTransformerFactory::FinalizeDropConstraintTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeDropConstraintTrampoline, nullptr, nullptr};
 static const TransformFrameOps ADD_COLUMN_OPS = {"AddColumn", &PEGTransformerFactory::InitializeAddColumnTrampoline,
-                                                 &PEGTransformerFactory::FinalizeAddColumnTrampoline, nullptr};
+                                                 &PEGTransformerFactory::FinalizeAddColumnTrampoline, nullptr, nullptr};
 static const TransformFrameOps ADD_COLUMN_ENTRY_OPS = {
     "AddColumnEntry", &PEGTransformerFactory::InitializeAddColumnEntryTrampoline,
-    &PEGTransformerFactory::FinalizeAddColumnEntryTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeAddColumnEntryTrampoline, nullptr, nullptr};
 static const TransformFrameOps DROP_COLUMN_OPS = {"DropColumn", &PEGTransformerFactory::InitializeDropColumnTrampoline,
-                                                  &PEGTransformerFactory::FinalizeDropColumnTrampoline, nullptr};
-static const TransformFrameOps ALTER_COLUMN_OPS = {"AlterColumn",
-                                                   &PEGTransformerFactory::InitializeAlterColumnTrampoline,
-                                                   &PEGTransformerFactory::FinalizeAlterColumnTrampoline, nullptr};
-static const TransformFrameOps RENAME_COLUMN_OPS = {"RenameColumn",
-                                                    &PEGTransformerFactory::InitializeRenameColumnTrampoline,
-                                                    &PEGTransformerFactory::FinalizeRenameColumnTrampoline, nullptr};
+                                                  &PEGTransformerFactory::FinalizeDropColumnTrampoline, nullptr,
+                                                  nullptr};
+static const TransformFrameOps ALTER_COLUMN_OPS = {
+    "AlterColumn", &PEGTransformerFactory::InitializeAlterColumnTrampoline,
+    &PEGTransformerFactory::FinalizeAlterColumnTrampoline, nullptr, nullptr};
+static const TransformFrameOps RENAME_COLUMN_OPS = {
+    "RenameColumn", &PEGTransformerFactory::InitializeRenameColumnTrampoline,
+    &PEGTransformerFactory::FinalizeRenameColumnTrampoline, nullptr, nullptr};
 static const TransformFrameOps NESTED_COLUMN_NAME_OPS = {
     "NestedColumnName", &PEGTransformerFactory::InitializeNestedColumnNameTrampoline,
-    &PEGTransformerFactory::FinalizeNestedColumnNameTrampoline, nullptr};
-static const TransformFrameOps IDENTIFIER_DOT_OPS = {
-    "IdentifierDot", &PEGTransformerFactory::InitializeIdentifierDotTrampoline,
-    &PEGTransformerFactory::FinalizeIdentifierDotTrampoline, &GeneratedSingleChildTransform::ExecuteIdentifierDot};
+    &PEGTransformerFactory::FinalizeNestedColumnNameTrampoline, nullptr, nullptr};
+static const TransformFrameOps IDENTIFIER_DOT_OPS = {"IdentifierDot",
+                                                     &PEGTransformerFactory::InitializeIdentifierDotTrampoline,
+                                                     &PEGTransformerFactory::FinalizeIdentifierDotTrampoline,
+                                                     &GeneratedSingleChildTransform::ExecuteIdentifierDot, nullptr};
 static const TransformFrameOps RENAME_ALTER_OPS = {
     "RenameAlter", &PEGTransformerFactory::InitializeRenameAlterTrampoline,
-    &PEGTransformerFactory::FinalizeRenameAlterTrampoline, &GeneratedSingleChildTransform::ExecuteRenameAlter};
+    &PEGTransformerFactory::FinalizeRenameAlterTrampoline, &GeneratedSingleChildTransform::ExecuteRenameAlter, nullptr};
 static const TransformFrameOps SET_PARTITIONED_BY_OPS = {
     "SetPartitionedBy", &PEGTransformerFactory::InitializeSetPartitionedByTrampoline,
-    &PEGTransformerFactory::FinalizeSetPartitionedByTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeSetPartitionedByTrampoline, nullptr, nullptr};
 static const TransformFrameOps RESET_PARTITIONED_BY_OPS = {
     "ResetPartitionedBy", &PEGTransformerFactory::InitializeResetPartitionedByTrampoline,
     &PEGTransformerFactory::FinalizeResetPartitionedByTrampoline,
-    &GeneratedSingleChildTransform::ExecuteResetPartitionedBy};
+    &GeneratedSingleChildTransform::ExecuteResetPartitionedBy, nullptr};
 static const TransformFrameOps SET_SORTED_BY_OPS = {
     "SetSortedBy", &PEGTransformerFactory::InitializeSetSortedByTrampoline,
-    &PEGTransformerFactory::FinalizeSetSortedByTrampoline, &GeneratedSingleChildTransform::ExecuteSetSortedBy};
-static const TransformFrameOps RESET_SORTED_BY_OPS = {
-    "ResetSortedBy", &PEGTransformerFactory::InitializeResetSortedByTrampoline,
-    &PEGTransformerFactory::FinalizeResetSortedByTrampoline, &GeneratedSingleChildTransform::ExecuteResetSortedBy};
+    &PEGTransformerFactory::FinalizeSetSortedByTrampoline, &GeneratedSingleChildTransform::ExecuteSetSortedBy, nullptr};
+static const TransformFrameOps RESET_SORTED_BY_OPS = {"ResetSortedBy",
+                                                      &PEGTransformerFactory::InitializeResetSortedByTrampoline,
+                                                      &PEGTransformerFactory::FinalizeResetSortedByTrampoline,
+                                                      &GeneratedSingleChildTransform::ExecuteResetSortedBy, nullptr};
 static const TransformFrameOps SET_OPTIONS_OPS = {"SetOptions", &PEGTransformerFactory::InitializeSetOptionsTrampoline,
                                                   &PEGTransformerFactory::FinalizeSetOptionsTrampoline,
-                                                  &GeneratedSingleChildTransform::ExecuteSetOptions};
-static const TransformFrameOps RESET_OPTIONS_OPS = {
-    "ResetOptions", &PEGTransformerFactory::InitializeResetOptionsTrampoline,
-    &PEGTransformerFactory::FinalizeResetOptionsTrampoline, &GeneratedSingleChildTransform::ExecuteResetOptions};
-static const TransformFrameOps ALTER_COLUMN_ENTRY_OPS = {"AlterColumnEntry",
-                                                         &PEGTransformerFactory::InitializeAlterColumnEntryTrampoline,
-                                                         &PEGTransformerFactory::FinalizeAlterColumnEntryTrampoline,
-                                                         &GeneratedSingleChildTransform::ExecuteAlterColumnEntry};
-static const TransformFrameOps ADD_OR_DROP_DEFAULT_OPS = {"AddOrDropDefault",
-                                                          &PEGTransformerFactory::InitializeAddOrDropDefaultTrampoline,
-                                                          &PEGTransformerFactory::FinalizeAddOrDropDefaultTrampoline,
-                                                          &GeneratedSingleChildTransform::ExecuteAddOrDropDefault};
+                                                  &GeneratedSingleChildTransform::ExecuteSetOptions, nullptr};
+static const TransformFrameOps RESET_OPTIONS_OPS = {"ResetOptions",
+                                                    &PEGTransformerFactory::InitializeResetOptionsTrampoline,
+                                                    &PEGTransformerFactory::FinalizeResetOptionsTrampoline,
+                                                    &GeneratedSingleChildTransform::ExecuteResetOptions, nullptr};
+static const TransformFrameOps ALTER_COLUMN_ENTRY_OPS = {
+    "AlterColumnEntry", &PEGTransformerFactory::InitializeAlterColumnEntryTrampoline,
+    &PEGTransformerFactory::FinalizeAlterColumnEntryTrampoline, &GeneratedSingleChildTransform::ExecuteAlterColumnEntry,
+    &GeneratedSingleChildTransform::ForwardAlterColumnEntry};
+static const TransformFrameOps ADD_OR_DROP_DEFAULT_OPS = {
+    "AddOrDropDefault", &PEGTransformerFactory::InitializeAddOrDropDefaultTrampoline,
+    &PEGTransformerFactory::FinalizeAddOrDropDefaultTrampoline, &GeneratedSingleChildTransform::ExecuteAddOrDropDefault,
+    &GeneratedSingleChildTransform::ForwardAddOrDropDefault};
 static const TransformFrameOps ADD_DEFAULT_OPS = {"AddDefault", &PEGTransformerFactory::InitializeAddDefaultTrampoline,
                                                   &PEGTransformerFactory::FinalizeAddDefaultTrampoline,
-                                                  &GeneratedSingleChildTransform::ExecuteAddDefault};
+                                                  &GeneratedSingleChildTransform::ExecuteAddDefault, nullptr};
 static const TransformFrameOps DROP_DEFAULT_OPS = {
     "DropDefault", &PEGTransformerFactory::InitializeDropDefaultTrampoline,
-    &PEGTransformerFactory::FinalizeDropDefaultTrampoline, &GeneratedSingleChildTransform::ExecuteDropDefault};
-static const TransformFrameOps CHANGE_NULLABILITY_OPS = {"ChangeNullability",
-                                                         &PEGTransformerFactory::InitializeChangeNullabilityTrampoline,
-                                                         &PEGTransformerFactory::FinalizeChangeNullabilityTrampoline,
-                                                         &GeneratedSingleChildTransform::ExecuteChangeNullability};
+    &PEGTransformerFactory::FinalizeDropDefaultTrampoline, &GeneratedSingleChildTransform::ExecuteDropDefault, nullptr};
+static const TransformFrameOps CHANGE_NULLABILITY_OPS = {
+    "ChangeNullability", &PEGTransformerFactory::InitializeChangeNullabilityTrampoline,
+    &PEGTransformerFactory::FinalizeChangeNullabilityTrampoline,
+    &GeneratedSingleChildTransform::ExecuteChangeNullability, nullptr};
 static const TransformFrameOps DROP_OR_SET_OPS = {"DropOrSet", &PEGTransformerFactory::InitializeDropOrSetTrampoline,
                                                   &PEGTransformerFactory::FinalizeDropOrSetTrampoline,
-                                                  &GeneratedSingleChildTransform::ExecuteDropOrSet};
-static const TransformFrameOps DROP_NULLABILITY_OPS = {
-    "DropNullability", &PEGTransformerFactory::InitializeDropNullabilityTrampoline,
-    &PEGTransformerFactory::FinalizeDropNullabilityTrampoline, &GeneratedSingleChildTransform::ExecuteDropNullability};
-static const TransformFrameOps SET_NULLABILITY_OPS = {
-    "SetNullability", &PEGTransformerFactory::InitializeSetNullabilityTrampoline,
-    &PEGTransformerFactory::FinalizeSetNullabilityTrampoline, &GeneratedSingleChildTransform::ExecuteSetNullability};
+                                                  &GeneratedSingleChildTransform::ExecuteDropOrSet, nullptr};
+static const TransformFrameOps DROP_NULLABILITY_OPS = {"DropNullability",
+                                                       &PEGTransformerFactory::InitializeDropNullabilityTrampoline,
+                                                       &PEGTransformerFactory::FinalizeDropNullabilityTrampoline,
+                                                       &GeneratedSingleChildTransform::ExecuteDropNullability, nullptr};
+static const TransformFrameOps SET_NULLABILITY_OPS = {"SetNullability",
+                                                      &PEGTransformerFactory::InitializeSetNullabilityTrampoline,
+                                                      &PEGTransformerFactory::FinalizeSetNullabilityTrampoline,
+                                                      &GeneratedSingleChildTransform::ExecuteSetNullability, nullptr};
 static const TransformFrameOps ALTER_TYPE_OPS = {"AlterType", &PEGTransformerFactory::InitializeAlterTypeTrampoline,
-                                                 &PEGTransformerFactory::FinalizeAlterTypeTrampoline, nullptr};
-static const TransformFrameOps USING_EXPRESSION_OPS = {
-    "UsingExpression", &PEGTransformerFactory::InitializeUsingExpressionTrampoline,
-    &PEGTransformerFactory::FinalizeUsingExpressionTrampoline, &GeneratedSingleChildTransform::ExecuteUsingExpression};
-static const TransformFrameOps ALTER_VIEW_STMT_OPS = {"AlterViewStmt",
-                                                      &PEGTransformerFactory::InitializeAlterViewStmtTrampoline,
-                                                      &PEGTransformerFactory::FinalizeAlterViewStmtTrampoline, nullptr};
+                                                 &PEGTransformerFactory::FinalizeAlterTypeTrampoline, nullptr, nullptr};
+static const TransformFrameOps USING_EXPRESSION_OPS = {"UsingExpression",
+                                                       &PEGTransformerFactory::InitializeUsingExpressionTrampoline,
+                                                       &PEGTransformerFactory::FinalizeUsingExpressionTrampoline,
+                                                       &GeneratedSingleChildTransform::ExecuteUsingExpression, nullptr};
+static const TransformFrameOps ALTER_VIEW_STMT_OPS = {
+    "AlterViewStmt", &PEGTransformerFactory::InitializeAlterViewStmtTrampoline,
+    &PEGTransformerFactory::FinalizeAlterViewStmtTrampoline, nullptr, nullptr};
 static const TransformFrameOps ALTER_SEQUENCE_STMT_OPS = {
     "AlterSequenceStmt", &PEGTransformerFactory::InitializeAlterSequenceStmtTrampoline,
-    &PEGTransformerFactory::FinalizeAlterSequenceStmtTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeAlterSequenceStmtTrampoline, nullptr, nullptr};
 static const TransformFrameOps QUALIFIED_SEQUENCE_NAME_OPS = {
     "QualifiedSequenceName", &PEGTransformerFactory::InitializeQualifiedSequenceNameTrampoline,
-    &PEGTransformerFactory::FinalizeQualifiedSequenceNameTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeQualifiedSequenceNameTrampoline, nullptr, nullptr};
 static const TransformFrameOps ALTER_SEQUENCE_OPTIONS_OPS = {
     "AlterSequenceOptions", &PEGTransformerFactory::InitializeAlterSequenceOptionsTrampoline,
     &PEGTransformerFactory::FinalizeAlterSequenceOptionsTrampoline,
-    &GeneratedSingleChildTransform::ExecuteAlterSequenceOptions};
+    &GeneratedSingleChildTransform::ExecuteAlterSequenceOptions,
+    &GeneratedSingleChildTransform::ForwardAlterSequenceOptions};
 static const TransformFrameOps RENAME_ALTER_SEQUENCE_OPTIONS_OPS = {
     "RenameAlterSequenceOptions", &PEGTransformerFactory::InitializeRenameAlterSequenceOptionsTrampoline,
     &PEGTransformerFactory::FinalizeRenameAlterSequenceOptionsTrampoline,
-    &GeneratedSingleChildTransform::ExecuteRenameAlterSequenceOptions};
+    &GeneratedSingleChildTransform::ExecuteRenameAlterSequenceOptions, nullptr};
 static const TransformFrameOps SET_SEQUENCE_OPTION_OPS = {
     "SetSequenceOption", &PEGTransformerFactory::InitializeSetSequenceOptionTrampoline,
-    &PEGTransformerFactory::FinalizeSetSequenceOptionTrampoline, nullptr};
-static const TransformFrameOps ALTER_DATABASE_STMT_OPS = {"AlterDatabaseStmt",
-                                                          &PEGTransformerFactory::InitializeAlterDatabaseStmtTrampoline,
-                                                          &PEGTransformerFactory::FinalizeAlterDatabaseStmtTrampoline,
-                                                          &GeneratedSingleChildTransform::ExecuteAlterDatabaseStmt};
+    &PEGTransformerFactory::FinalizeSetSequenceOptionTrampoline, nullptr, nullptr};
+static const TransformFrameOps ALTER_DATABASE_STMT_OPS = {
+    "AlterDatabaseStmt", &PEGTransformerFactory::InitializeAlterDatabaseStmtTrampoline,
+    &PEGTransformerFactory::FinalizeAlterDatabaseStmtTrampoline,
+    &GeneratedSingleChildTransform::ExecuteAlterDatabaseStmt, nullptr};
 static const TransformFrameOps ANALYZE_STATEMENT_OPS = {
     "AnalyzeStatement", &PEGTransformerFactory::InitializeAnalyzeStatementTrampoline,
-    &PEGTransformerFactory::FinalizeAnalyzeStatementTrampoline, nullptr};
-static const TransformFrameOps ANALYZE_TARGET_OPS = {"AnalyzeTarget",
-                                                     &PEGTransformerFactory::InitializeAnalyzeTargetTrampoline,
-                                                     &PEGTransformerFactory::FinalizeAnalyzeTargetTrampoline, nullptr};
-static const TransformFrameOps ANALYZE_VERBOSE_OPS = {
-    "AnalyzeVerbose", &PEGTransformerFactory::InitializeAnalyzeVerboseTrampoline,
-    &PEGTransformerFactory::FinalizeAnalyzeVerboseTrampoline, &GeneratedSingleChildTransform::ExecuteAnalyzeVerbose};
+    &PEGTransformerFactory::FinalizeAnalyzeStatementTrampoline, nullptr, nullptr};
+static const TransformFrameOps ANALYZE_TARGET_OPS = {
+    "AnalyzeTarget", &PEGTransformerFactory::InitializeAnalyzeTargetTrampoline,
+    &PEGTransformerFactory::FinalizeAnalyzeTargetTrampoline, nullptr, nullptr};
+static const TransformFrameOps ANALYZE_VERBOSE_OPS = {"AnalyzeVerbose",
+                                                      &PEGTransformerFactory::InitializeAnalyzeVerboseTrampoline,
+                                                      &PEGTransformerFactory::FinalizeAnalyzeVerboseTrampoline,
+                                                      &GeneratedSingleChildTransform::ExecuteAnalyzeVerbose, nullptr};
 static const TransformFrameOps ATTACH_STATEMENT_OPS = {
     "AttachStatement", &PEGTransformerFactory::InitializeAttachStatementTrampoline,
-    &PEGTransformerFactory::FinalizeAttachStatementTrampoline, nullptr};
-static const TransformFrameOps DATABASE_PATH_OPS = {
-    "DatabasePath", &PEGTransformerFactory::InitializeDatabasePathTrampoline,
-    &PEGTransformerFactory::FinalizeDatabasePathTrampoline, &GeneratedSingleChildTransform::ExecuteDatabasePath};
+    &PEGTransformerFactory::FinalizeAttachStatementTrampoline, nullptr, nullptr};
+static const TransformFrameOps DATABASE_PATH_OPS = {"DatabasePath",
+                                                    &PEGTransformerFactory::InitializeDatabasePathTrampoline,
+                                                    &PEGTransformerFactory::FinalizeDatabasePathTrampoline,
+                                                    &GeneratedSingleChildTransform::ExecuteDatabasePath, nullptr};
 static const TransformFrameOps ATTACH_ALIAS_OPS = {
     "AttachAlias", &PEGTransformerFactory::InitializeAttachAliasTrampoline,
-    &PEGTransformerFactory::FinalizeAttachAliasTrampoline, &GeneratedSingleChildTransform::ExecuteAttachAlias};
-static const TransformFrameOps ATTACH_OPTIONS_OPS = {
-    "AttachOptions", &PEGTransformerFactory::InitializeAttachOptionsTrampoline,
-    &PEGTransformerFactory::FinalizeAttachOptionsTrampoline, &GeneratedSingleChildTransform::ExecuteAttachOptions};
-static const TransformFrameOps CALL_STATEMENT_OPS = {"CallStatement",
-                                                     &PEGTransformerFactory::InitializeCallStatementTrampoline,
-                                                     &PEGTransformerFactory::FinalizeCallStatementTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeAttachAliasTrampoline, &GeneratedSingleChildTransform::ExecuteAttachAlias, nullptr};
+static const TransformFrameOps ATTACH_OPTIONS_OPS = {"AttachOptions",
+                                                     &PEGTransformerFactory::InitializeAttachOptionsTrampoline,
+                                                     &PEGTransformerFactory::FinalizeAttachOptionsTrampoline,
+                                                     &GeneratedSingleChildTransform::ExecuteAttachOptions, nullptr};
+static const TransformFrameOps CALL_STATEMENT_OPS = {
+    "CallStatement", &PEGTransformerFactory::InitializeCallStatementTrampoline,
+    &PEGTransformerFactory::FinalizeCallStatementTrampoline, nullptr, nullptr};
 static const TransformFrameOps CHECKPOINT_STATEMENT_OPS = {
     "CheckpointStatement", &PEGTransformerFactory::InitializeCheckpointStatementTrampoline,
     &PEGTransformerFactory::FinalizeCheckpointStatementTrampoline,
-    &GeneratedSingleChildTransform::ExecuteCheckpointStatement};
-static const TransformFrameOps CHECKPOINT_FORCE_OPS = {
-    "CheckpointForce", &PEGTransformerFactory::InitializeCheckpointForceTrampoline,
-    &PEGTransformerFactory::FinalizeCheckpointForceTrampoline, &GeneratedSingleChildTransform::ExecuteCheckpointForce};
+    &GeneratedSingleChildTransform::ExecuteCheckpointStatement, nullptr};
+static const TransformFrameOps CHECKPOINT_FORCE_OPS = {"CheckpointForce",
+                                                       &PEGTransformerFactory::InitializeCheckpointForceTrampoline,
+                                                       &PEGTransformerFactory::FinalizeCheckpointForceTrampoline,
+                                                       &GeneratedSingleChildTransform::ExecuteCheckpointForce, nullptr};
 static const TransformFrameOps COMMENT_STATEMENT_OPS = {
     "CommentStatement", &PEGTransformerFactory::InitializeCommentStatementTrampoline,
-    &PEGTransformerFactory::FinalizeCommentStatementTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeCommentStatementTrampoline, nullptr, nullptr};
 static const TransformFrameOps COMMENT_TARGET_OPS = {
     "CommentTarget", &PEGTransformerFactory::InitializeCommentTargetTrampoline,
-    &PEGTransformerFactory::FinalizeCommentTargetTrampoline, &GeneratedSingleChildTransform::ExecuteCommentTarget};
+    &PEGTransformerFactory::FinalizeCommentTargetTrampoline, &GeneratedSingleChildTransform::ExecuteCommentTarget,
+    &GeneratedSingleChildTransform::ForwardCommentTarget};
 static const TransformFrameOps COMMENT_STRING_LITERAL_IDENTIFIER_OPS = {
     "CommentStringLiteralIdentifier", &PEGTransformerFactory::InitializeCommentStringLiteralIdentifierTrampoline,
     &PEGTransformerFactory::FinalizeCommentStringLiteralIdentifierTrampoline,
-    &GeneratedSingleChildTransform::ExecuteCommentStringLiteralIdentifier};
+    &GeneratedSingleChildTransform::ExecuteCommentStringLiteralIdentifier, nullptr};
 static const TransformFrameOps COMMENT_ON_TYPE_OPS = {
     "CommentOnType", &PEGTransformerFactory::InitializeCommentOnTypeTrampoline,
-    &PEGTransformerFactory::FinalizeCommentOnTypeTrampoline, &GeneratedSingleChildTransform::ExecuteCommentOnType};
-static const TransformFrameOps COMMENT_TABLE_OPS = {
-    "CommentTable", &PEGTransformerFactory::InitializeCommentTableTrampoline,
-    &PEGTransformerFactory::FinalizeCommentTableTrampoline, &GeneratedSingleChildTransform::ExecuteCommentTable};
-static const TransformFrameOps COMMENT_SEQUENCE_OPS = {
-    "CommentSequence", &PEGTransformerFactory::InitializeCommentSequenceTrampoline,
-    &PEGTransformerFactory::FinalizeCommentSequenceTrampoline, &GeneratedSingleChildTransform::ExecuteCommentSequence};
-static const TransformFrameOps COMMENT_FUNCTION_OPS = {
-    "CommentFunction", &PEGTransformerFactory::InitializeCommentFunctionTrampoline,
-    &PEGTransformerFactory::FinalizeCommentFunctionTrampoline, &GeneratedSingleChildTransform::ExecuteCommentFunction};
-static const TransformFrameOps COMMENT_MACRO_TABLE_OPS = {"CommentMacroTable",
-                                                          &PEGTransformerFactory::InitializeCommentMacroTableTrampoline,
-                                                          &PEGTransformerFactory::FinalizeCommentMacroTableTrampoline,
-                                                          &GeneratedSingleChildTransform::ExecuteCommentMacroTable};
-static const TransformFrameOps COMMENT_MACRO_OPS = {
-    "CommentMacro", &PEGTransformerFactory::InitializeCommentMacroTrampoline,
-    &PEGTransformerFactory::FinalizeCommentMacroTrampoline, &GeneratedSingleChildTransform::ExecuteCommentMacro};
+    &PEGTransformerFactory::FinalizeCommentOnTypeTrampoline, &GeneratedSingleChildTransform::ExecuteCommentOnType,
+    &GeneratedSingleChildTransform::ForwardCommentOnType};
+static const TransformFrameOps COMMENT_TABLE_OPS = {"CommentTable",
+                                                    &PEGTransformerFactory::InitializeCommentTableTrampoline,
+                                                    &PEGTransformerFactory::FinalizeCommentTableTrampoline,
+                                                    &GeneratedSingleChildTransform::ExecuteCommentTable, nullptr};
+static const TransformFrameOps COMMENT_SEQUENCE_OPS = {"CommentSequence",
+                                                       &PEGTransformerFactory::InitializeCommentSequenceTrampoline,
+                                                       &PEGTransformerFactory::FinalizeCommentSequenceTrampoline,
+                                                       &GeneratedSingleChildTransform::ExecuteCommentSequence, nullptr};
+static const TransformFrameOps COMMENT_FUNCTION_OPS = {"CommentFunction",
+                                                       &PEGTransformerFactory::InitializeCommentFunctionTrampoline,
+                                                       &PEGTransformerFactory::FinalizeCommentFunctionTrampoline,
+                                                       &GeneratedSingleChildTransform::ExecuteCommentFunction, nullptr};
+static const TransformFrameOps COMMENT_MACRO_TABLE_OPS = {
+    "CommentMacroTable", &PEGTransformerFactory::InitializeCommentMacroTableTrampoline,
+    &PEGTransformerFactory::FinalizeCommentMacroTableTrampoline,
+    &GeneratedSingleChildTransform::ExecuteCommentMacroTable, nullptr};
+static const TransformFrameOps COMMENT_MACRO_OPS = {"CommentMacro",
+                                                    &PEGTransformerFactory::InitializeCommentMacroTrampoline,
+                                                    &PEGTransformerFactory::FinalizeCommentMacroTrampoline,
+                                                    &GeneratedSingleChildTransform::ExecuteCommentMacro, nullptr};
 static const TransformFrameOps COMMENT_VIEW_OPS = {
     "CommentView", &PEGTransformerFactory::InitializeCommentViewTrampoline,
-    &PEGTransformerFactory::FinalizeCommentViewTrampoline, &GeneratedSingleChildTransform::ExecuteCommentView};
-static const TransformFrameOps COMMENT_DATABASE_OPS = {
-    "CommentDatabase", &PEGTransformerFactory::InitializeCommentDatabaseTrampoline,
-    &PEGTransformerFactory::FinalizeCommentDatabaseTrampoline, &GeneratedSingleChildTransform::ExecuteCommentDatabase};
-static const TransformFrameOps COMMENT_INDEX_OPS = {
-    "CommentIndex", &PEGTransformerFactory::InitializeCommentIndexTrampoline,
-    &PEGTransformerFactory::FinalizeCommentIndexTrampoline, &GeneratedSingleChildTransform::ExecuteCommentIndex};
-static const TransformFrameOps COMMENT_SCHEMA_OPS = {
-    "CommentSchema", &PEGTransformerFactory::InitializeCommentSchemaTrampoline,
-    &PEGTransformerFactory::FinalizeCommentSchemaTrampoline, &GeneratedSingleChildTransform::ExecuteCommentSchema};
+    &PEGTransformerFactory::FinalizeCommentViewTrampoline, &GeneratedSingleChildTransform::ExecuteCommentView, nullptr};
+static const TransformFrameOps COMMENT_DATABASE_OPS = {"CommentDatabase",
+                                                       &PEGTransformerFactory::InitializeCommentDatabaseTrampoline,
+                                                       &PEGTransformerFactory::FinalizeCommentDatabaseTrampoline,
+                                                       &GeneratedSingleChildTransform::ExecuteCommentDatabase, nullptr};
+static const TransformFrameOps COMMENT_INDEX_OPS = {"CommentIndex",
+                                                    &PEGTransformerFactory::InitializeCommentIndexTrampoline,
+                                                    &PEGTransformerFactory::FinalizeCommentIndexTrampoline,
+                                                    &GeneratedSingleChildTransform::ExecuteCommentIndex, nullptr};
+static const TransformFrameOps COMMENT_SCHEMA_OPS = {"CommentSchema",
+                                                     &PEGTransformerFactory::InitializeCommentSchemaTrampoline,
+                                                     &PEGTransformerFactory::FinalizeCommentSchemaTrampoline,
+                                                     &GeneratedSingleChildTransform::ExecuteCommentSchema, nullptr};
 static const TransformFrameOps COMMENT_TYPE_OPS = {
     "CommentType", &PEGTransformerFactory::InitializeCommentTypeTrampoline,
-    &PEGTransformerFactory::FinalizeCommentTypeTrampoline, &GeneratedSingleChildTransform::ExecuteCommentType};
-static const TransformFrameOps COMMENT_COLUMN_OPS = {
-    "CommentColumn", &PEGTransformerFactory::InitializeCommentColumnTrampoline,
-    &PEGTransformerFactory::FinalizeCommentColumnTrampoline, &GeneratedSingleChildTransform::ExecuteCommentColumn};
+    &PEGTransformerFactory::FinalizeCommentTypeTrampoline, &GeneratedSingleChildTransform::ExecuteCommentType, nullptr};
+static const TransformFrameOps COMMENT_COLUMN_OPS = {"CommentColumn",
+                                                     &PEGTransformerFactory::InitializeCommentColumnTrampoline,
+                                                     &PEGTransformerFactory::FinalizeCommentColumnTrampoline,
+                                                     &GeneratedSingleChildTransform::ExecuteCommentColumn, nullptr};
 static const TransformFrameOps COMMENT_VALUE_OPS = {
     "CommentValue", &PEGTransformerFactory::InitializeCommentValueTrampoline,
-    &PEGTransformerFactory::FinalizeCommentValueTrampoline, &GeneratedSingleChildTransform::ExecuteCommentValue};
+    &PEGTransformerFactory::FinalizeCommentValueTrampoline, &GeneratedSingleChildTransform::ExecuteCommentValue,
+    &GeneratedSingleChildTransform::ForwardCommentValue};
 static const TransformFrameOps STRING_LITERAL_VALUE_OPS = {
     "StringLiteralValue", &PEGTransformerFactory::InitializeStringLiteralValueTrampoline,
     &PEGTransformerFactory::FinalizeStringLiteralValueTrampoline,
-    &GeneratedSingleChildTransform::ExecuteStringLiteralValue};
-static const TransformFrameOps ANALYZE_KEYWORD_OPS = {
-    "AnalyzeKeyword", &PEGTransformerFactory::InitializeAnalyzeKeywordTrampoline,
-    &PEGTransformerFactory::FinalizeAnalyzeKeywordTrampoline, &GeneratedSingleChildTransform::ExecuteAnalyzeKeyword};
+    &GeneratedSingleChildTransform::ExecuteStringLiteralValue, nullptr};
+static const TransformFrameOps ANALYZE_KEYWORD_OPS = {"AnalyzeKeyword",
+                                                      &PEGTransformerFactory::InitializeAnalyzeKeywordTrampoline,
+                                                      &PEGTransformerFactory::FinalizeAnalyzeKeywordTrampoline,
+                                                      &GeneratedSingleChildTransform::ExecuteAnalyzeKeyword, nullptr};
 static const TransformFrameOps INDEX_NAME_OPS = {"IndexName", &PEGTransformerFactory::InitializeIndexNameTrampoline,
                                                  &PEGTransformerFactory::FinalizeIndexNameTrampoline,
-                                                 &GeneratedSingleChildTransform::ExecuteIndexName};
-static const TransformFrameOps CONSTRAINT_NAME_OPS = {
-    "ConstraintName", &PEGTransformerFactory::InitializeConstraintNameTrampoline,
-    &PEGTransformerFactory::FinalizeConstraintNameTrampoline, &GeneratedSingleChildTransform::ExecuteConstraintName};
-static const TransformFrameOps SEQUENCE_NAME_OPS = {
-    "SequenceName", &PEGTransformerFactory::InitializeSequenceNameTrampoline,
-    &PEGTransformerFactory::FinalizeSequenceNameTrampoline, &GeneratedSingleChildTransform::ExecuteSequenceName};
-static const TransformFrameOps COLLATION_NAME_OPS = {
-    "CollationName", &PEGTransformerFactory::InitializeCollationNameTrampoline,
-    &PEGTransformerFactory::FinalizeCollationNameTrampoline, &GeneratedSingleChildTransform::ExecuteCollationName};
-static const TransformFrameOps NUMBER_LITERAL_OPS = {
-    "NumberLiteral", &PEGTransformerFactory::InitializeNumberLiteralTrampoline,
-    &PEGTransformerFactory::FinalizeNumberLiteralTrampoline, &GeneratedSingleChildTransform::ExecuteNumberLiteral};
-static const TransformFrameOps STRING_LITERAL_OPS = {
-    "StringLiteral", &PEGTransformerFactory::InitializeStringLiteralTrampoline,
-    &PEGTransformerFactory::FinalizeStringLiteralTrampoline, &GeneratedSingleChildTransform::ExecuteStringLiteral};
+                                                 &GeneratedSingleChildTransform::ExecuteIndexName, nullptr};
+static const TransformFrameOps CONSTRAINT_NAME_OPS = {"ConstraintName",
+                                                      &PEGTransformerFactory::InitializeConstraintNameTrampoline,
+                                                      &PEGTransformerFactory::FinalizeConstraintNameTrampoline,
+                                                      &GeneratedSingleChildTransform::ExecuteConstraintName, nullptr};
+static const TransformFrameOps SEQUENCE_NAME_OPS = {"SequenceName",
+                                                    &PEGTransformerFactory::InitializeSequenceNameTrampoline,
+                                                    &PEGTransformerFactory::FinalizeSequenceNameTrampoline,
+                                                    &GeneratedSingleChildTransform::ExecuteSequenceName, nullptr};
+static const TransformFrameOps COLLATION_NAME_OPS = {"CollationName",
+                                                     &PEGTransformerFactory::InitializeCollationNameTrampoline,
+                                                     &PEGTransformerFactory::FinalizeCollationNameTrampoline,
+                                                     &GeneratedSingleChildTransform::ExecuteCollationName, nullptr};
+static const TransformFrameOps NUMBER_LITERAL_OPS = {"NumberLiteral",
+                                                     &PEGTransformerFactory::InitializeNumberLiteralTrampoline,
+                                                     &PEGTransformerFactory::FinalizeNumberLiteralTrampoline,
+                                                     &GeneratedSingleChildTransform::ExecuteNumberLiteral, nullptr};
+static const TransformFrameOps STRING_LITERAL_OPS = {"StringLiteral",
+                                                     &PEGTransformerFactory::InitializeStringLiteralTrampoline,
+                                                     &PEGTransformerFactory::FinalizeStringLiteralTrampoline,
+                                                     &GeneratedSingleChildTransform::ExecuteStringLiteral, nullptr};
 static const TransformFrameOps TYPE_OPS = {"Type", &PEGTransformerFactory::InitializeTypeTrampoline,
-                                           &PEGTransformerFactory::FinalizeTypeTrampoline, nullptr};
+                                           &PEGTransformerFactory::FinalizeTypeTrampoline, nullptr, nullptr};
 static const TransformFrameOps TYPE_VARIATIONS_OPS = {
     "TypeVariations", &PEGTransformerFactory::InitializeTypeVariationsTrampoline,
-    &PEGTransformerFactory::FinalizeTypeVariationsTrampoline, &GeneratedSingleChildTransform::ExecuteTypeVariations};
+    &PEGTransformerFactory::FinalizeTypeVariationsTrampoline, &GeneratedSingleChildTransform::ExecuteTypeVariations,
+    &GeneratedSingleChildTransform::ForwardTypeVariations};
 static const TransformFrameOps SIMPLE_TYPE_OPS = {"SimpleType", &PEGTransformerFactory::InitializeSimpleTypeTrampoline,
                                                   &PEGTransformerFactory::FinalizeSimpleTypeTrampoline,
-                                                  &GeneratedSingleChildTransform::ExecuteSimpleType};
+                                                  &GeneratedSingleChildTransform::ExecuteSimpleType,
+                                                  &GeneratedSingleChildTransform::ForwardSimpleType};
 static const TransformFrameOps CHARACTER_SIMPLE_TYPE_OPS = {
     "CharacterSimpleType", &PEGTransformerFactory::InitializeCharacterSimpleTypeTrampoline,
     &PEGTransformerFactory::FinalizeCharacterSimpleTypeTrampoline,
-    &GeneratedSingleChildTransform::ExecuteCharacterSimpleType};
+    &GeneratedSingleChildTransform::ExecuteCharacterSimpleType, nullptr};
 static const TransformFrameOps QUALIFIED_SIMPLE_TYPE_OPS = {
     "QualifiedSimpleType", &PEGTransformerFactory::InitializeQualifiedSimpleTypeTrampoline,
-    &PEGTransformerFactory::FinalizeQualifiedSimpleTypeTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeQualifiedSimpleTypeTrampoline, nullptr, nullptr};
 static const TransformFrameOps INTERVAL_TYPE_OPS = {
     "IntervalType", &PEGTransformerFactory::InitializeIntervalTypeTrampoline,
-    &PEGTransformerFactory::FinalizeIntervalTypeTrampoline, &GeneratedSingleChildTransform::ExecuteIntervalType};
-static const TransformFrameOps INTERVAL_INTERVAL_OPS = {"IntervalInterval",
-                                                        &PEGTransformerFactory::InitializeIntervalIntervalTrampoline,
-                                                        &PEGTransformerFactory::FinalizeIntervalIntervalTrampoline,
-                                                        &GeneratedSingleChildTransform::ExecuteIntervalInterval};
+    &PEGTransformerFactory::FinalizeIntervalTypeTrampoline, &GeneratedSingleChildTransform::ExecuteIntervalType,
+    &GeneratedSingleChildTransform::ForwardIntervalType};
+static const TransformFrameOps INTERVAL_INTERVAL_OPS = {
+    "IntervalInterval", &PEGTransformerFactory::InitializeIntervalIntervalTrampoline,
+    &PEGTransformerFactory::FinalizeIntervalIntervalTrampoline, &GeneratedSingleChildTransform::ExecuteIntervalInterval,
+    &GeneratedSingleChildTransform::ForwardIntervalInterval};
 static const TransformFrameOps INTERVAL_WITH_SPECIFIER_OPS = {
     "IntervalWithSpecifier", &PEGTransformerFactory::InitializeIntervalWithSpecifierTrampoline,
     &PEGTransformerFactory::FinalizeIntervalWithSpecifierTrampoline,
-    &GeneratedSingleChildTransform::ExecuteIntervalWithSpecifier};
+    &GeneratedSingleChildTransform::ExecuteIntervalWithSpecifier,
+    &GeneratedSingleChildTransform::ForwardIntervalWithSpecifier};
 static const TransformFrameOps INTERVAL_WITH_RANGE_SPECIFIER_OPS = {
     "IntervalWithRangeSpecifier", &PEGTransformerFactory::InitializeIntervalWithRangeSpecifierTrampoline,
     &PEGTransformerFactory::FinalizeIntervalWithRangeSpecifierTrampoline,
-    &GeneratedSingleChildTransform::ExecuteIntervalWithRangeSpecifier};
+    &GeneratedSingleChildTransform::ExecuteIntervalWithRangeSpecifier, nullptr};
 static const TransformFrameOps INTERVAL_WITH_SIMPLE_SPECIFIER_OPS = {
     "IntervalWithSimpleSpecifier", &PEGTransformerFactory::InitializeIntervalWithSimpleSpecifierTrampoline,
     &PEGTransformerFactory::FinalizeIntervalWithSimpleSpecifierTrampoline,
-    &GeneratedSingleChildTransform::ExecuteIntervalWithSimpleSpecifier};
+    &GeneratedSingleChildTransform::ExecuteIntervalWithSimpleSpecifier, nullptr};
 static const TransformFrameOps INTERVAL_WITHOUT_SPECIFIER_OPS = {
     "IntervalWithoutSpecifier", &PEGTransformerFactory::InitializeIntervalWithoutSpecifierTrampoline,
     &PEGTransformerFactory::FinalizeIntervalWithoutSpecifierTrampoline,
-    &GeneratedSingleChildTransform::ExecuteIntervalWithoutSpecifier};
+    &GeneratedSingleChildTransform::ExecuteIntervalWithoutSpecifier, nullptr};
 static const TransformFrameOps INTERVAL_TO_INTERVAL_AS_TYPE_OPS = {
     "IntervalToIntervalAsType", &PEGTransformerFactory::InitializeIntervalToIntervalAsTypeTrampoline,
     &PEGTransformerFactory::FinalizeIntervalToIntervalAsTypeTrampoline,
-    &GeneratedSingleChildTransform::ExecuteIntervalToIntervalAsType};
+    &GeneratedSingleChildTransform::ExecuteIntervalToIntervalAsType, nullptr};
 static const TransformFrameOps YEAR_KEYWORD_OPS = {
     "YearKeyword", &PEGTransformerFactory::InitializeYearKeywordTrampoline,
-    &PEGTransformerFactory::FinalizeYearKeywordTrampoline, &GeneratedSingleChildTransform::ExecuteYearKeyword};
-static const TransformFrameOps MONTH_KEYWORD_OPS = {
-    "MonthKeyword", &PEGTransformerFactory::InitializeMonthKeywordTrampoline,
-    &PEGTransformerFactory::FinalizeMonthKeywordTrampoline, &GeneratedSingleChildTransform::ExecuteMonthKeyword};
+    &PEGTransformerFactory::FinalizeYearKeywordTrampoline, &GeneratedSingleChildTransform::ExecuteYearKeyword, nullptr};
+static const TransformFrameOps MONTH_KEYWORD_OPS = {"MonthKeyword",
+                                                    &PEGTransformerFactory::InitializeMonthKeywordTrampoline,
+                                                    &PEGTransformerFactory::FinalizeMonthKeywordTrampoline,
+                                                    &GeneratedSingleChildTransform::ExecuteMonthKeyword, nullptr};
 static const TransformFrameOps DAY_KEYWORD_OPS = {"DayKeyword", &PEGTransformerFactory::InitializeDayKeywordTrampoline,
                                                   &PEGTransformerFactory::FinalizeDayKeywordTrampoline,
-                                                  &GeneratedSingleChildTransform::ExecuteDayKeyword};
+                                                  &GeneratedSingleChildTransform::ExecuteDayKeyword, nullptr};
 static const TransformFrameOps HOUR_KEYWORD_OPS = {
     "HourKeyword", &PEGTransformerFactory::InitializeHourKeywordTrampoline,
-    &PEGTransformerFactory::FinalizeHourKeywordTrampoline, &GeneratedSingleChildTransform::ExecuteHourKeyword};
-static const TransformFrameOps MINUTE_KEYWORD_OPS = {
-    "MinuteKeyword", &PEGTransformerFactory::InitializeMinuteKeywordTrampoline,
-    &PEGTransformerFactory::FinalizeMinuteKeywordTrampoline, &GeneratedSingleChildTransform::ExecuteMinuteKeyword};
-static const TransformFrameOps SECOND_KEYWORD_OPS = {
-    "SecondKeyword", &PEGTransformerFactory::InitializeSecondKeywordTrampoline,
-    &PEGTransformerFactory::FinalizeSecondKeywordTrampoline, &GeneratedSingleChildTransform::ExecuteSecondKeyword};
+    &PEGTransformerFactory::FinalizeHourKeywordTrampoline, &GeneratedSingleChildTransform::ExecuteHourKeyword, nullptr};
+static const TransformFrameOps MINUTE_KEYWORD_OPS = {"MinuteKeyword",
+                                                     &PEGTransformerFactory::InitializeMinuteKeywordTrampoline,
+                                                     &PEGTransformerFactory::FinalizeMinuteKeywordTrampoline,
+                                                     &GeneratedSingleChildTransform::ExecuteMinuteKeyword, nullptr};
+static const TransformFrameOps SECOND_KEYWORD_OPS = {"SecondKeyword",
+                                                     &PEGTransformerFactory::InitializeSecondKeywordTrampoline,
+                                                     &PEGTransformerFactory::FinalizeSecondKeywordTrampoline,
+                                                     &GeneratedSingleChildTransform::ExecuteSecondKeyword, nullptr};
 static const TransformFrameOps MILLISECOND_KEYWORD_OPS = {
     "MillisecondKeyword", &PEGTransformerFactory::InitializeMillisecondKeywordTrampoline,
     &PEGTransformerFactory::FinalizeMillisecondKeywordTrampoline,
-    &GeneratedSingleChildTransform::ExecuteMillisecondKeyword};
+    &GeneratedSingleChildTransform::ExecuteMillisecondKeyword, nullptr};
 static const TransformFrameOps MICROSECOND_KEYWORD_OPS = {
     "MicrosecondKeyword", &PEGTransformerFactory::InitializeMicrosecondKeywordTrampoline,
     &PEGTransformerFactory::FinalizeMicrosecondKeywordTrampoline,
-    &GeneratedSingleChildTransform::ExecuteMicrosecondKeyword};
+    &GeneratedSingleChildTransform::ExecuteMicrosecondKeyword, nullptr};
 static const TransformFrameOps WEEK_KEYWORD_OPS = {
     "WeekKeyword", &PEGTransformerFactory::InitializeWeekKeywordTrampoline,
-    &PEGTransformerFactory::FinalizeWeekKeywordTrampoline, &GeneratedSingleChildTransform::ExecuteWeekKeyword};
-static const TransformFrameOps QUARTER_KEYWORD_OPS = {
-    "QuarterKeyword", &PEGTransformerFactory::InitializeQuarterKeywordTrampoline,
-    &PEGTransformerFactory::FinalizeQuarterKeywordTrampoline, &GeneratedSingleChildTransform::ExecuteQuarterKeyword};
-static const TransformFrameOps DECADE_KEYWORD_OPS = {
-    "DecadeKeyword", &PEGTransformerFactory::InitializeDecadeKeywordTrampoline,
-    &PEGTransformerFactory::FinalizeDecadeKeywordTrampoline, &GeneratedSingleChildTransform::ExecuteDecadeKeyword};
-static const TransformFrameOps CENTURY_KEYWORD_OPS = {
-    "CenturyKeyword", &PEGTransformerFactory::InitializeCenturyKeywordTrampoline,
-    &PEGTransformerFactory::FinalizeCenturyKeywordTrampoline, &GeneratedSingleChildTransform::ExecuteCenturyKeyword};
-static const TransformFrameOps MILLENNIUM_KEYWORD_OPS = {"MillenniumKeyword",
-                                                         &PEGTransformerFactory::InitializeMillenniumKeywordTrampoline,
-                                                         &PEGTransformerFactory::FinalizeMillenniumKeywordTrampoline,
-                                                         &GeneratedSingleChildTransform::ExecuteMillenniumKeyword};
+    &PEGTransformerFactory::FinalizeWeekKeywordTrampoline, &GeneratedSingleChildTransform::ExecuteWeekKeyword, nullptr};
+static const TransformFrameOps QUARTER_KEYWORD_OPS = {"QuarterKeyword",
+                                                      &PEGTransformerFactory::InitializeQuarterKeywordTrampoline,
+                                                      &PEGTransformerFactory::FinalizeQuarterKeywordTrampoline,
+                                                      &GeneratedSingleChildTransform::ExecuteQuarterKeyword, nullptr};
+static const TransformFrameOps DECADE_KEYWORD_OPS = {"DecadeKeyword",
+                                                     &PEGTransformerFactory::InitializeDecadeKeywordTrampoline,
+                                                     &PEGTransformerFactory::FinalizeDecadeKeywordTrampoline,
+                                                     &GeneratedSingleChildTransform::ExecuteDecadeKeyword, nullptr};
+static const TransformFrameOps CENTURY_KEYWORD_OPS = {"CenturyKeyword",
+                                                      &PEGTransformerFactory::InitializeCenturyKeywordTrampoline,
+                                                      &PEGTransformerFactory::FinalizeCenturyKeywordTrampoline,
+                                                      &GeneratedSingleChildTransform::ExecuteCenturyKeyword, nullptr};
+static const TransformFrameOps MILLENNIUM_KEYWORD_OPS = {
+    "MillenniumKeyword", &PEGTransformerFactory::InitializeMillenniumKeywordTrampoline,
+    &PEGTransformerFactory::FinalizeMillenniumKeywordTrampoline,
+    &GeneratedSingleChildTransform::ExecuteMillenniumKeyword, nullptr};
 static const TransformFrameOps INTERVAL_OPS = {"Interval", &PEGTransformerFactory::InitializeIntervalTrampoline,
                                                &PEGTransformerFactory::FinalizeIntervalTrampoline,
-                                               &GeneratedSingleChildTransform::ExecuteInterval};
+                                               &GeneratedSingleChildTransform::ExecuteInterval,
+                                               &GeneratedSingleChildTransform::ForwardInterval};
 static const TransformFrameOps INTERVAL_TO_INTERVAL_OPS = {
     "IntervalToInterval", &PEGTransformerFactory::InitializeIntervalToIntervalTrampoline,
     &PEGTransformerFactory::FinalizeIntervalToIntervalTrampoline,
-    &GeneratedSingleChildTransform::ExecuteIntervalToInterval};
-static const TransformFrameOps YEAR_TO_MONTH_OPS = {"YearToMonth",
-                                                    &PEGTransformerFactory::InitializeYearToMonthTrampoline,
-                                                    &PEGTransformerFactory::FinalizeYearToMonthTrampoline, nullptr};
+    &GeneratedSingleChildTransform::ExecuteIntervalToInterval,
+    &GeneratedSingleChildTransform::ForwardIntervalToInterval};
+static const TransformFrameOps YEAR_TO_MONTH_OPS = {
+    "YearToMonth", &PEGTransformerFactory::InitializeYearToMonthTrampoline,
+    &PEGTransformerFactory::FinalizeYearToMonthTrampoline, nullptr, nullptr};
 static const TransformFrameOps DAY_TO_HOUR_OPS = {"DayToHour", &PEGTransformerFactory::InitializeDayToHourTrampoline,
-                                                  &PEGTransformerFactory::FinalizeDayToHourTrampoline, nullptr};
-static const TransformFrameOps DAY_TO_MINUTE_OPS = {"DayToMinute",
-                                                    &PEGTransformerFactory::InitializeDayToMinuteTrampoline,
-                                                    &PEGTransformerFactory::FinalizeDayToMinuteTrampoline, nullptr};
-static const TransformFrameOps DAY_TO_SECOND_OPS = {"DayToSecond",
-                                                    &PEGTransformerFactory::InitializeDayToSecondTrampoline,
-                                                    &PEGTransformerFactory::FinalizeDayToSecondTrampoline, nullptr};
-static const TransformFrameOps HOUR_TO_MINUTE_OPS = {"HourToMinute",
-                                                     &PEGTransformerFactory::InitializeHourToMinuteTrampoline,
-                                                     &PEGTransformerFactory::FinalizeHourToMinuteTrampoline, nullptr};
-static const TransformFrameOps HOUR_TO_SECOND_OPS = {"HourToSecond",
-                                                     &PEGTransformerFactory::InitializeHourToSecondTrampoline,
-                                                     &PEGTransformerFactory::FinalizeHourToSecondTrampoline, nullptr};
+                                                  &PEGTransformerFactory::FinalizeDayToHourTrampoline, nullptr,
+                                                  nullptr};
+static const TransformFrameOps DAY_TO_MINUTE_OPS = {
+    "DayToMinute", &PEGTransformerFactory::InitializeDayToMinuteTrampoline,
+    &PEGTransformerFactory::FinalizeDayToMinuteTrampoline, nullptr, nullptr};
+static const TransformFrameOps DAY_TO_SECOND_OPS = {
+    "DayToSecond", &PEGTransformerFactory::InitializeDayToSecondTrampoline,
+    &PEGTransformerFactory::FinalizeDayToSecondTrampoline, nullptr, nullptr};
+static const TransformFrameOps HOUR_TO_MINUTE_OPS = {
+    "HourToMinute", &PEGTransformerFactory::InitializeHourToMinuteTrampoline,
+    &PEGTransformerFactory::FinalizeHourToMinuteTrampoline, nullptr, nullptr};
+static const TransformFrameOps HOUR_TO_SECOND_OPS = {
+    "HourToSecond", &PEGTransformerFactory::InitializeHourToSecondTrampoline,
+    &PEGTransformerFactory::FinalizeHourToSecondTrampoline, nullptr, nullptr};
 static const TransformFrameOps MINUTE_TO_SECOND_OPS = {
     "MinuteToSecond", &PEGTransformerFactory::InitializeMinuteToSecondTrampoline,
-    &PEGTransformerFactory::FinalizeMinuteToSecondTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeMinuteToSecondTrampoline, nullptr, nullptr};
 static const TransformFrameOps BIT_TYPE_OPS = {"BitType", &PEGTransformerFactory::InitializeBitTypeTrampoline,
-                                               &PEGTransformerFactory::FinalizeBitTypeTrampoline, nullptr};
-static const TransformFrameOps GEOMETRY_TYPE_OPS = {
-    "GeometryType", &PEGTransformerFactory::InitializeGeometryTypeTrampoline,
-    &PEGTransformerFactory::FinalizeGeometryTypeTrampoline, &GeneratedSingleChildTransform::ExecuteGeometryType};
+                                               &PEGTransformerFactory::FinalizeBitTypeTrampoline, nullptr, nullptr};
+static const TransformFrameOps GEOMETRY_TYPE_OPS = {"GeometryType",
+                                                    &PEGTransformerFactory::InitializeGeometryTypeTrampoline,
+                                                    &PEGTransformerFactory::FinalizeGeometryTypeTrampoline,
+                                                    &GeneratedSingleChildTransform::ExecuteGeometryType, nullptr};
 static const TransformFrameOps VARIANT_TYPE_OPS = {
     "VariantType", &PEGTransformerFactory::InitializeVariantTypeTrampoline,
-    &PEGTransformerFactory::FinalizeVariantTypeTrampoline, &GeneratedSingleChildTransform::ExecuteVariantType};
+    &PEGTransformerFactory::FinalizeVariantTypeTrampoline, &GeneratedSingleChildTransform::ExecuteVariantType, nullptr};
 static const TransformFrameOps NUMERIC_TYPE_OPS = {
     "NumericType", &PEGTransformerFactory::InitializeNumericTypeTrampoline,
-    &PEGTransformerFactory::FinalizeNumericTypeTrampoline, &GeneratedSingleChildTransform::ExecuteNumericType};
-static const TransformFrameOps SIMPLE_NUMERIC_TYPE_OPS = {"SimpleNumericType",
-                                                          &PEGTransformerFactory::InitializeSimpleNumericTypeTrampoline,
-                                                          &PEGTransformerFactory::FinalizeSimpleNumericTypeTrampoline,
-                                                          &GeneratedSingleChildTransform::ExecuteSimpleNumericType};
+    &PEGTransformerFactory::FinalizeNumericTypeTrampoline, &GeneratedSingleChildTransform::ExecuteNumericType,
+    &GeneratedSingleChildTransform::ForwardNumericType};
+static const TransformFrameOps SIMPLE_NUMERIC_TYPE_OPS = {
+    "SimpleNumericType", &PEGTransformerFactory::InitializeSimpleNumericTypeTrampoline,
+    &PEGTransformerFactory::FinalizeSimpleNumericTypeTrampoline,
+    &GeneratedSingleChildTransform::ExecuteSimpleNumericType, nullptr};
 static const TransformFrameOps DECIMAL_NUMERIC_TYPE_OPS = {
     "DecimalNumericType", &PEGTransformerFactory::InitializeDecimalNumericTypeTrampoline,
     &PEGTransformerFactory::FinalizeDecimalNumericTypeTrampoline,
-    &GeneratedSingleChildTransform::ExecuteDecimalNumericType};
+    &GeneratedSingleChildTransform::ExecuteDecimalNumericType,
+    &GeneratedSingleChildTransform::ForwardDecimalNumericType};
 static const TransformFrameOps INT_TYPE_OPS = {"IntType", &PEGTransformerFactory::InitializeIntTypeTrampoline,
                                                &PEGTransformerFactory::FinalizeIntTypeTrampoline,
-                                               &GeneratedSingleChildTransform::ExecuteIntType};
+                                               &GeneratedSingleChildTransform::ExecuteIntType, nullptr};
 static const TransformFrameOps INTEGER_TYPE_OPS = {
     "IntegerType", &PEGTransformerFactory::InitializeIntegerTypeTrampoline,
-    &PEGTransformerFactory::FinalizeIntegerTypeTrampoline, &GeneratedSingleChildTransform::ExecuteIntegerType};
-static const TransformFrameOps SMALLINT_TYPE_OPS = {
-    "SmallintType", &PEGTransformerFactory::InitializeSmallintTypeTrampoline,
-    &PEGTransformerFactory::FinalizeSmallintTypeTrampoline, &GeneratedSingleChildTransform::ExecuteSmallintType};
+    &PEGTransformerFactory::FinalizeIntegerTypeTrampoline, &GeneratedSingleChildTransform::ExecuteIntegerType, nullptr};
+static const TransformFrameOps SMALLINT_TYPE_OPS = {"SmallintType",
+                                                    &PEGTransformerFactory::InitializeSmallintTypeTrampoline,
+                                                    &PEGTransformerFactory::FinalizeSmallintTypeTrampoline,
+                                                    &GeneratedSingleChildTransform::ExecuteSmallintType, nullptr};
 static const TransformFrameOps BIGINT_TYPE_OPS = {"BigintType", &PEGTransformerFactory::InitializeBigintTypeTrampoline,
                                                   &PEGTransformerFactory::FinalizeBigintTypeTrampoline,
-                                                  &GeneratedSingleChildTransform::ExecuteBigintType};
+                                                  &GeneratedSingleChildTransform::ExecuteBigintType, nullptr};
 static const TransformFrameOps REAL_TYPE_OPS = {"RealType", &PEGTransformerFactory::InitializeRealTypeTrampoline,
                                                 &PEGTransformerFactory::FinalizeRealTypeTrampoline,
-                                                &GeneratedSingleChildTransform::ExecuteRealType};
+                                                &GeneratedSingleChildTransform::ExecuteRealType, nullptr};
 static const TransformFrameOps BOOLEAN_TYPE_OPS = {
     "BooleanType", &PEGTransformerFactory::InitializeBooleanTypeTrampoline,
-    &PEGTransformerFactory::FinalizeBooleanTypeTrampoline, &GeneratedSingleChildTransform::ExecuteBooleanType};
+    &PEGTransformerFactory::FinalizeBooleanTypeTrampoline, &GeneratedSingleChildTransform::ExecuteBooleanType, nullptr};
 static const TransformFrameOps DOUBLE_TYPE_OPS = {"DoubleType", &PEGTransformerFactory::InitializeDoubleTypeTrampoline,
                                                   &PEGTransformerFactory::FinalizeDoubleTypeTrampoline,
-                                                  &GeneratedSingleChildTransform::ExecuteDoubleType};
+                                                  &GeneratedSingleChildTransform::ExecuteDoubleType, nullptr};
 static const TransformFrameOps FLOAT_TYPE_OPS = {"FloatType", &PEGTransformerFactory::InitializeFloatTypeTrampoline,
                                                  &PEGTransformerFactory::FinalizeFloatTypeTrampoline,
-                                                 &GeneratedSingleChildTransform::ExecuteFloatType};
+                                                 &GeneratedSingleChildTransform::ExecuteFloatType, nullptr};
 static const TransformFrameOps DECIMAL_TYPE_OPS = {
     "DecimalType", &PEGTransformerFactory::InitializeDecimalTypeTrampoline,
-    &PEGTransformerFactory::FinalizeDecimalTypeTrampoline, &GeneratedSingleChildTransform::ExecuteDecimalType};
+    &PEGTransformerFactory::FinalizeDecimalTypeTrampoline, &GeneratedSingleChildTransform::ExecuteDecimalType, nullptr};
 static const TransformFrameOps DEC_TYPE_OPS = {"DecType", &PEGTransformerFactory::InitializeDecTypeTrampoline,
                                                &PEGTransformerFactory::FinalizeDecTypeTrampoline,
-                                               &GeneratedSingleChildTransform::ExecuteDecType};
-static const TransformFrameOps NUMERIC_MOD_TYPE_OPS = {
-    "NumericModType", &PEGTransformerFactory::InitializeNumericModTypeTrampoline,
-    &PEGTransformerFactory::FinalizeNumericModTypeTrampoline, &GeneratedSingleChildTransform::ExecuteNumericModType};
-static const TransformFrameOps QUALIFIED_TYPE_NAME_OPS = {"QualifiedTypeName",
-                                                          &PEGTransformerFactory::InitializeQualifiedTypeNameTrampoline,
-                                                          &PEGTransformerFactory::FinalizeQualifiedTypeNameTrampoline,
-                                                          &GeneratedSingleChildTransform::ExecuteQualifiedTypeName};
+                                               &GeneratedSingleChildTransform::ExecuteDecType, nullptr};
+static const TransformFrameOps NUMERIC_MOD_TYPE_OPS = {"NumericModType",
+                                                       &PEGTransformerFactory::InitializeNumericModTypeTrampoline,
+                                                       &PEGTransformerFactory::FinalizeNumericModTypeTrampoline,
+                                                       &GeneratedSingleChildTransform::ExecuteNumericModType, nullptr};
+static const TransformFrameOps QUALIFIED_TYPE_NAME_OPS = {
+    "QualifiedTypeName", &PEGTransformerFactory::InitializeQualifiedTypeNameTrampoline,
+    &PEGTransformerFactory::FinalizeQualifiedTypeNameTrampoline,
+    &GeneratedSingleChildTransform::ExecuteQualifiedTypeName, &GeneratedSingleChildTransform::ForwardQualifiedTypeName};
 static const TransformFrameOps TYPE_NAME_AS_QUALIFIED_NAME_OPS = {
     "TypeNameAsQualifiedName", &PEGTransformerFactory::InitializeTypeNameAsQualifiedNameTrampoline,
     &PEGTransformerFactory::FinalizeTypeNameAsQualifiedNameTrampoline,
-    &GeneratedSingleChildTransform::ExecuteTypeNameAsQualifiedName};
+    &GeneratedSingleChildTransform::ExecuteTypeNameAsQualifiedName, nullptr};
 static const TransformFrameOps CATALOG_RESERVED_SCHEMA_TYPE_NAME_OPS = {
     "CatalogReservedSchemaTypeName", &PEGTransformerFactory::InitializeCatalogReservedSchemaTypeNameTrampoline,
-    &PEGTransformerFactory::FinalizeCatalogReservedSchemaTypeNameTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeCatalogReservedSchemaTypeNameTrampoline, nullptr, nullptr};
 static const TransformFrameOps SCHEMA_RESERVED_TYPE_NAME_OPS = {
     "SchemaReservedTypeName", &PEGTransformerFactory::InitializeSchemaReservedTypeNameTrampoline,
     &PEGTransformerFactory::FinalizeSchemaReservedTypeNameTrampoline,
-    &GeneratedSingleChildTransform::ExecuteSchemaReservedTypeName};
-static const TransformFrameOps TYPE_MODIFIERS_OPS = {"TypeModifiers",
-                                                     &PEGTransformerFactory::InitializeTypeModifiersTrampoline,
-                                                     &PEGTransformerFactory::FinalizeTypeModifiersTrampoline, nullptr};
+    &GeneratedSingleChildTransform::ExecuteSchemaReservedTypeName, nullptr};
+static const TransformFrameOps TYPE_MODIFIERS_OPS = {
+    "TypeModifiers", &PEGTransformerFactory::InitializeTypeModifiersTrampoline,
+    &PEGTransformerFactory::FinalizeTypeModifiersTrampoline, nullptr, nullptr};
 static const TransformFrameOps NESTED_TYPE_OPS = {"NestedType", &PEGTransformerFactory::InitializeNestedTypeTrampoline,
-                                                  &PEGTransformerFactory::FinalizeNestedTypeTrampoline, nullptr};
+                                                  &PEGTransformerFactory::FinalizeNestedTypeTrampoline, nullptr,
+                                                  nullptr};
 static const TransformFrameOps ROW_TYPE_OPS = {"RowType", &PEGTransformerFactory::InitializeRowTypeTrampoline,
                                                &PEGTransformerFactory::FinalizeRowTypeTrampoline,
-                                               &GeneratedSingleChildTransform::ExecuteRowType};
+                                               &GeneratedSingleChildTransform::ExecuteRowType, nullptr};
 static const TransformFrameOps SETOF_TYPE_OPS = {"SetofType", &PEGTransformerFactory::InitializeSetofTypeTrampoline,
                                                  &PEGTransformerFactory::FinalizeSetofTypeTrampoline,
-                                                 &GeneratedSingleChildTransform::ExecuteSetofType};
+                                                 &GeneratedSingleChildTransform::ExecuteSetofType, nullptr};
 static const TransformFrameOps UNION_TYPE_OPS = {"UnionType", &PEGTransformerFactory::InitializeUnionTypeTrampoline,
                                                  &PEGTransformerFactory::FinalizeUnionTypeTrampoline,
-                                                 &GeneratedSingleChildTransform::ExecuteUnionType};
+                                                 &GeneratedSingleChildTransform::ExecuteUnionType, nullptr};
 static const TransformFrameOps COL_ID_TYPE_LIST_OPS = {
     "ColIdTypeList", &PEGTransformerFactory::InitializeColIdTypeListTrampoline,
-    &PEGTransformerFactory::FinalizeColIdTypeListTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeColIdTypeListTrampoline, nullptr, nullptr};
 static const TransformFrameOps MAP_TYPE_OPS = {"MapType", &PEGTransformerFactory::InitializeMapTypeTrampoline,
-                                               &PEGTransformerFactory::FinalizeMapTypeTrampoline, nullptr};
+                                               &PEGTransformerFactory::FinalizeMapTypeTrampoline, nullptr, nullptr};
 static const TransformFrameOps TUPLE_TYPE_OPS = {"TupleType", &PEGTransformerFactory::InitializeTupleTypeTrampoline,
-                                                 &PEGTransformerFactory::FinalizeTupleTypeTrampoline, nullptr};
+                                                 &PEGTransformerFactory::FinalizeTupleTypeTrampoline, nullptr, nullptr};
 static const TransformFrameOps COL_ID_TYPE_OPS = {"ColIdType", &PEGTransformerFactory::InitializeColIdTypeTrampoline,
-                                                  &PEGTransformerFactory::FinalizeColIdTypeTrampoline, nullptr};
+                                                  &PEGTransformerFactory::FinalizeColIdTypeTrampoline, nullptr,
+                                                  nullptr};
 static const TransformFrameOps ARRAY_BOUNDS_OPS = {
     "ArrayBounds", &PEGTransformerFactory::InitializeArrayBoundsTrampoline,
-    &PEGTransformerFactory::FinalizeArrayBoundsTrampoline, &GeneratedSingleChildTransform::ExecuteArrayBounds};
-static const TransformFrameOps ARRAY_KEYWORD_OPS = {
-    "ArrayKeyword", &PEGTransformerFactory::InitializeArrayKeywordTrampoline,
-    &PEGTransformerFactory::FinalizeArrayKeywordTrampoline, &GeneratedSingleChildTransform::ExecuteArrayKeyword};
+    &PEGTransformerFactory::FinalizeArrayBoundsTrampoline, &GeneratedSingleChildTransform::ExecuteArrayBounds,
+    &GeneratedSingleChildTransform::ForwardArrayBounds};
+static const TransformFrameOps ARRAY_KEYWORD_OPS = {"ArrayKeyword",
+                                                    &PEGTransformerFactory::InitializeArrayKeywordTrampoline,
+                                                    &PEGTransformerFactory::FinalizeArrayKeywordTrampoline,
+                                                    &GeneratedSingleChildTransform::ExecuteArrayKeyword, nullptr};
 static const TransformFrameOps ARRAY_KEYWORD_WITH_BOUNDS_OPS = {
     "ArrayKeywordWithBounds", &PEGTransformerFactory::InitializeArrayKeywordWithBoundsTrampoline,
     &PEGTransformerFactory::FinalizeArrayKeywordWithBoundsTrampoline,
-    &GeneratedSingleChildTransform::ExecuteArrayKeywordWithBounds};
+    &GeneratedSingleChildTransform::ExecuteArrayKeywordWithBounds, nullptr};
 static const TransformFrameOps SQUARE_BRACKETS_ARRAY_OPS = {
     "SquareBracketsArray", &PEGTransformerFactory::InitializeSquareBracketsArrayTrampoline,
     &PEGTransformerFactory::FinalizeSquareBracketsArrayTrampoline,
-    &GeneratedSingleChildTransform::ExecuteSquareBracketsArray};
+    &GeneratedSingleChildTransform::ExecuteSquareBracketsArray, nullptr};
 static const TransformFrameOps TIME_TYPE_OPS = {"TimeType", &PEGTransformerFactory::InitializeTimeTypeTrampoline,
-                                                &PEGTransformerFactory::FinalizeTimeTypeTrampoline, nullptr};
+                                                &PEGTransformerFactory::FinalizeTimeTypeTrampoline, nullptr, nullptr};
 static const TransformFrameOps TIME_OR_TIMESTAMP_OPS = {
     "TimeOrTimestamp", &PEGTransformerFactory::InitializeTimeOrTimestampTrampoline,
-    &PEGTransformerFactory::FinalizeTimeOrTimestampTrampoline, &GeneratedSingleChildTransform::ExecuteTimeOrTimestamp};
+    &PEGTransformerFactory::FinalizeTimeOrTimestampTrampoline, &GeneratedSingleChildTransform::ExecuteTimeOrTimestamp,
+    &GeneratedSingleChildTransform::ForwardTimeOrTimestamp};
 static const TransformFrameOps TIME_TYPE_ID_OPS = {"TimeTypeId", &PEGTransformerFactory::InitializeTimeTypeIdTrampoline,
                                                    &PEGTransformerFactory::FinalizeTimeTypeIdTrampoline,
-                                                   &GeneratedSingleChildTransform::ExecuteTimeTypeId};
+                                                   &GeneratedSingleChildTransform::ExecuteTimeTypeId, nullptr};
 static const TransformFrameOps TIMESTAMP_TYPE_ID_OPS = {
     "TimestampTypeId", &PEGTransformerFactory::InitializeTimestampTypeIdTrampoline,
-    &PEGTransformerFactory::FinalizeTimestampTypeIdTrampoline, &GeneratedSingleChildTransform::ExecuteTimestampTypeId};
+    &PEGTransformerFactory::FinalizeTimestampTypeIdTrampoline, &GeneratedSingleChildTransform::ExecuteTimestampTypeId,
+    nullptr};
 static const TransformFrameOps TIME_ZONE_OPS = {"TimeZone", &PEGTransformerFactory::InitializeTimeZoneTrampoline,
                                                 &PEGTransformerFactory::FinalizeTimeZoneTrampoline,
-                                                &GeneratedSingleChildTransform::ExecuteTimeZone};
+                                                &GeneratedSingleChildTransform::ExecuteTimeZone, nullptr};
 static const TransformFrameOps WITH_OR_WITHOUT_OPS = {
     "WithOrWithout", &PEGTransformerFactory::InitializeWithOrWithoutTrampoline,
-    &PEGTransformerFactory::FinalizeWithOrWithoutTrampoline, &GeneratedSingleChildTransform::ExecuteWithOrWithout};
+    &PEGTransformerFactory::FinalizeWithOrWithoutTrampoline, &GeneratedSingleChildTransform::ExecuteWithOrWithout,
+    &GeneratedSingleChildTransform::ForwardWithOrWithout};
 static const TransformFrameOps WITH_RULE_OPS = {"WithRule", &PEGTransformerFactory::InitializeWithRuleTrampoline,
                                                 &PEGTransformerFactory::FinalizeWithRuleTrampoline,
-                                                &GeneratedSingleChildTransform::ExecuteWithRule};
+                                                &GeneratedSingleChildTransform::ExecuteWithRule, nullptr};
 static const TransformFrameOps WITHOUT_RULE_OPS = {
     "WithoutRule", &PEGTransformerFactory::InitializeWithoutRuleTrampoline,
-    &PEGTransformerFactory::FinalizeWithoutRuleTrampoline, &GeneratedSingleChildTransform::ExecuteWithoutRule};
-static const TransformFrameOps CONNECT_STATEMENT_OPS = {"ConnectStatement",
-                                                        &PEGTransformerFactory::InitializeConnectStatementTrampoline,
-                                                        &PEGTransformerFactory::FinalizeConnectStatementTrampoline,
-                                                        &GeneratedSingleChildTransform::ExecuteConnectStatement};
+    &PEGTransformerFactory::FinalizeWithoutRuleTrampoline, &GeneratedSingleChildTransform::ExecuteWithoutRule, nullptr};
+static const TransformFrameOps CONNECT_STATEMENT_OPS = {
+    "ConnectStatement", &PEGTransformerFactory::InitializeConnectStatementTrampoline,
+    &PEGTransformerFactory::FinalizeConnectStatementTrampoline, &GeneratedSingleChildTransform::ExecuteConnectStatement,
+    nullptr};
 static const TransformFrameOps DISCONNECT_STATEMENT_OPS = {
     "DisconnectStatement", &PEGTransformerFactory::InitializeDisconnectStatementTrampoline,
     &PEGTransformerFactory::FinalizeDisconnectStatementTrampoline,
-    &GeneratedSingleChildTransform::ExecuteDisconnectStatement};
+    &GeneratedSingleChildTransform::ExecuteDisconnectStatement, nullptr};
 static const TransformFrameOps SESSION_TARGET_OPS = {
     "SessionTarget", &PEGTransformerFactory::InitializeSessionTargetTrampoline,
-    &PEGTransformerFactory::FinalizeSessionTargetTrampoline, &GeneratedSingleChildTransform::ExecuteSessionTarget};
+    &PEGTransformerFactory::FinalizeSessionTargetTrampoline, &GeneratedSingleChildTransform::ExecuteSessionTarget,
+    &GeneratedSingleChildTransform::ForwardSessionTarget};
 static const TransformFrameOps LOCAL_SESSION_TARGET_OPS = {
     "LocalSessionTarget", &PEGTransformerFactory::InitializeLocalSessionTargetTrampoline,
     &PEGTransformerFactory::FinalizeLocalSessionTargetTrampoline,
-    &GeneratedSingleChildTransform::ExecuteLocalSessionTarget};
+    &GeneratedSingleChildTransform::ExecuteLocalSessionTarget, nullptr};
 static const TransformFrameOps STRING_SESSION_TARGET_OPS = {
     "StringSessionTarget", &PEGTransformerFactory::InitializeStringSessionTargetTrampoline,
     &PEGTransformerFactory::FinalizeStringSessionTargetTrampoline,
-    &GeneratedSingleChildTransform::ExecuteStringSessionTarget};
+    &GeneratedSingleChildTransform::ExecuteStringSessionTarget, nullptr};
 static const TransformFrameOps CATALOG_SESSION_TARGET_OPS = {
     "CatalogSessionTarget", &PEGTransformerFactory::InitializeCatalogSessionTargetTrampoline,
     &PEGTransformerFactory::FinalizeCatalogSessionTargetTrampoline,
-    &GeneratedSingleChildTransform::ExecuteCatalogSessionTarget};
-static const TransformFrameOps COPY_STATEMENT_OPS = {
-    "CopyStatement", &PEGTransformerFactory::InitializeCopyStatementTrampoline,
-    &PEGTransformerFactory::FinalizeCopyStatementTrampoline, &GeneratedSingleChildTransform::ExecuteCopyStatement};
+    &GeneratedSingleChildTransform::ExecuteCatalogSessionTarget, nullptr};
+static const TransformFrameOps COPY_STATEMENT_OPS = {"CopyStatement",
+                                                     &PEGTransformerFactory::InitializeCopyStatementTrampoline,
+                                                     &PEGTransformerFactory::FinalizeCopyStatementTrampoline,
+                                                     &GeneratedSingleChildTransform::ExecuteCopyStatement, nullptr};
 static const TransformFrameOps COPY_VARIATIONS_OPS = {
     "CopyVariations", &PEGTransformerFactory::InitializeCopyVariationsTrampoline,
-    &PEGTransformerFactory::FinalizeCopyVariationsTrampoline, &GeneratedSingleChildTransform::ExecuteCopyVariations};
+    &PEGTransformerFactory::FinalizeCopyVariationsTrampoline, &GeneratedSingleChildTransform::ExecuteCopyVariations,
+    &GeneratedSingleChildTransform::ForwardCopyVariations};
 static const TransformFrameOps COPY_TABLE_OPS = {"CopyTable", &PEGTransformerFactory::InitializeCopyTableTrampoline,
-                                                 &PEGTransformerFactory::FinalizeCopyTableTrampoline, nullptr};
+                                                 &PEGTransformerFactory::FinalizeCopyTableTrampoline, nullptr, nullptr};
 static const TransformFrameOps FROM_OR_TO_OPS = {"FromOrTo", &PEGTransformerFactory::InitializeFromOrToTrampoline,
                                                  &PEGTransformerFactory::FinalizeFromOrToTrampoline,
-                                                 &GeneratedSingleChildTransform::ExecuteFromOrTo};
+                                                 &GeneratedSingleChildTransform::ExecuteFromOrTo,
+                                                 &GeneratedSingleChildTransform::ForwardFromOrTo};
 static const TransformFrameOps COPY_FROM_OPS = {"CopyFrom", &PEGTransformerFactory::InitializeCopyFromTrampoline,
                                                 &PEGTransformerFactory::FinalizeCopyFromTrampoline,
-                                                &GeneratedSingleChildTransform::ExecuteCopyFrom};
+                                                &GeneratedSingleChildTransform::ExecuteCopyFrom, nullptr};
 static const TransformFrameOps COPY_TO_OPS = {"CopyTo", &PEGTransformerFactory::InitializeCopyToTrampoline,
                                               &PEGTransformerFactory::FinalizeCopyToTrampoline,
-                                              &GeneratedSingleChildTransform::ExecuteCopyTo};
+                                              &GeneratedSingleChildTransform::ExecuteCopyTo, nullptr};
 static const TransformFrameOps COPY_SELECT_OPS = {"CopySelect", &PEGTransformerFactory::InitializeCopySelectTrampoline,
-                                                  &PEGTransformerFactory::FinalizeCopySelectTrampoline, nullptr};
+                                                  &PEGTransformerFactory::FinalizeCopySelectTrampoline, nullptr,
+                                                  nullptr};
 static const TransformFrameOps COPY_FILE_NAME_OPS = {
     "CopyFileName", &PEGTransformerFactory::InitializeCopyFileNameTrampoline,
-    &PEGTransformerFactory::FinalizeCopyFileNameTrampoline, &GeneratedSingleChildTransform::ExecuteCopyFileName};
+    &PEGTransformerFactory::FinalizeCopyFileNameTrampoline, &GeneratedSingleChildTransform::ExecuteCopyFileName,
+    &GeneratedSingleChildTransform::ForwardCopyFileName};
 static const TransformFrameOps COPY_FILE_NAME_EXPRESSION_OPS = {
     "CopyFileNameExpression", &PEGTransformerFactory::InitializeCopyFileNameExpressionTrampoline,
     &PEGTransformerFactory::FinalizeCopyFileNameExpressionTrampoline,
-    &GeneratedSingleChildTransform::ExecuteCopyFileNameExpression};
+    &GeneratedSingleChildTransform::ExecuteCopyFileNameExpression,
+    &GeneratedSingleChildTransform::ForwardCopyFileNameExpression};
 static const TransformFrameOps COPY_FILE_NAME_STRING_LITERAL_OPS = {
     "CopyFileNameStringLiteral", &PEGTransformerFactory::InitializeCopyFileNameStringLiteralTrampoline,
     &PEGTransformerFactory::FinalizeCopyFileNameStringLiteralTrampoline,
-    &GeneratedSingleChildTransform::ExecuteCopyFileNameStringLiteral};
+    &GeneratedSingleChildTransform::ExecuteCopyFileNameStringLiteral, nullptr};
 static const TransformFrameOps COPY_FILE_NAME_IDENTIFIER_OPS = {
     "CopyFileNameIdentifier", &PEGTransformerFactory::InitializeCopyFileNameIdentifierTrampoline,
     &PEGTransformerFactory::FinalizeCopyFileNameIdentifierTrampoline,
-    &GeneratedSingleChildTransform::ExecuteCopyFileNameIdentifier};
+    &GeneratedSingleChildTransform::ExecuteCopyFileNameIdentifier, nullptr};
 static const TransformFrameOps COPY_FILE_NAME_IDENTIFIER_COL_ID_OPS = {
     "CopyFileNameIdentifierColId", &PEGTransformerFactory::InitializeCopyFileNameIdentifierColIdTrampoline,
     &PEGTransformerFactory::FinalizeCopyFileNameIdentifierColIdTrampoline,
-    &GeneratedSingleChildTransform::ExecuteCopyFileNameIdentifierColId};
+    &GeneratedSingleChildTransform::ExecuteCopyFileNameIdentifierColId, nullptr};
 static const TransformFrameOps IDENTIFIER_COL_ID_OPS = {
     "IdentifierColId", &PEGTransformerFactory::InitializeIdentifierColIdTrampoline,
-    &PEGTransformerFactory::FinalizeIdentifierColIdTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeIdentifierColIdTrampoline, nullptr, nullptr};
 static const TransformFrameOps COPY_FILE_NAME_SUFFIX_OPS = {
     "CopyFileNameSuffix", &PEGTransformerFactory::InitializeCopyFileNameSuffixTrampoline,
     &PEGTransformerFactory::FinalizeCopyFileNameSuffixTrampoline,
-    &GeneratedSingleChildTransform::ExecuteCopyFileNameSuffix};
-static const TransformFrameOps COPY_LEGACY_OPTION_OPS = {"CopyLegacyOption",
-                                                         &PEGTransformerFactory::InitializeCopyLegacyOptionTrampoline,
-                                                         &PEGTransformerFactory::FinalizeCopyLegacyOptionTrampoline,
-                                                         &GeneratedSingleChildTransform::ExecuteCopyLegacyOption};
+    &GeneratedSingleChildTransform::ExecuteCopyFileNameSuffix,
+    &GeneratedSingleChildTransform::ForwardCopyFileNameSuffix};
+static const TransformFrameOps COPY_LEGACY_OPTION_OPS = {
+    "CopyLegacyOption", &PEGTransformerFactory::InitializeCopyLegacyOptionTrampoline,
+    &PEGTransformerFactory::FinalizeCopyLegacyOptionTrampoline, &GeneratedSingleChildTransform::ExecuteCopyLegacyOption,
+    nullptr};
 static const TransformFrameOps COPY_OPTIONS_OPS = {
     "CopyOptions", &PEGTransformerFactory::InitializeCopyOptionsTrampoline,
-    &PEGTransformerFactory::FinalizeCopyOptionsTrampoline, &GeneratedSingleChildTransform::ExecuteCopyOptions};
+    &PEGTransformerFactory::FinalizeCopyOptionsTrampoline, &GeneratedSingleChildTransform::ExecuteCopyOptions, nullptr};
 static const TransformFrameOps COPY_OPTION_LIST_OPS = {
     "CopyOptionList", &PEGTransformerFactory::InitializeCopyOptionListTrampoline,
-    &PEGTransformerFactory::FinalizeCopyOptionListTrampoline, &GeneratedSingleChildTransform::ExecuteCopyOptionList};
+    &PEGTransformerFactory::FinalizeCopyOptionListTrampoline, &GeneratedSingleChildTransform::ExecuteCopyOptionList,
+    &GeneratedSingleChildTransform::ForwardCopyOptionList};
 static const TransformFrameOps SPECIALIZED_OPTION_LIST_OPS = {
     "SpecializedOptionList", &PEGTransformerFactory::InitializeSpecializedOptionListTrampoline,
-    &PEGTransformerFactory::FinalizeSpecializedOptionListTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeSpecializedOptionListTrampoline, nullptr, nullptr};
 static const TransformFrameOps SPECIALIZED_OPTION_TAIL_OPS = {
     "SpecializedOptionTail", &PEGTransformerFactory::InitializeSpecializedOptionTailTrampoline,
     &PEGTransformerFactory::FinalizeSpecializedOptionTailTrampoline,
-    &GeneratedSingleChildTransform::ExecuteSpecializedOptionTail};
-static const TransformFrameOps SPECIALIZED_OPTION_OPS = {"SpecializedOption",
-                                                         &PEGTransformerFactory::InitializeSpecializedOptionTrampoline,
-                                                         &PEGTransformerFactory::FinalizeSpecializedOptionTrampoline,
-                                                         &GeneratedSingleChildTransform::ExecuteSpecializedOption};
+    &GeneratedSingleChildTransform::ExecuteSpecializedOptionTail, nullptr};
+static const TransformFrameOps SPECIALIZED_OPTION_OPS = {
+    "SpecializedOption", &PEGTransformerFactory::InitializeSpecializedOptionTrampoline,
+    &PEGTransformerFactory::FinalizeSpecializedOptionTrampoline,
+    &GeneratedSingleChildTransform::ExecuteSpecializedOption, &GeneratedSingleChildTransform::ForwardSpecializedOption};
 static const TransformFrameOps SINGLE_OPTION_OPS = {
     "SingleOption", &PEGTransformerFactory::InitializeSingleOptionTrampoline,
-    &PEGTransformerFactory::FinalizeSingleOptionTrampoline, &GeneratedSingleChildTransform::ExecuteSingleOption};
-static const TransformFrameOps BINARY_OPTION_OPS = {
-    "BinaryOption", &PEGTransformerFactory::InitializeBinaryOptionTrampoline,
-    &PEGTransformerFactory::FinalizeBinaryOptionTrampoline, &GeneratedSingleChildTransform::ExecuteBinaryOption};
-static const TransformFrameOps FREEZE_OPTION_OPS = {
-    "FreezeOption", &PEGTransformerFactory::InitializeFreezeOptionTrampoline,
-    &PEGTransformerFactory::FinalizeFreezeOptionTrampoline, &GeneratedSingleChildTransform::ExecuteFreezeOption};
+    &PEGTransformerFactory::FinalizeSingleOptionTrampoline, &GeneratedSingleChildTransform::ExecuteSingleOption,
+    &GeneratedSingleChildTransform::ForwardSingleOption};
+static const TransformFrameOps BINARY_OPTION_OPS = {"BinaryOption",
+                                                    &PEGTransformerFactory::InitializeBinaryOptionTrampoline,
+                                                    &PEGTransformerFactory::FinalizeBinaryOptionTrampoline,
+                                                    &GeneratedSingleChildTransform::ExecuteBinaryOption, nullptr};
+static const TransformFrameOps FREEZE_OPTION_OPS = {"FreezeOption",
+                                                    &PEGTransformerFactory::InitializeFreezeOptionTrampoline,
+                                                    &PEGTransformerFactory::FinalizeFreezeOptionTrampoline,
+                                                    &GeneratedSingleChildTransform::ExecuteFreezeOption, nullptr};
 static const TransformFrameOps OIDS_OPTION_OPS = {"OidsOption", &PEGTransformerFactory::InitializeOidsOptionTrampoline,
                                                   &PEGTransformerFactory::FinalizeOidsOptionTrampoline,
-                                                  &GeneratedSingleChildTransform::ExecuteOidsOption};
+                                                  &GeneratedSingleChildTransform::ExecuteOidsOption, nullptr};
 static const TransformFrameOps CSV_OPTION_OPS = {"CsvOption", &PEGTransformerFactory::InitializeCsvOptionTrampoline,
                                                  &PEGTransformerFactory::FinalizeCsvOptionTrampoline,
-                                                 &GeneratedSingleChildTransform::ExecuteCsvOption};
-static const TransformFrameOps HEADER_OPTION_OPS = {
-    "HeaderOption", &PEGTransformerFactory::InitializeHeaderOptionTrampoline,
-    &PEGTransformerFactory::FinalizeHeaderOptionTrampoline, &GeneratedSingleChildTransform::ExecuteHeaderOption};
-static const TransformFrameOps NULL_AS_OPTION_OPS = {
-    "NullAsOption", &PEGTransformerFactory::InitializeNullAsOptionTrampoline,
-    &PEGTransformerFactory::FinalizeNullAsOptionTrampoline, &GeneratedSingleChildTransform::ExecuteNullAsOption};
-static const TransformFrameOps DELIMITER_AS_OPTION_OPS = {"DelimiterAsOption",
-                                                          &PEGTransformerFactory::InitializeDelimiterAsOptionTrampoline,
-                                                          &PEGTransformerFactory::FinalizeDelimiterAsOptionTrampoline,
-                                                          &GeneratedSingleChildTransform::ExecuteDelimiterAsOption};
-static const TransformFrameOps QUOTE_AS_OPTION_OPS = {
-    "QuoteAsOption", &PEGTransformerFactory::InitializeQuoteAsOptionTrampoline,
-    &PEGTransformerFactory::FinalizeQuoteAsOptionTrampoline, &GeneratedSingleChildTransform::ExecuteQuoteAsOption};
-static const TransformFrameOps ESCAPE_AS_OPTION_OPS = {
-    "EscapeAsOption", &PEGTransformerFactory::InitializeEscapeAsOptionTrampoline,
-    &PEGTransformerFactory::FinalizeEscapeAsOptionTrampoline, &GeneratedSingleChildTransform::ExecuteEscapeAsOption};
-static const TransformFrameOps ENCODING_OPTION_OPS = {
-    "EncodingOption", &PEGTransformerFactory::InitializeEncodingOptionTrampoline,
-    &PEGTransformerFactory::FinalizeEncodingOptionTrampoline, &GeneratedSingleChildTransform::ExecuteEncodingOption};
+                                                 &GeneratedSingleChildTransform::ExecuteCsvOption, nullptr};
+static const TransformFrameOps HEADER_OPTION_OPS = {"HeaderOption",
+                                                    &PEGTransformerFactory::InitializeHeaderOptionTrampoline,
+                                                    &PEGTransformerFactory::FinalizeHeaderOptionTrampoline,
+                                                    &GeneratedSingleChildTransform::ExecuteHeaderOption, nullptr};
+static const TransformFrameOps NULL_AS_OPTION_OPS = {"NullAsOption",
+                                                     &PEGTransformerFactory::InitializeNullAsOptionTrampoline,
+                                                     &PEGTransformerFactory::FinalizeNullAsOptionTrampoline,
+                                                     &GeneratedSingleChildTransform::ExecuteNullAsOption, nullptr};
+static const TransformFrameOps DELIMITER_AS_OPTION_OPS = {
+    "DelimiterAsOption", &PEGTransformerFactory::InitializeDelimiterAsOptionTrampoline,
+    &PEGTransformerFactory::FinalizeDelimiterAsOptionTrampoline,
+    &GeneratedSingleChildTransform::ExecuteDelimiterAsOption, nullptr};
+static const TransformFrameOps QUOTE_AS_OPTION_OPS = {"QuoteAsOption",
+                                                      &PEGTransformerFactory::InitializeQuoteAsOptionTrampoline,
+                                                      &PEGTransformerFactory::FinalizeQuoteAsOptionTrampoline,
+                                                      &GeneratedSingleChildTransform::ExecuteQuoteAsOption, nullptr};
+static const TransformFrameOps ESCAPE_AS_OPTION_OPS = {"EscapeAsOption",
+                                                       &PEGTransformerFactory::InitializeEscapeAsOptionTrampoline,
+                                                       &PEGTransformerFactory::FinalizeEscapeAsOptionTrampoline,
+                                                       &GeneratedSingleChildTransform::ExecuteEscapeAsOption, nullptr};
+static const TransformFrameOps ENCODING_OPTION_OPS = {"EncodingOption",
+                                                      &PEGTransformerFactory::InitializeEncodingOptionTrampoline,
+                                                      &PEGTransformerFactory::FinalizeEncodingOptionTrampoline,
+                                                      &GeneratedSingleChildTransform::ExecuteEncodingOption, nullptr};
 static const TransformFrameOps FORCE_QUOTE_OPTION_OPS = {
     "ForceQuoteOption", &PEGTransformerFactory::InitializeForceQuoteOptionTrampoline,
-    &PEGTransformerFactory::FinalizeForceQuoteOptionTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeForceQuoteOptionTrampoline, nullptr, nullptr};
 static const TransformFrameOps STAR_SYMBOL_COLUMN_LIST_OPS = {
     "StarSymbolColumnList", &PEGTransformerFactory::InitializeStarSymbolColumnListTrampoline,
     &PEGTransformerFactory::FinalizeStarSymbolColumnListTrampoline,
-    &GeneratedSingleChildTransform::ExecuteStarSymbolColumnList};
+    &GeneratedSingleChildTransform::ExecuteStarSymbolColumnList, nullptr};
 static const TransformFrameOps FORCE_QUOTE_OPS = {"ForceQuote", &PEGTransformerFactory::InitializeForceQuoteTrampoline,
                                                   &PEGTransformerFactory::FinalizeForceQuoteTrampoline,
-                                                  &GeneratedSingleChildTransform::ExecuteForceQuote};
-static const TransformFrameOps PARTITION_BY_OPTION_OPS = {"PartitionByOption",
-                                                          &PEGTransformerFactory::InitializePartitionByOptionTrampoline,
-                                                          &PEGTransformerFactory::FinalizePartitionByOptionTrampoline,
-                                                          &GeneratedSingleChildTransform::ExecutePartitionByOption};
+                                                  &GeneratedSingleChildTransform::ExecuteForceQuote, nullptr};
+static const TransformFrameOps PARTITION_BY_OPTION_OPS = {
+    "PartitionByOption", &PEGTransformerFactory::InitializePartitionByOptionTrampoline,
+    &PEGTransformerFactory::FinalizePartitionByOptionTrampoline,
+    &GeneratedSingleChildTransform::ExecutePartitionByOption, nullptr};
 static const TransformFrameOps PARTITION_BY_COLUMN_LIST_OPS = {
     "PartitionByColumnList", &PEGTransformerFactory::InitializePartitionByColumnListTrampoline,
     &PEGTransformerFactory::FinalizePartitionByColumnListTrampoline,
-    &GeneratedSingleChildTransform::ExecutePartitionByColumnList};
+    &GeneratedSingleChildTransform::ExecutePartitionByColumnList,
+    &GeneratedSingleChildTransform::ForwardPartitionByColumnList};
 static const TransformFrameOps STAR_PARTITION_BY_COLUMN_LIST_OPS = {
     "StarPartitionByColumnList", &PEGTransformerFactory::InitializeStarPartitionByColumnListTrampoline,
     &PEGTransformerFactory::FinalizeStarPartitionByColumnListTrampoline,
-    &GeneratedSingleChildTransform::ExecuteStarPartitionByColumnList};
+    &GeneratedSingleChildTransform::ExecuteStarPartitionByColumnList, nullptr};
 static const TransformFrameOps PARENTHESIZED_PARTITION_BY_COLUMN_LIST_OPS = {
     "ParenthesizedPartitionByColumnList",
     &PEGTransformerFactory::InitializeParenthesizedPartitionByColumnListTrampoline,
     &PEGTransformerFactory::FinalizeParenthesizedPartitionByColumnListTrampoline,
-    &GeneratedSingleChildTransform::ExecuteParenthesizedPartitionByColumnList};
+    &GeneratedSingleChildTransform::ExecuteParenthesizedPartitionByColumnList, nullptr};
 static const TransformFrameOps SINGLE_PARTITION_BY_COLUMN_LIST_OPS = {
     "SinglePartitionByColumnList", &PEGTransformerFactory::InitializeSinglePartitionByColumnListTrampoline,
     &PEGTransformerFactory::FinalizeSinglePartitionByColumnListTrampoline,
-    &GeneratedSingleChildTransform::ExecuteSinglePartitionByColumnList};
+    &GeneratedSingleChildTransform::ExecuteSinglePartitionByColumnList, nullptr};
 static const TransformFrameOps FORCE_NULL_OPTION_OPS = {
     "ForceNullOption", &PEGTransformerFactory::InitializeForceNullOptionTrampoline,
-    &PEGTransformerFactory::FinalizeForceNullOptionTrampoline, nullptr};
-static const TransformFrameOps FORCE_NOT_NULL_OPS = {
-    "ForceNotNull", &PEGTransformerFactory::InitializeForceNotNullTrampoline,
-    &PEGTransformerFactory::FinalizeForceNotNullTrampoline, &GeneratedSingleChildTransform::ExecuteForceNotNull};
+    &PEGTransformerFactory::FinalizeForceNullOptionTrampoline, nullptr, nullptr};
+static const TransformFrameOps FORCE_NOT_NULL_OPS = {"ForceNotNull",
+                                                     &PEGTransformerFactory::InitializeForceNotNullTrampoline,
+                                                     &PEGTransformerFactory::FinalizeForceNotNullTrampoline,
+                                                     &GeneratedSingleChildTransform::ExecuteForceNotNull, nullptr};
 static const TransformFrameOps COPY_GENERIC_OPTION_LIST_OPS = {
     "CopyGenericOptionList", &PEGTransformerFactory::InitializeCopyGenericOptionListTrampoline,
-    &PEGTransformerFactory::FinalizeCopyGenericOptionListTrampoline, nullptr};
-static const TransformFrameOps COPY_GENERIC_OPTION_OPS = {"CopyGenericOption",
-                                                          &PEGTransformerFactory::InitializeCopyGenericOptionTrampoline,
-                                                          &PEGTransformerFactory::FinalizeCopyGenericOptionTrampoline,
-                                                          &GeneratedSingleChildTransform::ExecuteCopyGenericOption};
+    &PEGTransformerFactory::FinalizeCopyGenericOptionListTrampoline, nullptr, nullptr};
+static const TransformFrameOps COPY_GENERIC_OPTION_OPS = {
+    "CopyGenericOption", &PEGTransformerFactory::InitializeCopyGenericOptionTrampoline,
+    &PEGTransformerFactory::FinalizeCopyGenericOptionTrampoline,
+    &GeneratedSingleChildTransform::ExecuteCopyGenericOption, &GeneratedSingleChildTransform::ForwardCopyGenericOption};
 static const TransformFrameOps ORDER_BY_COPY_OPTION_OPS = {
     "OrderByCopyOption", &PEGTransformerFactory::InitializeOrderByCopyOptionTrampoline,
     &PEGTransformerFactory::FinalizeOrderByCopyOptionTrampoline,
-    &GeneratedSingleChildTransform::ExecuteOrderByCopyOption};
+    &GeneratedSingleChildTransform::ExecuteOrderByCopyOption, nullptr};
 static const TransformFrameOps PARTITIONED_BY_COPY_OPTION_OPS = {
     "PartitionedByCopyOption", &PEGTransformerFactory::InitializePartitionedByCopyOptionTrampoline,
     &PEGTransformerFactory::FinalizePartitionedByCopyOptionTrampoline,
-    &GeneratedSingleChildTransform::ExecutePartitionedByCopyOption};
+    &GeneratedSingleChildTransform::ExecutePartitionedByCopyOption, nullptr};
 static const TransformFrameOps GENERIC_COPY_OPTION_LIST_OPS = {
     "GenericCopyOptionList", &PEGTransformerFactory::InitializeGenericCopyOptionListTrampoline,
-    &PEGTransformerFactory::FinalizeGenericCopyOptionListTrampoline, nullptr};
-static const TransformFrameOps GENERIC_COPY_OPTION_OPS = {"GenericCopyOption",
-                                                          &PEGTransformerFactory::InitializeGenericCopyOptionTrampoline,
-                                                          &PEGTransformerFactory::FinalizeGenericCopyOptionTrampoline,
-                                                          &GeneratedSingleChildTransform::ExecuteGenericCopyOption};
+    &PEGTransformerFactory::FinalizeGenericCopyOptionListTrampoline, nullptr, nullptr};
+static const TransformFrameOps GENERIC_COPY_OPTION_OPS = {
+    "GenericCopyOption", &PEGTransformerFactory::InitializeGenericCopyOptionTrampoline,
+    &PEGTransformerFactory::FinalizeGenericCopyOptionTrampoline,
+    &GeneratedSingleChildTransform::ExecuteGenericCopyOption, nullptr};
 static const TransformFrameOps GENERIC_COPY_OPTION_VALUE_OPS = {
     "GenericCopyOptionValue", &PEGTransformerFactory::InitializeGenericCopyOptionValueTrampoline,
     &PEGTransformerFactory::FinalizeGenericCopyOptionValueTrampoline,
-    &GeneratedSingleChildTransform::ExecuteGenericCopyOptionValue};
+    &GeneratedSingleChildTransform::ExecuteGenericCopyOptionValue,
+    &GeneratedSingleChildTransform::ForwardGenericCopyOptionValue};
 static const TransformFrameOps GENERIC_COPY_OPTION_ORDER_LIST_OPS = {
     "GenericCopyOptionOrderList", &PEGTransformerFactory::InitializeGenericCopyOptionOrderListTrampoline,
     &PEGTransformerFactory::FinalizeGenericCopyOptionOrderListTrampoline,
-    &GeneratedSingleChildTransform::ExecuteGenericCopyOptionOrderList};
+    &GeneratedSingleChildTransform::ExecuteGenericCopyOptionOrderList, nullptr};
 static const TransformFrameOps GENERIC_COPY_OPTION_EXPRESSION_OPS = {
     "GenericCopyOptionExpression", &PEGTransformerFactory::InitializeGenericCopyOptionExpressionTrampoline,
     &PEGTransformerFactory::FinalizeGenericCopyOptionExpressionTrampoline,
-    &GeneratedSingleChildTransform::ExecuteGenericCopyOptionExpression};
+    &GeneratedSingleChildTransform::ExecuteGenericCopyOptionExpression, nullptr};
 static const TransformFrameOps GENERIC_COPY_OPTION_PARENTHESIZED_EXPRESSION_LIST_OPS = {
     "GenericCopyOptionParenthesizedExpressionList",
     &PEGTransformerFactory::InitializeGenericCopyOptionParenthesizedExpressionListTrampoline,
     &PEGTransformerFactory::FinalizeGenericCopyOptionParenthesizedExpressionListTrampoline,
-    &GeneratedSingleChildTransform::ExecuteGenericCopyOptionParenthesizedExpressionList};
-static const TransformFrameOps COPY_FROM_DATABASE_OPS = {"CopyFromDatabase",
-                                                         &PEGTransformerFactory::InitializeCopyFromDatabaseTrampoline,
-                                                         &PEGTransformerFactory::FinalizeCopyFromDatabaseTrampoline,
-                                                         &GeneratedSingleChildTransform::ExecuteCopyFromDatabase};
+    &GeneratedSingleChildTransform::ExecuteGenericCopyOptionParenthesizedExpressionList, nullptr};
+static const TransformFrameOps COPY_FROM_DATABASE_OPS = {
+    "CopyFromDatabase", &PEGTransformerFactory::InitializeCopyFromDatabaseTrampoline,
+    &PEGTransformerFactory::FinalizeCopyFromDatabaseTrampoline, &GeneratedSingleChildTransform::ExecuteCopyFromDatabase,
+    &GeneratedSingleChildTransform::ForwardCopyFromDatabase};
 static const TransformFrameOps COPY_FROM_DATABASE_WITH_FLAG_OPS = {
     "CopyFromDatabaseWithFlag", &PEGTransformerFactory::InitializeCopyFromDatabaseWithFlagTrampoline,
-    &PEGTransformerFactory::FinalizeCopyFromDatabaseWithFlagTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeCopyFromDatabaseWithFlagTrampoline, nullptr, nullptr};
 static const TransformFrameOps COPY_FROM_DATABASE_WITHOUT_FLAG_OPS = {
     "CopyFromDatabaseWithoutFlag", &PEGTransformerFactory::InitializeCopyFromDatabaseWithoutFlagTrampoline,
-    &PEGTransformerFactory::FinalizeCopyFromDatabaseWithoutFlagTrampoline, nullptr};
-static const TransformFrameOps COPY_DATABASE_FLAG_OPS = {"CopyDatabaseFlag",
-                                                         &PEGTransformerFactory::InitializeCopyDatabaseFlagTrampoline,
-                                                         &PEGTransformerFactory::FinalizeCopyDatabaseFlagTrampoline,
-                                                         &GeneratedSingleChildTransform::ExecuteCopyDatabaseFlag};
+    &PEGTransformerFactory::FinalizeCopyFromDatabaseWithoutFlagTrampoline, nullptr, nullptr};
+static const TransformFrameOps COPY_DATABASE_FLAG_OPS = {
+    "CopyDatabaseFlag", &PEGTransformerFactory::InitializeCopyDatabaseFlagTrampoline,
+    &PEGTransformerFactory::FinalizeCopyDatabaseFlagTrampoline, &GeneratedSingleChildTransform::ExecuteCopyDatabaseFlag,
+    nullptr};
 static const TransformFrameOps SCHEMA_OR_DATA_OPS = {
     "SchemaOrData", &PEGTransformerFactory::InitializeSchemaOrDataTrampoline,
-    &PEGTransformerFactory::FinalizeSchemaOrDataTrampoline, &GeneratedSingleChildTransform::ExecuteSchemaOrData};
+    &PEGTransformerFactory::FinalizeSchemaOrDataTrampoline, &GeneratedSingleChildTransform::ExecuteSchemaOrData,
+    &GeneratedSingleChildTransform::ForwardSchemaOrData};
 static const TransformFrameOps COPY_SCHEMA_OPS = {"CopySchema", &PEGTransformerFactory::InitializeCopySchemaTrampoline,
                                                   &PEGTransformerFactory::FinalizeCopySchemaTrampoline,
-                                                  &GeneratedSingleChildTransform::ExecuteCopySchema};
+                                                  &GeneratedSingleChildTransform::ExecuteCopySchema, nullptr};
 static const TransformFrameOps COPY_DATA_OPS = {"CopyData", &PEGTransformerFactory::InitializeCopyDataTrampoline,
                                                 &PEGTransformerFactory::FinalizeCopyDataTrampoline,
-                                                &GeneratedSingleChildTransform::ExecuteCopyData};
+                                                &GeneratedSingleChildTransform::ExecuteCopyData, nullptr};
 static const TransformFrameOps CREATE_INDEX_STMT_OPS = {
     "CreateIndexStmt", &PEGTransformerFactory::InitializeCreateIndexStmtTrampoline,
-    &PEGTransformerFactory::FinalizeCreateIndexStmtTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeCreateIndexStmtTrampoline, nullptr, nullptr};
 static const TransformFrameOps WITH_LIST_OPS = {"WithList", &PEGTransformerFactory::InitializeWithListTrampoline,
                                                 &PEGTransformerFactory::FinalizeWithListTrampoline,
-                                                &GeneratedSingleChildTransform::ExecuteWithList};
+                                                &GeneratedSingleChildTransform::ExecuteWithList, nullptr};
 static const TransformFrameOps REL_OPTION_OR_OIDS_OPS = {
     "RelOptionOrOids", &PEGTransformerFactory::InitializeRelOptionOrOidsTrampoline,
-    &PEGTransformerFactory::FinalizeRelOptionOrOidsTrampoline, &GeneratedSingleChildTransform::ExecuteRelOptionOrOids};
-static const TransformFrameOps REL_OPTION_LIST_OPS = {"RelOptionList",
-                                                      &PEGTransformerFactory::InitializeRelOptionListTrampoline,
-                                                      &PEGTransformerFactory::FinalizeRelOptionListTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeRelOptionOrOidsTrampoline, &GeneratedSingleChildTransform::ExecuteRelOptionOrOids,
+    &GeneratedSingleChildTransform::ForwardRelOptionOrOids};
+static const TransformFrameOps REL_OPTION_LIST_OPS = {
+    "RelOptionList", &PEGTransformerFactory::InitializeRelOptionListTrampoline,
+    &PEGTransformerFactory::FinalizeRelOptionListTrampoline, nullptr, nullptr};
 static const TransformFrameOps OIDS_OPS = {"Oids", &PEGTransformerFactory::InitializeOidsTrampoline,
                                            &PEGTransformerFactory::FinalizeOidsTrampoline,
-                                           &GeneratedSingleChildTransform::ExecuteOids};
+                                           &GeneratedSingleChildTransform::ExecuteOids, nullptr};
 static const TransformFrameOps WITH_OR_WITHOUT_OIDS_OPS = {
     "WithOrWithoutOids", &PEGTransformerFactory::InitializeWithOrWithoutOidsTrampoline,
     &PEGTransformerFactory::FinalizeWithOrWithoutOidsTrampoline,
-    &GeneratedSingleChildTransform::ExecuteWithOrWithoutOids};
+    &GeneratedSingleChildTransform::ExecuteWithOrWithoutOids, &GeneratedSingleChildTransform::ForwardWithOrWithoutOids};
 static const TransformFrameOps WITH_OIDS_OPS = {"WithOids", &PEGTransformerFactory::InitializeWithOidsTrampoline,
                                                 &PEGTransformerFactory::FinalizeWithOidsTrampoline,
-                                                &GeneratedSingleChildTransform::ExecuteWithOids};
+                                                &GeneratedSingleChildTransform::ExecuteWithOids, nullptr};
 static const TransformFrameOps WITHOUT_OIDS_OPS = {
     "WithoutOids", &PEGTransformerFactory::InitializeWithoutOidsTrampoline,
-    &PEGTransformerFactory::FinalizeWithoutOidsTrampoline, &GeneratedSingleChildTransform::ExecuteWithoutOids};
-static const TransformFrameOps INDEX_ELEMENT_OPS = {"IndexElement",
-                                                    &PEGTransformerFactory::InitializeIndexElementTrampoline,
-                                                    &PEGTransformerFactory::FinalizeIndexElementTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeWithoutOidsTrampoline, &GeneratedSingleChildTransform::ExecuteWithoutOids, nullptr};
+static const TransformFrameOps INDEX_ELEMENT_OPS = {
+    "IndexElement", &PEGTransformerFactory::InitializeIndexElementTrampoline,
+    &PEGTransformerFactory::FinalizeIndexElementTrampoline, nullptr, nullptr};
 static const TransformFrameOps UNIQUE_INDEX_OPS = {
     "UniqueIndex", &PEGTransformerFactory::InitializeUniqueIndexTrampoline,
-    &PEGTransformerFactory::FinalizeUniqueIndexTrampoline, &GeneratedSingleChildTransform::ExecuteUniqueIndex};
+    &PEGTransformerFactory::FinalizeUniqueIndexTrampoline, &GeneratedSingleChildTransform::ExecuteUniqueIndex, nullptr};
 static const TransformFrameOps INDEX_TYPE_OPS = {"IndexType", &PEGTransformerFactory::InitializeIndexTypeTrampoline,
                                                  &PEGTransformerFactory::FinalizeIndexTypeTrampoline,
-                                                 &GeneratedSingleChildTransform::ExecuteIndexType};
+                                                 &GeneratedSingleChildTransform::ExecuteIndexType, nullptr};
 static const TransformFrameOps REL_OPTION_OPS = {"RelOption", &PEGTransformerFactory::InitializeRelOptionTrampoline,
-                                                 &PEGTransformerFactory::FinalizeRelOptionTrampoline, nullptr};
-static const TransformFrameOps REL_OPTION_NAME_OPS = {
-    "RelOptionName", &PEGTransformerFactory::InitializeRelOptionNameTrampoline,
-    &PEGTransformerFactory::FinalizeRelOptionNameTrampoline, &GeneratedSingleChildTransform::ExecuteRelOptionName};
+                                                 &PEGTransformerFactory::FinalizeRelOptionTrampoline, nullptr, nullptr};
+static const TransformFrameOps REL_OPTION_NAME_OPS = {"RelOptionName",
+                                                      &PEGTransformerFactory::InitializeRelOptionNameTrampoline,
+                                                      &PEGTransformerFactory::FinalizeRelOptionNameTrampoline,
+                                                      &GeneratedSingleChildTransform::ExecuteRelOptionName, nullptr};
 static const TransformFrameOps DOTTED_COL_LABEL_OPS = {
     "DottedColLabel", &PEGTransformerFactory::InitializeDottedColLabelTrampoline,
-    &PEGTransformerFactory::FinalizeDottedColLabelTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeDottedColLabelTrampoline, nullptr, nullptr};
 static const TransformFrameOps REL_OPTION_ARGUMENT_OPT_OPS = {
     "RelOptionArgumentOpt", &PEGTransformerFactory::InitializeRelOptionArgumentOptTrampoline,
     &PEGTransformerFactory::FinalizeRelOptionArgumentOptTrampoline,
-    &GeneratedSingleChildTransform::ExecuteRelOptionArgumentOpt};
-static const TransformFrameOps DEF_ARG_OPS = {"DefArg", &PEGTransformerFactory::InitializeDefArgTrampoline,
-                                              &PEGTransformerFactory::FinalizeDefArgTrampoline,
-                                              &GeneratedSingleChildTransform::ExecuteDefArg};
+    &GeneratedSingleChildTransform::ExecuteRelOptionArgumentOpt, nullptr};
+static const TransformFrameOps DEF_ARG_OPS = {
+    "DefArg", &PEGTransformerFactory::InitializeDefArgTrampoline, &PEGTransformerFactory::FinalizeDefArgTrampoline,
+    &GeneratedSingleChildTransform::ExecuteDefArg, &GeneratedSingleChildTransform::ForwardDefArg};
 static const TransformFrameOps DEF_ARG_NULL_OPS = {"DefArgNull", &PEGTransformerFactory::InitializeDefArgNullTrampoline,
                                                    &PEGTransformerFactory::FinalizeDefArgNullTrampoline,
-                                                   &GeneratedSingleChildTransform::ExecuteDefArgNull};
-static const TransformFrameOps DEF_ARG_KEYWORD_OPS = {
-    "DefArgKeyword", &PEGTransformerFactory::InitializeDefArgKeywordTrampoline,
-    &PEGTransformerFactory::FinalizeDefArgKeywordTrampoline, &GeneratedSingleChildTransform::ExecuteDefArgKeyword};
+                                                   &GeneratedSingleChildTransform::ExecuteDefArgNull, nullptr};
+static const TransformFrameOps DEF_ARG_KEYWORD_OPS = {"DefArgKeyword",
+                                                      &PEGTransformerFactory::InitializeDefArgKeywordTrampoline,
+                                                      &PEGTransformerFactory::FinalizeDefArgKeywordTrampoline,
+                                                      &GeneratedSingleChildTransform::ExecuteDefArgKeyword, nullptr};
 static const TransformFrameOps DEF_ARG_STRING_LITERAL_OPS = {
     "DefArgStringLiteral", &PEGTransformerFactory::InitializeDefArgStringLiteralTrampoline,
     &PEGTransformerFactory::FinalizeDefArgStringLiteralTrampoline,
-    &GeneratedSingleChildTransform::ExecuteDefArgStringLiteral};
+    &GeneratedSingleChildTransform::ExecuteDefArgStringLiteral, nullptr};
 static const TransformFrameOps NONE_LITERAL_OPS = {
     "NoneLiteral", &PEGTransformerFactory::InitializeNoneLiteralTrampoline,
-    &PEGTransformerFactory::FinalizeNoneLiteralTrampoline, &GeneratedSingleChildTransform::ExecuteNoneLiteral};
+    &PEGTransformerFactory::FinalizeNoneLiteralTrampoline, &GeneratedSingleChildTransform::ExecuteNoneLiteral, nullptr};
 static const TransformFrameOps CREATE_MACRO_STMT_OPS = {
     "CreateMacroStmt", &PEGTransformerFactory::InitializeCreateMacroStmtTrampoline,
-    &PEGTransformerFactory::FinalizeCreateMacroStmtTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeCreateMacroStmtTrampoline, nullptr, nullptr};
 static const TransformFrameOps MACRO_OR_FUNCTION_OPS = {
     "MacroOrFunction", &PEGTransformerFactory::InitializeMacroOrFunctionTrampoline,
-    &PEGTransformerFactory::FinalizeMacroOrFunctionTrampoline, &GeneratedSingleChildTransform::ExecuteMacroOrFunction};
-static const TransformFrameOps MACRO_KEYWORD_OPS = {
-    "MacroKeyword", &PEGTransformerFactory::InitializeMacroKeywordTrampoline,
-    &PEGTransformerFactory::FinalizeMacroKeywordTrampoline, &GeneratedSingleChildTransform::ExecuteMacroKeyword};
-static const TransformFrameOps FUNCTION_KEYWORD_OPS = {
-    "FunctionKeyword", &PEGTransformerFactory::InitializeFunctionKeywordTrampoline,
-    &PEGTransformerFactory::FinalizeFunctionKeywordTrampoline, &GeneratedSingleChildTransform::ExecuteFunctionKeyword};
+    &PEGTransformerFactory::FinalizeMacroOrFunctionTrampoline, &GeneratedSingleChildTransform::ExecuteMacroOrFunction,
+    &GeneratedSingleChildTransform::ForwardMacroOrFunction};
+static const TransformFrameOps MACRO_KEYWORD_OPS = {"MacroKeyword",
+                                                    &PEGTransformerFactory::InitializeMacroKeywordTrampoline,
+                                                    &PEGTransformerFactory::FinalizeMacroKeywordTrampoline,
+                                                    &GeneratedSingleChildTransform::ExecuteMacroKeyword, nullptr};
+static const TransformFrameOps FUNCTION_KEYWORD_OPS = {"FunctionKeyword",
+                                                       &PEGTransformerFactory::InitializeFunctionKeywordTrampoline,
+                                                       &PEGTransformerFactory::FinalizeFunctionKeywordTrampoline,
+                                                       &GeneratedSingleChildTransform::ExecuteFunctionKeyword, nullptr};
 static const TransformFrameOps MACRO_DEFINITION_OPS = {
     "MacroDefinition", &PEGTransformerFactory::InitializeMacroDefinitionTrampoline,
-    &PEGTransformerFactory::FinalizeMacroDefinitionTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeMacroDefinitionTrampoline, nullptr, nullptr};
 static const TransformFrameOps MACRO_DEFINITION_BODY_OPS = {
     "MacroDefinitionBody", &PEGTransformerFactory::InitializeMacroDefinitionBodyTrampoline,
     &PEGTransformerFactory::FinalizeMacroDefinitionBodyTrampoline,
-    &GeneratedSingleChildTransform::ExecuteMacroDefinitionBody};
+    &GeneratedSingleChildTransform::ExecuteMacroDefinitionBody,
+    &GeneratedSingleChildTransform::ForwardMacroDefinitionBody};
 static const TransformFrameOps MACRO_PARAMETERS_OPS = {
     "MacroParameters", &PEGTransformerFactory::InitializeMacroParametersTrampoline,
-    &PEGTransformerFactory::FinalizeMacroParametersTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeMacroParametersTrampoline, nullptr, nullptr};
 static const TransformFrameOps MACRO_PARAMETER_OPS = {
     "MacroParameter", &PEGTransformerFactory::InitializeMacroParameterTrampoline,
-    &PEGTransformerFactory::FinalizeMacroParameterTrampoline, &GeneratedSingleChildTransform::ExecuteMacroParameter};
+    &PEGTransformerFactory::FinalizeMacroParameterTrampoline, &GeneratedSingleChildTransform::ExecuteMacroParameter,
+    &GeneratedSingleChildTransform::ForwardMacroParameter};
 static const TransformFrameOps SIMPLE_PARAMETER_OPS = {
     "SimpleParameter", &PEGTransformerFactory::InitializeSimpleParameterTrampoline,
-    &PEGTransformerFactory::FinalizeSimpleParameterTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeSimpleParameterTrampoline, nullptr, nullptr};
 static const TransformFrameOps SCALAR_MACRO_DEFINITION_OPS = {
     "ScalarMacroDefinition", &PEGTransformerFactory::InitializeScalarMacroDefinitionTrampoline,
     &PEGTransformerFactory::FinalizeScalarMacroDefinitionTrampoline,
-    &GeneratedSingleChildTransform::ExecuteScalarMacroDefinition};
+    &GeneratedSingleChildTransform::ExecuteScalarMacroDefinition, nullptr};
 static const TransformFrameOps TABLE_MACRO_DEFINITION_OPS = {
     "TableMacroDefinition", &PEGTransformerFactory::InitializeTableMacroDefinitionTrampoline,
     &PEGTransformerFactory::FinalizeTableMacroDefinitionTrampoline,
-    &GeneratedSingleChildTransform::ExecuteTableMacroDefinition};
+    &GeneratedSingleChildTransform::ExecuteTableMacroDefinition, nullptr};
 static const TransformFrameOps CREATE_SCHEMA_STMT_OPS = {
     "CreateSchemaStmt", &PEGTransformerFactory::InitializeCreateSchemaStmtTrampoline,
-    &PEGTransformerFactory::FinalizeCreateSchemaStmtTrampoline, nullptr};
-static const TransformFrameOps WITH_OPTION_LIST_OPS = {
-    "WithOptionList", &PEGTransformerFactory::InitializeWithOptionListTrampoline,
-    &PEGTransformerFactory::FinalizeWithOptionListTrampoline, &GeneratedSingleChildTransform::ExecuteWithOptionList};
+    &PEGTransformerFactory::FinalizeCreateSchemaStmtTrampoline, nullptr, nullptr};
+static const TransformFrameOps WITH_OPTION_LIST_OPS = {"WithOptionList",
+                                                       &PEGTransformerFactory::InitializeWithOptionListTrampoline,
+                                                       &PEGTransformerFactory::FinalizeWithOptionListTrampoline,
+                                                       &GeneratedSingleChildTransform::ExecuteWithOptionList, nullptr};
 static const TransformFrameOps CREATE_SECRET_STMT_OPS = {
     "CreateSecretStmt", &PEGTransformerFactory::InitializeCreateSecretStmtTrampoline,
-    &PEGTransformerFactory::FinalizeCreateSecretStmtTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeCreateSecretStmtTrampoline, nullptr, nullptr};
 static const TransformFrameOps SECRET_STORAGE_SPECIFIER_OPS = {
     "SecretStorageSpecifier", &PEGTransformerFactory::InitializeSecretStorageSpecifierTrampoline,
     &PEGTransformerFactory::FinalizeSecretStorageSpecifierTrampoline,
-    &GeneratedSingleChildTransform::ExecuteSecretStorageSpecifier};
+    &GeneratedSingleChildTransform::ExecuteSecretStorageSpecifier, nullptr};
 static const TransformFrameOps SECRET_NAME_OPS = {"SecretName", &PEGTransformerFactory::InitializeSecretNameTrampoline,
                                                   &PEGTransformerFactory::FinalizeSecretNameTrampoline,
-                                                  &GeneratedSingleChildTransform::ExecuteSecretName};
+                                                  &GeneratedSingleChildTransform::ExecuteSecretName, nullptr};
 static const TransformFrameOps CREATE_SEQUENCE_STMT_OPS = {
     "CreateSequenceStmt", &PEGTransformerFactory::InitializeCreateSequenceStmtTrampoline,
-    &PEGTransformerFactory::FinalizeCreateSequenceStmtTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeCreateSequenceStmtTrampoline, nullptr, nullptr};
 static const TransformFrameOps SEQUENCE_OPTION_OPS = {
     "SequenceOption", &PEGTransformerFactory::InitializeSequenceOptionTrampoline,
-    &PEGTransformerFactory::FinalizeSequenceOptionTrampoline, &GeneratedSingleChildTransform::ExecuteSequenceOption};
+    &PEGTransformerFactory::FinalizeSequenceOptionTrampoline, &GeneratedSingleChildTransform::ExecuteSequenceOption,
+    &GeneratedSingleChildTransform::ForwardSequenceOption};
 static const TransformFrameOps SEQ_SET_CYCLE_OPS = {
     "SeqSetCycle", &PEGTransformerFactory::InitializeSeqSetCycleTrampoline,
-    &PEGTransformerFactory::FinalizeSeqSetCycleTrampoline, &GeneratedSingleChildTransform::ExecuteSeqSetCycle};
+    &PEGTransformerFactory::FinalizeSeqSetCycleTrampoline, &GeneratedSingleChildTransform::ExecuteSeqSetCycle,
+    &GeneratedSingleChildTransform::ForwardSeqSetCycle};
 static const TransformFrameOps SEQ_CYCLE_OPS = {"SeqCycle", &PEGTransformerFactory::InitializeSeqCycleTrampoline,
                                                 &PEGTransformerFactory::FinalizeSeqCycleTrampoline,
-                                                &GeneratedSingleChildTransform::ExecuteSeqCycle};
+                                                &GeneratedSingleChildTransform::ExecuteSeqCycle, nullptr};
 static const TransformFrameOps SEQ_NO_CYCLE_OPS = {"SeqNoCycle", &PEGTransformerFactory::InitializeSeqNoCycleTrampoline,
                                                    &PEGTransformerFactory::FinalizeSeqNoCycleTrampoline,
-                                                   &GeneratedSingleChildTransform::ExecuteSeqNoCycle};
+                                                   &GeneratedSingleChildTransform::ExecuteSeqNoCycle, nullptr};
 static const TransformFrameOps SEQ_SET_INCREMENT_OPS = {
     "SeqSetIncrement", &PEGTransformerFactory::InitializeSeqSetIncrementTrampoline,
-    &PEGTransformerFactory::FinalizeSeqSetIncrementTrampoline, &GeneratedSingleChildTransform::ExecuteSeqSetIncrement};
-static const TransformFrameOps SEQ_SET_MIN_MAX_OPS = {"SeqSetMinMax",
-                                                      &PEGTransformerFactory::InitializeSeqSetMinMaxTrampoline,
-                                                      &PEGTransformerFactory::FinalizeSeqSetMinMaxTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeSeqSetIncrementTrampoline, &GeneratedSingleChildTransform::ExecuteSeqSetIncrement,
+    nullptr};
+static const TransformFrameOps SEQ_SET_MIN_MAX_OPS = {
+    "SeqSetMinMax", &PEGTransformerFactory::InitializeSeqSetMinMaxTrampoline,
+    &PEGTransformerFactory::FinalizeSeqSetMinMaxTrampoline, nullptr, nullptr};
 static const TransformFrameOps SEQ_NO_MIN_MAX_OPS = {
     "SeqNoMinMax", &PEGTransformerFactory::InitializeSeqNoMinMaxTrampoline,
-    &PEGTransformerFactory::FinalizeSeqNoMinMaxTrampoline, &GeneratedSingleChildTransform::ExecuteSeqNoMinMax};
-static const TransformFrameOps SEQ_START_WITH_OPS = {
-    "SeqStartWith", &PEGTransformerFactory::InitializeSeqStartWithTrampoline,
-    &PEGTransformerFactory::FinalizeSeqStartWithTrampoline, &GeneratedSingleChildTransform::ExecuteSeqStartWith};
+    &PEGTransformerFactory::FinalizeSeqNoMinMaxTrampoline, &GeneratedSingleChildTransform::ExecuteSeqNoMinMax, nullptr};
+static const TransformFrameOps SEQ_START_WITH_OPS = {"SeqStartWith",
+                                                     &PEGTransformerFactory::InitializeSeqStartWithTrampoline,
+                                                     &PEGTransformerFactory::FinalizeSeqStartWithTrampoline,
+                                                     &GeneratedSingleChildTransform::ExecuteSeqStartWith, nullptr};
 static const TransformFrameOps SEQ_OWNED_BY_OPS = {"SeqOwnedBy", &PEGTransformerFactory::InitializeSeqOwnedByTrampoline,
                                                    &PEGTransformerFactory::FinalizeSeqOwnedByTrampoline,
-                                                   &GeneratedSingleChildTransform::ExecuteSeqOwnedBy};
+                                                   &GeneratedSingleChildTransform::ExecuteSeqOwnedBy, nullptr};
 static const TransformFrameOps SEQ_MIN_OR_MAX_OPS = {
     "SeqMinOrMax", &PEGTransformerFactory::InitializeSeqMinOrMaxTrampoline,
-    &PEGTransformerFactory::FinalizeSeqMinOrMaxTrampoline, &GeneratedSingleChildTransform::ExecuteSeqMinOrMax};
+    &PEGTransformerFactory::FinalizeSeqMinOrMaxTrampoline, &GeneratedSingleChildTransform::ExecuteSeqMinOrMax, nullptr};
 static const TransformFrameOps MIN_VALUE_OPS = {"MinValue", &PEGTransformerFactory::InitializeMinValueTrampoline,
                                                 &PEGTransformerFactory::FinalizeMinValueTrampoline,
-                                                &GeneratedSingleChildTransform::ExecuteMinValue};
+                                                &GeneratedSingleChildTransform::ExecuteMinValue, nullptr};
 static const TransformFrameOps MAX_VALUE_OPS = {"MaxValue", &PEGTransformerFactory::InitializeMaxValueTrampoline,
                                                 &PEGTransformerFactory::FinalizeMaxValueTrampoline,
-                                                &GeneratedSingleChildTransform::ExecuteMaxValue};
+                                                &GeneratedSingleChildTransform::ExecuteMaxValue, nullptr};
 static const TransformFrameOps CREATE_STATEMENT_OPS = {
     "CreateStatement", &PEGTransformerFactory::InitializeCreateStatementTrampoline,
-    &PEGTransformerFactory::FinalizeCreateStatementTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeCreateStatementTrampoline, nullptr, nullptr};
 static const TransformFrameOps CREATE_STATEMENT_VARIATION_OPS = {
     "CreateStatementVariation", &PEGTransformerFactory::InitializeCreateStatementVariationTrampoline,
     &PEGTransformerFactory::FinalizeCreateStatementVariationTrampoline,
-    &GeneratedSingleChildTransform::ExecuteCreateStatementVariation};
+    &GeneratedSingleChildTransform::ExecuteCreateStatementVariation,
+    &GeneratedSingleChildTransform::ForwardCreateStatementVariation};
 static const TransformFrameOps OR_REPLACE_OPS = {"OrReplace", &PEGTransformerFactory::InitializeOrReplaceTrampoline,
                                                  &PEGTransformerFactory::FinalizeOrReplaceTrampoline,
-                                                 &GeneratedSingleChildTransform::ExecuteOrReplace};
+                                                 &GeneratedSingleChildTransform::ExecuteOrReplace, nullptr};
 static const TransformFrameOps TEMPORARY_OPS = {"Temporary", &PEGTransformerFactory::InitializeTemporaryTrampoline,
                                                 &PEGTransformerFactory::FinalizeTemporaryTrampoline,
-                                                &GeneratedSingleChildTransform::ExecuteTemporary};
+                                                &GeneratedSingleChildTransform::ExecuteTemporary,
+                                                &GeneratedSingleChildTransform::ForwardTemporary};
 static const TransformFrameOps PERSISTENT_OPS = {"Persistent", &PEGTransformerFactory::InitializePersistentTrampoline,
                                                  &PEGTransformerFactory::FinalizePersistentTrampoline,
-                                                 &GeneratedSingleChildTransform::ExecutePersistent};
-static const TransformFrameOps TEMP_PERSISTENT_OPS = {
-    "TempPersistent", &PEGTransformerFactory::InitializeTempPersistentTrampoline,
-    &PEGTransformerFactory::FinalizeTempPersistentTrampoline, &GeneratedSingleChildTransform::ExecuteTempPersistent};
+                                                 &GeneratedSingleChildTransform::ExecutePersistent, nullptr};
+static const TransformFrameOps TEMP_PERSISTENT_OPS = {"TempPersistent",
+                                                      &PEGTransformerFactory::InitializeTempPersistentTrampoline,
+                                                      &PEGTransformerFactory::FinalizeTempPersistentTrampoline,
+                                                      &GeneratedSingleChildTransform::ExecuteTempPersistent, nullptr};
 static const TransformFrameOps TEMPORARY_PERSISTENT_OPS = {
     "TemporaryPersistent", &PEGTransformerFactory::InitializeTemporaryPersistentTrampoline,
     &PEGTransformerFactory::FinalizeTemporaryPersistentTrampoline,
-    &GeneratedSingleChildTransform::ExecuteTemporaryPersistent};
+    &GeneratedSingleChildTransform::ExecuteTemporaryPersistent, nullptr};
 static const TransformFrameOps CREATE_TABLE_STMT_OPS = {
     "CreateTableStmt", &PEGTransformerFactory::InitializeCreateTableStmtTrampoline,
-    &PEGTransformerFactory::FinalizeCreateTableStmtTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeCreateTableStmtTrampoline, nullptr, nullptr};
 static const TransformFrameOps CREATE_TABLE_DEFINITION_OPS = {
     "CreateTableDefinition", &PEGTransformerFactory::InitializeCreateTableDefinitionTrampoline,
     &PEGTransformerFactory::FinalizeCreateTableDefinitionTrampoline,
-    &GeneratedSingleChildTransform::ExecuteCreateTableDefinition};
-static const TransformFrameOps CREATE_TABLE_AS_OPS = {"CreateTableAs",
-                                                      &PEGTransformerFactory::InitializeCreateTableAsTrampoline,
-                                                      &PEGTransformerFactory::FinalizeCreateTableAsTrampoline, nullptr};
+    &GeneratedSingleChildTransform::ExecuteCreateTableDefinition,
+    &GeneratedSingleChildTransform::ForwardCreateTableDefinition};
+static const TransformFrameOps CREATE_TABLE_AS_OPS = {
+    "CreateTableAs", &PEGTransformerFactory::InitializeCreateTableAsTrampoline,
+    &PEGTransformerFactory::FinalizeCreateTableAsTrampoline, nullptr, nullptr};
 static const TransformFrameOps PARTITION_SORTED_OPTIONS_OPS = {
     "PartitionSortedOptions", &PEGTransformerFactory::InitializePartitionSortedOptionsTrampoline,
     &PEGTransformerFactory::FinalizePartitionSortedOptionsTrampoline,
-    &GeneratedSingleChildTransform::ExecutePartitionSortedOptions};
+    &GeneratedSingleChildTransform::ExecutePartitionSortedOptions,
+    &GeneratedSingleChildTransform::ForwardPartitionSortedOptions};
 static const TransformFrameOps PARTITION_OPT_SORTED_OPTIONS_OPS = {
     "PartitionOptSortedOptions", &PEGTransformerFactory::InitializePartitionOptSortedOptionsTrampoline,
-    &PEGTransformerFactory::FinalizePartitionOptSortedOptionsTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizePartitionOptSortedOptionsTrampoline, nullptr, nullptr};
 static const TransformFrameOps SORTED_OPT_PARTITION_OPTIONS_OPS = {
     "SortedOptPartitionOptions", &PEGTransformerFactory::InitializeSortedOptPartitionOptionsTrampoline,
-    &PEGTransformerFactory::FinalizeSortedOptPartitionOptionsTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeSortedOptPartitionOptionsTrampoline, nullptr, nullptr};
 static const TransformFrameOps PARTITION_OPTIONS_OPS = {
     "PartitionOptions", &PEGTransformerFactory::InitializePartitionOptionsTrampoline,
-    &PEGTransformerFactory::FinalizePartitionOptionsTrampoline, nullptr};
-static const TransformFrameOps SORTED_OPTIONS_OPS = {"SortedOptions",
-                                                     &PEGTransformerFactory::InitializeSortedOptionsTrampoline,
-                                                     &PEGTransformerFactory::FinalizeSortedOptionsTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizePartitionOptionsTrampoline, nullptr, nullptr};
+static const TransformFrameOps SORTED_OPTIONS_OPS = {
+    "SortedOptions", &PEGTransformerFactory::InitializeSortedOptionsTrampoline,
+    &PEGTransformerFactory::FinalizeSortedOptionsTrampoline, nullptr, nullptr};
 static const TransformFrameOps WITH_DATA_OPS = {"WithData", &PEGTransformerFactory::InitializeWithDataTrampoline,
                                                 &PEGTransformerFactory::FinalizeWithDataTrampoline,
-                                                &GeneratedSingleChildTransform::ExecuteWithData};
-static const TransformFrameOps WITH_DATA_ONLY_OPS = {
-    "WithDataOnly", &PEGTransformerFactory::InitializeWithDataOnlyTrampoline,
-    &PEGTransformerFactory::FinalizeWithDataOnlyTrampoline, &GeneratedSingleChildTransform::ExecuteWithDataOnly};
+                                                &GeneratedSingleChildTransform::ExecuteWithData,
+                                                &GeneratedSingleChildTransform::ForwardWithData};
+static const TransformFrameOps WITH_DATA_ONLY_OPS = {"WithDataOnly",
+                                                     &PEGTransformerFactory::InitializeWithDataOnlyTrampoline,
+                                                     &PEGTransformerFactory::FinalizeWithDataOnlyTrampoline,
+                                                     &GeneratedSingleChildTransform::ExecuteWithDataOnly, nullptr};
 static const TransformFrameOps WITH_NO_DATA_OPS = {"WithNoData", &PEGTransformerFactory::InitializeWithNoDataTrampoline,
                                                    &PEGTransformerFactory::FinalizeWithNoDataTrampoline,
-                                                   &GeneratedSingleChildTransform::ExecuteWithNoData};
-static const TransformFrameOps IDENTIFIER_LIST_OPS = {
-    "IdentifierList", &PEGTransformerFactory::InitializeIdentifierListTrampoline,
-    &PEGTransformerFactory::FinalizeIdentifierListTrampoline, &GeneratedSingleChildTransform::ExecuteIdentifierList};
+                                                   &GeneratedSingleChildTransform::ExecuteWithNoData, nullptr};
+static const TransformFrameOps IDENTIFIER_LIST_OPS = {"IdentifierList",
+                                                      &PEGTransformerFactory::InitializeIdentifierListTrampoline,
+                                                      &PEGTransformerFactory::FinalizeIdentifierListTrampoline,
+                                                      &GeneratedSingleChildTransform::ExecuteIdentifierList, nullptr};
 static const TransformFrameOps CREATE_COLUMN_LIST_OPS = {
     "CreateColumnList", &PEGTransformerFactory::InitializeCreateColumnListTrampoline,
-    &PEGTransformerFactory::FinalizeCreateColumnListTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeCreateColumnListTrampoline, nullptr, nullptr};
 static const TransformFrameOps IF_NOT_EXISTS_OPS = {
     "IfNotExists", &PEGTransformerFactory::InitializeIfNotExistsTrampoline,
-    &PEGTransformerFactory::FinalizeIfNotExistsTrampoline, &GeneratedSingleChildTransform::ExecuteIfNotExists};
+    &PEGTransformerFactory::FinalizeIfNotExistsTrampoline, &GeneratedSingleChildTransform::ExecuteIfNotExists, nullptr};
 static const TransformFrameOps QUALIFIED_NAME_OPS = {
     "QualifiedName", &PEGTransformerFactory::InitializeQualifiedNameTrampoline,
-    &PEGTransformerFactory::FinalizeQualifiedNameTrampoline, &GeneratedSingleChildTransform::ExecuteQualifiedName};
+    &PEGTransformerFactory::FinalizeQualifiedNameTrampoline, &GeneratedSingleChildTransform::ExecuteQualifiedName,
+    &GeneratedSingleChildTransform::ForwardQualifiedName};
 static const TransformFrameOps SCHEMA_RESERVED_IDENTIFIER_OR_STRING_LITERAL_OPS = {
     "SchemaReservedIdentifierOrStringLiteral",
     &PEGTransformerFactory::InitializeSchemaReservedIdentifierOrStringLiteralTrampoline,
-    &PEGTransformerFactory::FinalizeSchemaReservedIdentifierOrStringLiteralTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeSchemaReservedIdentifierOrStringLiteralTrampoline, nullptr, nullptr};
 static const TransformFrameOps CATALOG_RESERVED_SCHEMA_IDENTIFIER_OPS = {
     "CatalogReservedSchemaIdentifier", &PEGTransformerFactory::InitializeCatalogReservedSchemaIdentifierTrampoline,
-    &PEGTransformerFactory::FinalizeCatalogReservedSchemaIdentifierTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeCatalogReservedSchemaIdentifierTrampoline, nullptr, nullptr};
 static const TransformFrameOps IDENTIFIER_OR_STRING_LITERAL_OPS = {
     "IdentifierOrStringLiteral", &PEGTransformerFactory::InitializeIdentifierOrStringLiteralTrampoline,
     &PEGTransformerFactory::FinalizeIdentifierOrStringLiteralTrampoline,
-    &GeneratedSingleChildTransform::ExecuteIdentifierOrStringLiteral};
+    &GeneratedSingleChildTransform::ExecuteIdentifierOrStringLiteral, nullptr};
 static const TransformFrameOps RESERVED_IDENTIFIER_OR_STRING_LITERAL_OPS = {
     "ReservedIdentifierOrStringLiteral", &PEGTransformerFactory::InitializeReservedIdentifierOrStringLiteralTrampoline,
     &PEGTransformerFactory::FinalizeReservedIdentifierOrStringLiteralTrampoline,
-    &GeneratedSingleChildTransform::ExecuteReservedIdentifierOrStringLiteral};
+    &GeneratedSingleChildTransform::ExecuteReservedIdentifierOrStringLiteral, nullptr};
 static const TransformFrameOps CATALOG_QUALIFICATION_OPS = {
     "CatalogQualification", &PEGTransformerFactory::InitializeCatalogQualificationTrampoline,
     &PEGTransformerFactory::FinalizeCatalogQualificationTrampoline,
-    &GeneratedSingleChildTransform::ExecuteCatalogQualification};
+    &GeneratedSingleChildTransform::ExecuteCatalogQualification, nullptr};
 static const TransformFrameOps SCHEMA_QUALIFICATION_OPS = {
     "SchemaQualification", &PEGTransformerFactory::InitializeSchemaQualificationTrampoline,
     &PEGTransformerFactory::FinalizeSchemaQualificationTrampoline,
-    &GeneratedSingleChildTransform::ExecuteSchemaQualification};
+    &GeneratedSingleChildTransform::ExecuteSchemaQualification, nullptr};
 static const TransformFrameOps RESERVED_SCHEMA_QUALIFICATION_OPS = {
     "ReservedSchemaQualification", &PEGTransformerFactory::InitializeReservedSchemaQualificationTrampoline,
     &PEGTransformerFactory::FinalizeReservedSchemaQualificationTrampoline,
-    &GeneratedSingleChildTransform::ExecuteReservedSchemaQualification};
+    &GeneratedSingleChildTransform::ExecuteReservedSchemaQualification, nullptr};
 static const TransformFrameOps TABLE_QUALIFICATION_OPS = {
     "TableQualification", &PEGTransformerFactory::InitializeTableQualificationTrampoline,
     &PEGTransformerFactory::FinalizeTableQualificationTrampoline,
-    &GeneratedSingleChildTransform::ExecuteTableQualification};
+    &GeneratedSingleChildTransform::ExecuteTableQualification, nullptr};
 static const TransformFrameOps RESERVED_TABLE_QUALIFICATION_OPS = {
     "ReservedTableQualification", &PEGTransformerFactory::InitializeReservedTableQualificationTrampoline,
     &PEGTransformerFactory::FinalizeReservedTableQualificationTrampoline,
-    &GeneratedSingleChildTransform::ExecuteReservedTableQualification};
+    &GeneratedSingleChildTransform::ExecuteReservedTableQualification, nullptr};
 static const TransformFrameOps CREATE_TABLE_COLUMN_LIST_OPS = {
     "CreateTableColumnList", &PEGTransformerFactory::InitializeCreateTableColumnListTrampoline,
-    &PEGTransformerFactory::FinalizeCreateTableColumnListTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeCreateTableColumnListTrampoline, nullptr, nullptr};
 static const TransformFrameOps CREATE_TABLE_COLUMN_ELEMENT_OPS = {
     "CreateTableColumnElement", &PEGTransformerFactory::InitializeCreateTableColumnElementTrampoline,
     &PEGTransformerFactory::FinalizeCreateTableColumnElementTrampoline,
-    &GeneratedSingleChildTransform::ExecuteCreateTableColumnElement};
+    &GeneratedSingleChildTransform::ExecuteCreateTableColumnElement,
+    &GeneratedSingleChildTransform::ForwardCreateTableColumnElement};
 static const TransformFrameOps CREATE_TABLE_COLUMN_DEFINITION_OPS = {
     "CreateTableColumnDefinition", &PEGTransformerFactory::InitializeCreateTableColumnDefinitionTrampoline,
     &PEGTransformerFactory::FinalizeCreateTableColumnDefinitionTrampoline,
-    &GeneratedSingleChildTransform::ExecuteCreateTableColumnDefinition};
+    &GeneratedSingleChildTransform::ExecuteCreateTableColumnDefinition, nullptr};
 static const TransformFrameOps CREATE_TABLE_CONSTRAINT_OPS = {
     "CreateTableConstraint", &PEGTransformerFactory::InitializeCreateTableConstraintTrampoline,
     &PEGTransformerFactory::FinalizeCreateTableConstraintTrampoline,
-    &GeneratedSingleChildTransform::ExecuteCreateTableConstraint};
+    &GeneratedSingleChildTransform::ExecuteCreateTableConstraint, nullptr};
 static const TransformFrameOps COLUMN_DEFINITION_OPS = {
     "ColumnDefinition", &PEGTransformerFactory::InitializeColumnDefinitionTrampoline,
-    &PEGTransformerFactory::FinalizeColumnDefinitionTrampoline, nullptr};
-static const TransformFrameOps COLUMN_CONSTRAINT_OPS = {"ColumnConstraint",
-                                                        &PEGTransformerFactory::InitializeColumnConstraintTrampoline,
-                                                        &PEGTransformerFactory::FinalizeColumnConstraintTrampoline,
-                                                        &GeneratedSingleChildTransform::ExecuteColumnConstraint};
+    &PEGTransformerFactory::FinalizeColumnDefinitionTrampoline, nullptr, nullptr};
+static const TransformFrameOps COLUMN_CONSTRAINT_OPS = {
+    "ColumnConstraint", &PEGTransformerFactory::InitializeColumnConstraintTrampoline,
+    &PEGTransformerFactory::FinalizeColumnConstraintTrampoline, &GeneratedSingleChildTransform::ExecuteColumnConstraint,
+    &GeneratedSingleChildTransform::ForwardColumnConstraint};
 static const TransformFrameOps NAMEABLE_COLUMN_CONSTRAINT_OPS = {
     "NameableColumnConstraint", &PEGTransformerFactory::InitializeNameableColumnConstraintTrampoline,
     &PEGTransformerFactory::FinalizeNameableColumnConstraintTrampoline,
-    &GeneratedSingleChildTransform::ExecuteNameableColumnConstraint};
+    &GeneratedSingleChildTransform::ExecuteNameableColumnConstraint, nullptr};
 static const TransformFrameOps COLUMN_CONSTRAINT_ELEMENT_OPS = {
     "ColumnConstraintElement", &PEGTransformerFactory::InitializeColumnConstraintElementTrampoline,
     &PEGTransformerFactory::FinalizeColumnConstraintElementTrampoline,
-    &GeneratedSingleChildTransform::ExecuteColumnConstraintElement};
-static const TransformFrameOps NOT_NULL_CONSTRAINT_OPS = {"NotNullConstraint",
-                                                          &PEGTransformerFactory::InitializeNotNullConstraintTrampoline,
-                                                          &PEGTransformerFactory::FinalizeNotNullConstraintTrampoline,
-                                                          &GeneratedSingleChildTransform::ExecuteNotNullConstraint};
-static const TransformFrameOps NULL_CONSTRAINT_OPS = {
-    "NullConstraint", &PEGTransformerFactory::InitializeNullConstraintTrampoline,
-    &PEGTransformerFactory::FinalizeNullConstraintTrampoline, &GeneratedSingleChildTransform::ExecuteNullConstraint};
+    &GeneratedSingleChildTransform::ExecuteColumnConstraintElement,
+    &GeneratedSingleChildTransform::ForwardColumnConstraintElement};
+static const TransformFrameOps NOT_NULL_CONSTRAINT_OPS = {
+    "NotNullConstraint", &PEGTransformerFactory::InitializeNotNullConstraintTrampoline,
+    &PEGTransformerFactory::FinalizeNotNullConstraintTrampoline,
+    &GeneratedSingleChildTransform::ExecuteNotNullConstraint, nullptr};
+static const TransformFrameOps NULL_CONSTRAINT_OPS = {"NullConstraint",
+                                                      &PEGTransformerFactory::InitializeNullConstraintTrampoline,
+                                                      &PEGTransformerFactory::FinalizeNullConstraintTrampoline,
+                                                      &GeneratedSingleChildTransform::ExecuteNullConstraint, nullptr};
 static const TransformFrameOps NOT_NULL_COLUMN_CONSTRAINT_OPS = {
     "NotNullColumnConstraint", &PEGTransformerFactory::InitializeNotNullColumnConstraintTrampoline,
     &PEGTransformerFactory::FinalizeNotNullColumnConstraintTrampoline,
-    &GeneratedSingleChildTransform::ExecuteNotNullColumnConstraint};
-static const TransformFrameOps UNIQUE_CONSTRAINT_OPS = {"UniqueConstraint",
-                                                        &PEGTransformerFactory::InitializeUniqueConstraintTrampoline,
-                                                        &PEGTransformerFactory::FinalizeUniqueConstraintTrampoline,
-                                                        &GeneratedSingleChildTransform::ExecuteUniqueConstraint};
+    &GeneratedSingleChildTransform::ExecuteNotNullColumnConstraint, nullptr};
+static const TransformFrameOps UNIQUE_CONSTRAINT_OPS = {
+    "UniqueConstraint", &PEGTransformerFactory::InitializeUniqueConstraintTrampoline,
+    &PEGTransformerFactory::FinalizeUniqueConstraintTrampoline, &GeneratedSingleChildTransform::ExecuteUniqueConstraint,
+    nullptr};
 static const TransformFrameOps PRIMARY_KEY_CONSTRAINT_OPS = {
     "PrimaryKeyConstraint", &PEGTransformerFactory::InitializePrimaryKeyConstraintTrampoline,
     &PEGTransformerFactory::FinalizePrimaryKeyConstraintTrampoline,
-    &GeneratedSingleChildTransform::ExecutePrimaryKeyConstraint};
-static const TransformFrameOps CONSTRAINT_TIMING_OPS = {"ConstraintTiming",
-                                                        &PEGTransformerFactory::InitializeConstraintTimingTrampoline,
-                                                        &PEGTransformerFactory::FinalizeConstraintTimingTrampoline,
-                                                        &GeneratedSingleChildTransform::ExecuteConstraintTiming};
+    &GeneratedSingleChildTransform::ExecutePrimaryKeyConstraint, nullptr};
+static const TransformFrameOps CONSTRAINT_TIMING_OPS = {
+    "ConstraintTiming", &PEGTransformerFactory::InitializeConstraintTimingTrampoline,
+    &PEGTransformerFactory::FinalizeConstraintTimingTrampoline, &GeneratedSingleChildTransform::ExecuteConstraintTiming,
+    &GeneratedSingleChildTransform::ForwardConstraintTiming};
 static const TransformFrameOps IMMEDIATE_CONSTRAINT_OPS = {
     "ImmediateConstraint", &PEGTransformerFactory::InitializeImmediateConstraintTrampoline,
     &PEGTransformerFactory::FinalizeImmediateConstraintTrampoline,
-    &GeneratedSingleChildTransform::ExecuteImmediateConstraint};
+    &GeneratedSingleChildTransform::ExecuteImmediateConstraint, nullptr};
 static const TransformFrameOps DEFERRED_CONSTRAINT_OPS = {
     "DeferredConstraint", &PEGTransformerFactory::InitializeDeferredConstraintTrampoline,
     &PEGTransformerFactory::FinalizeDeferredConstraintTrampoline,
-    &GeneratedSingleChildTransform::ExecuteDeferredConstraint};
-static const TransformFrameOps DEFAULT_VALUE_OPS = {
-    "DefaultValue", &PEGTransformerFactory::InitializeDefaultValueTrampoline,
-    &PEGTransformerFactory::FinalizeDefaultValueTrampoline, &GeneratedSingleChildTransform::ExecuteDefaultValue};
-static const TransformFrameOps CHECK_CONSTRAINT_OPS = {
-    "CheckConstraint", &PEGTransformerFactory::InitializeCheckConstraintTrampoline,
-    &PEGTransformerFactory::FinalizeCheckConstraintTrampoline, &GeneratedSingleChildTransform::ExecuteCheckConstraint};
+    &GeneratedSingleChildTransform::ExecuteDeferredConstraint, nullptr};
+static const TransformFrameOps DEFAULT_VALUE_OPS = {"DefaultValue",
+                                                    &PEGTransformerFactory::InitializeDefaultValueTrampoline,
+                                                    &PEGTransformerFactory::FinalizeDefaultValueTrampoline,
+                                                    &GeneratedSingleChildTransform::ExecuteDefaultValue, nullptr};
+static const TransformFrameOps CHECK_CONSTRAINT_OPS = {"CheckConstraint",
+                                                       &PEGTransformerFactory::InitializeCheckConstraintTrampoline,
+                                                       &PEGTransformerFactory::FinalizeCheckConstraintTrampoline,
+                                                       &GeneratedSingleChildTransform::ExecuteCheckConstraint, nullptr};
 static const TransformFrameOps FOREIGN_KEY_CONSTRAINT_OPS = {
     "ForeignKeyConstraint", &PEGTransformerFactory::InitializeForeignKeyConstraintTrampoline,
-    &PEGTransformerFactory::FinalizeForeignKeyConstraintTrampoline, nullptr};
-static const TransformFrameOps COLUMN_COLLATION_OPS = {
-    "ColumnCollation", &PEGTransformerFactory::InitializeColumnCollationTrampoline,
-    &PEGTransformerFactory::FinalizeColumnCollationTrampoline, &GeneratedSingleChildTransform::ExecuteColumnCollation};
-static const TransformFrameOps COLUMN_COMPRESSION_OPS = {"ColumnCompression",
-                                                         &PEGTransformerFactory::InitializeColumnCompressionTrampoline,
-                                                         &PEGTransformerFactory::FinalizeColumnCompressionTrampoline,
-                                                         &GeneratedSingleChildTransform::ExecuteColumnCompression};
+    &PEGTransformerFactory::FinalizeForeignKeyConstraintTrampoline, nullptr, nullptr};
+static const TransformFrameOps COLUMN_COLLATION_OPS = {"ColumnCollation",
+                                                       &PEGTransformerFactory::InitializeColumnCollationTrampoline,
+                                                       &PEGTransformerFactory::FinalizeColumnCollationTrampoline,
+                                                       &GeneratedSingleChildTransform::ExecuteColumnCollation, nullptr};
+static const TransformFrameOps COLUMN_COMPRESSION_OPS = {
+    "ColumnCompression", &PEGTransformerFactory::InitializeColumnCompressionTrampoline,
+    &PEGTransformerFactory::FinalizeColumnCompressionTrampoline,
+    &GeneratedSingleChildTransform::ExecuteColumnCompression, nullptr};
 static const TransformFrameOps KEY_ACTIONS_OPS = {"KeyActions", &PEGTransformerFactory::InitializeKeyActionsTrampoline,
                                                   &PEGTransformerFactory::FinalizeKeyActionsTrampoline,
-                                                  &GeneratedSingleChildTransform::ExecuteKeyActions};
+                                                  &GeneratedSingleChildTransform::ExecuteKeyActions,
+                                                  &GeneratedSingleChildTransform::ForwardKeyActions};
 static const TransformFrameOps UPDATE_FIRST_KEY_ACTIONS_OPS = {
     "UpdateFirstKeyActions", &PEGTransformerFactory::InitializeUpdateFirstKeyActionsTrampoline,
-    &PEGTransformerFactory::FinalizeUpdateFirstKeyActionsTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeUpdateFirstKeyActionsTrampoline, nullptr, nullptr};
 static const TransformFrameOps DELETE_FIRST_KEY_ACTIONS_OPS = {
     "DeleteFirstKeyActions", &PEGTransformerFactory::InitializeDeleteFirstKeyActionsTrampoline,
-    &PEGTransformerFactory::FinalizeDeleteFirstKeyActionsTrampoline, nullptr};
-static const TransformFrameOps UPDATE_ACTION_OPS = {
-    "UpdateAction", &PEGTransformerFactory::InitializeUpdateActionTrampoline,
-    &PEGTransformerFactory::FinalizeUpdateActionTrampoline, &GeneratedSingleChildTransform::ExecuteUpdateAction};
-static const TransformFrameOps DELETE_ACTION_OPS = {
-    "DeleteAction", &PEGTransformerFactory::InitializeDeleteActionTrampoline,
-    &PEGTransformerFactory::FinalizeDeleteActionTrampoline, &GeneratedSingleChildTransform::ExecuteDeleteAction};
+    &PEGTransformerFactory::FinalizeDeleteFirstKeyActionsTrampoline, nullptr, nullptr};
+static const TransformFrameOps UPDATE_ACTION_OPS = {"UpdateAction",
+                                                    &PEGTransformerFactory::InitializeUpdateActionTrampoline,
+                                                    &PEGTransformerFactory::FinalizeUpdateActionTrampoline,
+                                                    &GeneratedSingleChildTransform::ExecuteUpdateAction, nullptr};
+static const TransformFrameOps DELETE_ACTION_OPS = {"DeleteAction",
+                                                    &PEGTransformerFactory::InitializeDeleteActionTrampoline,
+                                                    &PEGTransformerFactory::FinalizeDeleteActionTrampoline,
+                                                    &GeneratedSingleChildTransform::ExecuteDeleteAction, nullptr};
 static const TransformFrameOps KEY_ACTION_OPS = {"KeyAction", &PEGTransformerFactory::InitializeKeyActionTrampoline,
                                                  &PEGTransformerFactory::FinalizeKeyActionTrampoline,
-                                                 &GeneratedSingleChildTransform::ExecuteKeyAction};
+                                                 &GeneratedSingleChildTransform::ExecuteKeyAction, nullptr};
 static const TransformFrameOps NO_KEY_ACTION_OPS = {
     "NoKeyAction", &PEGTransformerFactory::InitializeNoKeyActionTrampoline,
-    &PEGTransformerFactory::FinalizeNoKeyActionTrampoline, &GeneratedSingleChildTransform::ExecuteNoKeyAction};
-static const TransformFrameOps RESTRICT_KEY_ACTION_OPS = {"RestrictKeyAction",
-                                                          &PEGTransformerFactory::InitializeRestrictKeyActionTrampoline,
-                                                          &PEGTransformerFactory::FinalizeRestrictKeyActionTrampoline,
-                                                          &GeneratedSingleChildTransform::ExecuteRestrictKeyAction};
-static const TransformFrameOps CASCADE_KEY_ACTION_OPS = {"CascadeKeyAction",
-                                                         &PEGTransformerFactory::InitializeCascadeKeyActionTrampoline,
-                                                         &PEGTransformerFactory::FinalizeCascadeKeyActionTrampoline,
-                                                         &GeneratedSingleChildTransform::ExecuteCascadeKeyAction};
-static const TransformFrameOps SET_NULL_KEY_ACTION_OPS = {"SetNullKeyAction",
-                                                          &PEGTransformerFactory::InitializeSetNullKeyActionTrampoline,
-                                                          &PEGTransformerFactory::FinalizeSetNullKeyActionTrampoline,
-                                                          &GeneratedSingleChildTransform::ExecuteSetNullKeyAction};
+    &PEGTransformerFactory::FinalizeNoKeyActionTrampoline, &GeneratedSingleChildTransform::ExecuteNoKeyAction, nullptr};
+static const TransformFrameOps RESTRICT_KEY_ACTION_OPS = {
+    "RestrictKeyAction", &PEGTransformerFactory::InitializeRestrictKeyActionTrampoline,
+    &PEGTransformerFactory::FinalizeRestrictKeyActionTrampoline,
+    &GeneratedSingleChildTransform::ExecuteRestrictKeyAction, nullptr};
+static const TransformFrameOps CASCADE_KEY_ACTION_OPS = {
+    "CascadeKeyAction", &PEGTransformerFactory::InitializeCascadeKeyActionTrampoline,
+    &PEGTransformerFactory::FinalizeCascadeKeyActionTrampoline, &GeneratedSingleChildTransform::ExecuteCascadeKeyAction,
+    nullptr};
+static const TransformFrameOps SET_NULL_KEY_ACTION_OPS = {
+    "SetNullKeyAction", &PEGTransformerFactory::InitializeSetNullKeyActionTrampoline,
+    &PEGTransformerFactory::FinalizeSetNullKeyActionTrampoline, &GeneratedSingleChildTransform::ExecuteSetNullKeyAction,
+    nullptr};
 static const TransformFrameOps SET_DEFAULT_KEY_ACTION_OPS = {
     "SetDefaultKeyAction", &PEGTransformerFactory::InitializeSetDefaultKeyActionTrampoline,
     &PEGTransformerFactory::FinalizeSetDefaultKeyActionTrampoline,
-    &GeneratedSingleChildTransform::ExecuteSetDefaultKeyAction};
+    &GeneratedSingleChildTransform::ExecuteSetDefaultKeyAction, nullptr};
 static const TransformFrameOps TOP_LEVEL_CONSTRAINT_OPS = {
     "TopLevelConstraint", &PEGTransformerFactory::InitializeTopLevelConstraintTrampoline,
     &PEGTransformerFactory::FinalizeTopLevelConstraintTrampoline,
-    &GeneratedSingleChildTransform::ExecuteTopLevelConstraint};
+    &GeneratedSingleChildTransform::ExecuteTopLevelConstraint, nullptr};
 static const TransformFrameOps TOP_LEVEL_CONSTRAINT_LIST_OPS = {
     "TopLevelConstraintList", &PEGTransformerFactory::InitializeTopLevelConstraintListTrampoline,
     &PEGTransformerFactory::FinalizeTopLevelConstraintListTrampoline,
-    &GeneratedSingleChildTransform::ExecuteTopLevelConstraintList};
+    &GeneratedSingleChildTransform::ExecuteTopLevelConstraintList,
+    &GeneratedSingleChildTransform::ForwardTopLevelConstraintList};
 static const TransformFrameOps TOP_CHECK_CONSTRAINT_OPS = {
     "TopCheckConstraint", &PEGTransformerFactory::InitializeTopCheckConstraintTrampoline,
     &PEGTransformerFactory::FinalizeTopCheckConstraintTrampoline,
-    &GeneratedSingleChildTransform::ExecuteTopCheckConstraint};
+    &GeneratedSingleChildTransform::ExecuteTopCheckConstraint, nullptr};
 static const TransformFrameOps TOP_PRIMARY_KEY_CONSTRAINT_OPS = {
     "TopPrimaryKeyConstraint", &PEGTransformerFactory::InitializeTopPrimaryKeyConstraintTrampoline,
-    &PEGTransformerFactory::FinalizeTopPrimaryKeyConstraintTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeTopPrimaryKeyConstraintTrampoline, nullptr, nullptr};
 static const TransformFrameOps TOP_UNIQUE_CONSTRAINT_OPS = {
     "TopUniqueConstraint", &PEGTransformerFactory::InitializeTopUniqueConstraintTrampoline,
-    &PEGTransformerFactory::FinalizeTopUniqueConstraintTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeTopUniqueConstraintTrampoline, nullptr, nullptr};
 static const TransformFrameOps TOP_FOREIGN_KEY_CONSTRAINT_OPS = {
     "TopForeignKeyConstraint", &PEGTransformerFactory::InitializeTopForeignKeyConstraintTrampoline,
-    &PEGTransformerFactory::FinalizeTopForeignKeyConstraintTrampoline, nullptr};
-static const TransformFrameOps COLUMN_ID_LIST_OPS = {"ColumnIdList",
-                                                     &PEGTransformerFactory::InitializeColumnIdListTrampoline,
-                                                     &PEGTransformerFactory::FinalizeColumnIdListTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeTopForeignKeyConstraintTrampoline, nullptr, nullptr};
+static const TransformFrameOps COLUMN_ID_LIST_OPS = {
+    "ColumnIdList", &PEGTransformerFactory::InitializeColumnIdListTrampoline,
+    &PEGTransformerFactory::FinalizeColumnIdListTrampoline, nullptr, nullptr};
 static const TransformFrameOps DOTTED_IDENTIFIER_OPS = {
     "DottedIdentifier", &PEGTransformerFactory::InitializeDottedIdentifierTrampoline,
-    &PEGTransformerFactory::FinalizeDottedIdentifierTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeDottedIdentifierTrampoline, nullptr, nullptr};
 static const TransformFrameOps DOT_COL_LABEL_OPS = {
     "DotColLabel", &PEGTransformerFactory::InitializeDotColLabelTrampoline,
-    &PEGTransformerFactory::FinalizeDotColLabelTrampoline, &GeneratedSingleChildTransform::ExecuteDotColLabel};
+    &PEGTransformerFactory::FinalizeDotColLabelTrampoline, &GeneratedSingleChildTransform::ExecuteDotColLabel, nullptr};
 static const TransformFrameOps IDENTIFIER_OPS = {"Identifier", &PEGTransformerFactory::InitializeIdentifierTrampoline,
                                                  &PEGTransformerFactory::FinalizeIdentifierTrampoline,
-                                                 &GeneratedSingleChildTransform::ExecuteIdentifier};
+                                                 &GeneratedSingleChildTransform::ExecuteIdentifier, nullptr};
 static const TransformFrameOps COL_ID_OPS = {"ColId", &PEGTransformerFactory::InitializeColIdTrampoline,
                                              &PEGTransformerFactory::FinalizeColIdTrampoline,
-                                             &GeneratedSingleChildTransform::ExecuteColId};
-static const TransformFrameOps COL_ID_OR_STRING_OPS = {
-    "ColIdOrString", &PEGTransformerFactory::InitializeColIdOrStringTrampoline,
-    &PEGTransformerFactory::FinalizeColIdOrStringTrampoline, &GeneratedSingleChildTransform::ExecuteColIdOrString};
-static const TransformFrameOps TYPE_FUNC_NAME_OPS = {
-    "TypeFuncName", &PEGTransformerFactory::InitializeTypeFuncNameTrampoline,
-    &PEGTransformerFactory::FinalizeTypeFuncNameTrampoline, &GeneratedSingleChildTransform::ExecuteTypeFuncName};
+                                             &GeneratedSingleChildTransform::ExecuteColId, nullptr};
+static const TransformFrameOps COL_ID_OR_STRING_OPS = {"ColIdOrString",
+                                                       &PEGTransformerFactory::InitializeColIdOrStringTrampoline,
+                                                       &PEGTransformerFactory::FinalizeColIdOrStringTrampoline,
+                                                       &GeneratedSingleChildTransform::ExecuteColIdOrString, nullptr};
+static const TransformFrameOps TYPE_FUNC_NAME_OPS = {"TypeFuncName",
+                                                     &PEGTransformerFactory::InitializeTypeFuncNameTrampoline,
+                                                     &PEGTransformerFactory::FinalizeTypeFuncNameTrampoline,
+                                                     &GeneratedSingleChildTransform::ExecuteTypeFuncName, nullptr};
 static const TransformFrameOps TYPE_FUNC_KEYWORD_OPS = {
     "TypeFuncKeyword", &PEGTransformerFactory::InitializeTypeFuncKeywordTrampoline,
-    &PEGTransformerFactory::FinalizeTypeFuncKeywordTrampoline, &GeneratedSingleChildTransform::ExecuteTypeFuncKeyword};
+    &PEGTransformerFactory::FinalizeTypeFuncKeywordTrampoline, &GeneratedSingleChildTransform::ExecuteTypeFuncKeyword,
+    nullptr};
 static const TransformFrameOps COL_LABEL_OPS = {"ColLabel", &PEGTransformerFactory::InitializeColLabelTrampoline,
                                                 &PEGTransformerFactory::FinalizeColLabelTrampoline,
-                                                &GeneratedSingleChildTransform::ExecuteColLabel};
-static const TransformFrameOps COL_LABEL_OR_STRING_OPS = {"ColLabelOrString",
-                                                          &PEGTransformerFactory::InitializeColLabelOrStringTrampoline,
-                                                          &PEGTransformerFactory::FinalizeColLabelOrStringTrampoline,
-                                                          &GeneratedSingleChildTransform::ExecuteColLabelOrString};
+                                                &GeneratedSingleChildTransform::ExecuteColLabel, nullptr};
+static const TransformFrameOps COL_LABEL_OR_STRING_OPS = {
+    "ColLabelOrString", &PEGTransformerFactory::InitializeColLabelOrStringTrampoline,
+    &PEGTransformerFactory::FinalizeColLabelOrStringTrampoline, &GeneratedSingleChildTransform::ExecuteColLabelOrString,
+    nullptr};
 static const TransformFrameOps COL_LABEL_IDENTIFIER_OPS = {
     "ColLabelIdentifier", &PEGTransformerFactory::InitializeColLabelIdentifierTrampoline,
     &PEGTransformerFactory::FinalizeColLabelIdentifierTrampoline,
-    &GeneratedSingleChildTransform::ExecuteColLabelIdentifier};
+    &GeneratedSingleChildTransform::ExecuteColLabelIdentifier, nullptr};
 static const TransformFrameOps STRING_LITERAL_IDENTIFIER_OPS = {
     "StringLiteralIdentifier", &PEGTransformerFactory::InitializeStringLiteralIdentifierTrampoline,
     &PEGTransformerFactory::FinalizeStringLiteralIdentifierTrampoline,
-    &GeneratedSingleChildTransform::ExecuteStringLiteralIdentifier};
+    &GeneratedSingleChildTransform::ExecuteStringLiteralIdentifier, nullptr};
 static const TransformFrameOps GENERATED_COLUMN_OPS = {
     "GeneratedColumn", &PEGTransformerFactory::InitializeGeneratedColumnTrampoline,
-    &PEGTransformerFactory::FinalizeGeneratedColumnTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeGeneratedColumnTrampoline, nullptr, nullptr};
 static const TransformFrameOps GENERATED_OPS = {"Generated", &PEGTransformerFactory::InitializeGeneratedTrampoline,
                                                 &PEGTransformerFactory::FinalizeGeneratedTrampoline,
-                                                &GeneratedSingleChildTransform::ExecuteGenerated};
-static const TransformFrameOps GENERATED_ALWAYS_OPS = {
-    "GeneratedAlways", &PEGTransformerFactory::InitializeGeneratedAlwaysTrampoline,
-    &PEGTransformerFactory::FinalizeGeneratedAlwaysTrampoline, &GeneratedSingleChildTransform::ExecuteGeneratedAlways};
+                                                &GeneratedSingleChildTransform::ExecuteGenerated,
+                                                &GeneratedSingleChildTransform::ForwardGenerated};
+static const TransformFrameOps GENERATED_ALWAYS_OPS = {"GeneratedAlways",
+                                                       &PEGTransformerFactory::InitializeGeneratedAlwaysTrampoline,
+                                                       &PEGTransformerFactory::FinalizeGeneratedAlwaysTrampoline,
+                                                       &GeneratedSingleChildTransform::ExecuteGeneratedAlways, nullptr};
 static const TransformFrameOps GENERATED_BY_DEFAULT_OPS = {
     "GeneratedByDefault", &PEGTransformerFactory::InitializeGeneratedByDefaultTrampoline,
     &PEGTransformerFactory::FinalizeGeneratedByDefaultTrampoline,
-    &GeneratedSingleChildTransform::ExecuteGeneratedByDefault};
+    &GeneratedSingleChildTransform::ExecuteGeneratedByDefault, nullptr};
 static const TransformFrameOps GENERATED_COLUMN_TYPE_OPS = {
     "GeneratedColumnType", &PEGTransformerFactory::InitializeGeneratedColumnTypeTrampoline,
     &PEGTransformerFactory::FinalizeGeneratedColumnTypeTrampoline,
-    &GeneratedSingleChildTransform::ExecuteGeneratedColumnType};
-static const TransformFrameOps COMMIT_ACTION_OPS = {
-    "CommitAction", &PEGTransformerFactory::InitializeCommitActionTrampoline,
-    &PEGTransformerFactory::FinalizeCommitActionTrampoline, &GeneratedSingleChildTransform::ExecuteCommitAction};
-static const TransformFrameOps PRESERVE_OR_DELETE_OPS = {"PreserveOrDelete",
-                                                         &PEGTransformerFactory::InitializePreserveOrDeleteTrampoline,
-                                                         &PEGTransformerFactory::FinalizePreserveOrDeleteTrampoline,
-                                                         &GeneratedSingleChildTransform::ExecutePreserveOrDelete};
-static const TransformFrameOps PRESERVE_ROWS_OPS = {
-    "PreserveRows", &PEGTransformerFactory::InitializePreserveRowsTrampoline,
-    &PEGTransformerFactory::FinalizePreserveRowsTrampoline, &GeneratedSingleChildTransform::ExecutePreserveRows};
+    &GeneratedSingleChildTransform::ExecuteGeneratedColumnType,
+    &GeneratedSingleChildTransform::ForwardGeneratedColumnType};
+static const TransformFrameOps COMMIT_ACTION_OPS = {"CommitAction",
+                                                    &PEGTransformerFactory::InitializeCommitActionTrampoline,
+                                                    &PEGTransformerFactory::FinalizeCommitActionTrampoline,
+                                                    &GeneratedSingleChildTransform::ExecuteCommitAction, nullptr};
+static const TransformFrameOps PRESERVE_OR_DELETE_OPS = {
+    "PreserveOrDelete", &PEGTransformerFactory::InitializePreserveOrDeleteTrampoline,
+    &PEGTransformerFactory::FinalizePreserveOrDeleteTrampoline, &GeneratedSingleChildTransform::ExecutePreserveOrDelete,
+    &GeneratedSingleChildTransform::ForwardPreserveOrDelete};
+static const TransformFrameOps PRESERVE_ROWS_OPS = {"PreserveRows",
+                                                    &PEGTransformerFactory::InitializePreserveRowsTrampoline,
+                                                    &PEGTransformerFactory::FinalizePreserveRowsTrampoline,
+                                                    &GeneratedSingleChildTransform::ExecutePreserveRows, nullptr};
 static const TransformFrameOps DELETE_ROWS_OPS = {"DeleteRows", &PEGTransformerFactory::InitializeDeleteRowsTrampoline,
                                                   &PEGTransformerFactory::FinalizeDeleteRowsTrampoline,
-                                                  &GeneratedSingleChildTransform::ExecuteDeleteRows};
+                                                  &GeneratedSingleChildTransform::ExecuteDeleteRows, nullptr};
 static const TransformFrameOps VIRTUAL_GENERATED_COLUMN_OPS = {
     "VirtualGeneratedColumn", &PEGTransformerFactory::InitializeVirtualGeneratedColumnTrampoline,
     &PEGTransformerFactory::FinalizeVirtualGeneratedColumnTrampoline,
-    &GeneratedSingleChildTransform::ExecuteVirtualGeneratedColumn};
+    &GeneratedSingleChildTransform::ExecuteVirtualGeneratedColumn, nullptr};
 static const TransformFrameOps STORED_GENERATED_COLUMN_OPS = {
     "StoredGeneratedColumn", &PEGTransformerFactory::InitializeStoredGeneratedColumnTrampoline,
     &PEGTransformerFactory::FinalizeStoredGeneratedColumnTrampoline,
-    &GeneratedSingleChildTransform::ExecuteStoredGeneratedColumn};
+    &GeneratedSingleChildTransform::ExecuteStoredGeneratedColumn, nullptr};
 static const TransformFrameOps CREATE_TRIGGER_STMT_OPS = {
     "CreateTriggerStmt", &PEGTransformerFactory::InitializeCreateTriggerStmtTrampoline,
-    &PEGTransformerFactory::FinalizeCreateTriggerStmtTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeCreateTriggerStmtTrampoline, nullptr, nullptr};
 static const TransformFrameOps TRIGGER_BODY_OPS = {
     "TriggerBody", &PEGTransformerFactory::InitializeTriggerBodyTrampoline,
-    &PEGTransformerFactory::FinalizeTriggerBodyTrampoline, &GeneratedSingleChildTransform::ExecuteTriggerBody};
+    &PEGTransformerFactory::FinalizeTriggerBodyTrampoline, &GeneratedSingleChildTransform::ExecuteTriggerBody,
+    &GeneratedSingleChildTransform::ForwardTriggerBody};
 static const TransformFrameOps TRIGGER_NAME_OPS = {
     "TriggerName", &PEGTransformerFactory::InitializeTriggerNameTrampoline,
-    &PEGTransformerFactory::FinalizeTriggerNameTrampoline, &GeneratedSingleChildTransform::ExecuteTriggerName};
+    &PEGTransformerFactory::FinalizeTriggerNameTrampoline, &GeneratedSingleChildTransform::ExecuteTriggerName, nullptr};
 static const TransformFrameOps REFERENCING_CLAUSE_OPS = {
     "ReferencingClause", &PEGTransformerFactory::InitializeReferencingClauseTrampoline,
-    &PEGTransformerFactory::FinalizeReferencingClauseTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeReferencingClauseTrampoline, nullptr, nullptr};
 static const TransformFrameOps REFERENCING_ITEM_OPS = {
     "ReferencingItem", &PEGTransformerFactory::InitializeReferencingItemTrampoline,
-    &PEGTransformerFactory::FinalizeReferencingItemTrampoline, &GeneratedSingleChildTransform::ExecuteReferencingItem};
+    &PEGTransformerFactory::FinalizeReferencingItemTrampoline, &GeneratedSingleChildTransform::ExecuteReferencingItem,
+    &GeneratedSingleChildTransform::ForwardReferencingItem};
 static const TransformFrameOps REFERENCING_NEW_TABLE_AS_OPS = {
     "ReferencingNewTableAs", &PEGTransformerFactory::InitializeReferencingNewTableAsTrampoline,
     &PEGTransformerFactory::FinalizeReferencingNewTableAsTrampoline,
-    &GeneratedSingleChildTransform::ExecuteReferencingNewTableAs};
+    &GeneratedSingleChildTransform::ExecuteReferencingNewTableAs, nullptr};
 static const TransformFrameOps REFERENCING_OLD_TABLE_AS_OPS = {
     "ReferencingOldTableAs", &PEGTransformerFactory::InitializeReferencingOldTableAsTrampoline,
     &PEGTransformerFactory::FinalizeReferencingOldTableAsTrampoline,
-    &GeneratedSingleChildTransform::ExecuteReferencingOldTableAs};
+    &GeneratedSingleChildTransform::ExecuteReferencingOldTableAs, nullptr};
 static const TransformFrameOps TRIGGER_TIMING_OPS = {
     "TriggerTiming", &PEGTransformerFactory::InitializeTriggerTimingTrampoline,
-    &PEGTransformerFactory::FinalizeTriggerTimingTrampoline, &GeneratedSingleChildTransform::ExecuteTriggerTiming};
-static const TransformFrameOps TRIGGER_BEFORE_OPS = {
-    "TriggerBefore", &PEGTransformerFactory::InitializeTriggerBeforeTrampoline,
-    &PEGTransformerFactory::FinalizeTriggerBeforeTrampoline, &GeneratedSingleChildTransform::ExecuteTriggerBefore};
-static const TransformFrameOps TRIGGER_AFTER_OPS = {
-    "TriggerAfter", &PEGTransformerFactory::InitializeTriggerAfterTrampoline,
-    &PEGTransformerFactory::FinalizeTriggerAfterTrampoline, &GeneratedSingleChildTransform::ExecuteTriggerAfter};
-static const TransformFrameOps TRIGGER_INSTEAD_OF_OPS = {"TriggerInsteadOf",
-                                                         &PEGTransformerFactory::InitializeTriggerInsteadOfTrampoline,
-                                                         &PEGTransformerFactory::FinalizeTriggerInsteadOfTrampoline,
-                                                         &GeneratedSingleChildTransform::ExecuteTriggerInsteadOf};
+    &PEGTransformerFactory::FinalizeTriggerTimingTrampoline, &GeneratedSingleChildTransform::ExecuteTriggerTiming,
+    &GeneratedSingleChildTransform::ForwardTriggerTiming};
+static const TransformFrameOps TRIGGER_BEFORE_OPS = {"TriggerBefore",
+                                                     &PEGTransformerFactory::InitializeTriggerBeforeTrampoline,
+                                                     &PEGTransformerFactory::FinalizeTriggerBeforeTrampoline,
+                                                     &GeneratedSingleChildTransform::ExecuteTriggerBefore, nullptr};
+static const TransformFrameOps TRIGGER_AFTER_OPS = {"TriggerAfter",
+                                                    &PEGTransformerFactory::InitializeTriggerAfterTrampoline,
+                                                    &PEGTransformerFactory::FinalizeTriggerAfterTrampoline,
+                                                    &GeneratedSingleChildTransform::ExecuteTriggerAfter, nullptr};
+static const TransformFrameOps TRIGGER_INSTEAD_OF_OPS = {
+    "TriggerInsteadOf", &PEGTransformerFactory::InitializeTriggerInsteadOfTrampoline,
+    &PEGTransformerFactory::FinalizeTriggerInsteadOfTrampoline, &GeneratedSingleChildTransform::ExecuteTriggerInsteadOf,
+    nullptr};
 static const TransformFrameOps TRIGGER_EVENT_OPS = {
     "TriggerEvent", &PEGTransformerFactory::InitializeTriggerEventTrampoline,
-    &PEGTransformerFactory::FinalizeTriggerEventTrampoline, &GeneratedSingleChildTransform::ExecuteTriggerEvent};
+    &PEGTransformerFactory::FinalizeTriggerEventTrampoline, &GeneratedSingleChildTransform::ExecuteTriggerEvent,
+    &GeneratedSingleChildTransform::ForwardTriggerEvent};
 static const TransformFrameOps TRIGGER_EVENT_INSERT_OPS = {
     "TriggerEventInsert", &PEGTransformerFactory::InitializeTriggerEventInsertTrampoline,
     &PEGTransformerFactory::FinalizeTriggerEventInsertTrampoline,
-    &GeneratedSingleChildTransform::ExecuteTriggerEventInsert};
+    &GeneratedSingleChildTransform::ExecuteTriggerEventInsert, nullptr};
 static const TransformFrameOps TRIGGER_EVENT_DELETE_OPS = {
     "TriggerEventDelete", &PEGTransformerFactory::InitializeTriggerEventDeleteTrampoline,
     &PEGTransformerFactory::FinalizeTriggerEventDeleteTrampoline,
-    &GeneratedSingleChildTransform::ExecuteTriggerEventDelete};
+    &GeneratedSingleChildTransform::ExecuteTriggerEventDelete, nullptr};
 static const TransformFrameOps TRIGGER_EVENT_UPDATE_OPS = {
     "TriggerEventUpdate", &PEGTransformerFactory::InitializeTriggerEventUpdateTrampoline,
     &PEGTransformerFactory::FinalizeTriggerEventUpdateTrampoline,
-    &GeneratedSingleChildTransform::ExecuteTriggerEventUpdate};
+    &GeneratedSingleChildTransform::ExecuteTriggerEventUpdate, nullptr};
 static const TransformFrameOps TRIGGER_EVENT_UPDATE_OF_OPS = {
     "TriggerEventUpdateOf", &PEGTransformerFactory::InitializeTriggerEventUpdateOfTrampoline,
     &PEGTransformerFactory::FinalizeTriggerEventUpdateOfTrampoline,
-    &GeneratedSingleChildTransform::ExecuteTriggerEventUpdateOf};
+    &GeneratedSingleChildTransform::ExecuteTriggerEventUpdateOf, nullptr};
 static const TransformFrameOps TRIGGER_COLUMN_LIST_OPS = {
     "TriggerColumnList", &PEGTransformerFactory::InitializeTriggerColumnListTrampoline,
-    &PEGTransformerFactory::FinalizeTriggerColumnListTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeTriggerColumnListTrampoline, nullptr, nullptr};
 static const TransformFrameOps FOR_EACH_CLAUSE_OPS = {
     "ForEachClause", &PEGTransformerFactory::InitializeForEachClauseTrampoline,
-    &PEGTransformerFactory::FinalizeForEachClauseTrampoline, &GeneratedSingleChildTransform::ExecuteForEachClause};
+    &PEGTransformerFactory::FinalizeForEachClauseTrampoline, &GeneratedSingleChildTransform::ExecuteForEachClause,
+    &GeneratedSingleChildTransform::ForwardForEachClause};
 static const TransformFrameOps FOR_EACH_ROW_OPS = {"ForEachRow", &PEGTransformerFactory::InitializeForEachRowTrampoline,
                                                    &PEGTransformerFactory::FinalizeForEachRowTrampoline,
-                                                   &GeneratedSingleChildTransform::ExecuteForEachRow};
-static const TransformFrameOps FOR_EACH_STATEMENT_OPS = {"ForEachStatement",
-                                                         &PEGTransformerFactory::InitializeForEachStatementTrampoline,
-                                                         &PEGTransformerFactory::FinalizeForEachStatementTrampoline,
-                                                         &GeneratedSingleChildTransform::ExecuteForEachStatement};
+                                                   &GeneratedSingleChildTransform::ExecuteForEachRow, nullptr};
+static const TransformFrameOps FOR_EACH_STATEMENT_OPS = {
+    "ForEachStatement", &PEGTransformerFactory::InitializeForEachStatementTrampoline,
+    &PEGTransformerFactory::FinalizeForEachStatementTrampoline, &GeneratedSingleChildTransform::ExecuteForEachStatement,
+    nullptr};
 static const TransformFrameOps CREATE_TYPE_STMT_OPS = {
     "CreateTypeStmt", &PEGTransformerFactory::InitializeCreateTypeStmtTrampoline,
-    &PEGTransformerFactory::FinalizeCreateTypeStmtTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeCreateTypeStmtTrampoline, nullptr, nullptr};
 static const TransformFrameOps CREATE_TYPE_OPS = {"CreateType", &PEGTransformerFactory::InitializeCreateTypeTrampoline,
                                                   &PEGTransformerFactory::FinalizeCreateTypeTrampoline,
-                                                  &GeneratedSingleChildTransform::ExecuteCreateType};
+                                                  &GeneratedSingleChildTransform::ExecuteCreateType,
+                                                  &GeneratedSingleChildTransform::ForwardCreateType};
 static const TransformFrameOps CREATE_TYPE_FROM_TYPE_OPS = {
     "CreateTypeFromType", &PEGTransformerFactory::InitializeCreateTypeFromTypeTrampoline,
     &PEGTransformerFactory::FinalizeCreateTypeFromTypeTrampoline,
-    &GeneratedSingleChildTransform::ExecuteCreateTypeFromType};
-static const TransformFrameOps ENUM_SELECT_TYPE_OPS = {
-    "EnumSelectType", &PEGTransformerFactory::InitializeEnumSelectTypeTrampoline,
-    &PEGTransformerFactory::FinalizeEnumSelectTypeTrampoline, &GeneratedSingleChildTransform::ExecuteEnumSelectType};
+    &GeneratedSingleChildTransform::ExecuteCreateTypeFromType, nullptr};
+static const TransformFrameOps ENUM_SELECT_TYPE_OPS = {"EnumSelectType",
+                                                       &PEGTransformerFactory::InitializeEnumSelectTypeTrampoline,
+                                                       &PEGTransformerFactory::FinalizeEnumSelectTypeTrampoline,
+                                                       &GeneratedSingleChildTransform::ExecuteEnumSelectType, nullptr};
 static const TransformFrameOps ENUM_STRING_LITERAL_LIST_OPS = {
     "EnumStringLiteralList", &PEGTransformerFactory::InitializeEnumStringLiteralListTrampoline,
-    &PEGTransformerFactory::FinalizeEnumStringLiteralListTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeEnumStringLiteralListTrampoline, nullptr, nullptr};
 static const TransformFrameOps CREATE_VIEW_STMT_OPS = {
     "CreateViewStmt", &PEGTransformerFactory::InitializeCreateViewStmtTrampoline,
-    &PEGTransformerFactory::FinalizeCreateViewStmtTrampoline, nullptr};
-static const TransformFrameOps CREATE_RECURSIVE_OPS = {
-    "CreateRecursive", &PEGTransformerFactory::InitializeCreateRecursiveTrampoline,
-    &PEGTransformerFactory::FinalizeCreateRecursiveTrampoline, &GeneratedSingleChildTransform::ExecuteCreateRecursive};
-static const TransformFrameOps CREATE_SECURE_OPS = {
-    "CreateSecure", &PEGTransformerFactory::InitializeCreateSecureTrampoline,
-    &PEGTransformerFactory::FinalizeCreateSecureTrampoline, &GeneratedSingleChildTransform::ExecuteCreateSecure};
+    &PEGTransformerFactory::FinalizeCreateViewStmtTrampoline, nullptr, nullptr};
+static const TransformFrameOps CREATE_RECURSIVE_OPS = {"CreateRecursive",
+                                                       &PEGTransformerFactory::InitializeCreateRecursiveTrampoline,
+                                                       &PEGTransformerFactory::FinalizeCreateRecursiveTrampoline,
+                                                       &GeneratedSingleChildTransform::ExecuteCreateRecursive, nullptr};
+static const TransformFrameOps CREATE_SECURE_OPS = {"CreateSecure",
+                                                    &PEGTransformerFactory::InitializeCreateSecureTrampoline,
+                                                    &PEGTransformerFactory::FinalizeCreateSecureTrampoline,
+                                                    &GeneratedSingleChildTransform::ExecuteCreateSecure, nullptr};
 static const TransformFrameOps DEALLOCATE_STATEMENT_OPS = {
     "DeallocateStatement", &PEGTransformerFactory::InitializeDeallocateStatementTrampoline,
-    &PEGTransformerFactory::FinalizeDeallocateStatementTrampoline, nullptr};
-static const TransformFrameOps DEALLOCATE_PREPARE_OPS = {"DeallocatePrepare",
-                                                         &PEGTransformerFactory::InitializeDeallocatePrepareTrampoline,
-                                                         &PEGTransformerFactory::FinalizeDeallocatePrepareTrampoline,
-                                                         &GeneratedSingleChildTransform::ExecuteDeallocatePrepare};
+    &PEGTransformerFactory::FinalizeDeallocateStatementTrampoline, nullptr, nullptr};
+static const TransformFrameOps DEALLOCATE_PREPARE_OPS = {
+    "DeallocatePrepare", &PEGTransformerFactory::InitializeDeallocatePrepareTrampoline,
+    &PEGTransformerFactory::FinalizeDeallocatePrepareTrampoline,
+    &GeneratedSingleChildTransform::ExecuteDeallocatePrepare, nullptr};
 static const TransformFrameOps DELETE_STATEMENT_OPS = {
     "DeleteStatement", &PEGTransformerFactory::InitializeDeleteStatementTrampoline,
-    &PEGTransformerFactory::FinalizeDeleteStatementTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeDeleteStatementTrampoline, nullptr, nullptr};
 static const TransformFrameOps TRUNCATE_STATEMENT_OPS = {
     "TruncateStatement", &PEGTransformerFactory::InitializeTruncateStatementTrampoline,
-    &PEGTransformerFactory::FinalizeTruncateStatementTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeTruncateStatementTrampoline, nullptr, nullptr};
 static const TransformFrameOps TRUNCATE_OPTIONS_OPS = {
     "TruncateOptions", &PEGTransformerFactory::InitializeTruncateOptionsTrampoline,
-    &PEGTransformerFactory::FinalizeTruncateOptionsTrampoline, &GeneratedSingleChildTransform::ExecuteTruncateOptions};
+    &PEGTransformerFactory::FinalizeTruncateOptionsTrampoline, &GeneratedSingleChildTransform::ExecuteTruncateOptions,
+    &GeneratedSingleChildTransform::ForwardTruncateOptions};
 static const TransformFrameOps TRUNCATE_ALIAS_OPTIONS_OPS = {
     "TruncateAliasOptions", &PEGTransformerFactory::InitializeTruncateAliasOptionsTrampoline,
-    &PEGTransformerFactory::FinalizeTruncateAliasOptionsTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeTruncateAliasOptionsTrampoline, nullptr, nullptr};
 static const TransformFrameOps TRUNCATE_DROP_BEHAVIOR_OPS = {
     "TruncateDropBehavior", &PEGTransformerFactory::InitializeTruncateDropBehaviorTrampoline,
     &PEGTransformerFactory::FinalizeTruncateDropBehaviorTrampoline,
-    &GeneratedSingleChildTransform::ExecuteTruncateDropBehavior};
+    &GeneratedSingleChildTransform::ExecuteTruncateDropBehavior, nullptr};
 static const TransformFrameOps TARGET_OPT_ALIAS_OPS = {
     "TargetOptAlias", &PEGTransformerFactory::InitializeTargetOptAliasTrampoline,
-    &PEGTransformerFactory::FinalizeTargetOptAliasTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeTargetOptAliasTrampoline, nullptr, nullptr};
 static const TransformFrameOps TARGET_ALIAS_OPS = {
     "TargetAlias", &PEGTransformerFactory::InitializeTargetAliasTrampoline,
-    &PEGTransformerFactory::FinalizeTargetAliasTrampoline, &GeneratedSingleChildTransform::ExecuteTargetAlias};
+    &PEGTransformerFactory::FinalizeTargetAliasTrampoline, &GeneratedSingleChildTransform::ExecuteTargetAlias, nullptr};
 static const TransformFrameOps DELETE_USING_CLAUSE_OPS = {
     "DeleteUsingClause", &PEGTransformerFactory::InitializeDeleteUsingClauseTrampoline,
-    &PEGTransformerFactory::FinalizeDeleteUsingClauseTrampoline, nullptr};
-static const TransformFrameOps DESCRIBE_STATEMENT_OPS = {"DescribeStatement",
-                                                         &PEGTransformerFactory::InitializeDescribeStatementTrampoline,
-                                                         &PEGTransformerFactory::FinalizeDescribeStatementTrampoline,
-                                                         &GeneratedSingleChildTransform::ExecuteDescribeStatement};
+    &PEGTransformerFactory::FinalizeDeleteUsingClauseTrampoline, nullptr, nullptr};
+static const TransformFrameOps DESCRIBE_STATEMENT_OPS = {
+    "DescribeStatement", &PEGTransformerFactory::InitializeDescribeStatementTrampoline,
+    &PEGTransformerFactory::FinalizeDescribeStatementTrampoline,
+    &GeneratedSingleChildTransform::ExecuteDescribeStatement, nullptr};
 static const TransformFrameOps SHOW_DEPRECATED_SELECT_OPS = {
     "ShowDeprecatedSelect", &PEGTransformerFactory::InitializeShowDeprecatedSelectTrampoline,
-    &PEGTransformerFactory::FinalizeShowDeprecatedSelectTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeShowDeprecatedSelectTrampoline, nullptr, nullptr};
 static const TransformFrameOps DESCRIBE_SELECT_OPS = {
     "DescribeSelect", &PEGTransformerFactory::InitializeDescribeSelectTrampoline,
-    &PEGTransformerFactory::FinalizeDescribeSelectTrampoline, nullptr};
-static const TransformFrameOps SHOW_ALL_TABLES_OPS = {
-    "ShowAllTables", &PEGTransformerFactory::InitializeShowAllTablesTrampoline,
-    &PEGTransformerFactory::FinalizeShowAllTablesTrampoline, &GeneratedSingleChildTransform::ExecuteShowAllTables};
+    &PEGTransformerFactory::FinalizeDescribeSelectTrampoline, nullptr, nullptr};
+static const TransformFrameOps SHOW_ALL_TABLES_OPS = {"ShowAllTables",
+                                                      &PEGTransformerFactory::InitializeShowAllTablesTrampoline,
+                                                      &PEGTransformerFactory::FinalizeShowAllTablesTrampoline,
+                                                      &GeneratedSingleChildTransform::ExecuteShowAllTables, nullptr};
 static const TransformFrameOps SHOW_TABLES_OPS = {"ShowTables", &PEGTransformerFactory::InitializeShowTablesTrampoline,
-                                                  &PEGTransformerFactory::FinalizeShowTablesTrampoline, nullptr};
+                                                  &PEGTransformerFactory::FinalizeShowTablesTrampoline, nullptr,
+                                                  nullptr};
 static const TransformFrameOps SHOW_BY_NAME_OPS = {"ShowByName", &PEGTransformerFactory::InitializeShowByNameTrampoline,
-                                                   &PEGTransformerFactory::FinalizeShowByNameTrampoline, nullptr};
+                                                   &PEGTransformerFactory::FinalizeShowByNameTrampoline, nullptr,
+                                                   nullptr};
 static const TransformFrameOps DESCRIBE_BY_NAME_OPS = {
     "DescribeByName", &PEGTransformerFactory::InitializeDescribeByNameTrampoline,
-    &PEGTransformerFactory::FinalizeDescribeByNameTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeDescribeByNameTrampoline, nullptr, nullptr};
 static const TransformFrameOps DESCRIBE_OR_SUMMARIZE_OPS = {
     "DescribeOrSummarize", &PEGTransformerFactory::InitializeDescribeOrSummarizeTrampoline,
     &PEGTransformerFactory::FinalizeDescribeOrSummarizeTrampoline,
-    &GeneratedSingleChildTransform::ExecuteDescribeOrSummarize};
+    &GeneratedSingleChildTransform::ExecuteDescribeOrSummarize,
+    &GeneratedSingleChildTransform::ForwardDescribeOrSummarize};
 static const TransformFrameOps SHOW_TARGET_OPS = {"ShowTarget", &PEGTransformerFactory::InitializeShowTargetTrampoline,
                                                   &PEGTransformerFactory::FinalizeShowTargetTrampoline,
-                                                  &GeneratedSingleChildTransform::ExecuteShowTarget};
+                                                  &GeneratedSingleChildTransform::ExecuteShowTarget, nullptr};
 static const TransformFrameOps SHOW_DEPRECATED_QUALIFIED_TABLE_NAME_OPS = {
     "ShowDeprecatedQualifiedTableName", &PEGTransformerFactory::InitializeShowDeprecatedQualifiedTableNameTrampoline,
     &PEGTransformerFactory::FinalizeShowDeprecatedQualifiedTableNameTrampoline,
-    &GeneratedSingleChildTransform::ExecuteShowDeprecatedQualifiedTableName};
+    &GeneratedSingleChildTransform::ExecuteShowDeprecatedQualifiedTableName, nullptr};
 static const TransformFrameOps SHOW_SETTING_NAME_OPS = {
     "ShowSettingName", &PEGTransformerFactory::InitializeShowSettingNameTrampoline,
-    &PEGTransformerFactory::FinalizeShowSettingNameTrampoline, &GeneratedSingleChildTransform::ExecuteShowSettingName};
+    &PEGTransformerFactory::FinalizeShowSettingNameTrampoline, &GeneratedSingleChildTransform::ExecuteShowSettingName,
+    nullptr};
 static const TransformFrameOps DESCRIBE_TARGET_OPS = {
     "DescribeTarget", &PEGTransformerFactory::InitializeDescribeTargetTrampoline,
-    &PEGTransformerFactory::FinalizeDescribeTargetTrampoline, &GeneratedSingleChildTransform::ExecuteDescribeTarget};
+    &PEGTransformerFactory::FinalizeDescribeTargetTrampoline, &GeneratedSingleChildTransform::ExecuteDescribeTarget,
+    &GeneratedSingleChildTransform::ForwardDescribeTarget};
 static const TransformFrameOps DESCRIBE_BASE_TABLE_NAME_OPS = {
     "DescribeBaseTableName", &PEGTransformerFactory::InitializeDescribeBaseTableNameTrampoline,
     &PEGTransformerFactory::FinalizeDescribeBaseTableNameTrampoline,
-    &GeneratedSingleChildTransform::ExecuteDescribeBaseTableName};
+    &GeneratedSingleChildTransform::ExecuteDescribeBaseTableName, nullptr};
 static const TransformFrameOps DESCRIBE_STRING_LITERAL_OPS = {
     "DescribeStringLiteral", &PEGTransformerFactory::InitializeDescribeStringLiteralTrampoline,
     &PEGTransformerFactory::FinalizeDescribeStringLiteralTrampoline,
-    &GeneratedSingleChildTransform::ExecuteDescribeStringLiteral};
+    &GeneratedSingleChildTransform::ExecuteDescribeStringLiteral, nullptr};
 static const TransformFrameOps SUMMARIZE_OPS = {"Summarize", &PEGTransformerFactory::InitializeSummarizeTrampoline,
                                                 &PEGTransformerFactory::FinalizeSummarizeTrampoline,
-                                                &GeneratedSingleChildTransform::ExecuteSummarize};
-static const TransformFrameOps SUMMARIZE_RULE_OPS = {
-    "SummarizeRule", &PEGTransformerFactory::InitializeSummarizeRuleTrampoline,
-    &PEGTransformerFactory::FinalizeSummarizeRuleTrampoline, &GeneratedSingleChildTransform::ExecuteSummarizeRule};
+                                                &GeneratedSingleChildTransform::ExecuteSummarize, nullptr};
+static const TransformFrameOps SUMMARIZE_RULE_OPS = {"SummarizeRule",
+                                                     &PEGTransformerFactory::InitializeSummarizeRuleTrampoline,
+                                                     &PEGTransformerFactory::FinalizeSummarizeRuleTrampoline,
+                                                     &GeneratedSingleChildTransform::ExecuteSummarizeRule, nullptr};
 static const TransformFrameOps SHOW_OR_DESCRIBE_OPS = {
     "ShowOrDescribe", &PEGTransformerFactory::InitializeShowOrDescribeTrampoline,
-    &PEGTransformerFactory::FinalizeShowOrDescribeTrampoline, &GeneratedSingleChildTransform::ExecuteShowOrDescribe};
+    &PEGTransformerFactory::FinalizeShowOrDescribeTrampoline, &GeneratedSingleChildTransform::ExecuteShowOrDescribe,
+    &GeneratedSingleChildTransform::ForwardShowOrDescribe};
 static const TransformFrameOps SHOW_RULE_OPS = {"ShowRule", &PEGTransformerFactory::InitializeShowRuleTrampoline,
                                                 &PEGTransformerFactory::FinalizeShowRuleTrampoline,
-                                                &GeneratedSingleChildTransform::ExecuteShowRule};
+                                                &GeneratedSingleChildTransform::ExecuteShowRule, nullptr};
 static const TransformFrameOps DESCRIBE_RULE_OPS = {
     "DescribeRule", &PEGTransformerFactory::InitializeDescribeRuleTrampoline,
-    &PEGTransformerFactory::FinalizeDescribeRuleTrampoline, &GeneratedSingleChildTransform::ExecuteDescribeRule};
-static const TransformFrameOps DESCRIBE_LONG_RULE_OPS = {"DescribeLongRule",
-                                                         &PEGTransformerFactory::InitializeDescribeLongRuleTrampoline,
-                                                         &PEGTransformerFactory::FinalizeDescribeLongRuleTrampoline,
-                                                         &GeneratedSingleChildTransform::ExecuteDescribeLongRule};
+    &PEGTransformerFactory::FinalizeDescribeRuleTrampoline, &GeneratedSingleChildTransform::ExecuteDescribeRule,
+    &GeneratedSingleChildTransform::ForwardDescribeRule};
+static const TransformFrameOps DESCRIBE_LONG_RULE_OPS = {
+    "DescribeLongRule", &PEGTransformerFactory::InitializeDescribeLongRuleTrampoline,
+    &PEGTransformerFactory::FinalizeDescribeLongRuleTrampoline, &GeneratedSingleChildTransform::ExecuteDescribeLongRule,
+    nullptr};
 static const TransformFrameOps DESC_RULE_OPS = {"DescRule", &PEGTransformerFactory::InitializeDescRuleTrampoline,
                                                 &PEGTransformerFactory::FinalizeDescRuleTrampoline,
-                                                &GeneratedSingleChildTransform::ExecuteDescRule};
-static const TransformFrameOps DETACH_STATEMENT_OPS = {
-    "DetachStatement", &PEGTransformerFactory::InitializeDetachStatementTrampoline,
-    &PEGTransformerFactory::FinalizeDetachStatementTrampoline, &GeneratedSingleChildTransform::ExecuteDetachStatement};
-static const TransformFrameOps DROP_STATEMENT_OPS = {"DropStatement",
-                                                     &PEGTransformerFactory::InitializeDropStatementTrampoline,
-                                                     &PEGTransformerFactory::FinalizeDropStatementTrampoline, nullptr};
+                                                &GeneratedSingleChildTransform::ExecuteDescRule, nullptr};
+static const TransformFrameOps DETACH_STATEMENT_OPS = {"DetachStatement",
+                                                       &PEGTransformerFactory::InitializeDetachStatementTrampoline,
+                                                       &PEGTransformerFactory::FinalizeDetachStatementTrampoline,
+                                                       &GeneratedSingleChildTransform::ExecuteDetachStatement, nullptr};
+static const TransformFrameOps DROP_STATEMENT_OPS = {
+    "DropStatement", &PEGTransformerFactory::InitializeDropStatementTrampoline,
+    &PEGTransformerFactory::FinalizeDropStatementTrampoline, nullptr, nullptr};
 static const TransformFrameOps DROP_ENTRIES_OPS = {
     "DropEntries", &PEGTransformerFactory::InitializeDropEntriesTrampoline,
-    &PEGTransformerFactory::FinalizeDropEntriesTrampoline, &GeneratedSingleChildTransform::ExecuteDropEntries};
-static const TransformFrameOps DROP_TRIGGER_OPS = {"DropTrigger",
-                                                   &PEGTransformerFactory::InitializeDropTriggerTrampoline,
-                                                   &PEGTransformerFactory::FinalizeDropTriggerTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeDropEntriesTrampoline, &GeneratedSingleChildTransform::ExecuteDropEntries,
+    &GeneratedSingleChildTransform::ForwardDropEntries};
+static const TransformFrameOps DROP_TRIGGER_OPS = {
+    "DropTrigger", &PEGTransformerFactory::InitializeDropTriggerTrampoline,
+    &PEGTransformerFactory::FinalizeDropTriggerTrampoline, nullptr, nullptr};
 static const TransformFrameOps DROP_TABLE_OPS = {"DropTable", &PEGTransformerFactory::InitializeDropTableTrampoline,
-                                                 &PEGTransformerFactory::FinalizeDropTableTrampoline, nullptr};
+                                                 &PEGTransformerFactory::FinalizeDropTableTrampoline, nullptr, nullptr};
 static const TransformFrameOps DROP_TABLE_FUNCTION_OPS = {
     "DropTableFunction", &PEGTransformerFactory::InitializeDropTableFunctionTrampoline,
-    &PEGTransformerFactory::FinalizeDropTableFunctionTrampoline, nullptr};
-static const TransformFrameOps DROP_FUNCTION_OPS = {"DropFunction",
-                                                    &PEGTransformerFactory::InitializeDropFunctionTrampoline,
-                                                    &PEGTransformerFactory::FinalizeDropFunctionTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeDropTableFunctionTrampoline, nullptr, nullptr};
+static const TransformFrameOps DROP_FUNCTION_OPS = {
+    "DropFunction", &PEGTransformerFactory::InitializeDropFunctionTrampoline,
+    &PEGTransformerFactory::FinalizeDropFunctionTrampoline, nullptr, nullptr};
 static const TransformFrameOps DROP_SCHEMA_OPS = {"DropSchema", &PEGTransformerFactory::InitializeDropSchemaTrampoline,
-                                                  &PEGTransformerFactory::FinalizeDropSchemaTrampoline, nullptr};
+                                                  &PEGTransformerFactory::FinalizeDropSchemaTrampoline, nullptr,
+                                                  nullptr};
 static const TransformFrameOps DROP_INDEX_OPS = {"DropIndex", &PEGTransformerFactory::InitializeDropIndexTrampoline,
-                                                 &PEGTransformerFactory::FinalizeDropIndexTrampoline, nullptr};
+                                                 &PEGTransformerFactory::FinalizeDropIndexTrampoline, nullptr, nullptr};
 static const TransformFrameOps QUALIFIED_INDEX_NAME_OPS = {
     "QualifiedIndexName", &PEGTransformerFactory::InitializeQualifiedIndexNameTrampoline,
     &PEGTransformerFactory::FinalizeQualifiedIndexNameTrampoline,
-    &GeneratedSingleChildTransform::ExecuteQualifiedIndexName};
+    &GeneratedSingleChildTransform::ExecuteQualifiedIndexName,
+    &GeneratedSingleChildTransform::ForwardQualifiedIndexName};
 static const TransformFrameOps QUALIFIED_INDEX_NAME_STRING_OPS = {
     "QualifiedIndexNameString", &PEGTransformerFactory::InitializeQualifiedIndexNameStringTrampoline,
     &PEGTransformerFactory::FinalizeQualifiedIndexNameStringTrampoline,
-    &GeneratedSingleChildTransform::ExecuteQualifiedIndexNameString};
+    &GeneratedSingleChildTransform::ExecuteQualifiedIndexNameString, nullptr};
 static const TransformFrameOps SCHEMA_RESERVED_INDEX_OPS = {
     "SchemaReservedIndex", &PEGTransformerFactory::InitializeSchemaReservedIndexTrampoline,
     &PEGTransformerFactory::FinalizeSchemaReservedIndexTrampoline,
-    &GeneratedSingleChildTransform::ExecuteSchemaReservedIndex};
+    &GeneratedSingleChildTransform::ExecuteSchemaReservedIndex, nullptr};
 static const TransformFrameOps CATALOG_RESERVED_SCHEMA_INDEX_OPS = {
     "CatalogReservedSchemaIndex", &PEGTransformerFactory::InitializeCatalogReservedSchemaIndexTrampoline,
-    &PEGTransformerFactory::FinalizeCatalogReservedSchemaIndexTrampoline, nullptr};
-static const TransformFrameOps DROP_SEQUENCE_OPS = {"DropSequence",
-                                                    &PEGTransformerFactory::InitializeDropSequenceTrampoline,
-                                                    &PEGTransformerFactory::FinalizeDropSequenceTrampoline, nullptr};
-static const TransformFrameOps DROP_COLLATION_OPS = {"DropCollation",
-                                                     &PEGTransformerFactory::InitializeDropCollationTrampoline,
-                                                     &PEGTransformerFactory::FinalizeDropCollationTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeCatalogReservedSchemaIndexTrampoline, nullptr, nullptr};
+static const TransformFrameOps DROP_SEQUENCE_OPS = {
+    "DropSequence", &PEGTransformerFactory::InitializeDropSequenceTrampoline,
+    &PEGTransformerFactory::FinalizeDropSequenceTrampoline, nullptr, nullptr};
+static const TransformFrameOps DROP_COLLATION_OPS = {
+    "DropCollation", &PEGTransformerFactory::InitializeDropCollationTrampoline,
+    &PEGTransformerFactory::FinalizeDropCollationTrampoline, nullptr, nullptr};
 static const TransformFrameOps DROP_TYPE_OPS = {"DropType", &PEGTransformerFactory::InitializeDropTypeTrampoline,
-                                                &PEGTransformerFactory::FinalizeDropTypeTrampoline, nullptr};
+                                                &PEGTransformerFactory::FinalizeDropTypeTrampoline, nullptr, nullptr};
 static const TransformFrameOps DROP_SECRET_OPS = {"DropSecret", &PEGTransformerFactory::InitializeDropSecretTrampoline,
-                                                  &PEGTransformerFactory::FinalizeDropSecretTrampoline, nullptr};
+                                                  &PEGTransformerFactory::FinalizeDropSecretTrampoline, nullptr,
+                                                  nullptr};
 static const TransformFrameOps TABLE_OR_VIEW_OPS = {
     "TableOrView", &PEGTransformerFactory::InitializeTableOrViewTrampoline,
-    &PEGTransformerFactory::FinalizeTableOrViewTrampoline, &GeneratedSingleChildTransform::ExecuteTableOrView};
+    &PEGTransformerFactory::FinalizeTableOrViewTrampoline, &GeneratedSingleChildTransform::ExecuteTableOrView,
+    &GeneratedSingleChildTransform::ForwardTableOrView};
 static const TransformFrameOps MATERIALIZED_VIEW_ENTRY_OPS = {
     "MaterializedViewEntry", &PEGTransformerFactory::InitializeMaterializedViewEntryTrampoline,
     &PEGTransformerFactory::FinalizeMaterializedViewEntryTrampoline,
-    &GeneratedSingleChildTransform::ExecuteMaterializedViewEntry};
-static const TransformFrameOps FUNCTION_TYPE_MACRO_OPS = {"FunctionTypeMacro",
-                                                          &PEGTransformerFactory::InitializeFunctionTypeMacroTrampoline,
-                                                          &PEGTransformerFactory::FinalizeFunctionTypeMacroTrampoline,
-                                                          &GeneratedSingleChildTransform::ExecuteFunctionTypeMacro};
+    &GeneratedSingleChildTransform::ExecuteMaterializedViewEntry, nullptr};
+static const TransformFrameOps FUNCTION_TYPE_MACRO_OPS = {
+    "FunctionTypeMacro", &PEGTransformerFactory::InitializeFunctionTypeMacroTrampoline,
+    &PEGTransformerFactory::FinalizeFunctionTypeMacroTrampoline,
+    &GeneratedSingleChildTransform::ExecuteFunctionTypeMacro, &GeneratedSingleChildTransform::ForwardFunctionTypeMacro};
 static const TransformFrameOps FUNCTION_TYPE_MACRO_KEYWORD_OPS = {
     "FunctionTypeMacroKeyword", &PEGTransformerFactory::InitializeFunctionTypeMacroKeywordTrampoline,
     &PEGTransformerFactory::FinalizeFunctionTypeMacroKeywordTrampoline,
-    &GeneratedSingleChildTransform::ExecuteFunctionTypeMacroKeyword};
+    &GeneratedSingleChildTransform::ExecuteFunctionTypeMacroKeyword, nullptr};
 static const TransformFrameOps FUNCTION_TYPE_FUNCTION_OPS = {
     "FunctionTypeFunction", &PEGTransformerFactory::InitializeFunctionTypeFunctionTrampoline,
     &PEGTransformerFactory::FinalizeFunctionTypeFunctionTrampoline,
-    &GeneratedSingleChildTransform::ExecuteFunctionTypeFunction};
+    &GeneratedSingleChildTransform::ExecuteFunctionTypeFunction, nullptr};
 static const TransformFrameOps DROP_BEHAVIOR_OPS = {
     "DropBehavior", &PEGTransformerFactory::InitializeDropBehaviorTrampoline,
-    &PEGTransformerFactory::FinalizeDropBehaviorTrampoline, &GeneratedSingleChildTransform::ExecuteDropBehavior};
+    &PEGTransformerFactory::FinalizeDropBehaviorTrampoline, &GeneratedSingleChildTransform::ExecuteDropBehavior,
+    &GeneratedSingleChildTransform::ForwardDropBehavior};
 static const TransformFrameOps CASCADE_DROP_BEHAVIOR_OPS = {
     "CascadeDropBehavior", &PEGTransformerFactory::InitializeCascadeDropBehaviorTrampoline,
     &PEGTransformerFactory::FinalizeCascadeDropBehaviorTrampoline,
-    &GeneratedSingleChildTransform::ExecuteCascadeDropBehavior};
+    &GeneratedSingleChildTransform::ExecuteCascadeDropBehavior, nullptr};
 static const TransformFrameOps RESTRICT_DROP_BEHAVIOR_OPS = {
     "RestrictDropBehavior", &PEGTransformerFactory::InitializeRestrictDropBehaviorTrampoline,
     &PEGTransformerFactory::FinalizeRestrictDropBehaviorTrampoline,
-    &GeneratedSingleChildTransform::ExecuteRestrictDropBehavior};
+    &GeneratedSingleChildTransform::ExecuteRestrictDropBehavior, nullptr};
 static const TransformFrameOps IF_EXISTS_OPS = {"IfExists", &PEGTransformerFactory::InitializeIfExistsTrampoline,
                                                 &PEGTransformerFactory::FinalizeIfExistsTrampoline,
-                                                &GeneratedSingleChildTransform::ExecuteIfExists};
-static const TransformFrameOps DROP_SECRET_STORAGE_OPS = {"DropSecretStorage",
-                                                          &PEGTransformerFactory::InitializeDropSecretStorageTrampoline,
-                                                          &PEGTransformerFactory::FinalizeDropSecretStorageTrampoline,
-                                                          &GeneratedSingleChildTransform::ExecuteDropSecretStorage};
+                                                &GeneratedSingleChildTransform::ExecuteIfExists, nullptr};
+static const TransformFrameOps DROP_SECRET_STORAGE_OPS = {
+    "DropSecretStorage", &PEGTransformerFactory::InitializeDropSecretStorageTrampoline,
+    &PEGTransformerFactory::FinalizeDropSecretStorageTrampoline,
+    &GeneratedSingleChildTransform::ExecuteDropSecretStorage, nullptr};
 static const TransformFrameOps EXECUTE_STATEMENT_OPS = {
     "ExecuteStatement", &PEGTransformerFactory::InitializeExecuteStatementTrampoline,
-    &PEGTransformerFactory::FinalizeExecuteStatementTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeExecuteStatementTrampoline, nullptr, nullptr};
 static const TransformFrameOps EXPLAIN_STATEMENT_OPS = {
     "ExplainStatement", &PEGTransformerFactory::InitializeExplainStatementTrampoline,
-    &PEGTransformerFactory::FinalizeExplainStatementTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeExplainStatementTrampoline, nullptr, nullptr};
 static const TransformFrameOps EXPLAIN_OPTION_LIST_OPS = {
     "ExplainOptionList", &PEGTransformerFactory::InitializeExplainOptionListTrampoline,
-    &PEGTransformerFactory::FinalizeExplainOptionListTrampoline, nullptr};
-static const TransformFrameOps EXPLAIN_OPTION_OPS = {"ExplainOption",
-                                                     &PEGTransformerFactory::InitializeExplainOptionTrampoline,
-                                                     &PEGTransformerFactory::FinalizeExplainOptionTrampoline, nullptr};
-static const TransformFrameOps EXPLAIN_OPTION_NAME_OPS = {"ExplainOptionName",
-                                                          &PEGTransformerFactory::InitializeExplainOptionNameTrampoline,
-                                                          &PEGTransformerFactory::FinalizeExplainOptionNameTrampoline,
-                                                          &GeneratedSingleChildTransform::ExecuteExplainOptionName};
+    &PEGTransformerFactory::FinalizeExplainOptionListTrampoline, nullptr, nullptr};
+static const TransformFrameOps EXPLAIN_OPTION_OPS = {
+    "ExplainOption", &PEGTransformerFactory::InitializeExplainOptionTrampoline,
+    &PEGTransformerFactory::FinalizeExplainOptionTrampoline, nullptr, nullptr};
+static const TransformFrameOps EXPLAIN_OPTION_NAME_OPS = {
+    "ExplainOptionName", &PEGTransformerFactory::InitializeExplainOptionNameTrampoline,
+    &PEGTransformerFactory::FinalizeExplainOptionNameTrampoline,
+    &GeneratedSingleChildTransform::ExecuteExplainOptionName, nullptr};
 static const TransformFrameOps EXPLAIN_SELECT_STATEMENT_OPS = {
     "ExplainSelectStatement", &PEGTransformerFactory::InitializeExplainSelectStatementTrampoline,
     &PEGTransformerFactory::FinalizeExplainSelectStatementTrampoline,
-    &GeneratedSingleChildTransform::ExecuteExplainSelectStatement};
+    &GeneratedSingleChildTransform::ExecuteExplainSelectStatement, nullptr};
 static const TransformFrameOps EXPLAINABLE_STATEMENTS_OPS = {
     "ExplainableStatements", &PEGTransformerFactory::InitializeExplainableStatementsTrampoline,
     &PEGTransformerFactory::FinalizeExplainableStatementsTrampoline,
-    &GeneratedSingleChildTransform::ExecuteExplainableStatements};
+    &GeneratedSingleChildTransform::ExecuteExplainableStatements,
+    &GeneratedSingleChildTransform::ForwardExplainableStatements};
 static const TransformFrameOps EXPORT_STATEMENT_OPS = {
     "ExportStatement", &PEGTransformerFactory::InitializeExportStatementTrampoline,
-    &PEGTransformerFactory::FinalizeExportStatementTrampoline, nullptr};
-static const TransformFrameOps EXPORT_SOURCE_OPS = {
-    "ExportSource", &PEGTransformerFactory::InitializeExportSourceTrampoline,
-    &PEGTransformerFactory::FinalizeExportSourceTrampoline, &GeneratedSingleChildTransform::ExecuteExportSource};
-static const TransformFrameOps IMPORT_STATEMENT_OPS = {
-    "ImportStatement", &PEGTransformerFactory::InitializeImportStatementTrampoline,
-    &PEGTransformerFactory::FinalizeImportStatementTrampoline, &GeneratedSingleChildTransform::ExecuteImportStatement};
-static const TransformFrameOps COLUMN_REFERENCE_OPS = {
-    "ColumnReference", &PEGTransformerFactory::InitializeColumnReferenceTrampoline,
-    &PEGTransformerFactory::FinalizeColumnReferenceTrampoline, &GeneratedSingleChildTransform::ExecuteColumnReference};
+    &PEGTransformerFactory::FinalizeExportStatementTrampoline, nullptr, nullptr};
+static const TransformFrameOps EXPORT_SOURCE_OPS = {"ExportSource",
+                                                    &PEGTransformerFactory::InitializeExportSourceTrampoline,
+                                                    &PEGTransformerFactory::FinalizeExportSourceTrampoline,
+                                                    &GeneratedSingleChildTransform::ExecuteExportSource, nullptr};
+static const TransformFrameOps IMPORT_STATEMENT_OPS = {"ImportStatement",
+                                                       &PEGTransformerFactory::InitializeImportStatementTrampoline,
+                                                       &PEGTransformerFactory::FinalizeImportStatementTrampoline,
+                                                       &GeneratedSingleChildTransform::ExecuteImportStatement, nullptr};
+static const TransformFrameOps COLUMN_REFERENCE_OPS = {"ColumnReference",
+                                                       &PEGTransformerFactory::InitializeColumnReferenceTrampoline,
+                                                       &PEGTransformerFactory::FinalizeColumnReferenceTrampoline,
+                                                       &GeneratedSingleChildTransform::ExecuteColumnReference, nullptr};
 static const TransformFrameOps NESTED_SCHEMA_TABLE_COLUMN_NAME_OPS = {
     "NestedSchemaTableColumnName", &PEGTransformerFactory::InitializeNestedSchemaTableColumnNameTrampoline,
-    &PEGTransformerFactory::FinalizeNestedSchemaTableColumnNameTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeNestedSchemaTableColumnNameTrampoline, nullptr, nullptr};
 static const TransformFrameOps CATALOG_RESERVED_SCHEMA_TABLE_COLUMN_NAME_OPS = {
     "CatalogReservedSchemaTableColumnName",
     &PEGTransformerFactory::InitializeCatalogReservedSchemaTableColumnNameTrampoline,
-    &PEGTransformerFactory::FinalizeCatalogReservedSchemaTableColumnNameTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeCatalogReservedSchemaTableColumnNameTrampoline, nullptr, nullptr};
 static const TransformFrameOps SCHEMA_RESERVED_TABLE_COLUMN_NAME_OPS = {
     "SchemaReservedTableColumnName", &PEGTransformerFactory::InitializeSchemaReservedTableColumnNameTrampoline,
-    &PEGTransformerFactory::FinalizeSchemaReservedTableColumnNameTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeSchemaReservedTableColumnNameTrampoline, nullptr, nullptr};
 static const TransformFrameOps TABLE_RESERVED_COLUMN_NAME_OPS = {
     "TableReservedColumnName", &PEGTransformerFactory::InitializeTableReservedColumnNameTrampoline,
     &PEGTransformerFactory::FinalizeTableReservedColumnNameTrampoline,
-    &GeneratedSingleChildTransform::ExecuteTableReservedColumnName};
+    &GeneratedSingleChildTransform::ExecuteTableReservedColumnName, nullptr};
 static const TransformFrameOps FUNCTION_EXPRESSION_OPS = {
     "FunctionExpression", &PEGTransformerFactory::InitializeFunctionExpressionTrampoline,
-    &PEGTransformerFactory::FinalizeFunctionExpressionTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeFunctionExpressionTrampoline, nullptr, nullptr};
 static const TransformFrameOps FUNCTION_EXPRESSION_ARGUMENTS_OPS = {
     "FunctionExpressionArguments", &PEGTransformerFactory::InitializeFunctionExpressionArgumentsTrampoline,
     &PEGTransformerFactory::FinalizeFunctionExpressionArgumentsTrampoline,
-    &GeneratedSingleChildTransform::ExecuteFunctionExpressionArguments};
+    &GeneratedSingleChildTransform::ExecuteFunctionExpressionArguments, nullptr};
 static const TransformFrameOps FUNCTION_EXPRESSION_ARGUMENT_LIST_OPS = {
     "FunctionExpressionArgumentList", &PEGTransformerFactory::InitializeFunctionExpressionArgumentListTrampoline,
-    &PEGTransformerFactory::FinalizeFunctionExpressionArgumentListTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeFunctionExpressionArgumentListTrampoline, nullptr, nullptr};
 static const TransformFrameOps FUNCTION_ARGUMENT_LIST_OPS = {
     "FunctionArgumentList", &PEGTransformerFactory::InitializeFunctionArgumentListTrampoline,
-    &PEGTransformerFactory::FinalizeFunctionArgumentListTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeFunctionArgumentListTrampoline, nullptr, nullptr};
 static const TransformFrameOps FUNCTION_IDENTIFIER_OPS = {
     "FunctionIdentifier", &PEGTransformerFactory::InitializeFunctionIdentifierTrampoline,
     &PEGTransformerFactory::FinalizeFunctionIdentifierTrampoline,
-    &GeneratedSingleChildTransform::ExecuteFunctionIdentifier};
+    &GeneratedSingleChildTransform::ExecuteFunctionIdentifier,
+    &GeneratedSingleChildTransform::ForwardFunctionIdentifier};
 static const TransformFrameOps FUNCTION_NAME_AS_QUALIFIED_NAME_OPS = {
     "FunctionNameAsQualifiedName", &PEGTransformerFactory::InitializeFunctionNameAsQualifiedNameTrampoline,
     &PEGTransformerFactory::FinalizeFunctionNameAsQualifiedNameTrampoline,
-    &GeneratedSingleChildTransform::ExecuteFunctionNameAsQualifiedName};
+    &GeneratedSingleChildTransform::ExecuteFunctionNameAsQualifiedName, nullptr};
 static const TransformFrameOps CATALOG_RESERVED_SCHEMA_FUNCTION_NAME_OPS = {
     "CatalogReservedSchemaFunctionName", &PEGTransformerFactory::InitializeCatalogReservedSchemaFunctionNameTrampoline,
-    &PEGTransformerFactory::FinalizeCatalogReservedSchemaFunctionNameTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeCatalogReservedSchemaFunctionNameTrampoline, nullptr, nullptr};
 static const TransformFrameOps SCHEMA_RESERVED_FUNCTION_NAME_OPS = {
     "SchemaReservedFunctionName", &PEGTransformerFactory::InitializeSchemaReservedFunctionNameTrampoline,
     &PEGTransformerFactory::FinalizeSchemaReservedFunctionNameTrampoline,
-    &GeneratedSingleChildTransform::ExecuteSchemaReservedFunctionName};
+    &GeneratedSingleChildTransform::ExecuteSchemaReservedFunctionName, nullptr};
 static const TransformFrameOps DISTINCT_OR_ALL_OPS = {
     "DistinctOrAll", &PEGTransformerFactory::InitializeDistinctOrAllTrampoline,
-    &PEGTransformerFactory::FinalizeDistinctOrAllTrampoline, &GeneratedSingleChildTransform::ExecuteDistinctOrAll};
-static const TransformFrameOps DISTINCT_KEYWORD_OPS = {
-    "DistinctKeyword", &PEGTransformerFactory::InitializeDistinctKeywordTrampoline,
-    &PEGTransformerFactory::FinalizeDistinctKeywordTrampoline, &GeneratedSingleChildTransform::ExecuteDistinctKeyword};
+    &PEGTransformerFactory::FinalizeDistinctOrAllTrampoline, &GeneratedSingleChildTransform::ExecuteDistinctOrAll,
+    &GeneratedSingleChildTransform::ForwardDistinctOrAll};
+static const TransformFrameOps DISTINCT_KEYWORD_OPS = {"DistinctKeyword",
+                                                       &PEGTransformerFactory::InitializeDistinctKeywordTrampoline,
+                                                       &PEGTransformerFactory::FinalizeDistinctKeywordTrampoline,
+                                                       &GeneratedSingleChildTransform::ExecuteDistinctKeyword, nullptr};
 static const TransformFrameOps ALL_KEYWORD_OPS = {"AllKeyword", &PEGTransformerFactory::InitializeAllKeywordTrampoline,
                                                   &PEGTransformerFactory::FinalizeAllKeywordTrampoline,
-                                                  &GeneratedSingleChildTransform::ExecuteAllKeyword};
-static const TransformFrameOps WITHIN_GROUP_CLAUSE_OPS = {"WithinGroupClause",
-                                                          &PEGTransformerFactory::InitializeWithinGroupClauseTrampoline,
-                                                          &PEGTransformerFactory::FinalizeWithinGroupClauseTrampoline,
-                                                          &GeneratedSingleChildTransform::ExecuteWithinGroupClause};
-static const TransformFrameOps FILTER_CLAUSE_OPS = {
-    "FilterClause", &PEGTransformerFactory::InitializeFilterClauseTrampoline,
-    &PEGTransformerFactory::FinalizeFilterClauseTrampoline, &GeneratedSingleChildTransform::ExecuteFilterClause};
+                                                  &GeneratedSingleChildTransform::ExecuteAllKeyword, nullptr};
+static const TransformFrameOps WITHIN_GROUP_CLAUSE_OPS = {
+    "WithinGroupClause", &PEGTransformerFactory::InitializeWithinGroupClauseTrampoline,
+    &PEGTransformerFactory::FinalizeWithinGroupClauseTrampoline,
+    &GeneratedSingleChildTransform::ExecuteWithinGroupClause, nullptr};
+static const TransformFrameOps FILTER_CLAUSE_OPS = {"FilterClause",
+                                                    &PEGTransformerFactory::InitializeFilterClauseTrampoline,
+                                                    &PEGTransformerFactory::FinalizeFilterClauseTrampoline,
+                                                    &GeneratedSingleChildTransform::ExecuteFilterClause, nullptr};
 static const TransformFrameOps FILTER_CLAUSE_EXPRESSION_OPS = {
     "FilterClauseExpression", &PEGTransformerFactory::InitializeFilterClauseExpressionTrampoline,
     &PEGTransformerFactory::FinalizeFilterClauseExpressionTrampoline,
-    &GeneratedSingleChildTransform::ExecuteFilterClauseExpression};
+    &GeneratedSingleChildTransform::ExecuteFilterClauseExpression, nullptr};
 static const TransformFrameOps FILTER_CLAUSE_CONTENTS_OPS = {
     "FilterClauseContents", &PEGTransformerFactory::InitializeFilterClauseContentsTrampoline,
     &PEGTransformerFactory::FinalizeFilterClauseContentsTrampoline,
-    &GeneratedSingleChildTransform::ExecuteFilterClauseContents};
+    &GeneratedSingleChildTransform::ExecuteFilterClauseContents, nullptr};
 static const TransformFrameOps IGNORE_OR_RESPECT_NULLS_OPS = {
     "IgnoreOrRespectNulls", &PEGTransformerFactory::InitializeIgnoreOrRespectNullsTrampoline,
     &PEGTransformerFactory::FinalizeIgnoreOrRespectNullsTrampoline,
-    &GeneratedSingleChildTransform::ExecuteIgnoreOrRespectNulls};
+    &GeneratedSingleChildTransform::ExecuteIgnoreOrRespectNulls,
+    &GeneratedSingleChildTransform::ForwardIgnoreOrRespectNulls};
 static const TransformFrameOps IGNORE_NULLS_OPS = {
     "IgnoreNulls", &PEGTransformerFactory::InitializeIgnoreNullsTrampoline,
-    &PEGTransformerFactory::FinalizeIgnoreNullsTrampoline, &GeneratedSingleChildTransform::ExecuteIgnoreNulls};
-static const TransformFrameOps RESPECT_NULLS_OPS = {
-    "RespectNulls", &PEGTransformerFactory::InitializeRespectNullsTrampoline,
-    &PEGTransformerFactory::FinalizeRespectNullsTrampoline, &GeneratedSingleChildTransform::ExecuteRespectNulls};
+    &PEGTransformerFactory::FinalizeIgnoreNullsTrampoline, &GeneratedSingleChildTransform::ExecuteIgnoreNulls, nullptr};
+static const TransformFrameOps RESPECT_NULLS_OPS = {"RespectNulls",
+                                                    &PEGTransformerFactory::InitializeRespectNullsTrampoline,
+                                                    &PEGTransformerFactory::FinalizeRespectNullsTrampoline,
+                                                    &GeneratedSingleChildTransform::ExecuteRespectNulls, nullptr};
 static const TransformFrameOps PARENTHESIS_EXPRESSION_OPS = {
     "ParenthesisExpression", &PEGTransformerFactory::InitializeParenthesisExpressionTrampoline,
-    &PEGTransformerFactory::FinalizeParenthesisExpressionTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeParenthesisExpressionTrampoline, nullptr, nullptr};
 static const TransformFrameOps LITERAL_EXPRESSION_OPS = {
     "LiteralExpression", &PEGTransformerFactory::InitializeLiteralExpressionTrampoline,
-    &PEGTransformerFactory::FinalizeLiteralExpressionTrampoline, nullptr};
-static const TransformFrameOps CONSTANT_LITERAL_OPS = {
-    "ConstantLiteral", &PEGTransformerFactory::InitializeConstantLiteralTrampoline,
-    &PEGTransformerFactory::FinalizeConstantLiteralTrampoline, &GeneratedSingleChildTransform::ExecuteConstantLiteral};
+    &PEGTransformerFactory::FinalizeLiteralExpressionTrampoline, nullptr, nullptr};
+static const TransformFrameOps CONSTANT_LITERAL_OPS = {"ConstantLiteral",
+                                                       &PEGTransformerFactory::InitializeConstantLiteralTrampoline,
+                                                       &PEGTransformerFactory::FinalizeConstantLiteralTrampoline,
+                                                       &GeneratedSingleChildTransform::ExecuteConstantLiteral, nullptr};
 static const TransformFrameOps NULL_LITERAL_OPS = {
     "NullLiteral", &PEGTransformerFactory::InitializeNullLiteralTrampoline,
-    &PEGTransformerFactory::FinalizeNullLiteralTrampoline, &GeneratedSingleChildTransform::ExecuteNullLiteral};
+    &PEGTransformerFactory::FinalizeNullLiteralTrampoline, &GeneratedSingleChildTransform::ExecuteNullLiteral, nullptr};
 static const TransformFrameOps TRUE_LITERAL_OPS = {
     "TrueLiteral", &PEGTransformerFactory::InitializeTrueLiteralTrampoline,
-    &PEGTransformerFactory::FinalizeTrueLiteralTrampoline, &GeneratedSingleChildTransform::ExecuteTrueLiteral};
-static const TransformFrameOps FALSE_LITERAL_OPS = {
-    "FalseLiteral", &PEGTransformerFactory::InitializeFalseLiteralTrampoline,
-    &PEGTransformerFactory::FinalizeFalseLiteralTrampoline, &GeneratedSingleChildTransform::ExecuteFalseLiteral};
+    &PEGTransformerFactory::FinalizeTrueLiteralTrampoline, &GeneratedSingleChildTransform::ExecuteTrueLiteral, nullptr};
+static const TransformFrameOps FALSE_LITERAL_OPS = {"FalseLiteral",
+                                                    &PEGTransformerFactory::InitializeFalseLiteralTrampoline,
+                                                    &PEGTransformerFactory::FinalizeFalseLiteralTrampoline,
+                                                    &GeneratedSingleChildTransform::ExecuteFalseLiteral, nullptr};
 static const TransformFrameOps CAST_EXPRESSION_OPS = {
     "CastExpression", &PEGTransformerFactory::InitializeCastExpressionTrampoline,
-    &PEGTransformerFactory::FinalizeCastExpressionTrampoline, nullptr};
-static const TransformFrameOps CAST_ARGUMENTS_OPS = {"CastArguments",
-                                                     &PEGTransformerFactory::InitializeCastArgumentsTrampoline,
-                                                     &PEGTransformerFactory::FinalizeCastArgumentsTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeCastExpressionTrampoline, nullptr, nullptr};
+static const TransformFrameOps CAST_ARGUMENTS_OPS = {
+    "CastArguments", &PEGTransformerFactory::InitializeCastArgumentsTrampoline,
+    &PEGTransformerFactory::FinalizeCastArgumentsTrampoline, nullptr, nullptr};
 static const TransformFrameOps CAST_OR_TRY_CAST_OPS = {
     "CastOrTryCast", &PEGTransformerFactory::InitializeCastOrTryCastTrampoline,
-    &PEGTransformerFactory::FinalizeCastOrTryCastTrampoline, &GeneratedSingleChildTransform::ExecuteCastOrTryCast};
+    &PEGTransformerFactory::FinalizeCastOrTryCastTrampoline, &GeneratedSingleChildTransform::ExecuteCastOrTryCast,
+    &GeneratedSingleChildTransform::ForwardCastOrTryCast};
 static const TransformFrameOps CAST_KEYWORD_OPS = {
     "CastKeyword", &PEGTransformerFactory::InitializeCastKeywordTrampoline,
-    &PEGTransformerFactory::FinalizeCastKeywordTrampoline, &GeneratedSingleChildTransform::ExecuteCastKeyword};
-static const TransformFrameOps TRY_CAST_KEYWORD_OPS = {
-    "TryCastKeyword", &PEGTransformerFactory::InitializeTryCastKeywordTrampoline,
-    &PEGTransformerFactory::FinalizeTryCastKeywordTrampoline, &GeneratedSingleChildTransform::ExecuteTryCastKeyword};
+    &PEGTransformerFactory::FinalizeCastKeywordTrampoline, &GeneratedSingleChildTransform::ExecuteCastKeyword, nullptr};
+static const TransformFrameOps TRY_CAST_KEYWORD_OPS = {"TryCastKeyword",
+                                                       &PEGTransformerFactory::InitializeTryCastKeywordTrampoline,
+                                                       &PEGTransformerFactory::FinalizeTryCastKeywordTrampoline,
+                                                       &GeneratedSingleChildTransform::ExecuteTryCastKeyword, nullptr};
 static const TransformFrameOps COL_ID_DOT_OPS = {"ColIdDot", &PEGTransformerFactory::InitializeColIdDotTrampoline,
                                                  &PEGTransformerFactory::FinalizeColIdDotTrampoline,
-                                                 &GeneratedSingleChildTransform::ExecuteColIdDot};
+                                                 &GeneratedSingleChildTransform::ExecuteColIdDot, nullptr};
 static const TransformFrameOps STAR_EXPRESSION_OPS = {
     "StarExpression", &PEGTransformerFactory::InitializeStarExpressionTrampoline,
-    &PEGTransformerFactory::FinalizeStarExpressionTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeStarExpressionTrampoline, nullptr, nullptr};
 static const TransformFrameOps STAR_QUALIFIER_LIST_OPS = {
     "StarQualifierList", &PEGTransformerFactory::InitializeStarQualifierListTrampoline,
-    &PEGTransformerFactory::FinalizeStarQualifierListTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeStarQualifierListTrampoline, nullptr, nullptr};
 static const TransformFrameOps EXCLUDE_LIST_OPS = {
     "ExcludeList", &PEGTransformerFactory::InitializeExcludeListTrampoline,
-    &PEGTransformerFactory::FinalizeExcludeListTrampoline, &GeneratedSingleChildTransform::ExecuteExcludeList};
+    &PEGTransformerFactory::FinalizeExcludeListTrampoline, &GeneratedSingleChildTransform::ExecuteExcludeList, nullptr};
 static const TransformFrameOps EXCLUDE_NAMES_OPS = {
     "ExcludeNames", &PEGTransformerFactory::InitializeExcludeNamesTrampoline,
-    &PEGTransformerFactory::FinalizeExcludeNamesTrampoline, &GeneratedSingleChildTransform::ExecuteExcludeNames};
+    &PEGTransformerFactory::FinalizeExcludeNamesTrampoline, &GeneratedSingleChildTransform::ExecuteExcludeNames,
+    &GeneratedSingleChildTransform::ForwardExcludeNames};
 static const TransformFrameOps EXCLUDE_NAME_LIST_OPS = {
     "ExcludeNameList", &PEGTransformerFactory::InitializeExcludeNameListTrampoline,
-    &PEGTransformerFactory::FinalizeExcludeNameListTrampoline, nullptr};
-static const TransformFrameOps EXCLUDE_NAME_SINGLE_OPS = {"ExcludeNameSingle",
-                                                          &PEGTransformerFactory::InitializeExcludeNameSingleTrampoline,
-                                                          &PEGTransformerFactory::FinalizeExcludeNameSingleTrampoline,
-                                                          &GeneratedSingleChildTransform::ExecuteExcludeNameSingle};
+    &PEGTransformerFactory::FinalizeExcludeNameListTrampoline, nullptr, nullptr};
+static const TransformFrameOps EXCLUDE_NAME_SINGLE_OPS = {
+    "ExcludeNameSingle", &PEGTransformerFactory::InitializeExcludeNameSingleTrampoline,
+    &PEGTransformerFactory::FinalizeExcludeNameSingleTrampoline,
+    &GeneratedSingleChildTransform::ExecuteExcludeNameSingle, nullptr};
 static const TransformFrameOps EXCLUDE_NAME_OPS = {
     "ExcludeName", &PEGTransformerFactory::InitializeExcludeNameTrampoline,
-    &PEGTransformerFactory::FinalizeExcludeNameTrampoline, &GeneratedSingleChildTransform::ExecuteExcludeName};
-static const TransformFrameOps EXCLUDE_DOTTED_NAME_OPS = {"ExcludeDottedName",
-                                                          &PEGTransformerFactory::InitializeExcludeDottedNameTrampoline,
-                                                          &PEGTransformerFactory::FinalizeExcludeDottedNameTrampoline,
-                                                          &GeneratedSingleChildTransform::ExecuteExcludeDottedName};
-static const TransformFrameOps EXCLUDE_COLUMN_NAME_OPS = {"ExcludeColumnName",
-                                                          &PEGTransformerFactory::InitializeExcludeColumnNameTrampoline,
-                                                          &PEGTransformerFactory::FinalizeExcludeColumnNameTrampoline,
-                                                          &GeneratedSingleChildTransform::ExecuteExcludeColumnName};
+    &PEGTransformerFactory::FinalizeExcludeNameTrampoline, &GeneratedSingleChildTransform::ExecuteExcludeName,
+    &GeneratedSingleChildTransform::ForwardExcludeName};
+static const TransformFrameOps EXCLUDE_DOTTED_NAME_OPS = {
+    "ExcludeDottedName", &PEGTransformerFactory::InitializeExcludeDottedNameTrampoline,
+    &PEGTransformerFactory::FinalizeExcludeDottedNameTrampoline,
+    &GeneratedSingleChildTransform::ExecuteExcludeDottedName, nullptr};
+static const TransformFrameOps EXCLUDE_COLUMN_NAME_OPS = {
+    "ExcludeColumnName", &PEGTransformerFactory::InitializeExcludeColumnNameTrampoline,
+    &PEGTransformerFactory::FinalizeExcludeColumnNameTrampoline,
+    &GeneratedSingleChildTransform::ExecuteExcludeColumnName, nullptr};
 static const TransformFrameOps REPLACE_LIST_OPS = {
     "ReplaceList", &PEGTransformerFactory::InitializeReplaceListTrampoline,
-    &PEGTransformerFactory::FinalizeReplaceListTrampoline, &GeneratedSingleChildTransform::ExecuteReplaceList};
+    &PEGTransformerFactory::FinalizeReplaceListTrampoline, &GeneratedSingleChildTransform::ExecuteReplaceList, nullptr};
 static const TransformFrameOps REPLACE_ENTRIES_OPS = {
     "ReplaceEntries", &PEGTransformerFactory::InitializeReplaceEntriesTrampoline,
-    &PEGTransformerFactory::FinalizeReplaceEntriesTrampoline, &GeneratedSingleChildTransform::ExecuteReplaceEntries};
+    &PEGTransformerFactory::FinalizeReplaceEntriesTrampoline, &GeneratedSingleChildTransform::ExecuteReplaceEntries,
+    &GeneratedSingleChildTransform::ForwardReplaceEntries};
 static const TransformFrameOps REPLACE_ENTRY_SINGLE_OPS = {
     "ReplaceEntrySingle", &PEGTransformerFactory::InitializeReplaceEntrySingleTrampoline,
     &PEGTransformerFactory::FinalizeReplaceEntrySingleTrampoline,
-    &GeneratedSingleChildTransform::ExecuteReplaceEntrySingle};
+    &GeneratedSingleChildTransform::ExecuteReplaceEntrySingle, nullptr};
 static const TransformFrameOps REPLACE_ENTRY_LIST_OPS = {
     "ReplaceEntryList", &PEGTransformerFactory::InitializeReplaceEntryListTrampoline,
-    &PEGTransformerFactory::FinalizeReplaceEntryListTrampoline, nullptr};
-static const TransformFrameOps REPLACE_ENTRY_OPS = {"ReplaceEntry",
-                                                    &PEGTransformerFactory::InitializeReplaceEntryTrampoline,
-                                                    &PEGTransformerFactory::FinalizeReplaceEntryTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeReplaceEntryListTrampoline, nullptr, nullptr};
+static const TransformFrameOps REPLACE_ENTRY_OPS = {
+    "ReplaceEntry", &PEGTransformerFactory::InitializeReplaceEntryTrampoline,
+    &PEGTransformerFactory::FinalizeReplaceEntryTrampoline, nullptr, nullptr};
 static const TransformFrameOps RENAME_LIST_OPS = {"RenameList", &PEGTransformerFactory::InitializeRenameListTrampoline,
                                                   &PEGTransformerFactory::FinalizeRenameListTrampoline,
-                                                  &GeneratedSingleChildTransform::ExecuteRenameList};
+                                                  &GeneratedSingleChildTransform::ExecuteRenameList, nullptr};
 static const TransformFrameOps RENAME_ENTRIES_OPS = {
     "RenameEntries", &PEGTransformerFactory::InitializeRenameEntriesTrampoline,
-    &PEGTransformerFactory::FinalizeRenameEntriesTrampoline, &GeneratedSingleChildTransform::ExecuteRenameEntries};
+    &PEGTransformerFactory::FinalizeRenameEntriesTrampoline, &GeneratedSingleChildTransform::ExecuteRenameEntries,
+    &GeneratedSingleChildTransform::ForwardRenameEntries};
 static const TransformFrameOps RENAME_ENTRY_LIST_OPS = {
     "RenameEntryList", &PEGTransformerFactory::InitializeRenameEntryListTrampoline,
-    &PEGTransformerFactory::FinalizeRenameEntryListTrampoline, nullptr};
-static const TransformFrameOps SINGLE_RENAME_ENTRY_OPS = {"SingleRenameEntry",
-                                                          &PEGTransformerFactory::InitializeSingleRenameEntryTrampoline,
-                                                          &PEGTransformerFactory::FinalizeSingleRenameEntryTrampoline,
-                                                          &GeneratedSingleChildTransform::ExecuteSingleRenameEntry};
+    &PEGTransformerFactory::FinalizeRenameEntryListTrampoline, nullptr, nullptr};
+static const TransformFrameOps SINGLE_RENAME_ENTRY_OPS = {
+    "SingleRenameEntry", &PEGTransformerFactory::InitializeSingleRenameEntryTrampoline,
+    &PEGTransformerFactory::FinalizeSingleRenameEntryTrampoline,
+    &GeneratedSingleChildTransform::ExecuteSingleRenameEntry, nullptr};
 static const TransformFrameOps RENAME_ENTRY_OPS = {
     "RenameEntry", &PEGTransformerFactory::InitializeRenameEntryTrampoline,
-    &PEGTransformerFactory::FinalizeRenameEntryTrampoline, &GeneratedSingleChildTransform::ExecuteRenameEntry};
+    &PEGTransformerFactory::FinalizeRenameEntryTrampoline, &GeneratedSingleChildTransform::ExecuteRenameEntry, nullptr};
 static const TransformFrameOps SUBQUERY_EXPRESSION_OPS = {
     "SubqueryExpression", &PEGTransformerFactory::InitializeSubqueryExpressionTrampoline,
-    &PEGTransformerFactory::FinalizeSubqueryExpressionTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeSubqueryExpressionTrampoline, nullptr, nullptr};
 static const TransformFrameOps SUBQUERY_NOT_OPS = {
     "SubqueryNot", &PEGTransformerFactory::InitializeSubqueryNotTrampoline,
-    &PEGTransformerFactory::FinalizeSubqueryNotTrampoline, &GeneratedSingleChildTransform::ExecuteSubqueryNot};
-static const TransformFrameOps SUBQUERY_EXISTS_OPS = {
-    "SubqueryExists", &PEGTransformerFactory::InitializeSubqueryExistsTrampoline,
-    &PEGTransformerFactory::FinalizeSubqueryExistsTrampoline, &GeneratedSingleChildTransform::ExecuteSubqueryExists};
+    &PEGTransformerFactory::FinalizeSubqueryNotTrampoline, &GeneratedSingleChildTransform::ExecuteSubqueryNot, nullptr};
+static const TransformFrameOps SUBQUERY_EXISTS_OPS = {"SubqueryExists",
+                                                      &PEGTransformerFactory::InitializeSubqueryExistsTrampoline,
+                                                      &PEGTransformerFactory::FinalizeSubqueryExistsTrampoline,
+                                                      &GeneratedSingleChildTransform::ExecuteSubqueryExists, nullptr};
 static const TransformFrameOps CASE_EXPRESSION_OPS = {
     "CaseExpression", &PEGTransformerFactory::InitializeCaseExpressionTrampoline,
-    &PEGTransformerFactory::FinalizeCaseExpressionTrampoline, nullptr};
-static const TransformFrameOps CASE_WHEN_THEN_OPS = {"CaseWhenThen",
-                                                     &PEGTransformerFactory::InitializeCaseWhenThenTrampoline,
-                                                     &PEGTransformerFactory::FinalizeCaseWhenThenTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeCaseExpressionTrampoline, nullptr, nullptr};
+static const TransformFrameOps CASE_WHEN_THEN_OPS = {
+    "CaseWhenThen", &PEGTransformerFactory::InitializeCaseWhenThenTrampoline,
+    &PEGTransformerFactory::FinalizeCaseWhenThenTrampoline, nullptr, nullptr};
 static const TransformFrameOps CASE_ELSE_OPS = {"CaseElse", &PEGTransformerFactory::InitializeCaseElseTrampoline,
                                                 &PEGTransformerFactory::FinalizeCaseElseTrampoline,
-                                                &GeneratedSingleChildTransform::ExecuteCaseElse};
+                                                &GeneratedSingleChildTransform::ExecuteCaseElse, nullptr};
 static const TransformFrameOps TYPE_LITERAL_OPS = {
     "TypeLiteral", &PEGTransformerFactory::InitializeTypeLiteralTrampoline,
-    &PEGTransformerFactory::FinalizeTypeLiteralTrampoline, &GeneratedSingleChildTransform::ExecuteTypeLiteral};
+    &PEGTransformerFactory::FinalizeTypeLiteralTrampoline, &GeneratedSingleChildTransform::ExecuteTypeLiteral, nullptr};
 static const TransformFrameOps INTERVAL_LITERAL_OPS = {
     "IntervalLiteral", &PEGTransformerFactory::InitializeIntervalLiteralTrampoline,
-    &PEGTransformerFactory::FinalizeIntervalLiteralTrampoline, nullptr};
-static const TransformFrameOps INTERVAL_PARAMETER_OPS = {"IntervalParameter",
-                                                         &PEGTransformerFactory::InitializeIntervalParameterTrampoline,
-                                                         &PEGTransformerFactory::FinalizeIntervalParameterTrampoline,
-                                                         &GeneratedSingleChildTransform::ExecuteIntervalParameter};
+    &PEGTransformerFactory::FinalizeIntervalLiteralTrampoline, nullptr, nullptr};
+static const TransformFrameOps INTERVAL_PARAMETER_OPS = {
+    "IntervalParameter", &PEGTransformerFactory::InitializeIntervalParameterTrampoline,
+    &PEGTransformerFactory::FinalizeIntervalParameterTrampoline,
+    &GeneratedSingleChildTransform::ExecuteIntervalParameter, &GeneratedSingleChildTransform::ForwardIntervalParameter};
 static const TransformFrameOps INTERVAL_STRING_PARAMETER_OPS = {
     "IntervalStringParameter", &PEGTransformerFactory::InitializeIntervalStringParameterTrampoline,
     &PEGTransformerFactory::FinalizeIntervalStringParameterTrampoline,
-    &GeneratedSingleChildTransform::ExecuteIntervalStringParameter};
-static const TransformFrameOps FRAME_CLAUSE_OPS = {"FrameClause",
-                                                   &PEGTransformerFactory::InitializeFrameClauseTrampoline,
-                                                   &PEGTransformerFactory::FinalizeFrameClauseTrampoline, nullptr};
+    &GeneratedSingleChildTransform::ExecuteIntervalStringParameter, nullptr};
+static const TransformFrameOps FRAME_CLAUSE_OPS = {
+    "FrameClause", &PEGTransformerFactory::InitializeFrameClauseTrampoline,
+    &PEGTransformerFactory::FinalizeFrameClauseTrampoline, nullptr, nullptr};
 static const TransformFrameOps FRAMING_OPS = {"Framing", &PEGTransformerFactory::InitializeFramingTrampoline,
                                               &PEGTransformerFactory::FinalizeFramingTrampoline,
-                                              &GeneratedSingleChildTransform::ExecuteFraming};
+                                              &GeneratedSingleChildTransform::ExecuteFraming, nullptr};
 static const TransformFrameOps ROWS_FRAMING_OPS = {
     "RowsFraming", &PEGTransformerFactory::InitializeRowsFramingTrampoline,
-    &PEGTransformerFactory::FinalizeRowsFramingTrampoline, &GeneratedSingleChildTransform::ExecuteRowsFraming};
-static const TransformFrameOps RANGE_FRAMING_OPS = {
-    "RangeFraming", &PEGTransformerFactory::InitializeRangeFramingTrampoline,
-    &PEGTransformerFactory::FinalizeRangeFramingTrampoline, &GeneratedSingleChildTransform::ExecuteRangeFraming};
-static const TransformFrameOps GROUPS_FRAMING_OPS = {
-    "GroupsFraming", &PEGTransformerFactory::InitializeGroupsFramingTrampoline,
-    &PEGTransformerFactory::FinalizeGroupsFramingTrampoline, &GeneratedSingleChildTransform::ExecuteGroupsFraming};
+    &PEGTransformerFactory::FinalizeRowsFramingTrampoline, &GeneratedSingleChildTransform::ExecuteRowsFraming, nullptr};
+static const TransformFrameOps RANGE_FRAMING_OPS = {"RangeFraming",
+                                                    &PEGTransformerFactory::InitializeRangeFramingTrampoline,
+                                                    &PEGTransformerFactory::FinalizeRangeFramingTrampoline,
+                                                    &GeneratedSingleChildTransform::ExecuteRangeFraming, nullptr};
+static const TransformFrameOps GROUPS_FRAMING_OPS = {"GroupsFraming",
+                                                     &PEGTransformerFactory::InitializeGroupsFramingTrampoline,
+                                                     &PEGTransformerFactory::FinalizeGroupsFramingTrampoline,
+                                                     &GeneratedSingleChildTransform::ExecuteGroupsFraming, nullptr};
 static const TransformFrameOps FRAME_EXTENT_OPS = {
     "FrameExtent", &PEGTransformerFactory::InitializeFrameExtentTrampoline,
-    &PEGTransformerFactory::FinalizeFrameExtentTrampoline, &GeneratedSingleChildTransform::ExecuteFrameExtent};
-static const TransformFrameOps SINGLE_FRAME_EXTENT_OPS = {"SingleFrameExtent",
-                                                          &PEGTransformerFactory::InitializeSingleFrameExtentTrampoline,
-                                                          &PEGTransformerFactory::FinalizeSingleFrameExtentTrampoline,
-                                                          &GeneratedSingleChildTransform::ExecuteSingleFrameExtent};
+    &PEGTransformerFactory::FinalizeFrameExtentTrampoline, &GeneratedSingleChildTransform::ExecuteFrameExtent,
+    &GeneratedSingleChildTransform::ForwardFrameExtent};
+static const TransformFrameOps SINGLE_FRAME_EXTENT_OPS = {
+    "SingleFrameExtent", &PEGTransformerFactory::InitializeSingleFrameExtentTrampoline,
+    &PEGTransformerFactory::FinalizeSingleFrameExtentTrampoline,
+    &GeneratedSingleChildTransform::ExecuteSingleFrameExtent, nullptr};
 static const TransformFrameOps BETWEEN_FRAME_EXTENT_OPS = {
     "BetweenFrameExtent", &PEGTransformerFactory::InitializeBetweenFrameExtentTrampoline,
-    &PEGTransformerFactory::FinalizeBetweenFrameExtentTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeBetweenFrameExtentTrampoline, nullptr, nullptr};
 static const TransformFrameOps FRAME_BOUND_OPS = {"FrameBound", &PEGTransformerFactory::InitializeFrameBoundTrampoline,
                                                   &PEGTransformerFactory::FinalizeFrameBoundTrampoline,
-                                                  &GeneratedSingleChildTransform::ExecuteFrameBound};
-static const TransformFrameOps FRAME_UNBOUNDED_OPS = {
-    "FrameUnbounded", &PEGTransformerFactory::InitializeFrameUnboundedTrampoline,
-    &PEGTransformerFactory::FinalizeFrameUnboundedTrampoline, &GeneratedSingleChildTransform::ExecuteFrameUnbounded};
+                                                  &GeneratedSingleChildTransform::ExecuteFrameBound,
+                                                  &GeneratedSingleChildTransform::ForwardFrameBound};
+static const TransformFrameOps FRAME_UNBOUNDED_OPS = {"FrameUnbounded",
+                                                      &PEGTransformerFactory::InitializeFrameUnboundedTrampoline,
+                                                      &PEGTransformerFactory::FinalizeFrameUnboundedTrampoline,
+                                                      &GeneratedSingleChildTransform::ExecuteFrameUnbounded, nullptr};
 static const TransformFrameOps FRAME_EXPRESSION_OPS = {
     "FrameExpression", &PEGTransformerFactory::InitializeFrameExpressionTrampoline,
-    &PEGTransformerFactory::FinalizeFrameExpressionTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeFrameExpressionTrampoline, nullptr, nullptr};
 static const TransformFrameOps FRAME_CURRENT_ROW_OPS = {
     "FrameCurrentRow", &PEGTransformerFactory::InitializeFrameCurrentRowTrampoline,
-    &PEGTransformerFactory::FinalizeFrameCurrentRowTrampoline, &GeneratedSingleChildTransform::ExecuteFrameCurrentRow};
+    &PEGTransformerFactory::FinalizeFrameCurrentRowTrampoline, &GeneratedSingleChildTransform::ExecuteFrameCurrentRow,
+    nullptr};
 static const TransformFrameOps PRECEDING_OR_FOLLOWING_OPS = {
     "PrecedingOrFollowing", &PEGTransformerFactory::InitializePrecedingOrFollowingTrampoline,
     &PEGTransformerFactory::FinalizePrecedingOrFollowingTrampoline,
-    &GeneratedSingleChildTransform::ExecutePrecedingOrFollowing};
-static const TransformFrameOps PRECEDING_FRAME_OPS = {
-    "PrecedingFrame", &PEGTransformerFactory::InitializePrecedingFrameTrampoline,
-    &PEGTransformerFactory::FinalizePrecedingFrameTrampoline, &GeneratedSingleChildTransform::ExecutePrecedingFrame};
-static const TransformFrameOps FOLLOWING_FRAME_OPS = {
-    "FollowingFrame", &PEGTransformerFactory::InitializeFollowingFrameTrampoline,
-    &PEGTransformerFactory::FinalizeFollowingFrameTrampoline, &GeneratedSingleChildTransform::ExecuteFollowingFrame};
+    &GeneratedSingleChildTransform::ExecutePrecedingOrFollowing,
+    &GeneratedSingleChildTransform::ForwardPrecedingOrFollowing};
+static const TransformFrameOps PRECEDING_FRAME_OPS = {"PrecedingFrame",
+                                                      &PEGTransformerFactory::InitializePrecedingFrameTrampoline,
+                                                      &PEGTransformerFactory::FinalizePrecedingFrameTrampoline,
+                                                      &GeneratedSingleChildTransform::ExecutePrecedingFrame, nullptr};
+static const TransformFrameOps FOLLOWING_FRAME_OPS = {"FollowingFrame",
+                                                      &PEGTransformerFactory::InitializeFollowingFrameTrampoline,
+                                                      &PEGTransformerFactory::FinalizeFollowingFrameTrampoline,
+                                                      &GeneratedSingleChildTransform::ExecuteFollowingFrame, nullptr};
 static const TransformFrameOps WINDOW_EXCLUDE_CLAUSE_OPS = {
     "WindowExcludeClause", &PEGTransformerFactory::InitializeWindowExcludeClauseTrampoline,
     &PEGTransformerFactory::FinalizeWindowExcludeClauseTrampoline,
-    &GeneratedSingleChildTransform::ExecuteWindowExcludeClause};
+    &GeneratedSingleChildTransform::ExecuteWindowExcludeClause, nullptr};
 static const TransformFrameOps WINDOW_EXCLUDE_ELEMENT_OPS = {
     "WindowExcludeElement", &PEGTransformerFactory::InitializeWindowExcludeElementTrampoline,
     &PEGTransformerFactory::FinalizeWindowExcludeElementTrampoline,
-    &GeneratedSingleChildTransform::ExecuteWindowExcludeElement};
-static const TransformFrameOps EXCLUDE_CURRENT_ROW_OPS = {"ExcludeCurrentRow",
-                                                          &PEGTransformerFactory::InitializeExcludeCurrentRowTrampoline,
-                                                          &PEGTransformerFactory::FinalizeExcludeCurrentRowTrampoline,
-                                                          &GeneratedSingleChildTransform::ExecuteExcludeCurrentRow};
-static const TransformFrameOps EXCLUDE_GROUP_OPS = {
-    "ExcludeGroup", &PEGTransformerFactory::InitializeExcludeGroupTrampoline,
-    &PEGTransformerFactory::FinalizeExcludeGroupTrampoline, &GeneratedSingleChildTransform::ExecuteExcludeGroup};
+    &GeneratedSingleChildTransform::ExecuteWindowExcludeElement,
+    &GeneratedSingleChildTransform::ForwardWindowExcludeElement};
+static const TransformFrameOps EXCLUDE_CURRENT_ROW_OPS = {
+    "ExcludeCurrentRow", &PEGTransformerFactory::InitializeExcludeCurrentRowTrampoline,
+    &PEGTransformerFactory::FinalizeExcludeCurrentRowTrampoline,
+    &GeneratedSingleChildTransform::ExecuteExcludeCurrentRow, nullptr};
+static const TransformFrameOps EXCLUDE_GROUP_OPS = {"ExcludeGroup",
+                                                    &PEGTransformerFactory::InitializeExcludeGroupTrampoline,
+                                                    &PEGTransformerFactory::FinalizeExcludeGroupTrampoline,
+                                                    &GeneratedSingleChildTransform::ExecuteExcludeGroup, nullptr};
 static const TransformFrameOps EXCLUDE_TIES_OPS = {
     "ExcludeTies", &PEGTransformerFactory::InitializeExcludeTiesTrampoline,
-    &PEGTransformerFactory::FinalizeExcludeTiesTrampoline, &GeneratedSingleChildTransform::ExecuteExcludeTies};
+    &PEGTransformerFactory::FinalizeExcludeTiesTrampoline, &GeneratedSingleChildTransform::ExecuteExcludeTies, nullptr};
 static const TransformFrameOps EXCLUDE_NO_OTHERS_OPS = {
     "ExcludeNoOthers", &PEGTransformerFactory::InitializeExcludeNoOthersTrampoline,
-    &PEGTransformerFactory::FinalizeExcludeNoOthersTrampoline, &GeneratedSingleChildTransform::ExecuteExcludeNoOthers};
+    &PEGTransformerFactory::FinalizeExcludeNoOthersTrampoline, &GeneratedSingleChildTransform::ExecuteExcludeNoOthers,
+    nullptr};
 static const TransformFrameOps OVER_CLAUSE_OPS = {"OverClause", &PEGTransformerFactory::InitializeOverClauseTrampoline,
-                                                  &PEGTransformerFactory::FinalizeOverClauseTrampoline, nullptr};
+                                                  &PEGTransformerFactory::FinalizeOverClauseTrampoline, nullptr,
+                                                  nullptr};
 static const TransformFrameOps WINDOW_FRAME_OPS = {
     "WindowFrame", &PEGTransformerFactory::InitializeWindowFrameTrampoline,
-    &PEGTransformerFactory::FinalizeWindowFrameTrampoline, &GeneratedSingleChildTransform::ExecuteWindowFrame};
+    &PEGTransformerFactory::FinalizeWindowFrameTrampoline, &GeneratedSingleChildTransform::ExecuteWindowFrame,
+    &GeneratedSingleChildTransform::ForwardWindowFrame};
 static const TransformFrameOps IDENTIFIER_WINDOW_FRAME_OPS = {
     "IdentifierWindowFrame", &PEGTransformerFactory::InitializeIdentifierWindowFrameTrampoline,
     &PEGTransformerFactory::FinalizeIdentifierWindowFrameTrampoline,
-    &GeneratedSingleChildTransform::ExecuteIdentifierWindowFrame};
-static const TransformFrameOps PARENS_IDENTIFIER_OPS = {"ParensIdentifier",
-                                                        &PEGTransformerFactory::InitializeParensIdentifierTrampoline,
-                                                        &PEGTransformerFactory::FinalizeParensIdentifierTrampoline,
-                                                        &GeneratedSingleChildTransform::ExecuteParensIdentifier};
+    &GeneratedSingleChildTransform::ExecuteIdentifierWindowFrame, nullptr};
+static const TransformFrameOps PARENS_IDENTIFIER_OPS = {
+    "ParensIdentifier", &PEGTransformerFactory::InitializeParensIdentifierTrampoline,
+    &PEGTransformerFactory::FinalizeParensIdentifierTrampoline, &GeneratedSingleChildTransform::ExecuteParensIdentifier,
+    nullptr};
 static const TransformFrameOps WINDOW_FRAME_DEFINITION_OPS = {
     "WindowFrameDefinition", &PEGTransformerFactory::InitializeWindowFrameDefinitionTrampoline,
     &PEGTransformerFactory::FinalizeWindowFrameDefinitionTrampoline,
-    &GeneratedSingleChildTransform::ExecuteWindowFrameDefinition};
+    &GeneratedSingleChildTransform::ExecuteWindowFrameDefinition,
+    &GeneratedSingleChildTransform::ForwardWindowFrameDefinition};
 static const TransformFrameOps WINDOW_FRAME_NAME_CONTENTS_PARENS_OPS = {
     "WindowFrameNameContentsParens", &PEGTransformerFactory::InitializeWindowFrameNameContentsParensTrampoline,
     &PEGTransformerFactory::FinalizeWindowFrameNameContentsParensTrampoline,
-    &GeneratedSingleChildTransform::ExecuteWindowFrameNameContentsParens};
+    &GeneratedSingleChildTransform::ExecuteWindowFrameNameContentsParens, nullptr};
 static const TransformFrameOps WINDOW_FRAME_NAME_CONTENTS_OPS = {
     "WindowFrameNameContents", &PEGTransformerFactory::InitializeWindowFrameNameContentsTrampoline,
-    &PEGTransformerFactory::FinalizeWindowFrameNameContentsTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeWindowFrameNameContentsTrampoline, nullptr, nullptr};
 static const TransformFrameOps WINDOW_FRAME_CONTENTS_PARENS_OPS = {
     "WindowFrameContentsParens", &PEGTransformerFactory::InitializeWindowFrameContentsParensTrampoline,
     &PEGTransformerFactory::FinalizeWindowFrameContentsParensTrampoline,
-    &GeneratedSingleChildTransform::ExecuteWindowFrameContentsParens};
+    &GeneratedSingleChildTransform::ExecuteWindowFrameContentsParens, nullptr};
 static const TransformFrameOps WINDOW_FRAME_CONTENTS_OPS = {
     "WindowFrameContents", &PEGTransformerFactory::InitializeWindowFrameContentsTrampoline,
-    &PEGTransformerFactory::FinalizeWindowFrameContentsTrampoline, nullptr};
-static const TransformFrameOps BASE_WINDOW_NAME_OPS = {
-    "BaseWindowName", &PEGTransformerFactory::InitializeBaseWindowNameTrampoline,
-    &PEGTransformerFactory::FinalizeBaseWindowNameTrampoline, &GeneratedSingleChildTransform::ExecuteBaseWindowName};
+    &PEGTransformerFactory::FinalizeWindowFrameContentsTrampoline, nullptr, nullptr};
+static const TransformFrameOps BASE_WINDOW_NAME_OPS = {"BaseWindowName",
+                                                       &PEGTransformerFactory::InitializeBaseWindowNameTrampoline,
+                                                       &PEGTransformerFactory::FinalizeBaseWindowNameTrampoline,
+                                                       &GeneratedSingleChildTransform::ExecuteBaseWindowName, nullptr};
 static const TransformFrameOps WINDOW_PARTITION_OPS = {
     "WindowPartition", &PEGTransformerFactory::InitializeWindowPartitionTrampoline,
-    &PEGTransformerFactory::FinalizeWindowPartitionTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeWindowPartitionTrampoline, nullptr, nullptr};
 static const TransformFrameOps LIST_EXPRESSION_OPS = {
     "ListExpression", &PEGTransformerFactory::InitializeListExpressionTrampoline,
-    &PEGTransformerFactory::FinalizeListExpressionTrampoline, &GeneratedSingleChildTransform::ExecuteListExpression};
+    &PEGTransformerFactory::FinalizeListExpressionTrampoline, &GeneratedSingleChildTransform::ExecuteListExpression,
+    &GeneratedSingleChildTransform::ForwardListExpression};
 static const TransformFrameOps ARRAY_BOUNDED_LIST_EXPRESSION_OPS = {
     "ArrayBoundedListExpression", &PEGTransformerFactory::InitializeArrayBoundedListExpressionTrampoline,
     &PEGTransformerFactory::FinalizeArrayBoundedListExpressionTrampoline,
-    &GeneratedSingleChildTransform::ExecuteArrayBoundedListExpression};
-static const TransformFrameOps ARRAY_PARENS_SELECT_OPS = {"ArrayParensSelect",
-                                                          &PEGTransformerFactory::InitializeArrayParensSelectTrampoline,
-                                                          &PEGTransformerFactory::FinalizeArrayParensSelectTrampoline,
-                                                          &GeneratedSingleChildTransform::ExecuteArrayParensSelect};
+    &GeneratedSingleChildTransform::ExecuteArrayBoundedListExpression, nullptr};
+static const TransformFrameOps ARRAY_PARENS_SELECT_OPS = {
+    "ArrayParensSelect", &PEGTransformerFactory::InitializeArrayParensSelectTrampoline,
+    &PEGTransformerFactory::FinalizeArrayParensSelectTrampoline,
+    &GeneratedSingleChildTransform::ExecuteArrayParensSelect, nullptr};
 static const TransformFrameOps BOUNDED_LIST_EXPRESSION_OPS = {
     "BoundedListExpression", &PEGTransformerFactory::InitializeBoundedListExpressionTrampoline,
-    &PEGTransformerFactory::FinalizeBoundedListExpressionTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeBoundedListExpressionTrampoline, nullptr, nullptr};
 static const TransformFrameOps STRUCT_EXPRESSION_OPS = {
     "StructExpression", &PEGTransformerFactory::InitializeStructExpressionTrampoline,
-    &PEGTransformerFactory::FinalizeStructExpressionTrampoline, nullptr};
-static const TransformFrameOps STRUCT_FIELD_OPS = {"StructField",
-                                                   &PEGTransformerFactory::InitializeStructFieldTrampoline,
-                                                   &PEGTransformerFactory::FinalizeStructFieldTrampoline, nullptr};
-static const TransformFrameOps MAP_EXPRESSION_OPS = {
-    "MapExpression", &PEGTransformerFactory::InitializeMapExpressionTrampoline,
-    &PEGTransformerFactory::FinalizeMapExpressionTrampoline, &GeneratedSingleChildTransform::ExecuteMapExpression};
+    &PEGTransformerFactory::FinalizeStructExpressionTrampoline, nullptr, nullptr};
+static const TransformFrameOps STRUCT_FIELD_OPS = {
+    "StructField", &PEGTransformerFactory::InitializeStructFieldTrampoline,
+    &PEGTransformerFactory::FinalizeStructFieldTrampoline, nullptr, nullptr};
+static const TransformFrameOps MAP_EXPRESSION_OPS = {"MapExpression",
+                                                     &PEGTransformerFactory::InitializeMapExpressionTrampoline,
+                                                     &PEGTransformerFactory::FinalizeMapExpressionTrampoline,
+                                                     &GeneratedSingleChildTransform::ExecuteMapExpression, nullptr};
 static const TransformFrameOps MAP_STRUCT_EXPRESSION_OPS = {
     "MapStructExpression", &PEGTransformerFactory::InitializeMapStructExpressionTrampoline,
-    &PEGTransformerFactory::FinalizeMapStructExpressionTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeMapStructExpressionTrampoline, nullptr, nullptr};
 static const TransformFrameOps MAP_STRUCT_FIELD_OPS = {
     "MapStructField", &PEGTransformerFactory::InitializeMapStructFieldTrampoline,
-    &PEGTransformerFactory::FinalizeMapStructFieldTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeMapStructFieldTrampoline, nullptr, nullptr};
 static const TransformFrameOps GROUPING_EXPRESSION_OPS = {
     "GroupingExpression", &PEGTransformerFactory::InitializeGroupingExpressionTrampoline,
-    &PEGTransformerFactory::FinalizeGroupingExpressionTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeGroupingExpressionTrampoline, nullptr, nullptr};
 static const TransformFrameOps GROUPING_OR_GROUPING_ID_OPS = {
     "GroupingOrGroupingId", &PEGTransformerFactory::InitializeGroupingOrGroupingIdTrampoline,
     &PEGTransformerFactory::FinalizeGroupingOrGroupingIdTrampoline,
-    &GeneratedSingleChildTransform::ExecuteGroupingOrGroupingId};
-static const TransformFrameOps GROUPING_KEYWORD_OPS = {
-    "GroupingKeyword", &PEGTransformerFactory::InitializeGroupingKeywordTrampoline,
-    &PEGTransformerFactory::FinalizeGroupingKeywordTrampoline, &GeneratedSingleChildTransform::ExecuteGroupingKeyword};
-static const TransformFrameOps GROUPING_ID_KEYWORD_OPS = {"GroupingIdKeyword",
-                                                          &PEGTransformerFactory::InitializeGroupingIdKeywordTrampoline,
-                                                          &PEGTransformerFactory::FinalizeGroupingIdKeywordTrampoline,
-                                                          &GeneratedSingleChildTransform::ExecuteGroupingIdKeyword};
+    &GeneratedSingleChildTransform::ExecuteGroupingOrGroupingId,
+    &GeneratedSingleChildTransform::ForwardGroupingOrGroupingId};
+static const TransformFrameOps GROUPING_KEYWORD_OPS = {"GroupingKeyword",
+                                                       &PEGTransformerFactory::InitializeGroupingKeywordTrampoline,
+                                                       &PEGTransformerFactory::FinalizeGroupingKeywordTrampoline,
+                                                       &GeneratedSingleChildTransform::ExecuteGroupingKeyword, nullptr};
+static const TransformFrameOps GROUPING_ID_KEYWORD_OPS = {
+    "GroupingIdKeyword", &PEGTransformerFactory::InitializeGroupingIdKeywordTrampoline,
+    &PEGTransformerFactory::FinalizeGroupingIdKeywordTrampoline,
+    &GeneratedSingleChildTransform::ExecuteGroupingIdKeyword, nullptr};
 static const TransformFrameOps PARAMETER_OPS = {"Parameter", &PEGTransformerFactory::InitializeParameterTrampoline,
                                                 &PEGTransformerFactory::FinalizeParameterTrampoline,
-                                                &GeneratedSingleChildTransform::ExecuteParameter};
+                                                &GeneratedSingleChildTransform::ExecuteParameter,
+                                                &GeneratedSingleChildTransform::ForwardParameter};
 static const TransformFrameOps QUESTION_MARK_NUMBERED_PARAMETER_OPS = {
     "QuestionMarkNumberedParameter", &PEGTransformerFactory::InitializeQuestionMarkNumberedParameterTrampoline,
     &PEGTransformerFactory::FinalizeQuestionMarkNumberedParameterTrampoline,
-    &GeneratedSingleChildTransform::ExecuteQuestionMarkNumberedParameter};
+    &GeneratedSingleChildTransform::ExecuteQuestionMarkNumberedParameter, nullptr};
 static const TransformFrameOps ANONYMOUS_PARAMETER_OPS = {
     "AnonymousParameter", &PEGTransformerFactory::InitializeAnonymousParameterTrampoline,
     &PEGTransformerFactory::FinalizeAnonymousParameterTrampoline,
-    &GeneratedSingleChildTransform::ExecuteAnonymousParameter};
-static const TransformFrameOps NUMBERED_PARAMETER_OPS = {"NumberedParameter",
-                                                         &PEGTransformerFactory::InitializeNumberedParameterTrampoline,
-                                                         &PEGTransformerFactory::FinalizeNumberedParameterTrampoline,
-                                                         &GeneratedSingleChildTransform::ExecuteNumberedParameter};
-static const TransformFrameOps COL_LABEL_PARAMETER_OPS = {"ColLabelParameter",
-                                                          &PEGTransformerFactory::InitializeColLabelParameterTrampoline,
-                                                          &PEGTransformerFactory::FinalizeColLabelParameterTrampoline,
-                                                          &GeneratedSingleChildTransform::ExecuteColLabelParameter};
+    &GeneratedSingleChildTransform::ExecuteAnonymousParameter, nullptr};
+static const TransformFrameOps NUMBERED_PARAMETER_OPS = {
+    "NumberedParameter", &PEGTransformerFactory::InitializeNumberedParameterTrampoline,
+    &PEGTransformerFactory::FinalizeNumberedParameterTrampoline,
+    &GeneratedSingleChildTransform::ExecuteNumberedParameter, nullptr};
+static const TransformFrameOps COL_LABEL_PARAMETER_OPS = {
+    "ColLabelParameter", &PEGTransformerFactory::InitializeColLabelParameterTrampoline,
+    &PEGTransformerFactory::FinalizeColLabelParameterTrampoline,
+    &GeneratedSingleChildTransform::ExecuteColLabelParameter, nullptr};
 static const TransformFrameOps POSITIONAL_EXPRESSION_OPS = {
     "PositionalExpression", &PEGTransformerFactory::InitializePositionalExpressionTrampoline,
     &PEGTransformerFactory::FinalizePositionalExpressionTrampoline,
-    &GeneratedSingleChildTransform::ExecutePositionalExpression};
-static const TransformFrameOps DEFAULT_EXPRESSION_OPS = {"DefaultExpression",
-                                                         &PEGTransformerFactory::InitializeDefaultExpressionTrampoline,
-                                                         &PEGTransformerFactory::FinalizeDefaultExpressionTrampoline,
-                                                         &GeneratedSingleChildTransform::ExecuteDefaultExpression};
+    &GeneratedSingleChildTransform::ExecutePositionalExpression, nullptr};
+static const TransformFrameOps DEFAULT_EXPRESSION_OPS = {
+    "DefaultExpression", &PEGTransformerFactory::InitializeDefaultExpressionTrampoline,
+    &PEGTransformerFactory::FinalizeDefaultExpressionTrampoline,
+    &GeneratedSingleChildTransform::ExecuteDefaultExpression, nullptr};
 static const TransformFrameOps LIST_COMPREHENSION_EXPRESSION_OPS = {
     "ListComprehensionExpression", &PEGTransformerFactory::InitializeListComprehensionExpressionTrampoline,
-    &PEGTransformerFactory::FinalizeListComprehensionExpressionTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeListComprehensionExpressionTrampoline, nullptr, nullptr};
 static const TransformFrameOps LIST_COMPREHENSION_FILTER_OPS = {
     "ListComprehensionFilter", &PEGTransformerFactory::InitializeListComprehensionFilterTrampoline,
     &PEGTransformerFactory::FinalizeListComprehensionFilterTrampoline,
-    &GeneratedSingleChildTransform::ExecuteListComprehensionFilter};
-static const TransformFrameOps PARENS_EXPRESSION_OPS = {"ParensExpression",
-                                                        &PEGTransformerFactory::InitializeParensExpressionTrampoline,
-                                                        &PEGTransformerFactory::FinalizeParensExpressionTrampoline,
-                                                        &GeneratedSingleChildTransform::ExecuteParensExpression};
+    &GeneratedSingleChildTransform::ExecuteListComprehensionFilter, nullptr};
+static const TransformFrameOps PARENS_EXPRESSION_OPS = {
+    "ParensExpression", &PEGTransformerFactory::InitializeParensExpressionTrampoline,
+    &PEGTransformerFactory::FinalizeParensExpressionTrampoline, &GeneratedSingleChildTransform::ExecuteParensExpression,
+    nullptr};
 static const TransformFrameOps MEASURE_SEMANTICS_EXPRESSION_OPS = {
     "MeasureSemanticsExpression", &PEGTransformerFactory::InitializeMeasureSemanticsExpressionTrampoline,
-    &PEGTransformerFactory::FinalizeMeasureSemanticsExpressionTrampoline, nullptr};
-static const TransformFrameOps SINGLE_EXPRESSION_OPS = {"SingleExpression",
-                                                        &PEGTransformerFactory::InitializeSingleExpressionTrampoline,
-                                                        &PEGTransformerFactory::FinalizeSingleExpressionTrampoline,
-                                                        &GeneratedSingleChildTransform::ExecuteSingleExpression};
+    &PEGTransformerFactory::FinalizeMeasureSemanticsExpressionTrampoline, nullptr, nullptr};
+static const TransformFrameOps SINGLE_EXPRESSION_OPS = {
+    "SingleExpression", &PEGTransformerFactory::InitializeSingleExpressionTrampoline,
+    &PEGTransformerFactory::FinalizeSingleExpressionTrampoline, &GeneratedSingleChildTransform::ExecuteSingleExpression,
+    &GeneratedSingleChildTransform::ForwardSingleExpression};
 static const TransformFrameOps EXPRESSION_OPS = {"Expression", &PEGTransformerFactory::InitializeExpressionTrampoline,
                                                  &PEGTransformerFactory::FinalizeExpressionTrampoline,
-                                                 &GeneratedSingleChildTransform::ExecuteExpression};
-static const TransformFrameOps COLUMN_DEFAULT_EXPR_OPS = {"ColumnDefaultExpr",
-                                                          &PEGTransformerFactory::InitializeColumnDefaultExprTrampoline,
-                                                          &PEGTransformerFactory::FinalizeColumnDefaultExprTrampoline,
-                                                          &GeneratedSingleChildTransform::ExecuteColumnDefaultExpr};
+                                                 &GeneratedSingleChildTransform::ExecuteExpression,
+                                                 &GeneratedSingleChildTransform::ForwardExpression};
+static const TransformFrameOps COLUMN_DEFAULT_EXPR_OPS = {
+    "ColumnDefaultExpr", &PEGTransformerFactory::InitializeColumnDefaultExprTrampoline,
+    &PEGTransformerFactory::FinalizeColumnDefaultExprTrampoline,
+    &GeneratedSingleChildTransform::ExecuteColumnDefaultExpr, nullptr};
 static const TransformFrameOps LAMBDA_ARROW_EXPRESSION_OPS = {
     "LambdaArrowExpression", &PEGTransformerFactory::InitializeLambdaArrowExpressionTrampoline,
-    &PEGTransformerFactory::FinalizeLambdaArrowExpressionTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeLambdaArrowExpressionTrampoline, nullptr, nullptr};
 static const TransformFrameOps SINGLE_ARROW_PAIR_OPS = {
     "SingleArrowPair", &PEGTransformerFactory::InitializeSingleArrowPairTrampoline,
-    &PEGTransformerFactory::FinalizeSingleArrowPairTrampoline, &GeneratedSingleChildTransform::ExecuteSingleArrowPair};
+    &PEGTransformerFactory::FinalizeSingleArrowPairTrampoline, &GeneratedSingleChildTransform::ExecuteSingleArrowPair,
+    nullptr};
 static const TransformFrameOps LOGICAL_OR_EXPRESSION_OPS = {
     "LogicalOrExpression", &PEGTransformerFactory::InitializeLogicalOrExpressionTrampoline,
-    &PEGTransformerFactory::FinalizeLogicalOrExpressionTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeLogicalOrExpressionTrampoline, nullptr, nullptr};
 static const TransformFrameOps LOGICAL_OR_EXPRESSION_TAIL_OPS = {
     "LogicalOrExpressionTail", &PEGTransformerFactory::InitializeLogicalOrExpressionTailTrampoline,
     &PEGTransformerFactory::FinalizeLogicalOrExpressionTailTrampoline,
-    &GeneratedSingleChildTransform::ExecuteLogicalOrExpressionTail};
-static const TransformFrameOps COL_DEF_OR_EXPR_OPS = {"ColDefOrExpr",
-                                                      &PEGTransformerFactory::InitializeColDefOrExprTrampoline,
-                                                      &PEGTransformerFactory::FinalizeColDefOrExprTrampoline, nullptr};
+    &GeneratedSingleChildTransform::ExecuteLogicalOrExpressionTail, nullptr};
+static const TransformFrameOps COL_DEF_OR_EXPR_OPS = {
+    "ColDefOrExpr", &PEGTransformerFactory::InitializeColDefOrExprTrampoline,
+    &PEGTransformerFactory::FinalizeColDefOrExprTrampoline, nullptr, nullptr};
 static const TransformFrameOps COL_DEF_OR_EXPRESSION_TAIL_OPS = {
     "ColDefOrExpressionTail", &PEGTransformerFactory::InitializeColDefOrExpressionTailTrampoline,
     &PEGTransformerFactory::FinalizeColDefOrExpressionTailTrampoline,
-    &GeneratedSingleChildTransform::ExecuteColDefOrExpressionTail};
+    &GeneratedSingleChildTransform::ExecuteColDefOrExpressionTail, nullptr};
 static const TransformFrameOps LOGICAL_AND_EXPRESSION_OPS = {
     "LogicalAndExpression", &PEGTransformerFactory::InitializeLogicalAndExpressionTrampoline,
-    &PEGTransformerFactory::FinalizeLogicalAndExpressionTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeLogicalAndExpressionTrampoline, nullptr, nullptr};
 static const TransformFrameOps LOGICAL_AND_EXPRESSION_TAIL_OPS = {
     "LogicalAndExpressionTail", &PEGTransformerFactory::InitializeLogicalAndExpressionTailTrampoline,
     &PEGTransformerFactory::FinalizeLogicalAndExpressionTailTrampoline,
-    &GeneratedSingleChildTransform::ExecuteLogicalAndExpressionTail};
+    &GeneratedSingleChildTransform::ExecuteLogicalAndExpressionTail, nullptr};
 static const TransformFrameOps COL_DEF_AND_EXPR_OPS = {
     "ColDefAndExpr", &PEGTransformerFactory::InitializeColDefAndExprTrampoline,
-    &PEGTransformerFactory::FinalizeColDefAndExprTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeColDefAndExprTrampoline, nullptr, nullptr};
 static const TransformFrameOps COL_DEF_AND_EXPRESSION_TAIL_OPS = {
     "ColDefAndExpressionTail", &PEGTransformerFactory::InitializeColDefAndExpressionTailTrampoline,
     &PEGTransformerFactory::FinalizeColDefAndExpressionTailTrampoline,
-    &GeneratedSingleChildTransform::ExecuteColDefAndExpressionTail};
+    &GeneratedSingleChildTransform::ExecuteColDefAndExpressionTail, nullptr};
 static const TransformFrameOps LOGICAL_NOT_EXPRESSION_OPS = {
     "LogicalNotExpression", &PEGTransformerFactory::InitializeLogicalNotExpressionTrampoline,
-    &PEGTransformerFactory::FinalizeLogicalNotExpressionTrampoline, nullptr};
-static const TransformFrameOps NOT_EXPRESSION_OPS = {"NotExpression",
-                                                     &PEGTransformerFactory::InitializeNotExpressionTrampoline,
-                                                     &PEGTransformerFactory::FinalizeNotExpressionTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeLogicalNotExpressionTrampoline, nullptr, nullptr};
+static const TransformFrameOps NOT_EXPRESSION_OPS = {
+    "NotExpression", &PEGTransformerFactory::InitializeNotExpressionTrampoline,
+    &PEGTransformerFactory::FinalizeNotExpressionTrampoline, nullptr, nullptr};
 static const TransformFrameOps NOT_KEYWORD_OPS = {"NotKeyword", &PEGTransformerFactory::InitializeNotKeywordTrampoline,
                                                   &PEGTransformerFactory::FinalizeNotKeywordTrampoline,
-                                                  &GeneratedSingleChildTransform::ExecuteNotKeyword};
-static const TransformFrameOps IS_EXPRESSION_OPS = {"IsExpression",
-                                                    &PEGTransformerFactory::InitializeIsExpressionTrampoline,
-                                                    &PEGTransformerFactory::FinalizeIsExpressionTrampoline, nullptr};
+                                                  &GeneratedSingleChildTransform::ExecuteNotKeyword, nullptr};
+static const TransformFrameOps IS_EXPRESSION_OPS = {
+    "IsExpression", &PEGTransformerFactory::InitializeIsExpressionTrampoline,
+    &PEGTransformerFactory::FinalizeIsExpressionTrampoline, nullptr, nullptr};
 static const TransformFrameOps IS_EXPRESSION_CONTINUATION_OPS = {
     "IsExpressionContinuation", &PEGTransformerFactory::InitializeIsExpressionContinuationTrampoline,
-    &PEGTransformerFactory::FinalizeIsExpressionContinuationTrampoline, nullptr};
-static const TransformFrameOps IS_EXPRESSION_TAIL_OPS = {"IsExpressionTail",
-                                                         &PEGTransformerFactory::InitializeIsExpressionTailTrampoline,
-                                                         &PEGTransformerFactory::FinalizeIsExpressionTailTrampoline,
-                                                         &GeneratedSingleChildTransform::ExecuteIsExpressionTail};
+    &PEGTransformerFactory::FinalizeIsExpressionContinuationTrampoline, nullptr, nullptr};
+static const TransformFrameOps IS_EXPRESSION_TAIL_OPS = {
+    "IsExpressionTail", &PEGTransformerFactory::InitializeIsExpressionTailTrampoline,
+    &PEGTransformerFactory::FinalizeIsExpressionTailTrampoline, &GeneratedSingleChildTransform::ExecuteIsExpressionTail,
+    &GeneratedSingleChildTransform::ForwardIsExpressionTail};
 static const TransformFrameOps IS_TEST_TAIL_OPS = {"IsTestTail", &PEGTransformerFactory::InitializeIsTestTailTrampoline,
                                                    &PEGTransformerFactory::FinalizeIsTestTailTrampoline,
-                                                   &GeneratedSingleChildTransform::ExecuteIsTestTail};
-static const TransformFrameOps IS_DISTINCT_TAIL_OPS = {
-    "IsDistinctTail", &PEGTransformerFactory::InitializeIsDistinctTailTrampoline,
-    &PEGTransformerFactory::FinalizeIsDistinctTailTrampoline, &GeneratedSingleChildTransform::ExecuteIsDistinctTail};
-static const TransformFrameOps IS_COMPARISON_TAIL_OPS = {"IsComparisonTail",
-                                                         &PEGTransformerFactory::InitializeIsComparisonTailTrampoline,
-                                                         &PEGTransformerFactory::FinalizeIsComparisonTailTrampoline,
-                                                         &GeneratedSingleChildTransform::ExecuteIsComparisonTail};
+                                                   &GeneratedSingleChildTransform::ExecuteIsTestTail, nullptr};
+static const TransformFrameOps IS_DISTINCT_TAIL_OPS = {"IsDistinctTail",
+                                                       &PEGTransformerFactory::InitializeIsDistinctTailTrampoline,
+                                                       &PEGTransformerFactory::FinalizeIsDistinctTailTrampoline,
+                                                       &GeneratedSingleChildTransform::ExecuteIsDistinctTail, nullptr};
+static const TransformFrameOps IS_COMPARISON_TAIL_OPS = {
+    "IsComparisonTail", &PEGTransformerFactory::InitializeIsComparisonTailTrampoline,
+    &PEGTransformerFactory::FinalizeIsComparisonTailTrampoline, &GeneratedSingleChildTransform::ExecuteIsComparisonTail,
+    nullptr};
 static const TransformFrameOps IS_OTHER_OPERATOR_TAIL_OPS = {
     "IsOtherOperatorTail", &PEGTransformerFactory::InitializeIsOtherOperatorTailTrampoline,
     &PEGTransformerFactory::FinalizeIsOtherOperatorTailTrampoline,
-    &GeneratedSingleChildTransform::ExecuteIsOtherOperatorTail};
+    &GeneratedSingleChildTransform::ExecuteIsOtherOperatorTail, nullptr};
 static const TransformFrameOps IS_CAST_TAIL_OPS = {"IsCastTail", &PEGTransformerFactory::InitializeIsCastTailTrampoline,
                                                    &PEGTransformerFactory::FinalizeIsCastTailTrampoline,
-                                                   &GeneratedSingleChildTransform::ExecuteIsCastTail};
-static const TransformFrameOps IS_TEST_OPS = {"IsTest", &PEGTransformerFactory::InitializeIsTestTrampoline,
-                                              &PEGTransformerFactory::FinalizeIsTestTrampoline,
-                                              &GeneratedSingleChildTransform::ExecuteIsTest};
+                                                   &GeneratedSingleChildTransform::ExecuteIsCastTail, nullptr};
+static const TransformFrameOps IS_TEST_OPS = {
+    "IsTest", &PEGTransformerFactory::InitializeIsTestTrampoline, &PEGTransformerFactory::FinalizeIsTestTrampoline,
+    &GeneratedSingleChildTransform::ExecuteIsTest, &GeneratedSingleChildTransform::ForwardIsTest};
 static const TransformFrameOps IS_LITERAL_OPS = {"IsLiteral", &PEGTransformerFactory::InitializeIsLiteralTrampoline,
                                                  &PEGTransformerFactory::FinalizeIsLiteralTrampoline,
-                                                 &GeneratedSingleChildTransform::ExecuteIsLiteral};
+                                                 &GeneratedSingleChildTransform::ExecuteIsLiteral, nullptr};
 static const TransformFrameOps IS_LITERAL_VALUE_OPS = {
     "IsLiteralValue", &PEGTransformerFactory::InitializeIsLiteralValueTrampoline,
-    &PEGTransformerFactory::FinalizeIsLiteralValueTrampoline, &GeneratedSingleChildTransform::ExecuteIsLiteralValue};
-static const TransformFrameOps UNKNOWN_LITERAL_OPS = {
-    "UnknownLiteral", &PEGTransformerFactory::InitializeUnknownLiteralTrampoline,
-    &PEGTransformerFactory::FinalizeUnknownLiteralTrampoline, &GeneratedSingleChildTransform::ExecuteUnknownLiteral};
-static const TransformFrameOps NOT_NULL_OPS = {"NotNull", &PEGTransformerFactory::InitializeNotNullTrampoline,
-                                               &PEGTransformerFactory::FinalizeNotNullTrampoline,
-                                               &GeneratedSingleChildTransform::ExecuteNotNull};
-static const TransformFrameOps NOT_NULL_KEYWORD_OPS = {
-    "NotNullKeyword", &PEGTransformerFactory::InitializeNotNullKeywordTrampoline,
-    &PEGTransformerFactory::FinalizeNotNullKeywordTrampoline, &GeneratedSingleChildTransform::ExecuteNotNullKeyword};
+    &PEGTransformerFactory::FinalizeIsLiteralValueTrampoline, &GeneratedSingleChildTransform::ExecuteIsLiteralValue,
+    &GeneratedSingleChildTransform::ForwardIsLiteralValue};
+static const TransformFrameOps UNKNOWN_LITERAL_OPS = {"UnknownLiteral",
+                                                      &PEGTransformerFactory::InitializeUnknownLiteralTrampoline,
+                                                      &PEGTransformerFactory::FinalizeUnknownLiteralTrampoline,
+                                                      &GeneratedSingleChildTransform::ExecuteUnknownLiteral, nullptr};
+static const TransformFrameOps NOT_NULL_OPS = {
+    "NotNull", &PEGTransformerFactory::InitializeNotNullTrampoline, &PEGTransformerFactory::FinalizeNotNullTrampoline,
+    &GeneratedSingleChildTransform::ExecuteNotNull, &GeneratedSingleChildTransform::ForwardNotNull};
+static const TransformFrameOps NOT_NULL_KEYWORD_OPS = {"NotNullKeyword",
+                                                       &PEGTransformerFactory::InitializeNotNullKeywordTrampoline,
+                                                       &PEGTransformerFactory::FinalizeNotNullKeywordTrampoline,
+                                                       &GeneratedSingleChildTransform::ExecuteNotNullKeyword, nullptr};
 static const TransformFrameOps NOT_NULL_OPERATOR_OPS = {
     "NotNullOperator", &PEGTransformerFactory::InitializeNotNullOperatorTrampoline,
-    &PEGTransformerFactory::FinalizeNotNullOperatorTrampoline, &GeneratedSingleChildTransform::ExecuteNotNullOperator};
+    &PEGTransformerFactory::FinalizeNotNullOperatorTrampoline, &GeneratedSingleChildTransform::ExecuteNotNullOperator,
+    nullptr};
 static const TransformFrameOps IS_NULL_OPS = {"IsNull", &PEGTransformerFactory::InitializeIsNullTrampoline,
                                               &PEGTransformerFactory::FinalizeIsNullTrampoline,
-                                              &GeneratedSingleChildTransform::ExecuteIsNull};
-static const TransformFrameOps IS_NULL_OPERATOR_OPS = {
-    "IsNullOperator", &PEGTransformerFactory::InitializeIsNullOperatorTrampoline,
-    &PEGTransformerFactory::FinalizeIsNullOperatorTrampoline, &GeneratedSingleChildTransform::ExecuteIsNullOperator};
+                                              &GeneratedSingleChildTransform::ExecuteIsNull, nullptr};
+static const TransformFrameOps IS_NULL_OPERATOR_OPS = {"IsNullOperator",
+                                                       &PEGTransformerFactory::InitializeIsNullOperatorTrampoline,
+                                                       &PEGTransformerFactory::FinalizeIsNullOperatorTrampoline,
+                                                       &GeneratedSingleChildTransform::ExecuteIsNullOperator, nullptr};
 static const TransformFrameOps IS_DISTINCT_FROM_EXPRESSION_OPS = {
     "IsDistinctFromExpression", &PEGTransformerFactory::InitializeIsDistinctFromExpressionTrampoline,
-    &PEGTransformerFactory::FinalizeIsDistinctFromExpressionTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeIsDistinctFromExpressionTrampoline, nullptr, nullptr};
 static const TransformFrameOps IS_DISTINCT_FROM_TAIL_OPS = {
     "IsDistinctFromTail", &PEGTransformerFactory::InitializeIsDistinctFromTailTrampoline,
-    &PEGTransformerFactory::FinalizeIsDistinctFromTailTrampoline, nullptr};
-static const TransformFrameOps IS_DISTINCT_FROM_OP_OPS = {"IsDistinctFromOp",
-                                                          &PEGTransformerFactory::InitializeIsDistinctFromOpTrampoline,
-                                                          &PEGTransformerFactory::FinalizeIsDistinctFromOpTrampoline,
-                                                          &GeneratedSingleChildTransform::ExecuteIsDistinctFromOp};
+    &PEGTransformerFactory::FinalizeIsDistinctFromTailTrampoline, nullptr, nullptr};
+static const TransformFrameOps IS_DISTINCT_FROM_OP_OPS = {
+    "IsDistinctFromOp", &PEGTransformerFactory::InitializeIsDistinctFromOpTrampoline,
+    &PEGTransformerFactory::FinalizeIsDistinctFromOpTrampoline, &GeneratedSingleChildTransform::ExecuteIsDistinctFromOp,
+    nullptr};
 static const TransformFrameOps COMPARISON_EXPRESSION_OPS = {
     "ComparisonExpression", &PEGTransformerFactory::InitializeComparisonExpressionTrampoline,
-    &PEGTransformerFactory::FinalizeComparisonExpressionTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeComparisonExpressionTrampoline, nullptr, nullptr};
 static const TransformFrameOps COMPARISON_EXPRESSION_TAIL_OPS = {
     "ComparisonExpressionTail", &PEGTransformerFactory::InitializeComparisonExpressionTailTrampoline,
-    &PEGTransformerFactory::FinalizeComparisonExpressionTailTrampoline, nullptr};
-static const TransformFrameOps COMPARISON_OPERAND_OPS = {"ComparisonOperand",
-                                                         &PEGTransformerFactory::InitializeComparisonOperandTrampoline,
-                                                         &PEGTransformerFactory::FinalizeComparisonOperandTrampoline,
-                                                         &GeneratedSingleChildTransform::ExecuteComparisonOperand};
+    &PEGTransformerFactory::FinalizeComparisonExpressionTailTrampoline, nullptr, nullptr};
+static const TransformFrameOps COMPARISON_OPERAND_OPS = {
+    "ComparisonOperand", &PEGTransformerFactory::InitializeComparisonOperandTrampoline,
+    &PEGTransformerFactory::FinalizeComparisonOperandTrampoline,
+    &GeneratedSingleChildTransform::ExecuteComparisonOperand, &GeneratedSingleChildTransform::ForwardComparisonOperand};
 static const TransformFrameOps NOT_COMPARISON_OPERAND_OPS = {
     "NotComparisonOperand", &PEGTransformerFactory::InitializeNotComparisonOperandTrampoline,
-    &PEGTransformerFactory::FinalizeNotComparisonOperandTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeNotComparisonOperandTrampoline, nullptr, nullptr};
 static const TransformFrameOps COMPARISON_OPERATOR_OPS = {
     "ComparisonOperator", &PEGTransformerFactory::InitializeComparisonOperatorTrampoline,
     &PEGTransformerFactory::FinalizeComparisonOperatorTrampoline,
-    &GeneratedSingleChildTransform::ExecuteComparisonOperator};
-static const TransformFrameOps OPERATOR_EQUAL_OPS = {
-    "OperatorEqual", &PEGTransformerFactory::InitializeOperatorEqualTrampoline,
-    &PEGTransformerFactory::FinalizeOperatorEqualTrampoline, &GeneratedSingleChildTransform::ExecuteOperatorEqual};
-static const TransformFrameOps OPERATOR_NOT_EQUAL_OPS = {"OperatorNotEqual",
-                                                         &PEGTransformerFactory::InitializeOperatorNotEqualTrampoline,
-                                                         &PEGTransformerFactory::FinalizeOperatorNotEqualTrampoline,
-                                                         &GeneratedSingleChildTransform::ExecuteOperatorNotEqual};
-static const TransformFrameOps OPERATOR_LESS_THAN_OPS = {"OperatorLessThan",
-                                                         &PEGTransformerFactory::InitializeOperatorLessThanTrampoline,
-                                                         &PEGTransformerFactory::FinalizeOperatorLessThanTrampoline,
-                                                         &GeneratedSingleChildTransform::ExecuteOperatorLessThan};
+    &GeneratedSingleChildTransform::ExecuteComparisonOperator,
+    &GeneratedSingleChildTransform::ForwardComparisonOperator};
+static const TransformFrameOps OPERATOR_EQUAL_OPS = {"OperatorEqual",
+                                                     &PEGTransformerFactory::InitializeOperatorEqualTrampoline,
+                                                     &PEGTransformerFactory::FinalizeOperatorEqualTrampoline,
+                                                     &GeneratedSingleChildTransform::ExecuteOperatorEqual, nullptr};
+static const TransformFrameOps OPERATOR_NOT_EQUAL_OPS = {
+    "OperatorNotEqual", &PEGTransformerFactory::InitializeOperatorNotEqualTrampoline,
+    &PEGTransformerFactory::FinalizeOperatorNotEqualTrampoline, &GeneratedSingleChildTransform::ExecuteOperatorNotEqual,
+    nullptr};
+static const TransformFrameOps OPERATOR_LESS_THAN_OPS = {
+    "OperatorLessThan", &PEGTransformerFactory::InitializeOperatorLessThanTrampoline,
+    &PEGTransformerFactory::FinalizeOperatorLessThanTrampoline, &GeneratedSingleChildTransform::ExecuteOperatorLessThan,
+    nullptr};
 static const TransformFrameOps OPERATOR_GREATER_THAN_OPS = {
     "OperatorGreaterThan", &PEGTransformerFactory::InitializeOperatorGreaterThanTrampoline,
     &PEGTransformerFactory::FinalizeOperatorGreaterThanTrampoline,
-    &GeneratedSingleChildTransform::ExecuteOperatorGreaterThan};
+    &GeneratedSingleChildTransform::ExecuteOperatorGreaterThan, nullptr};
 static const TransformFrameOps OPERATOR_LESS_THAN_EQUALS_OPS = {
     "OperatorLessThanEquals", &PEGTransformerFactory::InitializeOperatorLessThanEqualsTrampoline,
     &PEGTransformerFactory::FinalizeOperatorLessThanEqualsTrampoline,
-    &GeneratedSingleChildTransform::ExecuteOperatorLessThanEquals};
+    &GeneratedSingleChildTransform::ExecuteOperatorLessThanEquals, nullptr};
 static const TransformFrameOps OPERATOR_GREATER_THAN_EQUALS_OPS = {
     "OperatorGreaterThanEquals", &PEGTransformerFactory::InitializeOperatorGreaterThanEqualsTrampoline,
     &PEGTransformerFactory::FinalizeOperatorGreaterThanEqualsTrampoline,
-    &GeneratedSingleChildTransform::ExecuteOperatorGreaterThanEquals};
+    &GeneratedSingleChildTransform::ExecuteOperatorGreaterThanEquals, nullptr};
 static const TransformFrameOps BETWEEN_IN_LIKE_EXPRESSION_OPS = {
     "BetweenInLikeExpression", &PEGTransformerFactory::InitializeBetweenInLikeExpressionTrampoline,
-    &PEGTransformerFactory::FinalizeBetweenInLikeExpressionTrampoline, nullptr};
-static const TransformFrameOps IN_PREDICATE_OPS = {"InPredicate",
-                                                   &PEGTransformerFactory::InitializeInPredicateTrampoline,
-                                                   &PEGTransformerFactory::FinalizeInPredicateTrampoline, nullptr};
-static const TransformFrameOps BETWEEN_LIKE_OP_OPS = {
-    "BetweenLikeOp", &PEGTransformerFactory::InitializeBetweenLikeOpTrampoline,
-    &PEGTransformerFactory::FinalizeBetweenLikeOpTrampoline, &GeneratedSingleChildTransform::ExecuteBetweenLikeOp};
+    &PEGTransformerFactory::FinalizeBetweenInLikeExpressionTrampoline, nullptr, nullptr};
+static const TransformFrameOps IN_PREDICATE_OPS = {
+    "InPredicate", &PEGTransformerFactory::InitializeInPredicateTrampoline,
+    &PEGTransformerFactory::FinalizeInPredicateTrampoline, nullptr, nullptr};
+static const TransformFrameOps BETWEEN_LIKE_OP_OPS = {"BetweenLikeOp",
+                                                      &PEGTransformerFactory::InitializeBetweenLikeOpTrampoline,
+                                                      &PEGTransformerFactory::FinalizeBetweenLikeOpTrampoline,
+                                                      &GeneratedSingleChildTransform::ExecuteBetweenLikeOp, nullptr};
 static const TransformFrameOps BETWEEN_LIKE_OP_EXPRESSION_OPS = {
     "BetweenLikeOpExpression", &PEGTransformerFactory::InitializeBetweenLikeOpExpressionTrampoline,
     &PEGTransformerFactory::FinalizeBetweenLikeOpExpressionTrampoline,
-    &GeneratedSingleChildTransform::ExecuteBetweenLikeOpExpression};
+    &GeneratedSingleChildTransform::ExecuteBetweenLikeOpExpression,
+    &GeneratedSingleChildTransform::ForwardBetweenLikeOpExpression};
 static const TransformFrameOps LIKE_CLAUSE_OPS = {"LikeClause", &PEGTransformerFactory::InitializeLikeClauseTrampoline,
-                                                  &PEGTransformerFactory::FinalizeLikeClauseTrampoline, nullptr};
-static const TransformFrameOps ESCAPE_CLAUSE_OPS = {
-    "EscapeClause", &PEGTransformerFactory::InitializeEscapeClauseTrampoline,
-    &PEGTransformerFactory::FinalizeEscapeClauseTrampoline, &GeneratedSingleChildTransform::ExecuteEscapeClause};
-static const TransformFrameOps LIKE_VARIATIONS_OPS = {
-    "LikeVariations", &PEGTransformerFactory::InitializeLikeVariationsTrampoline,
-    &PEGTransformerFactory::FinalizeLikeVariationsTrampoline, &GeneratedSingleChildTransform::ExecuteLikeVariations};
+                                                  &PEGTransformerFactory::FinalizeLikeClauseTrampoline, nullptr,
+                                                  nullptr};
+static const TransformFrameOps ESCAPE_CLAUSE_OPS = {"EscapeClause",
+                                                    &PEGTransformerFactory::InitializeEscapeClauseTrampoline,
+                                                    &PEGTransformerFactory::FinalizeEscapeClauseTrampoline,
+                                                    &GeneratedSingleChildTransform::ExecuteEscapeClause, nullptr};
+static const TransformFrameOps LIKE_VARIATIONS_OPS = {"LikeVariations",
+                                                      &PEGTransformerFactory::InitializeLikeVariationsTrampoline,
+                                                      &PEGTransformerFactory::FinalizeLikeVariationsTrampoline,
+                                                      &GeneratedSingleChildTransform::ExecuteLikeVariations, nullptr};
 static const TransformFrameOps LIKE_TOKEN_OPS = {"LikeToken", &PEGTransformerFactory::InitializeLikeTokenTrampoline,
                                                  &PEGTransformerFactory::FinalizeLikeTokenTrampoline,
-                                                 &GeneratedSingleChildTransform::ExecuteLikeToken};
+                                                 &GeneratedSingleChildTransform::ExecuteLikeToken, nullptr};
 static const TransformFrameOps ILIKE_TOKEN_OPS = {"ILikeToken", &PEGTransformerFactory::InitializeILikeTokenTrampoline,
                                                   &PEGTransformerFactory::FinalizeILikeTokenTrampoline,
-                                                  &GeneratedSingleChildTransform::ExecuteILikeToken};
+                                                  &GeneratedSingleChildTransform::ExecuteILikeToken, nullptr};
 static const TransformFrameOps GLOB_TOKEN_OPS = {"GlobToken", &PEGTransformerFactory::InitializeGlobTokenTrampoline,
                                                  &PEGTransformerFactory::FinalizeGlobTokenTrampoline,
-                                                 &GeneratedSingleChildTransform::ExecuteGlobToken};
-static const TransformFrameOps SIMILAR_TO_TOKEN_OPS = {
-    "SimilarToToken", &PEGTransformerFactory::InitializeSimilarToTokenTrampoline,
-    &PEGTransformerFactory::FinalizeSimilarToTokenTrampoline, &GeneratedSingleChildTransform::ExecuteSimilarToToken};
+                                                 &GeneratedSingleChildTransform::ExecuteGlobToken, nullptr};
+static const TransformFrameOps SIMILAR_TO_TOKEN_OPS = {"SimilarToToken",
+                                                       &PEGTransformerFactory::InitializeSimilarToTokenTrampoline,
+                                                       &PEGTransformerFactory::FinalizeSimilarToTokenTrampoline,
+                                                       &GeneratedSingleChildTransform::ExecuteSimilarToToken, nullptr};
 static const TransformFrameOps REGEX_MATCH_TOKEN_OPS = {
     "RegexMatchToken", &PEGTransformerFactory::InitializeRegexMatchTokenTrampoline,
-    &PEGTransformerFactory::FinalizeRegexMatchTokenTrampoline, &GeneratedSingleChildTransform::ExecuteRegexMatchToken};
+    &PEGTransformerFactory::FinalizeRegexMatchTokenTrampoline, &GeneratedSingleChildTransform::ExecuteRegexMatchToken,
+    nullptr};
 static const TransformFrameOps REGEX_INSENSITIVE_MATCH_TOKEN_OPS = {
     "RegexInsensitiveMatchToken", &PEGTransformerFactory::InitializeRegexInsensitiveMatchTokenTrampoline,
     &PEGTransformerFactory::FinalizeRegexInsensitiveMatchTokenTrampoline,
-    &GeneratedSingleChildTransform::ExecuteRegexInsensitiveMatchToken};
+    &GeneratedSingleChildTransform::ExecuteRegexInsensitiveMatchToken, nullptr};
 static const TransformFrameOps NOT_ILIKE_OP_OPS = {"NotILikeOp", &PEGTransformerFactory::InitializeNotILikeOpTrampoline,
                                                    &PEGTransformerFactory::FinalizeNotILikeOpTrampoline,
-                                                   &GeneratedSingleChildTransform::ExecuteNotILikeOp};
+                                                   &GeneratedSingleChildTransform::ExecuteNotILikeOp, nullptr};
 static const TransformFrameOps NOT_LIKE_OP_OPS = {"NotLikeOp", &PEGTransformerFactory::InitializeNotLikeOpTrampoline,
                                                   &PEGTransformerFactory::FinalizeNotLikeOpTrampoline,
-                                                  &GeneratedSingleChildTransform::ExecuteNotLikeOp};
+                                                  &GeneratedSingleChildTransform::ExecuteNotLikeOp, nullptr};
 static const TransformFrameOps NOT_REGEX_INSENSITIVE_MATCH_OP_OPS = {
     "NotRegexInsensitiveMatchOp", &PEGTransformerFactory::InitializeNotRegexInsensitiveMatchOpTrampoline,
     &PEGTransformerFactory::FinalizeNotRegexInsensitiveMatchOpTrampoline,
-    &GeneratedSingleChildTransform::ExecuteNotRegexInsensitiveMatchOp};
-static const TransformFrameOps NOT_SIMILAR_TO_OP_OPS = {
-    "NotSimilarToOp", &PEGTransformerFactory::InitializeNotSimilarToOpTrampoline,
-    &PEGTransformerFactory::FinalizeNotSimilarToOpTrampoline, &GeneratedSingleChildTransform::ExecuteNotSimilarToOp};
+    &GeneratedSingleChildTransform::ExecuteNotRegexInsensitiveMatchOp, nullptr};
+static const TransformFrameOps NOT_SIMILAR_TO_OP_OPS = {"NotSimilarToOp",
+                                                        &PEGTransformerFactory::InitializeNotSimilarToOpTrampoline,
+                                                        &PEGTransformerFactory::FinalizeNotSimilarToOpTrampoline,
+                                                        &GeneratedSingleChildTransform::ExecuteNotSimilarToOp, nullptr};
 static const TransformFrameOps IN_CLAUSE_OPS = {"InClause", &PEGTransformerFactory::InitializeInClauseTrampoline,
                                                 &PEGTransformerFactory::FinalizeInClauseTrampoline,
-                                                &GeneratedSingleChildTransform::ExecuteInClause};
+                                                &GeneratedSingleChildTransform::ExecuteInClause, nullptr};
 static const TransformFrameOps IN_EXPRESSION_OPS = {
     "InExpression", &PEGTransformerFactory::InitializeInExpressionTrampoline,
-    &PEGTransformerFactory::FinalizeInExpressionTrampoline, &GeneratedSingleChildTransform::ExecuteInExpression};
+    &PEGTransformerFactory::FinalizeInExpressionTrampoline, &GeneratedSingleChildTransform::ExecuteInExpression,
+    &GeneratedSingleChildTransform::ForwardInExpression};
 static const TransformFrameOps IN_CONTAINS_EXPRESSION_OPS = {
     "InContainsExpression", &PEGTransformerFactory::InitializeInContainsExpressionTrampoline,
     &PEGTransformerFactory::FinalizeInContainsExpressionTrampoline,
-    &GeneratedSingleChildTransform::ExecuteInContainsExpression};
+    &GeneratedSingleChildTransform::ExecuteInContainsExpression, nullptr};
 static const TransformFrameOps IN_EXPRESSION_LIST_OPS = {
     "InExpressionList", &PEGTransformerFactory::InitializeInExpressionListTrampoline,
-    &PEGTransformerFactory::FinalizeInExpressionListTrampoline, nullptr};
-static const TransformFrameOps IN_SELECT_STATEMENT_OPS = {"InSelectStatement",
-                                                          &PEGTransformerFactory::InitializeInSelectStatementTrampoline,
-                                                          &PEGTransformerFactory::FinalizeInSelectStatementTrampoline,
-                                                          &GeneratedSingleChildTransform::ExecuteInSelectStatement};
-static const TransformFrameOps BETWEEN_CLAUSE_OPS = {"BetweenClause",
-                                                     &PEGTransformerFactory::InitializeBetweenClauseTrampoline,
-                                                     &PEGTransformerFactory::FinalizeBetweenClauseTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeInExpressionListTrampoline, nullptr, nullptr};
+static const TransformFrameOps IN_SELECT_STATEMENT_OPS = {
+    "InSelectStatement", &PEGTransformerFactory::InitializeInSelectStatementTrampoline,
+    &PEGTransformerFactory::FinalizeInSelectStatementTrampoline,
+    &GeneratedSingleChildTransform::ExecuteInSelectStatement, nullptr};
+static const TransformFrameOps BETWEEN_CLAUSE_OPS = {
+    "BetweenClause", &PEGTransformerFactory::InitializeBetweenClauseTrampoline,
+    &PEGTransformerFactory::FinalizeBetweenClauseTrampoline, nullptr, nullptr};
 static const TransformFrameOps OTHER_OPERATOR_EXPRESSION_OPS = {
     "OtherOperatorExpression", &PEGTransformerFactory::InitializeOtherOperatorExpressionTrampoline,
     &PEGTransformerFactory::FinalizeOtherOperatorExpressionTrampoline,
-    &GeneratedSingleChildTransform::ExecuteOtherOperatorExpression};
+    &GeneratedSingleChildTransform::ExecuteOtherOperatorExpression,
+    &GeneratedSingleChildTransform::ForwardOtherOperatorExpression};
 static const TransformFrameOps INFIX_OTHER_OPERATOR_EXPRESSION_OPS = {
     "InfixOtherOperatorExpression", &PEGTransformerFactory::InitializeInfixOtherOperatorExpressionTrampoline,
-    &PEGTransformerFactory::FinalizeInfixOtherOperatorExpressionTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeInfixOtherOperatorExpressionTrampoline, nullptr, nullptr};
 static const TransformFrameOps CUSTOM_PREFIX_EXPRESSION_OPS = {
     "CustomPrefixExpression", &PEGTransformerFactory::InitializeCustomPrefixExpressionTrampoline,
     &PEGTransformerFactory::FinalizeCustomPrefixExpressionTrampoline,
-    &GeneratedSingleChildTransform::ExecuteCustomPrefixExpression};
+    &GeneratedSingleChildTransform::ExecuteCustomPrefixExpression, nullptr};
 static const TransformFrameOps OTHER_OPERATOR_TAIL_OPS = {
     "OtherOperatorTail", &PEGTransformerFactory::InitializeOtherOperatorTailTrampoline,
-    &PEGTransformerFactory::FinalizeOtherOperatorTailTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeOtherOperatorTailTrampoline, nullptr, nullptr};
 static const TransformFrameOps OTHER_OPERATOR_OPS = {
     "OtherOperator", &PEGTransformerFactory::InitializeOtherOperatorTrampoline,
-    &PEGTransformerFactory::FinalizeOtherOperatorTrampoline, &GeneratedSingleChildTransform::ExecuteOtherOperator};
+    &PEGTransformerFactory::FinalizeOtherOperatorTrampoline, &GeneratedSingleChildTransform::ExecuteOtherOperator,
+    &GeneratedSingleChildTransform::ForwardOtherOperator};
 static const TransformFrameOps ANY_ALL_PARSED_OPERATOR_OPS = {
     "AnyAllParsedOperator", &PEGTransformerFactory::InitializeAnyAllParsedOperatorTrampoline,
     &PEGTransformerFactory::FinalizeAnyAllParsedOperatorTrampoline,
-    &GeneratedSingleChildTransform::ExecuteAnyAllParsedOperator};
+    &GeneratedSingleChildTransform::ExecuteAnyAllParsedOperator, nullptr};
 static const TransformFrameOps NAMED_OTHER_OPERATOR_OPS = {
     "NamedOtherOperator", &PEGTransformerFactory::InitializeNamedOtherOperatorTrampoline,
     &PEGTransformerFactory::FinalizeNamedOtherOperatorTrampoline,
-    &GeneratedSingleChildTransform::ExecuteNamedOtherOperator};
-static const TransformFrameOps OPERATOR_LITERAL_OPS = {
-    "OperatorLiteral", &PEGTransformerFactory::InitializeOperatorLiteralTrampoline,
-    &PEGTransformerFactory::FinalizeOperatorLiteralTrampoline, &GeneratedSingleChildTransform::ExecuteOperatorLiteral};
+    &GeneratedSingleChildTransform::ExecuteNamedOtherOperator, nullptr};
+static const TransformFrameOps OPERATOR_LITERAL_OPS = {"OperatorLiteral",
+                                                       &PEGTransformerFactory::InitializeOperatorLiteralTrampoline,
+                                                       &PEGTransformerFactory::FinalizeOperatorLiteralTrampoline,
+                                                       &GeneratedSingleChildTransform::ExecuteOperatorLiteral, nullptr};
 static const TransformFrameOps ANY_OPERATOR_LITERAL_OPS = {
     "AnyOperatorLiteral", &PEGTransformerFactory::InitializeAnyOperatorLiteralTrampoline,
     &PEGTransformerFactory::FinalizeAnyOperatorLiteralTrampoline,
-    &GeneratedSingleChildTransform::ExecuteAnyOperatorLiteral};
-static const TransformFrameOps ANY_ALL_OPERATOR_OPS = {
-    "AnyAllOperator", &PEGTransformerFactory::InitializeAnyAllOperatorTrampoline,
-    &PEGTransformerFactory::FinalizeAnyAllOperatorTrampoline, &GeneratedSingleChildTransform::ExecuteAnyAllOperator};
+    &GeneratedSingleChildTransform::ExecuteAnyOperatorLiteral, nullptr};
+static const TransformFrameOps ANY_ALL_OPERATOR_OPS = {"AnyAllOperator",
+                                                       &PEGTransformerFactory::InitializeAnyAllOperatorTrampoline,
+                                                       &PEGTransformerFactory::FinalizeAnyAllOperatorTrampoline,
+                                                       &GeneratedSingleChildTransform::ExecuteAnyAllOperator, nullptr};
 static const TransformFrameOps ANY_OR_ALL_OPS = {"AnyOrAll", &PEGTransformerFactory::InitializeAnyOrAllTrampoline,
                                                  &PEGTransformerFactory::FinalizeAnyOrAllTrampoline,
-                                                 &GeneratedSingleChildTransform::ExecuteAnyOrAll};
+                                                 &GeneratedSingleChildTransform::ExecuteAnyOrAll,
+                                                 &GeneratedSingleChildTransform::ForwardAnyOrAll};
 static const TransformFrameOps SUBQUERY_ANY_OPS = {
     "SubqueryAny", &PEGTransformerFactory::InitializeSubqueryAnyTrampoline,
-    &PEGTransformerFactory::FinalizeSubqueryAnyTrampoline, &GeneratedSingleChildTransform::ExecuteSubqueryAny};
+    &PEGTransformerFactory::FinalizeSubqueryAnyTrampoline, &GeneratedSingleChildTransform::ExecuteSubqueryAny, nullptr};
 static const TransformFrameOps SUBQUERY_ALL_OPS = {
     "SubqueryAll", &PEGTransformerFactory::InitializeSubqueryAllTrampoline,
-    &PEGTransformerFactory::FinalizeSubqueryAllTrampoline, &GeneratedSingleChildTransform::ExecuteSubqueryAll};
-static const TransformFrameOps QUALIFIED_OPERATOR_OPS = {"QualifiedOperator",
-                                                         &PEGTransformerFactory::InitializeQualifiedOperatorTrampoline,
-                                                         &PEGTransformerFactory::FinalizeQualifiedOperatorTrampoline,
-                                                         &GeneratedSingleChildTransform::ExecuteQualifiedOperator};
+    &PEGTransformerFactory::FinalizeSubqueryAllTrampoline, &GeneratedSingleChildTransform::ExecuteSubqueryAll, nullptr};
+static const TransformFrameOps QUALIFIED_OPERATOR_OPS = {
+    "QualifiedOperator", &PEGTransformerFactory::InitializeQualifiedOperatorTrampoline,
+    &PEGTransformerFactory::FinalizeQualifiedOperatorTrampoline,
+    &GeneratedSingleChildTransform::ExecuteQualifiedOperator, nullptr};
 static const TransformFrameOps QUALIFIED_OPERATOR_CONTENTS_OPS = {
     "QualifiedOperatorContents", &PEGTransformerFactory::InitializeQualifiedOperatorContentsTrampoline,
-    &PEGTransformerFactory::FinalizeQualifiedOperatorContentsTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeQualifiedOperatorContentsTrampoline, nullptr, nullptr};
 static const TransformFrameOps BITWISE_EXPRESSION_OPS = {
     "BitwiseExpression", &PEGTransformerFactory::InitializeBitwiseExpressionTrampoline,
-    &PEGTransformerFactory::FinalizeBitwiseExpressionTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeBitwiseExpressionTrampoline, nullptr, nullptr};
 static const TransformFrameOps BITWISE_EXPRESSION_TAIL_OPS = {
     "BitwiseExpressionTail", &PEGTransformerFactory::InitializeBitwiseExpressionTailTrampoline,
-    &PEGTransformerFactory::FinalizeBitwiseExpressionTailTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeBitwiseExpressionTailTrampoline, nullptr, nullptr};
 static const TransformFrameOps BIT_OPERATOR_OPS = {
     "BitOperator", &PEGTransformerFactory::InitializeBitOperatorTrampoline,
-    &PEGTransformerFactory::FinalizeBitOperatorTrampoline, &GeneratedSingleChildTransform::ExecuteBitOperator};
+    &PEGTransformerFactory::FinalizeBitOperatorTrampoline, &GeneratedSingleChildTransform::ExecuteBitOperator, nullptr};
 static const TransformFrameOps TILDE_EXPRESSION_OPS = {
     "TildeExpression", &PEGTransformerFactory::InitializeTildeExpressionTrampoline,
-    &PEGTransformerFactory::FinalizeTildeExpressionTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeTildeExpressionTrampoline, nullptr, nullptr};
 static const TransformFrameOps ADDITIVE_EXPRESSION_OPS = {
     "AdditiveExpression", &PEGTransformerFactory::InitializeAdditiveExpressionTrampoline,
-    &PEGTransformerFactory::FinalizeAdditiveExpressionTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeAdditiveExpressionTrampoline, nullptr, nullptr};
 static const TransformFrameOps ADDITIVE_EXPRESSION_TAIL_OPS = {
     "AdditiveExpressionTail", &PEGTransformerFactory::InitializeAdditiveExpressionTailTrampoline,
-    &PEGTransformerFactory::FinalizeAdditiveExpressionTailTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeAdditiveExpressionTailTrampoline, nullptr, nullptr};
 static const TransformFrameOps TERM_OPS = {"Term", &PEGTransformerFactory::InitializeTermTrampoline,
                                            &PEGTransformerFactory::FinalizeTermTrampoline,
-                                           &GeneratedSingleChildTransform::ExecuteTerm};
+                                           &GeneratedSingleChildTransform::ExecuteTerm, nullptr};
 static const TransformFrameOps MULTIPLICATIVE_EXPRESSION_OPS = {
     "MultiplicativeExpression", &PEGTransformerFactory::InitializeMultiplicativeExpressionTrampoline,
-    &PEGTransformerFactory::FinalizeMultiplicativeExpressionTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeMultiplicativeExpressionTrampoline, nullptr, nullptr};
 static const TransformFrameOps MULTIPLICATIVE_EXPRESSION_TAIL_OPS = {
     "MultiplicativeExpressionTail", &PEGTransformerFactory::InitializeMultiplicativeExpressionTailTrampoline,
-    &PEGTransformerFactory::FinalizeMultiplicativeExpressionTailTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeMultiplicativeExpressionTailTrampoline, nullptr, nullptr};
 static const TransformFrameOps FACTOR_OPS = {"Factor", &PEGTransformerFactory::InitializeFactorTrampoline,
                                              &PEGTransformerFactory::FinalizeFactorTrampoline,
-                                             &GeneratedSingleChildTransform::ExecuteFactor};
+                                             &GeneratedSingleChildTransform::ExecuteFactor, nullptr};
 static const TransformFrameOps EXPONENTIATION_EXPRESSION_OPS = {
     "ExponentiationExpression", &PEGTransformerFactory::InitializeExponentiationExpressionTrampoline,
-    &PEGTransformerFactory::FinalizeExponentiationExpressionTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeExponentiationExpressionTrampoline, nullptr, nullptr};
 static const TransformFrameOps EXPONENTIATION_EXPRESSION_TAIL_OPS = {
     "ExponentiationExpressionTail", &PEGTransformerFactory::InitializeExponentiationExpressionTailTrampoline,
-    &PEGTransformerFactory::FinalizeExponentiationExpressionTailTrampoline, nullptr};
-static const TransformFrameOps EXPONENT_OPERATOR_OPS = {"ExponentOperator",
-                                                        &PEGTransformerFactory::InitializeExponentOperatorTrampoline,
-                                                        &PEGTransformerFactory::FinalizeExponentOperatorTrampoline,
-                                                        &GeneratedSingleChildTransform::ExecuteExponentOperator};
+    &PEGTransformerFactory::FinalizeExponentiationExpressionTailTrampoline, nullptr, nullptr};
+static const TransformFrameOps EXPONENT_OPERATOR_OPS = {
+    "ExponentOperator", &PEGTransformerFactory::InitializeExponentOperatorTrampoline,
+    &PEGTransformerFactory::FinalizeExponentOperatorTrampoline, &GeneratedSingleChildTransform::ExecuteExponentOperator,
+    nullptr};
 static const TransformFrameOps COLLATE_EXPRESSION_OPS = {
     "CollateExpression", &PEGTransformerFactory::InitializeCollateExpressionTrampoline,
-    &PEGTransformerFactory::FinalizeCollateExpressionTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeCollateExpressionTrampoline, nullptr, nullptr};
 static const TransformFrameOps COLLATE_EXPRESSION_TAIL_OPS = {
     "CollateExpressionTail", &PEGTransformerFactory::InitializeCollateExpressionTailTrampoline,
     &PEGTransformerFactory::FinalizeCollateExpressionTailTrampoline,
-    &GeneratedSingleChildTransform::ExecuteCollateExpressionTail};
+    &GeneratedSingleChildTransform::ExecuteCollateExpressionTail, nullptr};
 static const TransformFrameOps AT_TIME_ZONE_EXPRESSION_OPS = {
     "AtTimeZoneExpression", &PEGTransformerFactory::InitializeAtTimeZoneExpressionTrampoline,
-    &PEGTransformerFactory::FinalizeAtTimeZoneExpressionTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeAtTimeZoneExpressionTrampoline, nullptr, nullptr};
 static const TransformFrameOps AT_TIME_ZONE_EXPRESSION_TAIL_OPS = {
     "AtTimeZoneExpressionTail", &PEGTransformerFactory::InitializeAtTimeZoneExpressionTailTrampoline,
     &PEGTransformerFactory::FinalizeAtTimeZoneExpressionTailTrampoline,
-    &GeneratedSingleChildTransform::ExecuteAtTimeZoneExpressionTail};
+    &GeneratedSingleChildTransform::ExecuteAtTimeZoneExpressionTail, nullptr};
 static const TransformFrameOps PREFIX_EXPRESSION_OPS = {
     "PrefixExpression", &PEGTransformerFactory::InitializePrefixExpressionTrampoline,
-    &PEGTransformerFactory::FinalizePrefixExpressionTrampoline, nullptr};
-static const TransformFrameOps PREFIX_OPERATOR_OPS = {
-    "PrefixOperator", &PEGTransformerFactory::InitializePrefixOperatorTrampoline,
-    &PEGTransformerFactory::FinalizePrefixOperatorTrampoline, &GeneratedSingleChildTransform::ExecutePrefixOperator};
+    &PEGTransformerFactory::FinalizePrefixExpressionTrampoline, nullptr, nullptr};
+static const TransformFrameOps PREFIX_OPERATOR_OPS = {"PrefixOperator",
+                                                      &PEGTransformerFactory::InitializePrefixOperatorTrampoline,
+                                                      &PEGTransformerFactory::FinalizePrefixOperatorTrampoline,
+                                                      &GeneratedSingleChildTransform::ExecutePrefixOperator, nullptr};
 static const TransformFrameOps MINUS_PREFIX_OPERATOR_OPS = {
     "MinusPrefixOperator", &PEGTransformerFactory::InitializeMinusPrefixOperatorTrampoline,
     &PEGTransformerFactory::FinalizeMinusPrefixOperatorTrampoline,
-    &GeneratedSingleChildTransform::ExecuteMinusPrefixOperator};
+    &GeneratedSingleChildTransform::ExecuteMinusPrefixOperator, nullptr};
 static const TransformFrameOps PLUS_PREFIX_OPERATOR_OPS = {
     "PlusPrefixOperator", &PEGTransformerFactory::InitializePlusPrefixOperatorTrampoline,
     &PEGTransformerFactory::FinalizePlusPrefixOperatorTrampoline,
-    &GeneratedSingleChildTransform::ExecutePlusPrefixOperator};
+    &GeneratedSingleChildTransform::ExecutePlusPrefixOperator, nullptr};
 static const TransformFrameOps TILDE_PREFIX_OPERATOR_OPS = {
     "TildePrefixOperator", &PEGTransformerFactory::InitializeTildePrefixOperatorTrampoline,
     &PEGTransformerFactory::FinalizeTildePrefixOperatorTrampoline,
-    &GeneratedSingleChildTransform::ExecuteTildePrefixOperator};
+    &GeneratedSingleChildTransform::ExecuteTildePrefixOperator, nullptr};
 static const TransformFrameOps BASE_EXPRESSION_OPS = {
     "BaseExpression", &PEGTransformerFactory::InitializeBaseExpressionTrampoline,
-    &PEGTransformerFactory::FinalizeBaseExpressionTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeBaseExpressionTrampoline, nullptr, nullptr};
 static const TransformFrameOps INDIRECTION_LIST_OPS = {
     "IndirectionList", &PEGTransformerFactory::InitializeIndirectionListTrampoline,
-    &PEGTransformerFactory::FinalizeIndirectionListTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeIndirectionListTrampoline, nullptr, nullptr};
 static const TransformFrameOps INDIRECTION_OPS = {
     "Indirection", &PEGTransformerFactory::InitializeIndirectionTrampoline,
-    &PEGTransformerFactory::FinalizeIndirectionTrampoline, &GeneratedSingleChildTransform::ExecuteIndirection};
-static const TransformFrameOps CAST_OPERATOR_OPS = {
-    "CastOperator", &PEGTransformerFactory::InitializeCastOperatorTrampoline,
-    &PEGTransformerFactory::FinalizeCastOperatorTrampoline, &GeneratedSingleChildTransform::ExecuteCastOperator};
+    &PEGTransformerFactory::FinalizeIndirectionTrampoline, &GeneratedSingleChildTransform::ExecuteIndirection,
+    &GeneratedSingleChildTransform::ForwardIndirection};
+static const TransformFrameOps CAST_OPERATOR_OPS = {"CastOperator",
+                                                    &PEGTransformerFactory::InitializeCastOperatorTrampoline,
+                                                    &PEGTransformerFactory::FinalizeCastOperatorTrampoline,
+                                                    &GeneratedSingleChildTransform::ExecuteCastOperator, nullptr};
 static const TransformFrameOps DOT_OPERATOR_OPS = {
     "DotOperator", &PEGTransformerFactory::InitializeDotOperatorTrampoline,
-    &PEGTransformerFactory::FinalizeDotOperatorTrampoline, &GeneratedSingleChildTransform::ExecuteDotOperator};
-static const TransformFrameOps DOT_METHOD_OPERATOR_OPS = {"DotMethodOperator",
-                                                          &PEGTransformerFactory::InitializeDotMethodOperatorTrampoline,
-                                                          &PEGTransformerFactory::FinalizeDotMethodOperatorTrampoline,
-                                                          &GeneratedSingleChildTransform::ExecuteDotMethodOperator};
-static const TransformFrameOps DOT_COLUMN_OPERATOR_OPS = {"DotColumnOperator",
-                                                          &PEGTransformerFactory::InitializeDotColumnOperatorTrampoline,
-                                                          &PEGTransformerFactory::FinalizeDotColumnOperatorTrampoline,
-                                                          &GeneratedSingleChildTransform::ExecuteDotColumnOperator};
+    &PEGTransformerFactory::FinalizeDotOperatorTrampoline, &GeneratedSingleChildTransform::ExecuteDotOperator,
+    &GeneratedSingleChildTransform::ForwardDotOperator};
+static const TransformFrameOps DOT_METHOD_OPERATOR_OPS = {
+    "DotMethodOperator", &PEGTransformerFactory::InitializeDotMethodOperatorTrampoline,
+    &PEGTransformerFactory::FinalizeDotMethodOperatorTrampoline,
+    &GeneratedSingleChildTransform::ExecuteDotMethodOperator, nullptr};
+static const TransformFrameOps DOT_COLUMN_OPERATOR_OPS = {
+    "DotColumnOperator", &PEGTransformerFactory::InitializeDotColumnOperatorTrampoline,
+    &PEGTransformerFactory::FinalizeDotColumnOperatorTrampoline,
+    &GeneratedSingleChildTransform::ExecuteDotColumnOperator, nullptr};
 static const TransformFrameOps METHOD_EXPRESSION_OPS = {
     "MethodExpression", &PEGTransformerFactory::InitializeMethodExpressionTrampoline,
-    &PEGTransformerFactory::FinalizeMethodExpressionTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeMethodExpressionTrampoline, nullptr, nullptr};
 static const TransformFrameOps METHOD_EXPRESSION_ARGUMENTS_OPS = {
     "MethodExpressionArguments", &PEGTransformerFactory::InitializeMethodExpressionArgumentsTrampoline,
     &PEGTransformerFactory::FinalizeMethodExpressionArgumentsTrampoline,
-    &GeneratedSingleChildTransform::ExecuteMethodExpressionArguments};
+    &GeneratedSingleChildTransform::ExecuteMethodExpressionArguments, nullptr};
 static const TransformFrameOps METHOD_EXPRESSION_ARGUMENT_LIST_OPS = {
     "MethodExpressionArgumentList", &PEGTransformerFactory::InitializeMethodExpressionArgumentListTrampoline,
-    &PEGTransformerFactory::FinalizeMethodExpressionArgumentListTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeMethodExpressionArgumentListTrampoline, nullptr, nullptr};
 static const TransformFrameOps METHOD_FUNCTION_ARGUMENTS_OPS = {
     "MethodFunctionArguments", &PEGTransformerFactory::InitializeMethodFunctionArgumentsTrampoline,
-    &PEGTransformerFactory::FinalizeMethodFunctionArgumentsTrampoline, nullptr};
-static const TransformFrameOps SLICE_EXPRESSION_OPS = {
-    "SliceExpression", &PEGTransformerFactory::InitializeSliceExpressionTrampoline,
-    &PEGTransformerFactory::FinalizeSliceExpressionTrampoline, &GeneratedSingleChildTransform::ExecuteSliceExpression};
+    &PEGTransformerFactory::FinalizeMethodFunctionArgumentsTrampoline, nullptr, nullptr};
+static const TransformFrameOps SLICE_EXPRESSION_OPS = {"SliceExpression",
+                                                       &PEGTransformerFactory::InitializeSliceExpressionTrampoline,
+                                                       &PEGTransformerFactory::FinalizeSliceExpressionTrampoline,
+                                                       &GeneratedSingleChildTransform::ExecuteSliceExpression, nullptr};
 static const TransformFrameOps SLICE_BOUND_OPS = {"SliceBound", &PEGTransformerFactory::InitializeSliceBoundTrampoline,
-                                                  &PEGTransformerFactory::FinalizeSliceBoundTrampoline, nullptr};
+                                                  &PEGTransformerFactory::FinalizeSliceBoundTrampoline, nullptr,
+                                                  nullptr};
 static const TransformFrameOps SLICE_UPPER_BOUND_OPS = {
     "SliceUpperBound", &PEGTransformerFactory::InitializeSliceUpperBoundTrampoline,
-    &PEGTransformerFactory::FinalizeSliceUpperBoundTrampoline, &GeneratedSingleChildTransform::ExecuteSliceUpperBound};
+    &PEGTransformerFactory::FinalizeSliceUpperBoundTrampoline, &GeneratedSingleChildTransform::ExecuteSliceUpperBound,
+    &GeneratedSingleChildTransform::ForwardSliceUpperBound};
 static const TransformFrameOps MINUS_STEP_SLICE_BOUND_OPS = {
     "MinusStepSliceBound", &PEGTransformerFactory::InitializeMinusStepSliceBoundTrampoline,
     &PEGTransformerFactory::FinalizeMinusStepSliceBoundTrampoline,
-    &GeneratedSingleChildTransform::ExecuteMinusStepSliceBound};
+    &GeneratedSingleChildTransform::ExecuteMinusStepSliceBound, nullptr};
 static const TransformFrameOps END_STEP_SLICE_BOUND_OPS = {
     "EndStepSliceBound", &PEGTransformerFactory::InitializeEndStepSliceBoundTrampoline,
-    &PEGTransformerFactory::FinalizeEndStepSliceBoundTrampoline, nullptr};
-static const TransformFrameOps END_SLICE_BOUND_OPS = {
-    "EndSliceBound", &PEGTransformerFactory::InitializeEndSliceBoundTrampoline,
-    &PEGTransformerFactory::FinalizeEndSliceBoundTrampoline, &GeneratedSingleChildTransform::ExecuteEndSliceBound};
-static const TransformFrameOps STEP_SLICE_BOUND_OPS = {
-    "StepSliceBound", &PEGTransformerFactory::InitializeStepSliceBoundTrampoline,
-    &PEGTransformerFactory::FinalizeStepSliceBoundTrampoline, &GeneratedSingleChildTransform::ExecuteStepSliceBound};
-static const TransformFrameOps POSTFIX_OPERATOR_OPS = {
-    "PostfixOperator", &PEGTransformerFactory::InitializePostfixOperatorTrampoline,
-    &PEGTransformerFactory::FinalizePostfixOperatorTrampoline, &GeneratedSingleChildTransform::ExecutePostfixOperator};
+    &PEGTransformerFactory::FinalizeEndStepSliceBoundTrampoline, nullptr, nullptr};
+static const TransformFrameOps END_SLICE_BOUND_OPS = {"EndSliceBound",
+                                                      &PEGTransformerFactory::InitializeEndSliceBoundTrampoline,
+                                                      &PEGTransformerFactory::FinalizeEndSliceBoundTrampoline,
+                                                      &GeneratedSingleChildTransform::ExecuteEndSliceBound, nullptr};
+static const TransformFrameOps STEP_SLICE_BOUND_OPS = {"StepSliceBound",
+                                                       &PEGTransformerFactory::InitializeStepSliceBoundTrampoline,
+                                                       &PEGTransformerFactory::FinalizeStepSliceBoundTrampoline,
+                                                       &GeneratedSingleChildTransform::ExecuteStepSliceBound, nullptr};
+static const TransformFrameOps POSTFIX_OPERATOR_OPS = {"PostfixOperator",
+                                                       &PEGTransformerFactory::InitializePostfixOperatorTrampoline,
+                                                       &PEGTransformerFactory::FinalizePostfixOperatorTrampoline,
+                                                       &GeneratedSingleChildTransform::ExecutePostfixOperator, nullptr};
 static const TransformFrameOps SPECIAL_FUNCTION_EXPRESSION_OPS = {
     "SpecialFunctionExpression", &PEGTransformerFactory::InitializeSpecialFunctionExpressionTrampoline,
     &PEGTransformerFactory::FinalizeSpecialFunctionExpressionTrampoline,
-    &GeneratedSingleChildTransform::ExecuteSpecialFunctionExpression};
+    &GeneratedSingleChildTransform::ExecuteSpecialFunctionExpression,
+    &GeneratedSingleChildTransform::ForwardSpecialFunctionExpression};
 static const TransformFrameOps COALESCE_EXPRESSION_OPS = {
     "CoalesceExpression", &PEGTransformerFactory::InitializeCoalesceExpressionTrampoline,
-    &PEGTransformerFactory::FinalizeCoalesceExpressionTrampoline, nullptr};
-static const TransformFrameOps UNPACK_EXPRESSION_OPS = {"UnpackExpression",
-                                                        &PEGTransformerFactory::InitializeUnpackExpressionTrampoline,
-                                                        &PEGTransformerFactory::FinalizeUnpackExpressionTrampoline,
-                                                        &GeneratedSingleChildTransform::ExecuteUnpackExpression};
-static const TransformFrameOps TRY_EXPRESSION_OPS = {
-    "TryExpression", &PEGTransformerFactory::InitializeTryExpressionTrampoline,
-    &PEGTransformerFactory::FinalizeTryExpressionTrampoline, &GeneratedSingleChildTransform::ExecuteTryExpression};
-static const TransformFrameOps COLUMNS_EXPRESSION_OPS = {"ColumnsExpression",
-                                                         &PEGTransformerFactory::InitializeColumnsExpressionTrampoline,
-                                                         &PEGTransformerFactory::FinalizeColumnsExpressionTrampoline,
-                                                         &GeneratedSingleChildTransform::ExecuteColumnsExpression};
-static const TransformFrameOps EXTRACT_EXPRESSION_OPS = {"ExtractExpression",
-                                                         &PEGTransformerFactory::InitializeExtractExpressionTrampoline,
-                                                         &PEGTransformerFactory::FinalizeExtractExpressionTrampoline,
-                                                         &GeneratedSingleChildTransform::ExecuteExtractExpression};
+    &PEGTransformerFactory::FinalizeCoalesceExpressionTrampoline, nullptr, nullptr};
+static const TransformFrameOps UNPACK_EXPRESSION_OPS = {
+    "UnpackExpression", &PEGTransformerFactory::InitializeUnpackExpressionTrampoline,
+    &PEGTransformerFactory::FinalizeUnpackExpressionTrampoline, &GeneratedSingleChildTransform::ExecuteUnpackExpression,
+    nullptr};
+static const TransformFrameOps TRY_EXPRESSION_OPS = {"TryExpression",
+                                                     &PEGTransformerFactory::InitializeTryExpressionTrampoline,
+                                                     &PEGTransformerFactory::FinalizeTryExpressionTrampoline,
+                                                     &GeneratedSingleChildTransform::ExecuteTryExpression, nullptr};
+static const TransformFrameOps COLUMNS_EXPRESSION_OPS = {
+    "ColumnsExpression", &PEGTransformerFactory::InitializeColumnsExpressionTrampoline,
+    &PEGTransformerFactory::FinalizeColumnsExpressionTrampoline,
+    &GeneratedSingleChildTransform::ExecuteColumnsExpression, nullptr};
+static const TransformFrameOps EXTRACT_EXPRESSION_OPS = {
+    "ExtractExpression", &PEGTransformerFactory::InitializeExtractExpressionTrampoline,
+    &PEGTransformerFactory::FinalizeExtractExpressionTrampoline,
+    &GeneratedSingleChildTransform::ExecuteExtractExpression, nullptr};
 static const TransformFrameOps EXTRACT_ARGUMENTS_OPS = {
     "ExtractArguments", &PEGTransformerFactory::InitializeExtractArgumentsTrampoline,
-    &PEGTransformerFactory::FinalizeExtractArgumentsTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeExtractArgumentsTrampoline, nullptr, nullptr};
 static const TransformFrameOps LAMBDA_EXPRESSION_OPS = {
     "LambdaExpression", &PEGTransformerFactory::InitializeLambdaExpressionTrampoline,
-    &PEGTransformerFactory::FinalizeLambdaExpressionTrampoline, nullptr};
-static const TransformFrameOps NULL_IF_EXPRESSION_OPS = {"NullIfExpression",
-                                                         &PEGTransformerFactory::InitializeNullIfExpressionTrampoline,
-                                                         &PEGTransformerFactory::FinalizeNullIfExpressionTrampoline,
-                                                         &GeneratedSingleChildTransform::ExecuteNullIfExpression};
+    &PEGTransformerFactory::FinalizeLambdaExpressionTrampoline, nullptr, nullptr};
+static const TransformFrameOps NULL_IF_EXPRESSION_OPS = {
+    "NullIfExpression", &PEGTransformerFactory::InitializeNullIfExpressionTrampoline,
+    &PEGTransformerFactory::FinalizeNullIfExpressionTrampoline, &GeneratedSingleChildTransform::ExecuteNullIfExpression,
+    nullptr};
 static const TransformFrameOps NULL_IF_ARGUMENTS_OPS = {
     "NullIfArguments", &PEGTransformerFactory::InitializeNullIfArgumentsTrampoline,
-    &PEGTransformerFactory::FinalizeNullIfArgumentsTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeNullIfArgumentsTrampoline, nullptr, nullptr};
 static const TransformFrameOps POSITION_EXPRESSION_OPS = {
     "PositionExpression", &PEGTransformerFactory::InitializePositionExpressionTrampoline,
     &PEGTransformerFactory::FinalizePositionExpressionTrampoline,
-    &GeneratedSingleChildTransform::ExecutePositionExpression};
+    &GeneratedSingleChildTransform::ExecutePositionExpression, nullptr};
 static const TransformFrameOps POSITION_ARGUMENTS_OPS = {
     "PositionArguments", &PEGTransformerFactory::InitializePositionArgumentsTrampoline,
-    &PEGTransformerFactory::FinalizePositionArgumentsTrampoline, nullptr};
-static const TransformFrameOps ROW_EXPRESSION_OPS = {"RowExpression",
-                                                     &PEGTransformerFactory::InitializeRowExpressionTrampoline,
-                                                     &PEGTransformerFactory::FinalizeRowExpressionTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizePositionArgumentsTrampoline, nullptr, nullptr};
+static const TransformFrameOps ROW_EXPRESSION_OPS = {
+    "RowExpression", &PEGTransformerFactory::InitializeRowExpressionTrampoline,
+    &PEGTransformerFactory::FinalizeRowExpressionTrampoline, nullptr, nullptr};
 static const TransformFrameOps SUBSTRING_EXPRESSION_OPS = {
     "SubstringExpression", &PEGTransformerFactory::InitializeSubstringExpressionTrampoline,
     &PEGTransformerFactory::FinalizeSubstringExpressionTrampoline,
-    &GeneratedSingleChildTransform::ExecuteSubstringExpression};
+    &GeneratedSingleChildTransform::ExecuteSubstringExpression, nullptr};
 static const TransformFrameOps SUBSTRING_ARGUMENTS_OPS = {
     "SubstringArguments", &PEGTransformerFactory::InitializeSubstringArgumentsTrampoline,
     &PEGTransformerFactory::FinalizeSubstringArgumentsTrampoline,
-    &GeneratedSingleChildTransform::ExecuteSubstringArguments};
+    &GeneratedSingleChildTransform::ExecuteSubstringArguments,
+    &GeneratedSingleChildTransform::ForwardSubstringArguments};
 static const TransformFrameOps SUBSTRING_EXPRESSION_LIST_OPS = {
     "SubstringExpressionList", &PEGTransformerFactory::InitializeSubstringExpressionListTrampoline,
-    &PEGTransformerFactory::FinalizeSubstringExpressionListTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeSubstringExpressionListTrampoline, nullptr, nullptr};
 static const TransformFrameOps SUBSTRING_PARAMETERS_OPS = {
     "SubstringParameters", &PEGTransformerFactory::InitializeSubstringParametersTrampoline,
-    &PEGTransformerFactory::FinalizeSubstringParametersTrampoline, nullptr};
-static const TransformFrameOps SUBSTRING_FROM_FOR_OPS = {"SubstringFromFor",
-                                                         &PEGTransformerFactory::InitializeSubstringFromForTrampoline,
-                                                         &PEGTransformerFactory::FinalizeSubstringFromForTrampoline,
-                                                         &GeneratedSingleChildTransform::ExecuteSubstringFromFor};
+    &PEGTransformerFactory::FinalizeSubstringParametersTrampoline, nullptr, nullptr};
+static const TransformFrameOps SUBSTRING_FROM_FOR_OPS = {
+    "SubstringFromFor", &PEGTransformerFactory::InitializeSubstringFromForTrampoline,
+    &PEGTransformerFactory::FinalizeSubstringFromForTrampoline, &GeneratedSingleChildTransform::ExecuteSubstringFromFor,
+    &GeneratedSingleChildTransform::ForwardSubstringFromFor};
 static const TransformFrameOps SUBSTRING_FROM_OPTIONAL_FOR_OPS = {
     "SubstringFromOptionalFor", &PEGTransformerFactory::InitializeSubstringFromOptionalForTrampoline,
-    &PEGTransformerFactory::FinalizeSubstringFromOptionalForTrampoline, nullptr};
-static const TransformFrameOps SUBSTRING_FOR_OPS = {
-    "SubstringFor", &PEGTransformerFactory::InitializeSubstringForTrampoline,
-    &PEGTransformerFactory::FinalizeSubstringForTrampoline, &GeneratedSingleChildTransform::ExecuteSubstringFor};
-static const TransformFrameOps TRIM_EXPRESSION_OPS = {
-    "TrimExpression", &PEGTransformerFactory::InitializeTrimExpressionTrampoline,
-    &PEGTransformerFactory::FinalizeTrimExpressionTrampoline, &GeneratedSingleChildTransform::ExecuteTrimExpression};
-static const TransformFrameOps TRIM_ARGUMENTS_OPS = {"TrimArguments",
-                                                     &PEGTransformerFactory::InitializeTrimArgumentsTrampoline,
-                                                     &PEGTransformerFactory::FinalizeTrimArgumentsTrampoline, nullptr};
-static const TransformFrameOps TRIM_DIRECTION_OPS = {
-    "TrimDirection", &PEGTransformerFactory::InitializeTrimDirectionTrampoline,
-    &PEGTransformerFactory::FinalizeTrimDirectionTrampoline, &GeneratedSingleChildTransform::ExecuteTrimDirection};
+    &PEGTransformerFactory::FinalizeSubstringFromOptionalForTrampoline, nullptr, nullptr};
+static const TransformFrameOps SUBSTRING_FOR_OPS = {"SubstringFor",
+                                                    &PEGTransformerFactory::InitializeSubstringForTrampoline,
+                                                    &PEGTransformerFactory::FinalizeSubstringForTrampoline,
+                                                    &GeneratedSingleChildTransform::ExecuteSubstringFor, nullptr};
+static const TransformFrameOps TRIM_EXPRESSION_OPS = {"TrimExpression",
+                                                      &PEGTransformerFactory::InitializeTrimExpressionTrampoline,
+                                                      &PEGTransformerFactory::FinalizeTrimExpressionTrampoline,
+                                                      &GeneratedSingleChildTransform::ExecuteTrimExpression, nullptr};
+static const TransformFrameOps TRIM_ARGUMENTS_OPS = {
+    "TrimArguments", &PEGTransformerFactory::InitializeTrimArgumentsTrampoline,
+    &PEGTransformerFactory::FinalizeTrimArgumentsTrampoline, nullptr, nullptr};
+static const TransformFrameOps TRIM_DIRECTION_OPS = {"TrimDirection",
+                                                     &PEGTransformerFactory::InitializeTrimDirectionTrampoline,
+                                                     &PEGTransformerFactory::FinalizeTrimDirectionTrampoline,
+                                                     &GeneratedSingleChildTransform::ExecuteTrimDirection, nullptr};
 static const TransformFrameOps TRIM_BOTH_OPS = {"TrimBoth", &PEGTransformerFactory::InitializeTrimBothTrampoline,
                                                 &PEGTransformerFactory::FinalizeTrimBothTrampoline,
-                                                &GeneratedSingleChildTransform::ExecuteTrimBoth};
+                                                &GeneratedSingleChildTransform::ExecuteTrimBoth, nullptr};
 static const TransformFrameOps TRIM_LEADING_OPS = {
     "TrimLeading", &PEGTransformerFactory::InitializeTrimLeadingTrampoline,
-    &PEGTransformerFactory::FinalizeTrimLeadingTrampoline, &GeneratedSingleChildTransform::ExecuteTrimLeading};
-static const TransformFrameOps TRIM_TRAILING_OPS = {
-    "TrimTrailing", &PEGTransformerFactory::InitializeTrimTrailingTrampoline,
-    &PEGTransformerFactory::FinalizeTrimTrailingTrampoline, &GeneratedSingleChildTransform::ExecuteTrimTrailing};
+    &PEGTransformerFactory::FinalizeTrimLeadingTrampoline, &GeneratedSingleChildTransform::ExecuteTrimLeading, nullptr};
+static const TransformFrameOps TRIM_TRAILING_OPS = {"TrimTrailing",
+                                                    &PEGTransformerFactory::InitializeTrimTrailingTrampoline,
+                                                    &PEGTransformerFactory::FinalizeTrimTrailingTrampoline,
+                                                    &GeneratedSingleChildTransform::ExecuteTrimTrailing, nullptr};
 static const TransformFrameOps TRIM_SOURCE_OPS = {"TrimSource", &PEGTransformerFactory::InitializeTrimSourceTrampoline,
                                                   &PEGTransformerFactory::FinalizeTrimSourceTrampoline,
-                                                  &GeneratedSingleChildTransform::ExecuteTrimSource};
-static const TransformFrameOps OVERLAY_EXPRESSION_OPS = {"OverlayExpression",
-                                                         &PEGTransformerFactory::InitializeOverlayExpressionTrampoline,
-                                                         &PEGTransformerFactory::FinalizeOverlayExpressionTrampoline,
-                                                         &GeneratedSingleChildTransform::ExecuteOverlayExpression};
-static const TransformFrameOps OVERLAY_ARGUMENTS_OPS = {"OverlayArguments",
-                                                        &PEGTransformerFactory::InitializeOverlayArgumentsTrampoline,
-                                                        &PEGTransformerFactory::FinalizeOverlayArgumentsTrampoline,
-                                                        &GeneratedSingleChildTransform::ExecuteOverlayArguments};
+                                                  &GeneratedSingleChildTransform::ExecuteTrimSource, nullptr};
+static const TransformFrameOps OVERLAY_EXPRESSION_OPS = {
+    "OverlayExpression", &PEGTransformerFactory::InitializeOverlayExpressionTrampoline,
+    &PEGTransformerFactory::FinalizeOverlayExpressionTrampoline,
+    &GeneratedSingleChildTransform::ExecuteOverlayExpression, nullptr};
+static const TransformFrameOps OVERLAY_ARGUMENTS_OPS = {
+    "OverlayArguments", &PEGTransformerFactory::InitializeOverlayArgumentsTrampoline,
+    &PEGTransformerFactory::FinalizeOverlayArgumentsTrampoline, &GeneratedSingleChildTransform::ExecuteOverlayArguments,
+    &GeneratedSingleChildTransform::ForwardOverlayArguments};
 static const TransformFrameOps OVERLAY_PARAMETERS_OPS = {
     "OverlayParameters", &PEGTransformerFactory::InitializeOverlayParametersTrampoline,
-    &PEGTransformerFactory::FinalizeOverlayParametersTrampoline, nullptr};
-static const TransformFrameOps FROM_EXPRESSION_OPS = {
-    "FromExpression", &PEGTransformerFactory::InitializeFromExpressionTrampoline,
-    &PEGTransformerFactory::FinalizeFromExpressionTrampoline, &GeneratedSingleChildTransform::ExecuteFromExpression};
-static const TransformFrameOps FOR_EXPRESSION_OPS = {
-    "ForExpression", &PEGTransformerFactory::InitializeForExpressionTrampoline,
-    &PEGTransformerFactory::FinalizeForExpressionTrampoline, &GeneratedSingleChildTransform::ExecuteForExpression};
+    &PEGTransformerFactory::FinalizeOverlayParametersTrampoline, nullptr, nullptr};
+static const TransformFrameOps FROM_EXPRESSION_OPS = {"FromExpression",
+                                                      &PEGTransformerFactory::InitializeFromExpressionTrampoline,
+                                                      &PEGTransformerFactory::FinalizeFromExpressionTrampoline,
+                                                      &GeneratedSingleChildTransform::ExecuteFromExpression, nullptr};
+static const TransformFrameOps FOR_EXPRESSION_OPS = {"ForExpression",
+                                                     &PEGTransformerFactory::InitializeForExpressionTrampoline,
+                                                     &PEGTransformerFactory::FinalizeForExpressionTrampoline,
+                                                     &GeneratedSingleChildTransform::ExecuteForExpression, nullptr};
 static const TransformFrameOps OVERLAY_EXPRESSION_LIST_OPS = {
     "OverlayExpressionList", &PEGTransformerFactory::InitializeOverlayExpressionListTrampoline,
-    &PEGTransformerFactory::FinalizeOverlayExpressionListTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeOverlayExpressionListTrampoline, nullptr, nullptr};
 static const TransformFrameOps EXTRACT_ARGUMENT_OPS = {
     "ExtractArgument", &PEGTransformerFactory::InitializeExtractArgumentTrampoline,
-    &PEGTransformerFactory::FinalizeExtractArgumentTrampoline, &GeneratedSingleChildTransform::ExecuteExtractArgument};
+    &PEGTransformerFactory::FinalizeExtractArgumentTrampoline, &GeneratedSingleChildTransform::ExecuteExtractArgument,
+    &GeneratedSingleChildTransform::ForwardExtractArgument};
 static const TransformFrameOps EXTRACT_DATE_PART_ARGUMENT_OPS = {
     "ExtractDatePartArgument", &PEGTransformerFactory::InitializeExtractDatePartArgumentTrampoline,
     &PEGTransformerFactory::FinalizeExtractDatePartArgumentTrampoline,
-    &GeneratedSingleChildTransform::ExecuteExtractDatePartArgument};
+    &GeneratedSingleChildTransform::ExecuteExtractDatePartArgument, nullptr};
 static const TransformFrameOps EXTRACT_IDENTIFIER_ARGUMENT_OPS = {
     "ExtractIdentifierArgument", &PEGTransformerFactory::InitializeExtractIdentifierArgumentTrampoline,
     &PEGTransformerFactory::FinalizeExtractIdentifierArgumentTrampoline,
-    &GeneratedSingleChildTransform::ExecuteExtractIdentifierArgument};
+    &GeneratedSingleChildTransform::ExecuteExtractIdentifierArgument, nullptr};
 static const TransformFrameOps EXTRACT_STRING_ARGUMENT_OPS = {
     "ExtractStringArgument", &PEGTransformerFactory::InitializeExtractStringArgumentTrampoline,
     &PEGTransformerFactory::FinalizeExtractStringArgumentTrampoline,
-    &GeneratedSingleChildTransform::ExecuteExtractStringArgument};
+    &GeneratedSingleChildTransform::ExecuteExtractStringArgument, nullptr};
 static const TransformFrameOps EXTRACT_DATE_PART_OPS = {
     "ExtractDatePart", &PEGTransformerFactory::InitializeExtractDatePartTrampoline,
-    &PEGTransformerFactory::FinalizeExtractDatePartTrampoline, &GeneratedSingleChildTransform::ExecuteExtractDatePart};
+    &PEGTransformerFactory::FinalizeExtractDatePartTrampoline, &GeneratedSingleChildTransform::ExecuteExtractDatePart,
+    &GeneratedSingleChildTransform::ForwardExtractDatePart};
 static const TransformFrameOps EXTERNAL_RESOURCE_STATEMENT_OPS = {
     "ExternalResourceStatement", &PEGTransformerFactory::InitializeExternalResourceStatementTrampoline,
     &PEGTransformerFactory::FinalizeExternalResourceStatementTrampoline,
-    &GeneratedSingleChildTransform::ExecuteExternalResourceStatement};
+    &GeneratedSingleChildTransform::ExecuteExternalResourceStatement,
+    &GeneratedSingleChildTransform::ForwardExternalResourceStatement};
 static const TransformFrameOps CREATE_EXTERNAL_RESOURCE_STMT_OPS = {
     "CreateExternalResourceStmt", &PEGTransformerFactory::InitializeCreateExternalResourceStmtTrampoline,
-    &PEGTransformerFactory::FinalizeCreateExternalResourceStmtTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeCreateExternalResourceStmtTrampoline, nullptr, nullptr};
 static const TransformFrameOps REGISTER_EXTERNAL_RESOURCE_STMT_OPS = {
     "RegisterExternalResourceStmt", &PEGTransformerFactory::InitializeRegisterExternalResourceStmtTrampoline,
-    &PEGTransformerFactory::FinalizeRegisterExternalResourceStmtTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeRegisterExternalResourceStmtTrampoline, nullptr, nullptr};
 static const TransformFrameOps DESTROY_EXTERNAL_RESOURCE_STMT_OPS = {
     "DestroyExternalResourceStmt", &PEGTransformerFactory::InitializeDestroyExternalResourceStmtTrampoline,
     &PEGTransformerFactory::FinalizeDestroyExternalResourceStmtTrampoline,
-    &GeneratedSingleChildTransform::ExecuteDestroyExternalResourceStmt};
+    &GeneratedSingleChildTransform::ExecuteDestroyExternalResourceStmt, nullptr};
 static const TransformFrameOps SHOW_EXTERNAL_RESOURCES_STMT_OPS = {
     "ShowExternalResourcesStmt", &PEGTransformerFactory::InitializeShowExternalResourcesStmtTrampoline,
     &PEGTransformerFactory::FinalizeShowExternalResourcesStmtTrampoline,
-    &GeneratedSingleChildTransform::ExecuteShowExternalResourcesStmt};
+    &GeneratedSingleChildTransform::ExecuteShowExternalResourcesStmt, nullptr};
 static const TransformFrameOps SHOW_ALL_MODIFIER_OPS = {
     "ShowAllModifier", &PEGTransformerFactory::InitializeShowAllModifierTrampoline,
-    &PEGTransformerFactory::FinalizeShowAllModifierTrampoline, &GeneratedSingleChildTransform::ExecuteShowAllModifier};
+    &PEGTransformerFactory::FinalizeShowAllModifierTrampoline, &GeneratedSingleChildTransform::ExecuteShowAllModifier,
+    nullptr};
 static const TransformFrameOps EXTERNAL_RESOURCE_CREATION_OPTIONS_OPS = {
     "ExternalResourceCreationOptions", &PEGTransformerFactory::InitializeExternalResourceCreationOptionsTrampoline,
     &PEGTransformerFactory::FinalizeExternalResourceCreationOptionsTrampoline,
-    &GeneratedSingleChildTransform::ExecuteExternalResourceCreationOptions};
+    &GeneratedSingleChildTransform::ExecuteExternalResourceCreationOptions,
+    &GeneratedSingleChildTransform::ForwardExternalResourceCreationOptions};
 static const TransformFrameOps ATTACH_TO_EXTERNAL_RESOURCE_OPS = {
     "AttachToExternalResource", &PEGTransformerFactory::InitializeAttachToExternalResourceTrampoline,
-    &PEGTransformerFactory::FinalizeAttachToExternalResourceTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeAttachToExternalResourceTrampoline, nullptr, nullptr};
 static const TransformFrameOps CONNECT_TO_EXTERNAL_RESOURCE_OPS = {
     "ConnectToExternalResource", &PEGTransformerFactory::InitializeConnectToExternalResourceTrampoline,
-    &PEGTransformerFactory::FinalizeConnectToExternalResourceTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeConnectToExternalResourceTrampoline, nullptr, nullptr};
 static const TransformFrameOps EXTERNAL_RESOURCE_SOURCE_OPS = {
     "ExternalResourceSource", &PEGTransformerFactory::InitializeExternalResourceSourceTrampoline,
     &PEGTransformerFactory::FinalizeExternalResourceSourceTrampoline,
-    &GeneratedSingleChildTransform::ExecuteExternalResourceSource};
+    &GeneratedSingleChildTransform::ExecuteExternalResourceSource,
+    &GeneratedSingleChildTransform::ForwardExternalResourceSource};
 static const TransformFrameOps EXTERNAL_RESOURCE_CREATE_CLAUSE_OPS = {
     "ExternalResourceCreateClause", &PEGTransformerFactory::InitializeExternalResourceCreateClauseTrampoline,
     &PEGTransformerFactory::FinalizeExternalResourceCreateClauseTrampoline,
-    &GeneratedSingleChildTransform::ExecuteExternalResourceCreateClause};
+    &GeneratedSingleChildTransform::ExecuteExternalResourceCreateClause, nullptr};
 static const TransformFrameOps EXTERNAL_RESOURCE_REFERENCE_CLAUSE_OPS = {
     "ExternalResourceReferenceClause", &PEGTransformerFactory::InitializeExternalResourceReferenceClauseTrampoline,
     &PEGTransformerFactory::FinalizeExternalResourceReferenceClauseTrampoline,
-    &GeneratedSingleChildTransform::ExecuteExternalResourceReferenceClause};
+    &GeneratedSingleChildTransform::ExecuteExternalResourceReferenceClause, nullptr};
 static const TransformFrameOps INSERT_STATEMENT_OPS = {
     "InsertStatement", &PEGTransformerFactory::InitializeInsertStatementTrampoline,
-    &PEGTransformerFactory::FinalizeInsertStatementTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeInsertStatementTrampoline, nullptr, nullptr};
 static const TransformFrameOps OR_ACTION_OPS = {"OrAction", &PEGTransformerFactory::InitializeOrActionTrampoline,
                                                 &PEGTransformerFactory::FinalizeOrActionTrampoline,
-                                                &GeneratedSingleChildTransform::ExecuteOrAction};
+                                                &GeneratedSingleChildTransform::ExecuteOrAction,
+                                                &GeneratedSingleChildTransform::ForwardOrAction};
 static const TransformFrameOps INSERT_OR_REPLACE_OPS = {
     "InsertOrReplace", &PEGTransformerFactory::InitializeInsertOrReplaceTrampoline,
-    &PEGTransformerFactory::FinalizeInsertOrReplaceTrampoline, &GeneratedSingleChildTransform::ExecuteInsertOrReplace};
-static const TransformFrameOps INSERT_OR_IGNORE_OPS = {
-    "InsertOrIgnore", &PEGTransformerFactory::InitializeInsertOrIgnoreTrampoline,
-    &PEGTransformerFactory::FinalizeInsertOrIgnoreTrampoline, &GeneratedSingleChildTransform::ExecuteInsertOrIgnore};
-static const TransformFrameOps BY_NAME_OR_POSITION_OPS = {"ByNameOrPosition",
-                                                          &PEGTransformerFactory::InitializeByNameOrPositionTrampoline,
-                                                          &PEGTransformerFactory::FinalizeByNameOrPositionTrampoline,
-                                                          &GeneratedSingleChildTransform::ExecuteByNameOrPosition};
+    &PEGTransformerFactory::FinalizeInsertOrReplaceTrampoline, &GeneratedSingleChildTransform::ExecuteInsertOrReplace,
+    nullptr};
+static const TransformFrameOps INSERT_OR_IGNORE_OPS = {"InsertOrIgnore",
+                                                       &PEGTransformerFactory::InitializeInsertOrIgnoreTrampoline,
+                                                       &PEGTransformerFactory::FinalizeInsertOrIgnoreTrampoline,
+                                                       &GeneratedSingleChildTransform::ExecuteInsertOrIgnore, nullptr};
+static const TransformFrameOps BY_NAME_OR_POSITION_OPS = {
+    "ByNameOrPosition", &PEGTransformerFactory::InitializeByNameOrPositionTrampoline,
+    &PEGTransformerFactory::FinalizeByNameOrPositionTrampoline, &GeneratedSingleChildTransform::ExecuteByNameOrPosition,
+    &GeneratedSingleChildTransform::ForwardByNameOrPosition};
 static const TransformFrameOps INSERT_BY_NAME_ORDER_OPS = {
     "InsertByNameOrder", &PEGTransformerFactory::InitializeInsertByNameOrderTrampoline,
     &PEGTransformerFactory::FinalizeInsertByNameOrderTrampoline,
-    &GeneratedSingleChildTransform::ExecuteInsertByNameOrder};
+    &GeneratedSingleChildTransform::ExecuteInsertByNameOrder, &GeneratedSingleChildTransform::ForwardInsertByNameOrder};
 static const TransformFrameOps INSERT_BY_POSITION_ORDER_OPS = {
     "InsertByPositionOrder", &PEGTransformerFactory::InitializeInsertByPositionOrderTrampoline,
     &PEGTransformerFactory::FinalizeInsertByPositionOrderTrampoline,
-    &GeneratedSingleChildTransform::ExecuteInsertByPositionOrder};
-static const TransformFrameOps INSERT_BY_NAME_OPS = {
-    "InsertByName", &PEGTransformerFactory::InitializeInsertByNameTrampoline,
-    &PEGTransformerFactory::FinalizeInsertByNameTrampoline, &GeneratedSingleChildTransform::ExecuteInsertByName};
-static const TransformFrameOps INSERT_BY_POSITION_OPS = {"InsertByPosition",
-                                                         &PEGTransformerFactory::InitializeInsertByPositionTrampoline,
-                                                         &PEGTransformerFactory::FinalizeInsertByPositionTrampoline,
-                                                         &GeneratedSingleChildTransform::ExecuteInsertByPosition};
-static const TransformFrameOps INSERT_TARGET_OPS = {"InsertTarget",
-                                                    &PEGTransformerFactory::InitializeInsertTargetTrampoline,
-                                                    &PEGTransformerFactory::FinalizeInsertTargetTrampoline, nullptr};
+    &GeneratedSingleChildTransform::ExecuteInsertByPositionOrder,
+    &GeneratedSingleChildTransform::ForwardInsertByPositionOrder};
+static const TransformFrameOps INSERT_BY_NAME_OPS = {"InsertByName",
+                                                     &PEGTransformerFactory::InitializeInsertByNameTrampoline,
+                                                     &PEGTransformerFactory::FinalizeInsertByNameTrampoline,
+                                                     &GeneratedSingleChildTransform::ExecuteInsertByName, nullptr};
+static const TransformFrameOps INSERT_BY_POSITION_OPS = {
+    "InsertByPosition", &PEGTransformerFactory::InitializeInsertByPositionTrampoline,
+    &PEGTransformerFactory::FinalizeInsertByPositionTrampoline, &GeneratedSingleChildTransform::ExecuteInsertByPosition,
+    nullptr};
+static const TransformFrameOps INSERT_TARGET_OPS = {
+    "InsertTarget", &PEGTransformerFactory::InitializeInsertTargetTrampoline,
+    &PEGTransformerFactory::FinalizeInsertTargetTrampoline, nullptr, nullptr};
 static const TransformFrameOps INSERT_ALIAS_OPS = {
     "InsertAlias", &PEGTransformerFactory::InitializeInsertAliasTrampoline,
-    &PEGTransformerFactory::FinalizeInsertAliasTrampoline, &GeneratedSingleChildTransform::ExecuteInsertAlias};
+    &PEGTransformerFactory::FinalizeInsertAliasTrampoline, &GeneratedSingleChildTransform::ExecuteInsertAlias, nullptr};
 static const TransformFrameOps COLUMN_LIST_OPS = {"ColumnList", &PEGTransformerFactory::InitializeColumnListTrampoline,
-                                                  &PEGTransformerFactory::FinalizeColumnListTrampoline, nullptr};
-static const TransformFrameOps INSERT_COLUMN_LIST_OPS = {"InsertColumnList",
-                                                         &PEGTransformerFactory::InitializeInsertColumnListTrampoline,
-                                                         &PEGTransformerFactory::FinalizeInsertColumnListTrampoline,
-                                                         &GeneratedSingleChildTransform::ExecuteInsertColumnList};
+                                                  &PEGTransformerFactory::FinalizeColumnListTrampoline, nullptr,
+                                                  nullptr};
+static const TransformFrameOps INSERT_COLUMN_LIST_OPS = {
+    "InsertColumnList", &PEGTransformerFactory::InitializeInsertColumnListTrampoline,
+    &PEGTransformerFactory::FinalizeInsertColumnListTrampoline, &GeneratedSingleChildTransform::ExecuteInsertColumnList,
+    nullptr};
 static const TransformFrameOps INSERT_VALUES_OPS = {
     "InsertValues", &PEGTransformerFactory::InitializeInsertValuesTrampoline,
-    &PEGTransformerFactory::FinalizeInsertValuesTrampoline, &GeneratedSingleChildTransform::ExecuteInsertValues};
+    &PEGTransformerFactory::FinalizeInsertValuesTrampoline, &GeneratedSingleChildTransform::ExecuteInsertValues,
+    &GeneratedSingleChildTransform::ForwardInsertValues};
 static const TransformFrameOps SELECT_INSERT_VALUES_OPS = {
     "SelectInsertValues", &PEGTransformerFactory::InitializeSelectInsertValuesTrampoline,
     &PEGTransformerFactory::FinalizeSelectInsertValuesTrampoline,
-    &GeneratedSingleChildTransform::ExecuteSelectInsertValues};
-static const TransformFrameOps DEFAULT_VALUES_OPS = {
-    "DefaultValues", &PEGTransformerFactory::InitializeDefaultValuesTrampoline,
-    &PEGTransformerFactory::FinalizeDefaultValuesTrampoline, &GeneratedSingleChildTransform::ExecuteDefaultValues};
+    &GeneratedSingleChildTransform::ExecuteSelectInsertValues, nullptr};
+static const TransformFrameOps DEFAULT_VALUES_OPS = {"DefaultValues",
+                                                     &PEGTransformerFactory::InitializeDefaultValuesTrampoline,
+                                                     &PEGTransformerFactory::FinalizeDefaultValuesTrampoline,
+                                                     &GeneratedSingleChildTransform::ExecuteDefaultValues, nullptr};
 static const TransformFrameOps ON_CONFLICT_CLAUSE_OPS = {
     "OnConflictClause", &PEGTransformerFactory::InitializeOnConflictClauseTrampoline,
-    &PEGTransformerFactory::FinalizeOnConflictClauseTrampoline, nullptr};
-static const TransformFrameOps ON_CONFLICT_TARGET_OPS = {"OnConflictTarget",
-                                                         &PEGTransformerFactory::InitializeOnConflictTargetTrampoline,
-                                                         &PEGTransformerFactory::FinalizeOnConflictTargetTrampoline,
-                                                         &GeneratedSingleChildTransform::ExecuteOnConflictTarget};
+    &PEGTransformerFactory::FinalizeOnConflictClauseTrampoline, nullptr, nullptr};
+static const TransformFrameOps ON_CONFLICT_TARGET_OPS = {
+    "OnConflictTarget", &PEGTransformerFactory::InitializeOnConflictTargetTrampoline,
+    &PEGTransformerFactory::FinalizeOnConflictTargetTrampoline, &GeneratedSingleChildTransform::ExecuteOnConflictTarget,
+    &GeneratedSingleChildTransform::ForwardOnConflictTarget};
 static const TransformFrameOps ON_CONFLICT_EXPRESSION_TARGET_OPS = {
     "OnConflictExpressionTarget", &PEGTransformerFactory::InitializeOnConflictExpressionTargetTrampoline,
-    &PEGTransformerFactory::FinalizeOnConflictExpressionTargetTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeOnConflictExpressionTargetTrampoline, nullptr, nullptr};
 static const TransformFrameOps ON_CONFLICT_INDEX_TARGET_OPS = {
     "OnConflictIndexTarget", &PEGTransformerFactory::InitializeOnConflictIndexTargetTrampoline,
     &PEGTransformerFactory::FinalizeOnConflictIndexTargetTrampoline,
-    &GeneratedSingleChildTransform::ExecuteOnConflictIndexTarget};
-static const TransformFrameOps ON_CONFLICT_ACTION_OPS = {"OnConflictAction",
-                                                         &PEGTransformerFactory::InitializeOnConflictActionTrampoline,
-                                                         &PEGTransformerFactory::FinalizeOnConflictActionTrampoline,
-                                                         &GeneratedSingleChildTransform::ExecuteOnConflictAction};
+    &GeneratedSingleChildTransform::ExecuteOnConflictIndexTarget, nullptr};
+static const TransformFrameOps ON_CONFLICT_ACTION_OPS = {
+    "OnConflictAction", &PEGTransformerFactory::InitializeOnConflictActionTrampoline,
+    &PEGTransformerFactory::FinalizeOnConflictActionTrampoline, &GeneratedSingleChildTransform::ExecuteOnConflictAction,
+    &GeneratedSingleChildTransform::ForwardOnConflictAction};
 static const TransformFrameOps ON_CONFLICT_UPDATE_OPS = {
     "OnConflictUpdate", &PEGTransformerFactory::InitializeOnConflictUpdateTrampoline,
-    &PEGTransformerFactory::FinalizeOnConflictUpdateTrampoline, nullptr};
-static const TransformFrameOps ON_CONFLICT_NOTHING_OPS = {"OnConflictNothing",
-                                                          &PEGTransformerFactory::InitializeOnConflictNothingTrampoline,
-                                                          &PEGTransformerFactory::FinalizeOnConflictNothingTrampoline,
-                                                          &GeneratedSingleChildTransform::ExecuteOnConflictNothing};
-static const TransformFrameOps RETURNING_CLAUSE_OPS = {
-    "ReturningClause", &PEGTransformerFactory::InitializeReturningClauseTrampoline,
-    &PEGTransformerFactory::FinalizeReturningClauseTrampoline, &GeneratedSingleChildTransform::ExecuteReturningClause};
-static const TransformFrameOps LOAD_STATEMENT_OPS = {"LoadStatement",
-                                                     &PEGTransformerFactory::InitializeLoadStatementTrampoline,
-                                                     &PEGTransformerFactory::FinalizeLoadStatementTrampoline, nullptr};
-static const TransformFrameOps EXTENSION_ALIAS_OPS = {
-    "ExtensionAlias", &PEGTransformerFactory::InitializeExtensionAliasTrampoline,
-    &PEGTransformerFactory::FinalizeExtensionAliasTrampoline, &GeneratedSingleChildTransform::ExecuteExtensionAlias};
+    &PEGTransformerFactory::FinalizeOnConflictUpdateTrampoline, nullptr, nullptr};
+static const TransformFrameOps ON_CONFLICT_NOTHING_OPS = {
+    "OnConflictNothing", &PEGTransformerFactory::InitializeOnConflictNothingTrampoline,
+    &PEGTransformerFactory::FinalizeOnConflictNothingTrampoline,
+    &GeneratedSingleChildTransform::ExecuteOnConflictNothing, nullptr};
+static const TransformFrameOps RETURNING_CLAUSE_OPS = {"ReturningClause",
+                                                       &PEGTransformerFactory::InitializeReturningClauseTrampoline,
+                                                       &PEGTransformerFactory::FinalizeReturningClauseTrampoline,
+                                                       &GeneratedSingleChildTransform::ExecuteReturningClause, nullptr};
+static const TransformFrameOps LOAD_STATEMENT_OPS = {
+    "LoadStatement", &PEGTransformerFactory::InitializeLoadStatementTrampoline,
+    &PEGTransformerFactory::FinalizeLoadStatementTrampoline, nullptr, nullptr};
+static const TransformFrameOps EXTENSION_ALIAS_OPS = {"ExtensionAlias",
+                                                      &PEGTransformerFactory::InitializeExtensionAliasTrampoline,
+                                                      &PEGTransformerFactory::FinalizeExtensionAliasTrampoline,
+                                                      &GeneratedSingleChildTransform::ExecuteExtensionAlias, nullptr};
 static const TransformFrameOps INSTALL_STATEMENT_OPS = {
     "InstallStatement", &PEGTransformerFactory::InitializeInstallStatementTrampoline,
-    &PEGTransformerFactory::FinalizeInstallStatementTrampoline, nullptr};
-static const TransformFrameOps INSTALL_AND_LOAD_OPS = {
-    "InstallAndLoad", &PEGTransformerFactory::InitializeInstallAndLoadTrampoline,
-    &PEGTransformerFactory::FinalizeInstallAndLoadTrampoline, &GeneratedSingleChildTransform::ExecuteInstallAndLoad};
+    &PEGTransformerFactory::FinalizeInstallStatementTrampoline, nullptr, nullptr};
+static const TransformFrameOps INSTALL_AND_LOAD_OPS = {"InstallAndLoad",
+                                                       &PEGTransformerFactory::InitializeInstallAndLoadTrampoline,
+                                                       &PEGTransformerFactory::FinalizeInstallAndLoadTrampoline,
+                                                       &GeneratedSingleChildTransform::ExecuteInstallAndLoad, nullptr};
 static const TransformFrameOps UPDATE_EXTENSIONS_STATEMENT_OPS = {
     "UpdateExtensionsStatement", &PEGTransformerFactory::InitializeUpdateExtensionsStatementTrampoline,
     &PEGTransformerFactory::FinalizeUpdateExtensionsStatementTrampoline,
-    &GeneratedSingleChildTransform::ExecuteUpdateExtensionsStatement};
+    &GeneratedSingleChildTransform::ExecuteUpdateExtensionsStatement, nullptr};
 static const TransformFrameOps FROM_SOURCE_OPS = {"FromSource", &PEGTransformerFactory::InitializeFromSourceTrampoline,
                                                   &PEGTransformerFactory::FinalizeFromSourceTrampoline,
-                                                  &GeneratedSingleChildTransform::ExecuteFromSource};
+                                                  &GeneratedSingleChildTransform::ExecuteFromSource,
+                                                  &GeneratedSingleChildTransform::ForwardFromSource};
 static const TransformFrameOps FROM_SOURCE_IDENTIFIER_OPS = {
     "FromSourceIdentifier", &PEGTransformerFactory::InitializeFromSourceIdentifierTrampoline,
     &PEGTransformerFactory::FinalizeFromSourceIdentifierTrampoline,
-    &GeneratedSingleChildTransform::ExecuteFromSourceIdentifier};
-static const TransformFrameOps FROM_SOURCE_STRING_OPS = {"FromSourceString",
-                                                         &PEGTransformerFactory::InitializeFromSourceStringTrampoline,
-                                                         &PEGTransformerFactory::FinalizeFromSourceStringTrampoline,
-                                                         &GeneratedSingleChildTransform::ExecuteFromSourceString};
-static const TransformFrameOps VERSION_NUMBER_OPS = {
-    "VersionNumber", &PEGTransformerFactory::InitializeVersionNumberTrampoline,
-    &PEGTransformerFactory::FinalizeVersionNumberTrampoline, &GeneratedSingleChildTransform::ExecuteVersionNumber};
+    &GeneratedSingleChildTransform::ExecuteFromSourceIdentifier, nullptr};
+static const TransformFrameOps FROM_SOURCE_STRING_OPS = {
+    "FromSourceString", &PEGTransformerFactory::InitializeFromSourceStringTrampoline,
+    &PEGTransformerFactory::FinalizeFromSourceStringTrampoline, &GeneratedSingleChildTransform::ExecuteFromSourceString,
+    nullptr};
+static const TransformFrameOps VERSION_NUMBER_OPS = {"VersionNumber",
+                                                     &PEGTransformerFactory::InitializeVersionNumberTrampoline,
+                                                     &PEGTransformerFactory::FinalizeVersionNumberTrampoline,
+                                                     &GeneratedSingleChildTransform::ExecuteVersionNumber, nullptr};
 static const TransformFrameOps EXTENSION_REPOSITORY_STATEMENT_OPS = {
     "ExtensionRepositoryStatement", &PEGTransformerFactory::InitializeExtensionRepositoryStatementTrampoline,
     &PEGTransformerFactory::FinalizeExtensionRepositoryStatementTrampoline,
-    &GeneratedSingleChildTransform::ExecuteExtensionRepositoryStatement};
+    &GeneratedSingleChildTransform::ExecuteExtensionRepositoryStatement,
+    &GeneratedSingleChildTransform::ForwardExtensionRepositoryStatement};
 static const TransformFrameOps CREATE_EXTENSION_REPOSITORY_STMT_OPS = {
     "CreateExtensionRepositoryStmt", &PEGTransformerFactory::InitializeCreateExtensionRepositoryStmtTrampoline,
-    &PEGTransformerFactory::FinalizeCreateExtensionRepositoryStmtTrampoline, nullptr};
-static const TransformFrameOps REPOSITORY_PREFIX_OPS = {"RepositoryPrefix",
-                                                        &PEGTransformerFactory::InitializeRepositoryPrefixTrampoline,
-                                                        &PEGTransformerFactory::FinalizeRepositoryPrefixTrampoline,
-                                                        &GeneratedSingleChildTransform::ExecuteRepositoryPrefix};
+    &PEGTransformerFactory::FinalizeCreateExtensionRepositoryStmtTrampoline, nullptr, nullptr};
+static const TransformFrameOps REPOSITORY_PREFIX_OPS = {
+    "RepositoryPrefix", &PEGTransformerFactory::InitializeRepositoryPrefixTrampoline,
+    &PEGTransformerFactory::FinalizeRepositoryPrefixTrampoline, &GeneratedSingleChildTransform::ExecuteRepositoryPrefix,
+    nullptr};
 static const TransformFrameOps REPOSITORY_PUBLIC_KEY_OPS = {
     "RepositoryPublicKey", &PEGTransformerFactory::InitializeRepositoryPublicKeyTrampoline,
     &PEGTransformerFactory::FinalizeRepositoryPublicKeyTrampoline,
-    &GeneratedSingleChildTransform::ExecuteRepositoryPublicKey};
+    &GeneratedSingleChildTransform::ExecuteRepositoryPublicKey, nullptr};
 static const TransformFrameOps DROP_EXTENSION_REPOSITORY_STMT_OPS = {
     "DropExtensionRepositoryStmt", &PEGTransformerFactory::InitializeDropExtensionRepositoryStmtTrampoline,
-    &PEGTransformerFactory::FinalizeDropExtensionRepositoryStmtTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeDropExtensionRepositoryStmtTrampoline, nullptr, nullptr};
 static const TransformFrameOps TABLE_MATCH_RECOGNIZE_CLAUSE_OPS = {
     "TableMatchRecognizeClause", &PEGTransformerFactory::InitializeTableMatchRecognizeClauseTrampoline,
-    &PEGTransformerFactory::FinalizeTableMatchRecognizeClauseTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeTableMatchRecognizeClauseTrampoline, nullptr, nullptr};
 static const TransformFrameOps MATCH_RECOGNIZE_BODY_OPS = {
     "MatchRecognizeBody", &PEGTransformerFactory::InitializeMatchRecognizeBodyTrampoline,
-    &PEGTransformerFactory::FinalizeMatchRecognizeBodyTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeMatchRecognizeBodyTrampoline, nullptr, nullptr};
 static const TransformFrameOps MATCH_RECOGNIZE_CLAUSE_OPS = {
     "MatchRecognizeClause", &PEGTransformerFactory::InitializeMatchRecognizeClauseTrampoline,
     &PEGTransformerFactory::FinalizeMatchRecognizeClauseTrampoline,
-    &GeneratedSingleChildTransform::ExecuteMatchRecognizeClause};
+    &GeneratedSingleChildTransform::ExecuteMatchRecognizeClause,
+    &GeneratedSingleChildTransform::ForwardMatchRecognizeClause};
 static const TransformFrameOps MRPARTITION_OPS = {
     "MRPartition", &PEGTransformerFactory::InitializeMRPartitionTrampoline,
-    &PEGTransformerFactory::FinalizeMRPartitionTrampoline, &GeneratedSingleChildTransform::ExecuteMRPartition};
+    &PEGTransformerFactory::FinalizeMRPartitionTrampoline, &GeneratedSingleChildTransform::ExecuteMRPartition, nullptr};
 static const TransformFrameOps MRORDER_BY_OPS = {"MROrderBy", &PEGTransformerFactory::InitializeMROrderByTrampoline,
                                                  &PEGTransformerFactory::FinalizeMROrderByTrampoline,
-                                                 &GeneratedSingleChildTransform::ExecuteMROrderBy};
+                                                 &GeneratedSingleChildTransform::ExecuteMROrderBy, nullptr};
 static const TransformFrameOps MRMEASURES_OPS = {"MRMeasures", &PEGTransformerFactory::InitializeMRMeasuresTrampoline,
                                                  &PEGTransformerFactory::FinalizeMRMeasuresTrampoline,
-                                                 &GeneratedSingleChildTransform::ExecuteMRMeasures};
+                                                 &GeneratedSingleChildTransform::ExecuteMRMeasures, nullptr};
 static const TransformFrameOps MRROWS_OPS = {"MRRows", &PEGTransformerFactory::InitializeMRRowsTrampoline,
                                              &PEGTransformerFactory::FinalizeMRRowsTrampoline,
-                                             &GeneratedSingleChildTransform::ExecuteMRRows};
+                                             &GeneratedSingleChildTransform::ExecuteMRRows, nullptr};
 static const TransformFrameOps MRSKIP_OPS = {"MRSkip", &PEGTransformerFactory::InitializeMRSkipTrampoline,
                                              &PEGTransformerFactory::FinalizeMRSkipTrampoline,
-                                             &GeneratedSingleChildTransform::ExecuteMRSkip};
+                                             &GeneratedSingleChildTransform::ExecuteMRSkip, nullptr};
 static const TransformFrameOps MRPATTERN_OPS = {"MRPattern", &PEGTransformerFactory::InitializeMRPatternTrampoline,
                                                 &PEGTransformerFactory::FinalizeMRPatternTrampoline,
-                                                &GeneratedSingleChildTransform::ExecuteMRPattern};
+                                                &GeneratedSingleChildTransform::ExecuteMRPattern, nullptr};
 static const TransformFrameOps MRSUBSET_OPS = {"MRSubset", &PEGTransformerFactory::InitializeMRSubsetTrampoline,
                                                &PEGTransformerFactory::FinalizeMRSubsetTrampoline,
-                                               &GeneratedSingleChildTransform::ExecuteMRSubset};
-static const TransformFrameOps MRDEFINE_AUTO_OPS = {
-    "MRDefineAuto", &PEGTransformerFactory::InitializeMRDefineAutoTrampoline,
-    &PEGTransformerFactory::FinalizeMRDefineAutoTrampoline, &GeneratedSingleChildTransform::ExecuteMRDefineAuto};
+                                               &GeneratedSingleChildTransform::ExecuteMRSubset, nullptr};
+static const TransformFrameOps MRDEFINE_AUTO_OPS = {"MRDefineAuto",
+                                                    &PEGTransformerFactory::InitializeMRDefineAutoTrampoline,
+                                                    &PEGTransformerFactory::FinalizeMRDefineAutoTrampoline,
+                                                    &GeneratedSingleChildTransform::ExecuteMRDefineAuto, nullptr};
 static const TransformFrameOps MRDEFINE_OPS = {"MRDefine", &PEGTransformerFactory::InitializeMRDefineTrampoline,
                                                &PEGTransformerFactory::FinalizeMRDefineTrampoline,
-                                               &GeneratedSingleChildTransform::ExecuteMRDefine};
+                                               &GeneratedSingleChildTransform::ExecuteMRDefine, nullptr};
 static const TransformFrameOps MEASURES_CLAUSE_OPS = {
     "MeasuresClause", &PEGTransformerFactory::InitializeMeasuresClauseTrampoline,
-    &PEGTransformerFactory::FinalizeMeasuresClauseTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeMeasuresClauseTrampoline, nullptr, nullptr};
 static const TransformFrameOps MEASURES_ELEMENT_OPS = {
     "MeasuresElement", &PEGTransformerFactory::InitializeMeasuresElementTrampoline,
-    &PEGTransformerFactory::FinalizeMeasuresElementTrampoline, nullptr};
-static const TransformFrameOps MEASURE_SEMANTICS_OPS = {"MeasureSemantics",
-                                                        &PEGTransformerFactory::InitializeMeasureSemanticsTrampoline,
-                                                        &PEGTransformerFactory::FinalizeMeasureSemanticsTrampoline,
-                                                        &GeneratedSingleChildTransform::ExecuteMeasureSemantics};
-static const TransformFrameOps RUNNING_SEMANTICS_OPS = {"RunningSemantics",
-                                                        &PEGTransformerFactory::InitializeRunningSemanticsTrampoline,
-                                                        &PEGTransformerFactory::FinalizeRunningSemanticsTrampoline,
-                                                        &GeneratedSingleChildTransform::ExecuteRunningSemantics};
-static const TransformFrameOps FINAL_SEMANTICS_OPS = {
-    "FinalSemantics", &PEGTransformerFactory::InitializeFinalSemanticsTrampoline,
-    &PEGTransformerFactory::FinalizeFinalSemanticsTrampoline, &GeneratedSingleChildTransform::ExecuteFinalSemantics};
+    &PEGTransformerFactory::FinalizeMeasuresElementTrampoline, nullptr, nullptr};
+static const TransformFrameOps MEASURE_SEMANTICS_OPS = {
+    "MeasureSemantics", &PEGTransformerFactory::InitializeMeasureSemanticsTrampoline,
+    &PEGTransformerFactory::FinalizeMeasureSemanticsTrampoline, &GeneratedSingleChildTransform::ExecuteMeasureSemantics,
+    &GeneratedSingleChildTransform::ForwardMeasureSemantics};
+static const TransformFrameOps RUNNING_SEMANTICS_OPS = {
+    "RunningSemantics", &PEGTransformerFactory::InitializeRunningSemanticsTrampoline,
+    &PEGTransformerFactory::FinalizeRunningSemanticsTrampoline, &GeneratedSingleChildTransform::ExecuteRunningSemantics,
+    nullptr};
+static const TransformFrameOps FINAL_SEMANTICS_OPS = {"FinalSemantics",
+                                                      &PEGTransformerFactory::InitializeFinalSemanticsTrampoline,
+                                                      &PEGTransformerFactory::FinalizeFinalSemanticsTrampoline,
+                                                      &GeneratedSingleChildTransform::ExecuteFinalSemantics, nullptr};
 static const TransformFrameOps ROWS_PER_MATCH_OPS = {
     "RowsPerMatch", &PEGTransformerFactory::InitializeRowsPerMatchTrampoline,
-    &PEGTransformerFactory::FinalizeRowsPerMatchTrampoline, &GeneratedSingleChildTransform::ExecuteRowsPerMatch};
-static const TransformFrameOps ONE_ROW_PER_MATCH_OPS = {
-    "OneRowPerMatch", &PEGTransformerFactory::InitializeOneRowPerMatchTrampoline,
-    &PEGTransformerFactory::FinalizeOneRowPerMatchTrampoline, &GeneratedSingleChildTransform::ExecuteOneRowPerMatch};
+    &PEGTransformerFactory::FinalizeRowsPerMatchTrampoline, &GeneratedSingleChildTransform::ExecuteRowsPerMatch,
+    &GeneratedSingleChildTransform::ForwardRowsPerMatch};
+static const TransformFrameOps ONE_ROW_PER_MATCH_OPS = {"OneRowPerMatch",
+                                                        &PEGTransformerFactory::InitializeOneRowPerMatchTrampoline,
+                                                        &PEGTransformerFactory::FinalizeOneRowPerMatchTrampoline,
+                                                        &GeneratedSingleChildTransform::ExecuteOneRowPerMatch, nullptr};
 static const TransformFrameOps ALL_ROWS_PER_MATCH_OPS = {
     "AllRowsPerMatch", &PEGTransformerFactory::InitializeAllRowsPerMatchTrampoline,
-    &PEGTransformerFactory::FinalizeAllRowsPerMatchTrampoline, &GeneratedSingleChildTransform::ExecuteAllRowsPerMatch};
+    &PEGTransformerFactory::FinalizeAllRowsPerMatchTrampoline, &GeneratedSingleChildTransform::ExecuteAllRowsPerMatch,
+    nullptr};
 static const TransformFrameOps ALL_ROWS_EMPTY_MATCHES_OPS = {
     "AllRowsEmptyMatches", &PEGTransformerFactory::InitializeAllRowsEmptyMatchesTrampoline,
     &PEGTransformerFactory::FinalizeAllRowsEmptyMatchesTrampoline,
-    &GeneratedSingleChildTransform::ExecuteAllRowsEmptyMatches};
-static const TransformFrameOps SHOW_EMPTY_MATCHES_OPS = {"ShowEmptyMatches",
-                                                         &PEGTransformerFactory::InitializeShowEmptyMatchesTrampoline,
-                                                         &PEGTransformerFactory::FinalizeShowEmptyMatchesTrampoline,
-                                                         &GeneratedSingleChildTransform::ExecuteShowEmptyMatches};
-static const TransformFrameOps OMIT_EMPTY_MATCHES_OPS = {"OmitEmptyMatches",
-                                                         &PEGTransformerFactory::InitializeOmitEmptyMatchesTrampoline,
-                                                         &PEGTransformerFactory::FinalizeOmitEmptyMatchesTrampoline,
-                                                         &GeneratedSingleChildTransform::ExecuteOmitEmptyMatches};
-static const TransformFrameOps WITH_UNMATCHED_ROWS_OPS = {"WithUnmatchedRows",
-                                                          &PEGTransformerFactory::InitializeWithUnmatchedRowsTrampoline,
-                                                          &PEGTransformerFactory::FinalizeWithUnmatchedRowsTrampoline,
-                                                          &GeneratedSingleChildTransform::ExecuteWithUnmatchedRows};
+    &GeneratedSingleChildTransform::ExecuteAllRowsEmptyMatches,
+    &GeneratedSingleChildTransform::ForwardAllRowsEmptyMatches};
+static const TransformFrameOps SHOW_EMPTY_MATCHES_OPS = {
+    "ShowEmptyMatches", &PEGTransformerFactory::InitializeShowEmptyMatchesTrampoline,
+    &PEGTransformerFactory::FinalizeShowEmptyMatchesTrampoline, &GeneratedSingleChildTransform::ExecuteShowEmptyMatches,
+    nullptr};
+static const TransformFrameOps OMIT_EMPTY_MATCHES_OPS = {
+    "OmitEmptyMatches", &PEGTransformerFactory::InitializeOmitEmptyMatchesTrampoline,
+    &PEGTransformerFactory::FinalizeOmitEmptyMatchesTrampoline, &GeneratedSingleChildTransform::ExecuteOmitEmptyMatches,
+    nullptr};
+static const TransformFrameOps WITH_UNMATCHED_ROWS_OPS = {
+    "WithUnmatchedRows", &PEGTransformerFactory::InitializeWithUnmatchedRowsTrampoline,
+    &PEGTransformerFactory::FinalizeWithUnmatchedRowsTrampoline,
+    &GeneratedSingleChildTransform::ExecuteWithUnmatchedRows, nullptr};
 static const TransformFrameOps AFTER_MATCH_SKIP_OPS = {
     "AfterMatchSkip", &PEGTransformerFactory::InitializeAfterMatchSkipTrampoline,
-    &PEGTransformerFactory::FinalizeAfterMatchSkipTrampoline, &GeneratedSingleChildTransform::ExecuteAfterMatchSkip};
+    &PEGTransformerFactory::FinalizeAfterMatchSkipTrampoline, &GeneratedSingleChildTransform::ExecuteAfterMatchSkip,
+    &GeneratedSingleChildTransform::ForwardAfterMatchSkip};
 static const TransformFrameOps AFTER_MATCH_SKIP_TARGET_OPS = {
     "AfterMatchSkipTarget", &PEGTransformerFactory::InitializeAfterMatchSkipTargetTrampoline,
     &PEGTransformerFactory::FinalizeAfterMatchSkipTargetTrampoline,
-    &GeneratedSingleChildTransform::ExecuteAfterMatchSkipTarget};
-static const TransformFrameOps SKIP_TO_NEXT_ROW_OPS = {
-    "SkipToNextRow", &PEGTransformerFactory::InitializeSkipToNextRowTrampoline,
-    &PEGTransformerFactory::FinalizeSkipToNextRowTrampoline, &GeneratedSingleChildTransform::ExecuteSkipToNextRow};
+    &GeneratedSingleChildTransform::ExecuteAfterMatchSkipTarget,
+    &GeneratedSingleChildTransform::ForwardAfterMatchSkipTarget};
+static const TransformFrameOps SKIP_TO_NEXT_ROW_OPS = {"SkipToNextRow",
+                                                       &PEGTransformerFactory::InitializeSkipToNextRowTrampoline,
+                                                       &PEGTransformerFactory::FinalizeSkipToNextRowTrampoline,
+                                                       &GeneratedSingleChildTransform::ExecuteSkipToNextRow, nullptr};
 static const TransformFrameOps SKIP_PAST_LAST_ROW_OPS = {
     "SkipPastLastRow", &PEGTransformerFactory::InitializeSkipPastLastRowTrampoline,
-    &PEGTransformerFactory::FinalizeSkipPastLastRowTrampoline, &GeneratedSingleChildTransform::ExecuteSkipPastLastRow};
-static const TransformFrameOps SKIP_TO_FIRST_VAR_OPS = {
-    "SkipToFirstVar", &PEGTransformerFactory::InitializeSkipToFirstVarTrampoline,
-    &PEGTransformerFactory::FinalizeSkipToFirstVarTrampoline, &GeneratedSingleChildTransform::ExecuteSkipToFirstVar};
-static const TransformFrameOps SKIP_TO_LAST_VAR_OPS = {
-    "SkipToLastVar", &PEGTransformerFactory::InitializeSkipToLastVarTrampoline,
-    &PEGTransformerFactory::FinalizeSkipToLastVarTrampoline, &GeneratedSingleChildTransform::ExecuteSkipToLastVar};
+    &PEGTransformerFactory::FinalizeSkipPastLastRowTrampoline, &GeneratedSingleChildTransform::ExecuteSkipPastLastRow,
+    nullptr};
+static const TransformFrameOps SKIP_TO_FIRST_VAR_OPS = {"SkipToFirstVar",
+                                                        &PEGTransformerFactory::InitializeSkipToFirstVarTrampoline,
+                                                        &PEGTransformerFactory::FinalizeSkipToFirstVarTrampoline,
+                                                        &GeneratedSingleChildTransform::ExecuteSkipToFirstVar, nullptr};
+static const TransformFrameOps SKIP_TO_LAST_VAR_OPS = {"SkipToLastVar",
+                                                       &PEGTransformerFactory::InitializeSkipToLastVarTrampoline,
+                                                       &PEGTransformerFactory::FinalizeSkipToLastVarTrampoline,
+                                                       &GeneratedSingleChildTransform::ExecuteSkipToLastVar, nullptr};
 static const TransformFrameOps SKIP_TO_VAR_OPS = {"SkipToVar", &PEGTransformerFactory::InitializeSkipToVarTrampoline,
                                                   &PEGTransformerFactory::FinalizeSkipToVarTrampoline,
-                                                  &GeneratedSingleChildTransform::ExecuteSkipToVar};
+                                                  &GeneratedSingleChildTransform::ExecuteSkipToVar, nullptr};
 static const TransformFrameOps PATTERN_CLAUSE_OPS = {
     "PatternClause", &PEGTransformerFactory::InitializePatternClauseTrampoline,
-    &PEGTransformerFactory::FinalizePatternClauseTrampoline, &GeneratedSingleChildTransform::ExecutePatternClause};
+    &PEGTransformerFactory::FinalizePatternClauseTrampoline, &GeneratedSingleChildTransform::ExecutePatternClause,
+    &GeneratedSingleChildTransform::ForwardPatternClause};
 static const TransformFrameOps ROW_PATTERN_OPS = {"RowPattern", &PEGTransformerFactory::InitializeRowPatternTrampoline,
-                                                  &PEGTransformerFactory::FinalizeRowPatternTrampoline, nullptr};
+                                                  &PEGTransformerFactory::FinalizeRowPatternTrampoline, nullptr,
+                                                  nullptr};
 static const TransformFrameOps ROW_PATTERN_ALTERNATIVE_OPS = {
     "RowPatternAlternative", &PEGTransformerFactory::InitializeRowPatternAlternativeTrampoline,
     &PEGTransformerFactory::FinalizeRowPatternAlternativeTrampoline,
-    &GeneratedSingleChildTransform::ExecuteRowPatternAlternative};
+    &GeneratedSingleChildTransform::ExecuteRowPatternAlternative,
+    &GeneratedSingleChildTransform::ForwardRowPatternAlternative};
 static const TransformFrameOps ROW_PATTERN_TERM_OPS = {
     "RowPatternTerm", &PEGTransformerFactory::InitializeRowPatternTermTrampoline,
-    &PEGTransformerFactory::FinalizeRowPatternTermTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeRowPatternTermTrampoline, nullptr, nullptr};
 static const TransformFrameOps ROW_PATTERN_FACTOR_OPS = {
     "RowPatternFactor", &PEGTransformerFactory::InitializeRowPatternFactorTrampoline,
-    &PEGTransformerFactory::FinalizeRowPatternFactorTrampoline, nullptr};
-static const TransformFrameOps ROW_PATTERN_PRIMARY_OPS = {"RowPatternPrimary",
-                                                          &PEGTransformerFactory::InitializeRowPatternPrimaryTrampoline,
-                                                          &PEGTransformerFactory::FinalizeRowPatternPrimaryTrampoline,
-                                                          &GeneratedSingleChildTransform::ExecuteRowPatternPrimary};
+    &PEGTransformerFactory::FinalizeRowPatternFactorTrampoline, nullptr, nullptr};
+static const TransformFrameOps ROW_PATTERN_PRIMARY_OPS = {
+    "RowPatternPrimary", &PEGTransformerFactory::InitializeRowPatternPrimaryTrampoline,
+    &PEGTransformerFactory::FinalizeRowPatternPrimaryTrampoline,
+    &GeneratedSingleChildTransform::ExecuteRowPatternPrimary, &GeneratedSingleChildTransform::ForwardRowPatternPrimary};
 static const TransformFrameOps ROW_PATTERN_PERMUTE_OPS = {
     "RowPatternPermute", &PEGTransformerFactory::InitializeRowPatternPermuteTrampoline,
-    &PEGTransformerFactory::FinalizeRowPatternPermuteTrampoline, nullptr};
-static const TransformFrameOps ROW_PATTERN_ANCHOR_OPS = {"RowPatternAnchor",
-                                                         &PEGTransformerFactory::InitializeRowPatternAnchorTrampoline,
-                                                         &PEGTransformerFactory::FinalizeRowPatternAnchorTrampoline,
-                                                         &GeneratedSingleChildTransform::ExecuteRowPatternAnchor};
-static const TransformFrameOps PATTERN_START_OPS = {
-    "PatternStart", &PEGTransformerFactory::InitializePatternStartTrampoline,
-    &PEGTransformerFactory::FinalizePatternStartTrampoline, &GeneratedSingleChildTransform::ExecutePatternStart};
+    &PEGTransformerFactory::FinalizeRowPatternPermuteTrampoline, nullptr, nullptr};
+static const TransformFrameOps ROW_PATTERN_ANCHOR_OPS = {
+    "RowPatternAnchor", &PEGTransformerFactory::InitializeRowPatternAnchorTrampoline,
+    &PEGTransformerFactory::FinalizeRowPatternAnchorTrampoline, &GeneratedSingleChildTransform::ExecuteRowPatternAnchor,
+    &GeneratedSingleChildTransform::ForwardRowPatternAnchor};
+static const TransformFrameOps PATTERN_START_OPS = {"PatternStart",
+                                                    &PEGTransformerFactory::InitializePatternStartTrampoline,
+                                                    &PEGTransformerFactory::FinalizePatternStartTrampoline,
+                                                    &GeneratedSingleChildTransform::ExecutePatternStart, nullptr};
 static const TransformFrameOps PATTERN_END_OPS = {"PatternEnd", &PEGTransformerFactory::InitializePatternEndTrampoline,
                                                   &PEGTransformerFactory::FinalizePatternEndTrampoline,
-                                                  &GeneratedSingleChildTransform::ExecutePatternEnd};
+                                                  &GeneratedSingleChildTransform::ExecutePatternEnd, nullptr};
 static const TransformFrameOps ROW_PATTERN_GROUP_OPS = {
     "RowPatternGroup", &PEGTransformerFactory::InitializeRowPatternGroupTrampoline,
-    &PEGTransformerFactory::FinalizeRowPatternGroupTrampoline, &GeneratedSingleChildTransform::ExecuteRowPatternGroup};
+    &PEGTransformerFactory::FinalizeRowPatternGroupTrampoline, &GeneratedSingleChildTransform::ExecuteRowPatternGroup,
+    &GeneratedSingleChildTransform::ForwardRowPatternGroup};
 static const TransformFrameOps ROW_PATTERN_EMPTY_OPS = {
     "RowPatternEmpty", &PEGTransformerFactory::InitializeRowPatternEmptyTrampoline,
-    &PEGTransformerFactory::FinalizeRowPatternEmptyTrampoline, &GeneratedSingleChildTransform::ExecuteRowPatternEmpty};
+    &PEGTransformerFactory::FinalizeRowPatternEmptyTrampoline, &GeneratedSingleChildTransform::ExecuteRowPatternEmpty,
+    nullptr};
 static const TransformFrameOps ROW_PATTERN_EXCLUSION_OPS = {
     "RowPatternExclusion", &PEGTransformerFactory::InitializeRowPatternExclusionTrampoline,
     &PEGTransformerFactory::FinalizeRowPatternExclusionTrampoline,
-    &GeneratedSingleChildTransform::ExecuteRowPatternExclusion};
+    &GeneratedSingleChildTransform::ExecuteRowPatternExclusion, nullptr};
 static const TransformFrameOps ROW_PATTERN_LABEL_OPS = {
     "RowPatternLabel", &PEGTransformerFactory::InitializeRowPatternLabelTrampoline,
-    &PEGTransformerFactory::FinalizeRowPatternLabelTrampoline, &GeneratedSingleChildTransform::ExecuteRowPatternLabel};
+    &PEGTransformerFactory::FinalizeRowPatternLabelTrampoline, &GeneratedSingleChildTransform::ExecuteRowPatternLabel,
+    nullptr};
 static const TransformFrameOps ROW_PATTERN_QUANTIFIER_OPS = {
     "RowPatternQuantifier", &PEGTransformerFactory::InitializeRowPatternQuantifierTrampoline,
-    &PEGTransformerFactory::FinalizeRowPatternQuantifierTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeRowPatternQuantifierTrampoline, nullptr, nullptr};
 static const TransformFrameOps ROW_PATTERN_QUANTIFIER_KIND_OPS = {
     "RowPatternQuantifierKind", &PEGTransformerFactory::InitializeRowPatternQuantifierKindTrampoline,
     &PEGTransformerFactory::FinalizeRowPatternQuantifierKindTrampoline,
-    &GeneratedSingleChildTransform::ExecuteRowPatternQuantifierKind};
+    &GeneratedSingleChildTransform::ExecuteRowPatternQuantifierKind,
+    &GeneratedSingleChildTransform::ForwardRowPatternQuantifierKind};
 static const TransformFrameOps QUANTIFIER_RELUCTANT_OPS = {
     "QuantifierReluctant", &PEGTransformerFactory::InitializeQuantifierReluctantTrampoline,
     &PEGTransformerFactory::FinalizeQuantifierReluctantTrampoline,
-    &GeneratedSingleChildTransform::ExecuteQuantifierReluctant};
-static const TransformFrameOps QUANTIFIER_STAR_OPS = {
-    "QuantifierStar", &PEGTransformerFactory::InitializeQuantifierStarTrampoline,
-    &PEGTransformerFactory::FinalizeQuantifierStarTrampoline, &GeneratedSingleChildTransform::ExecuteQuantifierStar};
-static const TransformFrameOps QUANTIFIER_PLUS_OPS = {
-    "QuantifierPlus", &PEGTransformerFactory::InitializeQuantifierPlusTrampoline,
-    &PEGTransformerFactory::FinalizeQuantifierPlusTrampoline, &GeneratedSingleChildTransform::ExecuteQuantifierPlus};
+    &GeneratedSingleChildTransform::ExecuteQuantifierReluctant, nullptr};
+static const TransformFrameOps QUANTIFIER_STAR_OPS = {"QuantifierStar",
+                                                      &PEGTransformerFactory::InitializeQuantifierStarTrampoline,
+                                                      &PEGTransformerFactory::FinalizeQuantifierStarTrampoline,
+                                                      &GeneratedSingleChildTransform::ExecuteQuantifierStar, nullptr};
+static const TransformFrameOps QUANTIFIER_PLUS_OPS = {"QuantifierPlus",
+                                                      &PEGTransformerFactory::InitializeQuantifierPlusTrampoline,
+                                                      &PEGTransformerFactory::FinalizeQuantifierPlusTrampoline,
+                                                      &GeneratedSingleChildTransform::ExecuteQuantifierPlus, nullptr};
 static const TransformFrameOps QUANTIFIER_OPTIONAL_OPS = {
     "QuantifierOptional", &PEGTransformerFactory::InitializeQuantifierOptionalTrampoline,
     &PEGTransformerFactory::FinalizeQuantifierOptionalTrampoline,
-    &GeneratedSingleChildTransform::ExecuteQuantifierOptional};
+    &GeneratedSingleChildTransform::ExecuteQuantifierOptional, nullptr};
 static const TransformFrameOps QUANTIFIER_RANGE_OPS = {
     "QuantifierRange", &PEGTransformerFactory::InitializeQuantifierRangeTrampoline,
-    &PEGTransformerFactory::FinalizeQuantifierRangeTrampoline, &GeneratedSingleChildTransform::ExecuteQuantifierRange};
-static const TransformFrameOps QUANTIFIER_BOUNDS_OPS = {"QuantifierBounds",
-                                                        &PEGTransformerFactory::InitializeQuantifierBoundsTrampoline,
-                                                        &PEGTransformerFactory::FinalizeQuantifierBoundsTrampoline,
-                                                        &GeneratedSingleChildTransform::ExecuteQuantifierBounds};
-static const TransformFrameOps QUANTIFIER_MIN_MAX_OPS = {"QuantifierMinMax",
-                                                         &PEGTransformerFactory::InitializeQuantifierMinMaxTrampoline,
-                                                         &PEGTransformerFactory::FinalizeQuantifierMinMaxTrampoline,
-                                                         &GeneratedSingleChildTransform::ExecuteQuantifierMinMax};
-static const TransformFrameOps QUANTIFIER_MIN_OPS = {
-    "QuantifierMin", &PEGTransformerFactory::InitializeQuantifierMinTrampoline,
-    &PEGTransformerFactory::FinalizeQuantifierMinTrampoline, &GeneratedSingleChildTransform::ExecuteQuantifierMin};
-static const TransformFrameOps QUANTIFIER_MAX_OPS = {
-    "QuantifierMax", &PEGTransformerFactory::InitializeQuantifierMaxTrampoline,
-    &PEGTransformerFactory::FinalizeQuantifierMaxTrampoline, &GeneratedSingleChildTransform::ExecuteQuantifierMax};
-static const TransformFrameOps QUANTIFIER_EXACT_OPS = {
-    "QuantifierExact", &PEGTransformerFactory::InitializeQuantifierExactTrampoline,
-    &PEGTransformerFactory::FinalizeQuantifierExactTrampoline, &GeneratedSingleChildTransform::ExecuteQuantifierExact};
-static const TransformFrameOps SUBSET_CLAUSE_OPS = {"SubsetClause",
-                                                    &PEGTransformerFactory::InitializeSubsetClauseTrampoline,
-                                                    &PEGTransformerFactory::FinalizeSubsetClauseTrampoline, nullptr};
-static const TransformFrameOps SUBSET_ELEMENT_OPS = {"SubsetElement",
-                                                     &PEGTransformerFactory::InitializeSubsetElementTrampoline,
-                                                     &PEGTransformerFactory::FinalizeSubsetElementTrampoline, nullptr};
-static const TransformFrameOps DEFINE_CLAUSE_OPS = {"DefineClause",
-                                                    &PEGTransformerFactory::InitializeDefineClauseTrampoline,
-                                                    &PEGTransformerFactory::FinalizeDefineClauseTrampoline, nullptr};
-static const TransformFrameOps DEFINE_ELEMENT_OPS = {"DefineElement",
-                                                     &PEGTransformerFactory::InitializeDefineElementTrampoline,
-                                                     &PEGTransformerFactory::FinalizeDefineElementTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeQuantifierRangeTrampoline, &GeneratedSingleChildTransform::ExecuteQuantifierRange,
+    &GeneratedSingleChildTransform::ForwardQuantifierRange};
+static const TransformFrameOps QUANTIFIER_BOUNDS_OPS = {
+    "QuantifierBounds", &PEGTransformerFactory::InitializeQuantifierBoundsTrampoline,
+    &PEGTransformerFactory::FinalizeQuantifierBoundsTrampoline, &GeneratedSingleChildTransform::ExecuteQuantifierBounds,
+    &GeneratedSingleChildTransform::ForwardQuantifierBounds};
+static const TransformFrameOps QUANTIFIER_MIN_MAX_OPS = {
+    "QuantifierMinMax", &PEGTransformerFactory::InitializeQuantifierMinMaxTrampoline,
+    &PEGTransformerFactory::FinalizeQuantifierMinMaxTrampoline, &GeneratedSingleChildTransform::ExecuteQuantifierMinMax,
+    nullptr};
+static const TransformFrameOps QUANTIFIER_MIN_OPS = {"QuantifierMin",
+                                                     &PEGTransformerFactory::InitializeQuantifierMinTrampoline,
+                                                     &PEGTransformerFactory::FinalizeQuantifierMinTrampoline,
+                                                     &GeneratedSingleChildTransform::ExecuteQuantifierMin, nullptr};
+static const TransformFrameOps QUANTIFIER_MAX_OPS = {"QuantifierMax",
+                                                     &PEGTransformerFactory::InitializeQuantifierMaxTrampoline,
+                                                     &PEGTransformerFactory::FinalizeQuantifierMaxTrampoline,
+                                                     &GeneratedSingleChildTransform::ExecuteQuantifierMax, nullptr};
+static const TransformFrameOps QUANTIFIER_EXACT_OPS = {"QuantifierExact",
+                                                       &PEGTransformerFactory::InitializeQuantifierExactTrampoline,
+                                                       &PEGTransformerFactory::FinalizeQuantifierExactTrampoline,
+                                                       &GeneratedSingleChildTransform::ExecuteQuantifierExact, nullptr};
+static const TransformFrameOps SUBSET_CLAUSE_OPS = {
+    "SubsetClause", &PEGTransformerFactory::InitializeSubsetClauseTrampoline,
+    &PEGTransformerFactory::FinalizeSubsetClauseTrampoline, nullptr, nullptr};
+static const TransformFrameOps SUBSET_ELEMENT_OPS = {
+    "SubsetElement", &PEGTransformerFactory::InitializeSubsetElementTrampoline,
+    &PEGTransformerFactory::FinalizeSubsetElementTrampoline, nullptr, nullptr};
+static const TransformFrameOps DEFINE_CLAUSE_OPS = {
+    "DefineClause", &PEGTransformerFactory::InitializeDefineClauseTrampoline,
+    &PEGTransformerFactory::FinalizeDefineClauseTrampoline, nullptr, nullptr};
+static const TransformFrameOps DEFINE_ELEMENT_OPS = {
+    "DefineElement", &PEGTransformerFactory::InitializeDefineElementTrampoline,
+    &PEGTransformerFactory::FinalizeDefineElementTrampoline, nullptr, nullptr};
 static const TransformFrameOps MERGE_INTO_STATEMENT_OPS = {
     "MergeIntoStatement", &PEGTransformerFactory::InitializeMergeIntoStatementTrampoline,
-    &PEGTransformerFactory::FinalizeMergeIntoStatementTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeMergeIntoStatementTrampoline, nullptr, nullptr};
 static const TransformFrameOps MERGE_INTO_USING_CLAUSE_OPS = {
     "MergeIntoUsingClause", &PEGTransformerFactory::InitializeMergeIntoUsingClauseTrampoline,
     &PEGTransformerFactory::FinalizeMergeIntoUsingClauseTrampoline,
-    &GeneratedSingleChildTransform::ExecuteMergeIntoUsingClause};
+    &GeneratedSingleChildTransform::ExecuteMergeIntoUsingClause, nullptr};
 static const TransformFrameOps MERGE_MATCH_OPS = {"MergeMatch", &PEGTransformerFactory::InitializeMergeMatchTrampoline,
                                                   &PEGTransformerFactory::FinalizeMergeMatchTrampoline,
-                                                  &GeneratedSingleChildTransform::ExecuteMergeMatch};
-static const TransformFrameOps MATCHED_CLAUSE_OPS = {"MatchedClause",
-                                                     &PEGTransformerFactory::InitializeMatchedClauseTrampoline,
-                                                     &PEGTransformerFactory::FinalizeMatchedClauseTrampoline, nullptr};
+                                                  &GeneratedSingleChildTransform::ExecuteMergeMatch,
+                                                  &GeneratedSingleChildTransform::ForwardMergeMatch};
+static const TransformFrameOps MATCHED_CLAUSE_OPS = {
+    "MatchedClause", &PEGTransformerFactory::InitializeMatchedClauseTrampoline,
+    &PEGTransformerFactory::FinalizeMatchedClauseTrampoline, nullptr, nullptr};
 static const TransformFrameOps MATCHED_CLAUSE_ACTION_OPS = {
     "MatchedClauseAction", &PEGTransformerFactory::InitializeMatchedClauseActionTrampoline,
     &PEGTransformerFactory::FinalizeMatchedClauseActionTrampoline,
-    &GeneratedSingleChildTransform::ExecuteMatchedClauseAction};
-static const TransformFrameOps UPDATE_MATCH_CLAUSE_OPS = {"UpdateMatchClause",
-                                                          &PEGTransformerFactory::InitializeUpdateMatchClauseTrampoline,
-                                                          &PEGTransformerFactory::FinalizeUpdateMatchClauseTrampoline,
-                                                          &GeneratedSingleChildTransform::ExecuteUpdateMatchClause};
+    &GeneratedSingleChildTransform::ExecuteMatchedClauseAction,
+    &GeneratedSingleChildTransform::ForwardMatchedClauseAction};
+static const TransformFrameOps UPDATE_MATCH_CLAUSE_OPS = {
+    "UpdateMatchClause", &PEGTransformerFactory::InitializeUpdateMatchClauseTrampoline,
+    &PEGTransformerFactory::FinalizeUpdateMatchClauseTrampoline,
+    &GeneratedSingleChildTransform::ExecuteUpdateMatchClause, nullptr};
 static const TransformFrameOps UPDATE_MATCH_INFO_OPS = {
     "UpdateMatchInfo", &PEGTransformerFactory::InitializeUpdateMatchInfoTrampoline,
-    &PEGTransformerFactory::FinalizeUpdateMatchInfoTrampoline, &GeneratedSingleChildTransform::ExecuteUpdateMatchInfo};
+    &PEGTransformerFactory::FinalizeUpdateMatchInfoTrampoline, &GeneratedSingleChildTransform::ExecuteUpdateMatchInfo,
+    &GeneratedSingleChildTransform::ForwardUpdateMatchInfo};
 static const TransformFrameOps UPDATE_MATCH_SET_ACTION_OPS = {
     "UpdateMatchSetAction", &PEGTransformerFactory::InitializeUpdateMatchSetActionTrampoline,
     &PEGTransformerFactory::FinalizeUpdateMatchSetActionTrampoline,
-    &GeneratedSingleChildTransform::ExecuteUpdateMatchSetAction};
+    &GeneratedSingleChildTransform::ExecuteUpdateMatchSetAction, nullptr};
 static const TransformFrameOps UPDATE_BY_NAME_OR_POSITION_OPS = {
     "UpdateByNameOrPosition", &PEGTransformerFactory::InitializeUpdateByNameOrPositionTrampoline,
     &PEGTransformerFactory::FinalizeUpdateByNameOrPositionTrampoline,
-    &GeneratedSingleChildTransform::ExecuteUpdateByNameOrPosition};
-static const TransformFrameOps DELETE_MATCH_CLAUSE_OPS = {"DeleteMatchClause",
-                                                          &PEGTransformerFactory::InitializeDeleteMatchClauseTrampoline,
-                                                          &PEGTransformerFactory::FinalizeDeleteMatchClauseTrampoline,
-                                                          &GeneratedSingleChildTransform::ExecuteDeleteMatchClause};
-static const TransformFrameOps INSERT_MATCH_CLAUSE_OPS = {"InsertMatchClause",
-                                                          &PEGTransformerFactory::InitializeInsertMatchClauseTrampoline,
-                                                          &PEGTransformerFactory::FinalizeInsertMatchClauseTrampoline,
-                                                          &GeneratedSingleChildTransform::ExecuteInsertMatchClause};
+    &GeneratedSingleChildTransform::ExecuteUpdateByNameOrPosition, nullptr};
+static const TransformFrameOps DELETE_MATCH_CLAUSE_OPS = {
+    "DeleteMatchClause", &PEGTransformerFactory::InitializeDeleteMatchClauseTrampoline,
+    &PEGTransformerFactory::FinalizeDeleteMatchClauseTrampoline,
+    &GeneratedSingleChildTransform::ExecuteDeleteMatchClause, nullptr};
+static const TransformFrameOps INSERT_MATCH_CLAUSE_OPS = {
+    "InsertMatchClause", &PEGTransformerFactory::InitializeInsertMatchClauseTrampoline,
+    &PEGTransformerFactory::FinalizeInsertMatchClauseTrampoline,
+    &GeneratedSingleChildTransform::ExecuteInsertMatchClause, nullptr};
 static const TransformFrameOps INSERT_MATCH_INFO_OPS = {
     "InsertMatchInfo", &PEGTransformerFactory::InitializeInsertMatchInfoTrampoline,
-    &PEGTransformerFactory::FinalizeInsertMatchInfoTrampoline, &GeneratedSingleChildTransform::ExecuteInsertMatchInfo};
+    &PEGTransformerFactory::FinalizeInsertMatchInfoTrampoline, &GeneratedSingleChildTransform::ExecuteInsertMatchInfo,
+    &GeneratedSingleChildTransform::ForwardInsertMatchInfo};
 static const TransformFrameOps INSERT_DEFAULT_VALUES_OPS = {
     "InsertDefaultValues", &PEGTransformerFactory::InitializeInsertDefaultValuesTrampoline,
     &PEGTransformerFactory::FinalizeInsertDefaultValuesTrampoline,
-    &GeneratedSingleChildTransform::ExecuteInsertDefaultValues};
+    &GeneratedSingleChildTransform::ExecuteInsertDefaultValues, nullptr};
 static const TransformFrameOps INSERT_BY_NAME_OR_POSITION_OPS = {
     "InsertByNameOrPosition", &PEGTransformerFactory::InitializeInsertByNameOrPositionTrampoline,
     &PEGTransformerFactory::FinalizeInsertByNameOrPositionTrampoline,
-    &GeneratedSingleChildTransform::ExecuteInsertByNameOrPosition};
+    &GeneratedSingleChildTransform::ExecuteInsertByNameOrPosition, nullptr};
 static const TransformFrameOps INSERT_VALUES_LIST_OPS = {
     "InsertValuesList", &PEGTransformerFactory::InitializeInsertValuesListTrampoline,
-    &PEGTransformerFactory::FinalizeInsertValuesListTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeInsertValuesListTrampoline, nullptr, nullptr};
 static const TransformFrameOps DO_NOTHING_MATCH_CLAUSE_OPS = {
     "DoNothingMatchClause", &PEGTransformerFactory::InitializeDoNothingMatchClauseTrampoline,
     &PEGTransformerFactory::FinalizeDoNothingMatchClauseTrampoline,
-    &GeneratedSingleChildTransform::ExecuteDoNothingMatchClause};
-static const TransformFrameOps ERROR_MATCH_CLAUSE_OPS = {"ErrorMatchClause",
-                                                         &PEGTransformerFactory::InitializeErrorMatchClauseTrampoline,
-                                                         &PEGTransformerFactory::FinalizeErrorMatchClauseTrampoline,
-                                                         &GeneratedSingleChildTransform::ExecuteErrorMatchClause};
+    &GeneratedSingleChildTransform::ExecuteDoNothingMatchClause, nullptr};
+static const TransformFrameOps ERROR_MATCH_CLAUSE_OPS = {
+    "ErrorMatchClause", &PEGTransformerFactory::InitializeErrorMatchClauseTrampoline,
+    &PEGTransformerFactory::FinalizeErrorMatchClauseTrampoline, &GeneratedSingleChildTransform::ExecuteErrorMatchClause,
+    nullptr};
 static const TransformFrameOps UPDATE_MATCH_SET_CLAUSE_OPS = {
     "UpdateMatchSetClause", &PEGTransformerFactory::InitializeUpdateMatchSetClauseTrampoline,
     &PEGTransformerFactory::FinalizeUpdateMatchSetClauseTrampoline,
-    &GeneratedSingleChildTransform::ExecuteUpdateMatchSetClause};
+    &GeneratedSingleChildTransform::ExecuteUpdateMatchSetClause,
+    &GeneratedSingleChildTransform::ForwardUpdateMatchSetClause};
 static const TransformFrameOps UPDATE_MATCH_SET_INFO_OPS = {
     "UpdateMatchSetInfo", &PEGTransformerFactory::InitializeUpdateMatchSetInfoTrampoline,
     &PEGTransformerFactory::FinalizeUpdateMatchSetInfoTrampoline,
-    &GeneratedSingleChildTransform::ExecuteUpdateMatchSetInfo};
-static const TransformFrameOps AND_EXPRESSION_OPS = {
-    "AndExpression", &PEGTransformerFactory::InitializeAndExpressionTrampoline,
-    &PEGTransformerFactory::FinalizeAndExpressionTrampoline, &GeneratedSingleChildTransform::ExecuteAndExpression};
+    &GeneratedSingleChildTransform::ExecuteUpdateMatchSetInfo, nullptr};
+static const TransformFrameOps AND_EXPRESSION_OPS = {"AndExpression",
+                                                     &PEGTransformerFactory::InitializeAndExpressionTrampoline,
+                                                     &PEGTransformerFactory::FinalizeAndExpressionTrampoline,
+                                                     &GeneratedSingleChildTransform::ExecuteAndExpression, nullptr};
 static const TransformFrameOps NOT_MATCHED_CLAUSE_OPS = {
     "NotMatchedClause", &PEGTransformerFactory::InitializeNotMatchedClauseTrampoline,
-    &PEGTransformerFactory::FinalizeNotMatchedClauseTrampoline, nullptr};
-static const TransformFrameOps BY_SOURCE_OR_TARGET_OPS = {"BySourceOrTarget",
-                                                          &PEGTransformerFactory::InitializeBySourceOrTargetTrampoline,
-                                                          &PEGTransformerFactory::FinalizeBySourceOrTargetTrampoline,
-                                                          &GeneratedSingleChildTransform::ExecuteBySourceOrTarget};
+    &PEGTransformerFactory::FinalizeNotMatchedClauseTrampoline, nullptr, nullptr};
+static const TransformFrameOps BY_SOURCE_OR_TARGET_OPS = {
+    "BySourceOrTarget", &PEGTransformerFactory::InitializeBySourceOrTargetTrampoline,
+    &PEGTransformerFactory::FinalizeBySourceOrTargetTrampoline, &GeneratedSingleChildTransform::ExecuteBySourceOrTarget,
+    &GeneratedSingleChildTransform::ForwardBySourceOrTarget};
 static const TransformFrameOps BY_SOURCE_OPS = {"BySource", &PEGTransformerFactory::InitializeBySourceTrampoline,
                                                 &PEGTransformerFactory::FinalizeBySourceTrampoline,
-                                                &GeneratedSingleChildTransform::ExecuteBySource};
+                                                &GeneratedSingleChildTransform::ExecuteBySource, nullptr};
 static const TransformFrameOps BY_TARGET_OPS = {"ByTarget", &PEGTransformerFactory::InitializeByTargetTrampoline,
                                                 &PEGTransformerFactory::FinalizeByTargetTrampoline,
-                                                &GeneratedSingleChildTransform::ExecuteByTarget};
+                                                &GeneratedSingleChildTransform::ExecuteByTarget, nullptr};
 static const TransformFrameOps PIVOT_STATEMENT_OPS = {
     "PivotStatement", &PEGTransformerFactory::InitializePivotStatementTrampoline,
-    &PEGTransformerFactory::FinalizePivotStatementTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizePivotStatementTrampoline, nullptr, nullptr};
 static const TransformFrameOps PIVOT_ON_OPS = {"PivotOn", &PEGTransformerFactory::InitializePivotOnTrampoline,
                                                &PEGTransformerFactory::FinalizePivotOnTrampoline,
-                                               &GeneratedSingleChildTransform::ExecutePivotOn};
+                                               &GeneratedSingleChildTransform::ExecutePivotOn, nullptr};
 static const TransformFrameOps PIVOT_USING_OPS = {"PivotUsing", &PEGTransformerFactory::InitializePivotUsingTrampoline,
                                                   &PEGTransformerFactory::FinalizePivotUsingTrampoline,
-                                                  &GeneratedSingleChildTransform::ExecutePivotUsing};
+                                                  &GeneratedSingleChildTransform::ExecutePivotUsing, nullptr};
 static const TransformFrameOps PIVOT_COLUMN_LIST_OPS = {
     "PivotColumnList", &PEGTransformerFactory::InitializePivotColumnListTrampoline,
-    &PEGTransformerFactory::FinalizePivotColumnListTrampoline, nullptr};
-static const TransformFrameOps PIVOT_COLUMN_ENTRY_OPS = {"PivotColumnEntry",
-                                                         &PEGTransformerFactory::InitializePivotColumnEntryTrampoline,
-                                                         &PEGTransformerFactory::FinalizePivotColumnEntryTrampoline,
-                                                         &GeneratedSingleChildTransform::ExecutePivotColumnEntry};
+    &PEGTransformerFactory::FinalizePivotColumnListTrampoline, nullptr, nullptr};
+static const TransformFrameOps PIVOT_COLUMN_ENTRY_OPS = {
+    "PivotColumnEntry", &PEGTransformerFactory::InitializePivotColumnEntryTrampoline,
+    &PEGTransformerFactory::FinalizePivotColumnEntryTrampoline, &GeneratedSingleChildTransform::ExecutePivotColumnEntry,
+    &GeneratedSingleChildTransform::ForwardPivotColumnEntry};
 static const TransformFrameOps PIVOT_COLUMN_EXPRESSION_OPS = {
     "PivotColumnExpression", &PEGTransformerFactory::InitializePivotColumnExpressionTrampoline,
     &PEGTransformerFactory::FinalizePivotColumnExpressionTrampoline,
-    &GeneratedSingleChildTransform::ExecutePivotColumnExpression};
+    &GeneratedSingleChildTransform::ExecutePivotColumnExpression, nullptr};
 static const TransformFrameOps PIVOT_COLUMN_SUBQUERY_OPS = {
     "PivotColumnSubquery", &PEGTransformerFactory::InitializePivotColumnSubqueryTrampoline,
-    &PEGTransformerFactory::FinalizePivotColumnSubqueryTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizePivotColumnSubqueryTrampoline, nullptr, nullptr};
 static const TransformFrameOps UNPIVOT_STATEMENT_OPS = {
     "UnpivotStatement", &PEGTransformerFactory::InitializeUnpivotStatementTrampoline,
-    &PEGTransformerFactory::FinalizeUnpivotStatementTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeUnpivotStatementTrampoline, nullptr, nullptr};
 static const TransformFrameOps INTO_NAME_VALUES_OPS = {
     "IntoNameValues", &PEGTransformerFactory::InitializeIntoNameValuesTrampoline,
-    &PEGTransformerFactory::FinalizeIntoNameValuesTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeIntoNameValuesTrampoline, nullptr, nullptr};
 static const TransformFrameOps OPTIONAL_PARENS_NAME_LIST_OPS = {
     "OptionalParensNameList", &PEGTransformerFactory::InitializeOptionalParensNameListTrampoline,
     &PEGTransformerFactory::FinalizeOptionalParensNameListTrampoline,
-    &GeneratedSingleChildTransform::ExecuteOptionalParensNameList};
+    &GeneratedSingleChildTransform::ExecuteOptionalParensNameList,
+    &GeneratedSingleChildTransform::ForwardOptionalParensNameList};
 static const TransformFrameOps PARENTHESIZED_NAME_LIST_OPS = {
     "ParenthesizedNameList", &PEGTransformerFactory::InitializeParenthesizedNameListTrampoline,
-    &PEGTransformerFactory::FinalizeParenthesizedNameListTrampoline, nullptr};
-static const TransformFrameOps BARE_NAME_LIST_OPS = {"BareNameList",
-                                                     &PEGTransformerFactory::InitializeBareNameListTrampoline,
-                                                     &PEGTransformerFactory::FinalizeBareNameListTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeParenthesizedNameListTrampoline, nullptr, nullptr};
+static const TransformFrameOps BARE_NAME_LIST_OPS = {
+    "BareNameList", &PEGTransformerFactory::InitializeBareNameListTrampoline,
+    &PEGTransformerFactory::FinalizeBareNameListTrampoline, nullptr, nullptr};
 static const TransformFrameOps INCLUDE_OR_EXCLUDE_NULLS_OPS = {
     "IncludeOrExcludeNulls", &PEGTransformerFactory::InitializeIncludeOrExcludeNullsTrampoline,
     &PEGTransformerFactory::FinalizeIncludeOrExcludeNullsTrampoline,
-    &GeneratedSingleChildTransform::ExecuteIncludeOrExcludeNulls};
-static const TransformFrameOps INCLUDE_NULLS_OPS = {
-    "IncludeNulls", &PEGTransformerFactory::InitializeIncludeNullsTrampoline,
-    &PEGTransformerFactory::FinalizeIncludeNullsTrampoline, &GeneratedSingleChildTransform::ExecuteIncludeNulls};
-static const TransformFrameOps EXCLUDE_NULLS_OPS = {
-    "ExcludeNulls", &PEGTransformerFactory::InitializeExcludeNullsTrampoline,
-    &PEGTransformerFactory::FinalizeExcludeNullsTrampoline, &GeneratedSingleChildTransform::ExecuteExcludeNulls};
+    &GeneratedSingleChildTransform::ExecuteIncludeOrExcludeNulls,
+    &GeneratedSingleChildTransform::ForwardIncludeOrExcludeNulls};
+static const TransformFrameOps INCLUDE_NULLS_OPS = {"IncludeNulls",
+                                                    &PEGTransformerFactory::InitializeIncludeNullsTrampoline,
+                                                    &PEGTransformerFactory::FinalizeIncludeNullsTrampoline,
+                                                    &GeneratedSingleChildTransform::ExecuteIncludeNulls, nullptr};
+static const TransformFrameOps EXCLUDE_NULLS_OPS = {"ExcludeNulls",
+                                                    &PEGTransformerFactory::InitializeExcludeNullsTrampoline,
+                                                    &PEGTransformerFactory::FinalizeExcludeNullsTrampoline,
+                                                    &GeneratedSingleChildTransform::ExecuteExcludeNulls, nullptr};
 static const TransformFrameOps UNPIVOT_HEADER_OPS = {
     "UnpivotHeader", &PEGTransformerFactory::InitializeUnpivotHeaderTrampoline,
-    &PEGTransformerFactory::FinalizeUnpivotHeaderTrampoline, &GeneratedSingleChildTransform::ExecuteUnpivotHeader};
+    &PEGTransformerFactory::FinalizeUnpivotHeaderTrampoline, &GeneratedSingleChildTransform::ExecuteUnpivotHeader,
+    &GeneratedSingleChildTransform::ForwardUnpivotHeader};
 static const TransformFrameOps UNPIVOT_HEADER_SINGLE_OPS = {
     "UnpivotHeaderSingle", &PEGTransformerFactory::InitializeUnpivotHeaderSingleTrampoline,
     &PEGTransformerFactory::FinalizeUnpivotHeaderSingleTrampoline,
-    &GeneratedSingleChildTransform::ExecuteUnpivotHeaderSingle};
+    &GeneratedSingleChildTransform::ExecuteUnpivotHeaderSingle, nullptr};
 static const TransformFrameOps UNPIVOT_HEADER_LIST_OPS = {
     "UnpivotHeaderList", &PEGTransformerFactory::InitializeUnpivotHeaderListTrampoline,
-    &PEGTransformerFactory::FinalizeUnpivotHeaderListTrampoline, nullptr};
-static const TransformFrameOps PRAGMA_STATEMENT_OPS = {
-    "PragmaStatement", &PEGTransformerFactory::InitializePragmaStatementTrampoline,
-    &PEGTransformerFactory::FinalizePragmaStatementTrampoline, &GeneratedSingleChildTransform::ExecutePragmaStatement};
+    &PEGTransformerFactory::FinalizeUnpivotHeaderListTrampoline, nullptr, nullptr};
+static const TransformFrameOps PRAGMA_STATEMENT_OPS = {"PragmaStatement",
+                                                       &PEGTransformerFactory::InitializePragmaStatementTrampoline,
+                                                       &PEGTransformerFactory::FinalizePragmaStatementTrampoline,
+                                                       &GeneratedSingleChildTransform::ExecutePragmaStatement, nullptr};
 static const TransformFrameOps PRAGMA_ASSIGN_OR_FUNCTION_OPS = {
     "PragmaAssignOrFunction", &PEGTransformerFactory::InitializePragmaAssignOrFunctionTrampoline,
     &PEGTransformerFactory::FinalizePragmaAssignOrFunctionTrampoline,
-    &GeneratedSingleChildTransform::ExecutePragmaAssignOrFunction};
-static const TransformFrameOps PRAGMA_ASSIGN_OPS = {
-    "PragmaAssign", &PEGTransformerFactory::InitializePragmaAssignTrampoline,
-    &PEGTransformerFactory::FinalizePragmaAssignTrampoline, &GeneratedSingleChildTransform::ExecutePragmaAssign};
-static const TransformFrameOps PRAGMA_FUNCTION_OPS = {
-    "PragmaFunction", &PEGTransformerFactory::InitializePragmaFunctionTrampoline,
-    &PEGTransformerFactory::FinalizePragmaFunctionTrampoline, &GeneratedSingleChildTransform::ExecutePragmaFunction};
+    &GeneratedSingleChildTransform::ExecutePragmaAssignOrFunction,
+    &GeneratedSingleChildTransform::ForwardPragmaAssignOrFunction};
+static const TransformFrameOps PRAGMA_ASSIGN_OPS = {"PragmaAssign",
+                                                    &PEGTransformerFactory::InitializePragmaAssignTrampoline,
+                                                    &PEGTransformerFactory::FinalizePragmaAssignTrampoline,
+                                                    &GeneratedSingleChildTransform::ExecutePragmaAssign, nullptr};
+static const TransformFrameOps PRAGMA_FUNCTION_OPS = {"PragmaFunction",
+                                                      &PEGTransformerFactory::InitializePragmaFunctionTrampoline,
+                                                      &PEGTransformerFactory::FinalizePragmaFunctionTrampoline,
+                                                      &GeneratedSingleChildTransform::ExecutePragmaFunction, nullptr};
 static const TransformFrameOps PRAGMA_PARAMETERS_OPS = {
     "PragmaParameters", &PEGTransformerFactory::InitializePragmaParametersTrampoline,
-    &PEGTransformerFactory::FinalizePragmaParametersTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizePragmaParametersTrampoline, nullptr, nullptr};
 static const TransformFrameOps PREPARE_STATEMENT_OPS = {
     "PrepareStatement", &PEGTransformerFactory::InitializePrepareStatementTrampoline,
-    &PEGTransformerFactory::FinalizePrepareStatementTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizePrepareStatementTrampoline, nullptr, nullptr};
 static const TransformFrameOps TYPE_LIST_OPS = {"TypeList", &PEGTransformerFactory::InitializeTypeListTrampoline,
-                                                &PEGTransformerFactory::FinalizeTypeListTrampoline, nullptr};
-static const TransformFrameOps SELECT_STATEMENT_OPS = {
-    "SelectStatement", &PEGTransformerFactory::InitializeSelectStatementTrampoline,
-    &PEGTransformerFactory::FinalizeSelectStatementTrampoline, &GeneratedSingleChildTransform::ExecuteSelectStatement};
+                                                &PEGTransformerFactory::FinalizeTypeListTrampoline, nullptr, nullptr};
+static const TransformFrameOps SELECT_STATEMENT_OPS = {"SelectStatement",
+                                                       &PEGTransformerFactory::InitializeSelectStatementTrampoline,
+                                                       &PEGTransformerFactory::FinalizeSelectStatementTrampoline,
+                                                       &GeneratedSingleChildTransform::ExecuteSelectStatement, nullptr};
 static const TransformFrameOps SELECT_STATEMENT_INTERNAL_OPS = {
     "SelectStatementInternal", &PEGTransformerFactory::InitializeSelectStatementInternalTrampoline,
-    &PEGTransformerFactory::FinalizeSelectStatementInternalTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeSelectStatementInternalTrampoline, nullptr, nullptr};
 static const TransformFrameOps SELECT_SET_OP_CHAIN_OPS = {
     "SelectSetOpChain", &PEGTransformerFactory::InitializeSelectSetOpChainTrampoline,
-    &PEGTransformerFactory::FinalizeSelectSetOpChainTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeSelectSetOpChainTrampoline, nullptr, nullptr};
 static const TransformFrameOps SELECT_SET_OP_CHAIN_TAIL_OPS = {
     "SelectSetOpChainTail", &PEGTransformerFactory::InitializeSelectSetOpChainTailTrampoline,
-    &PEGTransformerFactory::FinalizeSelectSetOpChainTailTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeSelectSetOpChainTailTrampoline, nullptr, nullptr};
 static const TransformFrameOps INTERSECT_CHAIN_OPS = {
     "IntersectChain", &PEGTransformerFactory::InitializeIntersectChainTrampoline,
-    &PEGTransformerFactory::FinalizeIntersectChainTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeIntersectChainTrampoline, nullptr, nullptr};
 static const TransformFrameOps INTERSECT_CHAIN_TAIL_OPS = {
     "IntersectChainTail", &PEGTransformerFactory::InitializeIntersectChainTailTrampoline,
-    &PEGTransformerFactory::FinalizeIntersectChainTailTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeIntersectChainTailTrampoline, nullptr, nullptr};
 static const TransformFrameOps SET_INTERSECT_CLAUSE_OPS = {
     "SetIntersectClause", &PEGTransformerFactory::InitializeSetIntersectClauseTrampoline,
     &PEGTransformerFactory::FinalizeSetIntersectClauseTrampoline,
-    &GeneratedSingleChildTransform::ExecuteSetIntersectClause};
+    &GeneratedSingleChildTransform::ExecuteSetIntersectClause, nullptr};
 static const TransformFrameOps SELECT_ATOM_OPS = {"SelectAtom", &PEGTransformerFactory::InitializeSelectAtomTrampoline,
                                                   &PEGTransformerFactory::FinalizeSelectAtomTrampoline,
-                                                  &GeneratedSingleChildTransform::ExecuteSelectAtom};
-static const TransformFrameOps SELECT_PARENS_OPS = {
-    "SelectParens", &PEGTransformerFactory::InitializeSelectParensTrampoline,
-    &PEGTransformerFactory::FinalizeSelectParensTrampoline, &GeneratedSingleChildTransform::ExecuteSelectParens};
-static const TransformFrameOps SETOP_CLAUSE_OPS = {"SetopClause",
-                                                   &PEGTransformerFactory::InitializeSetopClauseTrampoline,
-                                                   &PEGTransformerFactory::FinalizeSetopClauseTrampoline, nullptr};
+                                                  &GeneratedSingleChildTransform::ExecuteSelectAtom,
+                                                  &GeneratedSingleChildTransform::ForwardSelectAtom};
+static const TransformFrameOps SELECT_PARENS_OPS = {"SelectParens",
+                                                    &PEGTransformerFactory::InitializeSelectParensTrampoline,
+                                                    &PEGTransformerFactory::FinalizeSelectParensTrampoline,
+                                                    &GeneratedSingleChildTransform::ExecuteSelectParens, nullptr};
+static const TransformFrameOps SETOP_CLAUSE_OPS = {
+    "SetopClause", &PEGTransformerFactory::InitializeSetopClauseTrampoline,
+    &PEGTransformerFactory::FinalizeSetopClauseTrampoline, nullptr, nullptr};
 static const TransformFrameOps SETOP_TYPE_OPS = {"SetopType", &PEGTransformerFactory::InitializeSetopTypeTrampoline,
                                                  &PEGTransformerFactory::FinalizeSetopTypeTrampoline,
-                                                 &GeneratedSingleChildTransform::ExecuteSetopType};
+                                                 &GeneratedSingleChildTransform::ExecuteSetopType,
+                                                 &GeneratedSingleChildTransform::ForwardSetopType};
 static const TransformFrameOps SETOP_UNION_OPS = {"SetopUnion", &PEGTransformerFactory::InitializeSetopUnionTrampoline,
                                                   &PEGTransformerFactory::FinalizeSetopUnionTrampoline,
-                                                  &GeneratedSingleChildTransform::ExecuteSetopUnion};
+                                                  &GeneratedSingleChildTransform::ExecuteSetopUnion, nullptr};
 static const TransformFrameOps SETOP_EXCEPT_OPS = {
     "SetopExcept", &PEGTransformerFactory::InitializeSetopExceptTrampoline,
-    &PEGTransformerFactory::FinalizeSetopExceptTrampoline, &GeneratedSingleChildTransform::ExecuteSetopExcept};
+    &PEGTransformerFactory::FinalizeSetopExceptTrampoline, &GeneratedSingleChildTransform::ExecuteSetopExcept, nullptr};
 static const TransformFrameOps SELECT_STATEMENT_TYPE_OPS = {
     "SelectStatementType", &PEGTransformerFactory::InitializeSelectStatementTypeTrampoline,
     &PEGTransformerFactory::FinalizeSelectStatementTypeTrampoline,
-    &GeneratedSingleChildTransform::ExecuteSelectStatementType};
+    &GeneratedSingleChildTransform::ExecuteSelectStatementType,
+    &GeneratedSingleChildTransform::ForwardSelectStatementType};
 static const TransformFrameOps RESULT_MODIFIERS_OPS = {
     "ResultModifiers", &PEGTransformerFactory::InitializeResultModifiersTrampoline,
-    &PEGTransformerFactory::FinalizeResultModifiersTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeResultModifiersTrampoline, nullptr, nullptr};
 static const TransformFrameOps LIMIT_OFFSET_OPS = {
     "LimitOffset", &PEGTransformerFactory::InitializeLimitOffsetTrampoline,
-    &PEGTransformerFactory::FinalizeLimitOffsetTrampoline, &GeneratedSingleChildTransform::ExecuteLimitOffset};
+    &PEGTransformerFactory::FinalizeLimitOffsetTrampoline, &GeneratedSingleChildTransform::ExecuteLimitOffset,
+    &GeneratedSingleChildTransform::ForwardLimitOffset};
 static const TransformFrameOps LIMIT_OFFSET_CLAUSE_OPS = {
     "LimitOffsetClause", &PEGTransformerFactory::InitializeLimitOffsetClauseTrampoline,
-    &PEGTransformerFactory::FinalizeLimitOffsetClauseTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeLimitOffsetClauseTrampoline, nullptr, nullptr};
 static const TransformFrameOps OFFSET_LIMIT_CLAUSE_OPS = {
     "OffsetLimitClause", &PEGTransformerFactory::InitializeOffsetLimitClauseTrampoline,
-    &PEGTransformerFactory::FinalizeOffsetLimitClauseTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeOffsetLimitClauseTrampoline, nullptr, nullptr};
 static const TransformFrameOps OFFSET_FETCH_CLAUSE_OPS = {
     "OffsetFetchClause", &PEGTransformerFactory::InitializeOffsetFetchClauseTrampoline,
-    &PEGTransformerFactory::FinalizeOffsetFetchClauseTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeOffsetFetchClauseTrampoline, nullptr, nullptr};
 static const TransformFrameOps FETCH_OFFSET_CLAUSE_OPS = {
     "FetchOffsetClause", &PEGTransformerFactory::InitializeFetchOffsetClauseTrampoline,
-    &PEGTransformerFactory::FinalizeFetchOffsetClauseTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeFetchOffsetClauseTrampoline, nullptr, nullptr};
 static const TransformFrameOps FETCH_ONLY_CLAUSE_OPS = {
     "FetchOnlyClause", &PEGTransformerFactory::InitializeFetchOnlyClauseTrampoline,
-    &PEGTransformerFactory::FinalizeFetchOnlyClauseTrampoline, &GeneratedSingleChildTransform::ExecuteFetchOnlyClause};
-static const TransformFrameOps TABLE_STATEMENT_OPS = {
-    "TableStatement", &PEGTransformerFactory::InitializeTableStatementTrampoline,
-    &PEGTransformerFactory::FinalizeTableStatementTrampoline, &GeneratedSingleChildTransform::ExecuteTableStatement};
+    &PEGTransformerFactory::FinalizeFetchOnlyClauseTrampoline, &GeneratedSingleChildTransform::ExecuteFetchOnlyClause,
+    nullptr};
+static const TransformFrameOps TABLE_STATEMENT_OPS = {"TableStatement",
+                                                      &PEGTransformerFactory::InitializeTableStatementTrampoline,
+                                                      &PEGTransformerFactory::FinalizeTableStatementTrampoline,
+                                                      &GeneratedSingleChildTransform::ExecuteTableStatement, nullptr};
 static const TransformFrameOps OPTIONAL_PARENS_SIMPLE_SELECT_OPS = {
     "OptionalParensSimpleSelect", &PEGTransformerFactory::InitializeOptionalParensSimpleSelectTrampoline,
     &PEGTransformerFactory::FinalizeOptionalParensSimpleSelectTrampoline,
-    &GeneratedSingleChildTransform::ExecuteOptionalParensSimpleSelect};
+    &GeneratedSingleChildTransform::ExecuteOptionalParensSimpleSelect,
+    &GeneratedSingleChildTransform::ForwardOptionalParensSimpleSelect};
 static const TransformFrameOps SIMPLE_SELECT_PARENS_OPS = {
     "SimpleSelectParens", &PEGTransformerFactory::InitializeSimpleSelectParensTrampoline,
     &PEGTransformerFactory::FinalizeSimpleSelectParensTrampoline,
-    &GeneratedSingleChildTransform::ExecuteSimpleSelectParens};
-static const TransformFrameOps SIMPLE_SELECT_OPS = {"SimpleSelect",
-                                                    &PEGTransformerFactory::InitializeSimpleSelectTrampoline,
-                                                    &PEGTransformerFactory::FinalizeSimpleSelectTrampoline, nullptr};
+    &GeneratedSingleChildTransform::ExecuteSimpleSelectParens, nullptr};
+static const TransformFrameOps SIMPLE_SELECT_OPS = {
+    "SimpleSelect", &PEGTransformerFactory::InitializeSimpleSelectTrampoline,
+    &PEGTransformerFactory::FinalizeSimpleSelectTrampoline, nullptr, nullptr};
 static const TransformFrameOps SELECT_FROM_OPS = {"SelectFrom", &PEGTransformerFactory::InitializeSelectFromTrampoline,
                                                   &PEGTransformerFactory::FinalizeSelectFromTrampoline,
-                                                  &GeneratedSingleChildTransform::ExecuteSelectFrom};
+                                                  &GeneratedSingleChildTransform::ExecuteSelectFrom,
+                                                  &GeneratedSingleChildTransform::ForwardSelectFrom};
 static const TransformFrameOps SELECT_FROM_CLAUSE_OPS = {
     "SelectFromClause", &PEGTransformerFactory::InitializeSelectFromClauseTrampoline,
-    &PEGTransformerFactory::FinalizeSelectFromClauseTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeSelectFromClauseTrampoline, nullptr, nullptr};
 static const TransformFrameOps FROM_SELECT_CLAUSE_OPS = {
     "FromSelectClause", &PEGTransformerFactory::InitializeFromSelectClauseTrampoline,
-    &PEGTransformerFactory::FinalizeFromSelectClauseTrampoline, nullptr};
-static const TransformFrameOps WITH_STATEMENT_OPS = {"WithStatement",
-                                                     &PEGTransformerFactory::InitializeWithStatementTrampoline,
-                                                     &PEGTransformerFactory::FinalizeWithStatementTrampoline, nullptr};
-static const TransformFrameOps CTEBODY_OPS = {"CTEBody", &PEGTransformerFactory::InitializeCTEBodyTrampoline,
-                                              &PEGTransformerFactory::FinalizeCTEBodyTrampoline,
-                                              &GeneratedSingleChildTransform::ExecuteCTEBody};
-static const TransformFrameOps CTESELECT_BODY_OPS = {
-    "CTESelectBody", &PEGTransformerFactory::InitializeCTESelectBodyTrampoline,
-    &PEGTransformerFactory::FinalizeCTESelectBodyTrampoline, &GeneratedSingleChildTransform::ExecuteCTESelectBody};
+    &PEGTransformerFactory::FinalizeFromSelectClauseTrampoline, nullptr, nullptr};
+static const TransformFrameOps WITH_STATEMENT_OPS = {
+    "WithStatement", &PEGTransformerFactory::InitializeWithStatementTrampoline,
+    &PEGTransformerFactory::FinalizeWithStatementTrampoline, nullptr, nullptr};
+static const TransformFrameOps CTEBODY_OPS = {
+    "CTEBody", &PEGTransformerFactory::InitializeCTEBodyTrampoline, &PEGTransformerFactory::FinalizeCTEBodyTrampoline,
+    &GeneratedSingleChildTransform::ExecuteCTEBody, &GeneratedSingleChildTransform::ForwardCTEBody};
+static const TransformFrameOps CTESELECT_BODY_OPS = {"CTESelectBody",
+                                                     &PEGTransformerFactory::InitializeCTESelectBodyTrampoline,
+                                                     &PEGTransformerFactory::FinalizeCTESelectBodyTrampoline,
+                                                     &GeneratedSingleChildTransform::ExecuteCTESelectBody, nullptr};
 static const TransformFrameOps CTEDMLBODY_OPS = {"CTEDMLBody", &PEGTransformerFactory::InitializeCTEDMLBodyTrampoline,
                                                  &PEGTransformerFactory::FinalizeCTEDMLBodyTrampoline,
-                                                 &GeneratedSingleChildTransform::ExecuteCTEDMLBody};
+                                                 &GeneratedSingleChildTransform::ExecuteCTEDMLBody, nullptr};
 static const TransformFrameOps USING_KEY_OPS = {"UsingKey", &PEGTransformerFactory::InitializeUsingKeyTrampoline,
                                                 &PEGTransformerFactory::FinalizeUsingKeyTrampoline,
-                                                &GeneratedSingleChildTransform::ExecuteUsingKey};
-static const TransformFrameOps MATERIALIZED_OPS = {
-    "Materialized", &PEGTransformerFactory::InitializeMaterializedTrampoline,
-    &PEGTransformerFactory::FinalizeMaterializedTrampoline, &GeneratedSingleChildTransform::ExecuteMaterialized};
+                                                &GeneratedSingleChildTransform::ExecuteUsingKey, nullptr};
+static const TransformFrameOps MATERIALIZED_OPS = {"Materialized",
+                                                   &PEGTransformerFactory::InitializeMaterializedTrampoline,
+                                                   &PEGTransformerFactory::FinalizeMaterializedTrampoline,
+                                                   &GeneratedSingleChildTransform::ExecuteMaterialized, nullptr};
 static const TransformFrameOps WITH_CLAUSE_OPS = {"WithClause", &PEGTransformerFactory::InitializeWithClauseTrampoline,
-                                                  &PEGTransformerFactory::FinalizeWithClauseTrampoline, nullptr};
-static const TransformFrameOps SELECT_CLAUSE_OPS = {"SelectClause",
-                                                    &PEGTransformerFactory::InitializeSelectClauseTrampoline,
-                                                    &PEGTransformerFactory::FinalizeSelectClauseTrampoline, nullptr};
+                                                  &PEGTransformerFactory::FinalizeWithClauseTrampoline, nullptr,
+                                                  nullptr};
+static const TransformFrameOps SELECT_CLAUSE_OPS = {
+    "SelectClause", &PEGTransformerFactory::InitializeSelectClauseTrampoline,
+    &PEGTransformerFactory::FinalizeSelectClauseTrampoline, nullptr, nullptr};
 static const TransformFrameOps TARGET_LIST_OPS = {"TargetList", &PEGTransformerFactory::InitializeTargetListTrampoline,
-                                                  &PEGTransformerFactory::FinalizeTargetListTrampoline, nullptr};
-static const TransformFrameOps COLUMN_ALIASES_OPS = {"ColumnAliases",
-                                                     &PEGTransformerFactory::InitializeColumnAliasesTrampoline,
-                                                     &PEGTransformerFactory::FinalizeColumnAliasesTrampoline, nullptr};
+                                                  &PEGTransformerFactory::FinalizeTargetListTrampoline, nullptr,
+                                                  nullptr};
+static const TransformFrameOps COLUMN_ALIASES_OPS = {
+    "ColumnAliases", &PEGTransformerFactory::InitializeColumnAliasesTrampoline,
+    &PEGTransformerFactory::FinalizeColumnAliasesTrampoline, nullptr, nullptr};
 static const TransformFrameOps DISTINCT_CLAUSE_OPS = {
     "DistinctClause", &PEGTransformerFactory::InitializeDistinctClauseTrampoline,
-    &PEGTransformerFactory::FinalizeDistinctClauseTrampoline, &GeneratedSingleChildTransform::ExecuteDistinctClause};
+    &PEGTransformerFactory::FinalizeDistinctClauseTrampoline, &GeneratedSingleChildTransform::ExecuteDistinctClause,
+    &GeneratedSingleChildTransform::ForwardDistinctClause};
 static const TransformFrameOps DISTINCT_ALL_OPS = {
     "DistinctAll", &PEGTransformerFactory::InitializeDistinctAllTrampoline,
-    &PEGTransformerFactory::FinalizeDistinctAllTrampoline, &GeneratedSingleChildTransform::ExecuteDistinctAll};
+    &PEGTransformerFactory::FinalizeDistinctAllTrampoline, &GeneratedSingleChildTransform::ExecuteDistinctAll, nullptr};
 static const TransformFrameOps DISTINCT_ON_OPS = {"DistinctOn", &PEGTransformerFactory::InitializeDistinctOnTrampoline,
                                                   &PEGTransformerFactory::FinalizeDistinctOnTrampoline,
-                                                  &GeneratedSingleChildTransform::ExecuteDistinctOn};
+                                                  &GeneratedSingleChildTransform::ExecuteDistinctOn, nullptr};
 static const TransformFrameOps DISTINCT_ON_TARGETS_OPS = {
     "DistinctOnTargets", &PEGTransformerFactory::InitializeDistinctOnTargetsTrampoline,
-    &PEGTransformerFactory::FinalizeDistinctOnTargetsTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeDistinctOnTargetsTrampoline, nullptr, nullptr};
 static const TransformFrameOps INNER_TABLE_REF_OPS = {
     "InnerTableRef", &PEGTransformerFactory::InitializeInnerTableRefTrampoline,
-    &PEGTransformerFactory::FinalizeInnerTableRefTrampoline, &GeneratedSingleChildTransform::ExecuteInnerTableRef};
+    &PEGTransformerFactory::FinalizeInnerTableRefTrampoline, &GeneratedSingleChildTransform::ExecuteInnerTableRef,
+    &GeneratedSingleChildTransform::ForwardInnerTableRef};
 static const TransformFrameOps TABLE_REF_OPS = {"TableRef", &PEGTransformerFactory::InitializeTableRefTrampoline,
-                                                &PEGTransformerFactory::FinalizeTableRefTrampoline, nullptr};
-static const TransformFrameOps TABLE_SUBQUERY_OPS = {"TableSubquery",
-                                                     &PEGTransformerFactory::InitializeTableSubqueryTrampoline,
-                                                     &PEGTransformerFactory::FinalizeTableSubqueryTrampoline, nullptr};
-static const TransformFrameOps BASE_TABLE_REF_OPS = {"BaseTableRef",
-                                                     &PEGTransformerFactory::InitializeBaseTableRefTrampoline,
-                                                     &PEGTransformerFactory::FinalizeBaseTableRefTrampoline, nullptr};
+                                                &PEGTransformerFactory::FinalizeTableRefTrampoline, nullptr, nullptr};
+static const TransformFrameOps TABLE_SUBQUERY_OPS = {
+    "TableSubquery", &PEGTransformerFactory::InitializeTableSubqueryTrampoline,
+    &PEGTransformerFactory::FinalizeTableSubqueryTrampoline, nullptr, nullptr};
+static const TransformFrameOps BASE_TABLE_REF_OPS = {
+    "BaseTableRef", &PEGTransformerFactory::InitializeBaseTableRefTrampoline,
+    &PEGTransformerFactory::FinalizeBaseTableRefTrampoline, nullptr, nullptr};
 static const TransformFrameOps TABLE_ALIAS_COLON_OPS = {
     "TableAliasColon", &PEGTransformerFactory::InitializeTableAliasColonTrampoline,
-    &PEGTransformerFactory::FinalizeTableAliasColonTrampoline, &GeneratedSingleChildTransform::ExecuteTableAliasColon};
+    &PEGTransformerFactory::FinalizeTableAliasColonTrampoline, &GeneratedSingleChildTransform::ExecuteTableAliasColon,
+    nullptr};
 static const TransformFrameOps VALUES_REF_OPS = {"ValuesRef", &PEGTransformerFactory::InitializeValuesRefTrampoline,
-                                                 &PEGTransformerFactory::FinalizeValuesRefTrampoline, nullptr};
+                                                 &PEGTransformerFactory::FinalizeValuesRefTrampoline, nullptr, nullptr};
 static const TransformFrameOps PARENS_TABLE_REF_OPS = {
     "ParensTableRef", &PEGTransformerFactory::InitializeParensTableRefTrampoline,
-    &PEGTransformerFactory::FinalizeParensTableRefTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeParensTableRefTrampoline, nullptr, nullptr};
 static const TransformFrameOps JOIN_OR_PIVOT_OPS = {
     "JoinOrPivot", &PEGTransformerFactory::InitializeJoinOrPivotTrampoline,
-    &PEGTransformerFactory::FinalizeJoinOrPivotTrampoline, &GeneratedSingleChildTransform::ExecuteJoinOrPivot};
+    &PEGTransformerFactory::FinalizeJoinOrPivotTrampoline, &GeneratedSingleChildTransform::ExecuteJoinOrPivot,
+    &GeneratedSingleChildTransform::ForwardJoinOrPivot};
 static const TransformFrameOps TABLE_PIVOT_CLAUSE_OPS = {
     "TablePivotClause", &PEGTransformerFactory::InitializeTablePivotClauseTrampoline,
-    &PEGTransformerFactory::FinalizeTablePivotClauseTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeTablePivotClauseTrampoline, nullptr, nullptr};
 static const TransformFrameOps TABLE_PIVOT_CLAUSE_BODY_OPS = {
     "TablePivotClauseBody", &PEGTransformerFactory::InitializeTablePivotClauseBodyTrampoline,
-    &PEGTransformerFactory::FinalizeTablePivotClauseBodyTrampoline, nullptr};
-static const TransformFrameOps PIVOT_GROUP_BY_LIST_OPS = {"PivotGroupByList",
-                                                          &PEGTransformerFactory::InitializePivotGroupByListTrampoline,
-                                                          &PEGTransformerFactory::FinalizePivotGroupByListTrampoline,
-                                                          &GeneratedSingleChildTransform::ExecutePivotGroupByList};
+    &PEGTransformerFactory::FinalizeTablePivotClauseBodyTrampoline, nullptr, nullptr};
+static const TransformFrameOps PIVOT_GROUP_BY_LIST_OPS = {
+    "PivotGroupByList", &PEGTransformerFactory::InitializePivotGroupByListTrampoline,
+    &PEGTransformerFactory::FinalizePivotGroupByListTrampoline, &GeneratedSingleChildTransform::ExecutePivotGroupByList,
+    nullptr};
 static const TransformFrameOps TABLE_UNPIVOT_CLAUSE_OPS = {
     "TableUnpivotClause", &PEGTransformerFactory::InitializeTableUnpivotClauseTrampoline,
-    &PEGTransformerFactory::FinalizeTableUnpivotClauseTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeTableUnpivotClauseTrampoline, nullptr, nullptr};
 static const TransformFrameOps TABLE_UNPIVOT_CLAUSE_BODY_OPS = {
     "TableUnpivotClauseBody", &PEGTransformerFactory::InitializeTableUnpivotClauseBodyTrampoline,
-    &PEGTransformerFactory::FinalizeTableUnpivotClauseBodyTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeTableUnpivotClauseBodyTrampoline, nullptr, nullptr};
 static const TransformFrameOps PIVOT_HEADER_OPS = {
     "PivotHeader", &PEGTransformerFactory::InitializePivotHeaderTrampoline,
-    &PEGTransformerFactory::FinalizePivotHeaderTrampoline, &GeneratedSingleChildTransform::ExecutePivotHeader};
+    &PEGTransformerFactory::FinalizePivotHeaderTrampoline, &GeneratedSingleChildTransform::ExecutePivotHeader, nullptr};
 static const TransformFrameOps PIVOT_VALUE_LIST_OPS = {
     "PivotValueList", &PEGTransformerFactory::InitializePivotValueListTrampoline,
-    &PEGTransformerFactory::FinalizePivotValueListTrampoline, nullptr};
-static const TransformFrameOps PIVOT_VALUE_TARGET_OPS = {"PivotValueTarget",
-                                                         &PEGTransformerFactory::InitializePivotValueTargetTrampoline,
-                                                         &PEGTransformerFactory::FinalizePivotValueTargetTrampoline,
-                                                         &GeneratedSingleChildTransform::ExecutePivotValueTarget};
+    &PEGTransformerFactory::FinalizePivotValueListTrampoline, nullptr, nullptr};
+static const TransformFrameOps PIVOT_VALUE_TARGET_OPS = {
+    "PivotValueTarget", &PEGTransformerFactory::InitializePivotValueTargetTrampoline,
+    &PEGTransformerFactory::FinalizePivotValueTargetTrampoline, &GeneratedSingleChildTransform::ExecutePivotValueTarget,
+    &GeneratedSingleChildTransform::ForwardPivotValueTarget};
 static const TransformFrameOps PIVOT_ENUM_TARGET_OPS = {
     "PivotEnumTarget", &PEGTransformerFactory::InitializePivotEnumTargetTrampoline,
-    &PEGTransformerFactory::FinalizePivotEnumTargetTrampoline, &GeneratedSingleChildTransform::ExecutePivotEnumTarget};
+    &PEGTransformerFactory::FinalizePivotEnumTargetTrampoline, &GeneratedSingleChildTransform::ExecutePivotEnumTarget,
+    nullptr};
 static const TransformFrameOps PIVOT_LIST_TARGET_OPS = {
     "PivotListTarget", &PEGTransformerFactory::InitializePivotListTargetTrampoline,
-    &PEGTransformerFactory::FinalizePivotListTargetTrampoline, &GeneratedSingleChildTransform::ExecutePivotListTarget};
+    &PEGTransformerFactory::FinalizePivotListTargetTrampoline, &GeneratedSingleChildTransform::ExecutePivotListTarget,
+    nullptr};
 static const TransformFrameOps UNPIVOT_VALUE_LIST_OPS = {
     "UnpivotValueList", &PEGTransformerFactory::InitializeUnpivotValueListTrampoline,
-    &PEGTransformerFactory::FinalizeUnpivotValueListTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeUnpivotValueListTrampoline, nullptr, nullptr};
 static const TransformFrameOps PIVOT_TARGET_LIST_OPS = {
     "PivotTargetList", &PEGTransformerFactory::InitializePivotTargetListTrampoline,
-    &PEGTransformerFactory::FinalizePivotTargetListTrampoline, &GeneratedSingleChildTransform::ExecutePivotTargetList};
-static const TransformFrameOps UNPIVOT_TARGET_LIST_OPS = {"UnpivotTargetList",
-                                                          &PEGTransformerFactory::InitializeUnpivotTargetListTrampoline,
-                                                          &PEGTransformerFactory::FinalizeUnpivotTargetListTrampoline,
-                                                          &GeneratedSingleChildTransform::ExecuteUnpivotTargetList};
+    &PEGTransformerFactory::FinalizePivotTargetListTrampoline, &GeneratedSingleChildTransform::ExecutePivotTargetList,
+    nullptr};
+static const TransformFrameOps UNPIVOT_TARGET_LIST_OPS = {
+    "UnpivotTargetList", &PEGTransformerFactory::InitializeUnpivotTargetListTrampoline,
+    &PEGTransformerFactory::FinalizeUnpivotTargetListTrampoline,
+    &GeneratedSingleChildTransform::ExecuteUnpivotTargetList, nullptr};
 static const TransformFrameOps LATERAL_OPS = {"Lateral", &PEGTransformerFactory::InitializeLateralTrampoline,
                                               &PEGTransformerFactory::FinalizeLateralTrampoline,
-                                              &GeneratedSingleChildTransform::ExecuteLateral};
+                                              &GeneratedSingleChildTransform::ExecuteLateral, nullptr};
 static const TransformFrameOps BASE_TABLE_NAME_OPS = {
     "BaseTableName", &PEGTransformerFactory::InitializeBaseTableNameTrampoline,
-    &PEGTransformerFactory::FinalizeBaseTableNameTrampoline, &GeneratedSingleChildTransform::ExecuteBaseTableName};
+    &PEGTransformerFactory::FinalizeBaseTableNameTrampoline, &GeneratedSingleChildTransform::ExecuteBaseTableName,
+    &GeneratedSingleChildTransform::ForwardBaseTableName};
 static const TransformFrameOps UNQUALIFIED_BASE_TABLE_NAME_OPS = {
     "UnqualifiedBaseTableName", &PEGTransformerFactory::InitializeUnqualifiedBaseTableNameTrampoline,
     &PEGTransformerFactory::FinalizeUnqualifiedBaseTableNameTrampoline,
-    &GeneratedSingleChildTransform::ExecuteUnqualifiedBaseTableName};
+    &GeneratedSingleChildTransform::ExecuteUnqualifiedBaseTableName, nullptr};
 static const TransformFrameOps QUALIFIED_TABLE_NAME_OPS = {
     "QualifiedTableName", &PEGTransformerFactory::InitializeQualifiedTableNameTrampoline,
     &PEGTransformerFactory::FinalizeQualifiedTableNameTrampoline,
-    &GeneratedSingleChildTransform::ExecuteQualifiedTableName};
+    &GeneratedSingleChildTransform::ExecuteQualifiedTableName,
+    &GeneratedSingleChildTransform::ForwardQualifiedTableName};
 static const TransformFrameOps SCHEMA_RESERVED_TABLE_OPS = {
     "SchemaReservedTable", &PEGTransformerFactory::InitializeSchemaReservedTableTrampoline,
     &PEGTransformerFactory::FinalizeSchemaReservedTableTrampoline,
-    &GeneratedSingleChildTransform::ExecuteSchemaReservedTable};
+    &GeneratedSingleChildTransform::ExecuteSchemaReservedTable, nullptr};
 static const TransformFrameOps CATALOG_RESERVED_SCHEMA_TABLE_OPS = {
     "CatalogReservedSchemaTable", &PEGTransformerFactory::InitializeCatalogReservedSchemaTableTrampoline,
-    &PEGTransformerFactory::FinalizeCatalogReservedSchemaTableTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeCatalogReservedSchemaTableTrampoline, nullptr, nullptr};
 static const TransformFrameOps TABLE_FUNCTION_OPS = {
     "TableFunction", &PEGTransformerFactory::InitializeTableFunctionTrampoline,
-    &PEGTransformerFactory::FinalizeTableFunctionTrampoline, &GeneratedSingleChildTransform::ExecuteTableFunction};
+    &PEGTransformerFactory::FinalizeTableFunctionTrampoline, &GeneratedSingleChildTransform::ExecuteTableFunction,
+    &GeneratedSingleChildTransform::ForwardTableFunction};
 static const TransformFrameOps TABLE_FUNCTION_LATERAL_OPT_OPS = {
     "TableFunctionLateralOpt", &PEGTransformerFactory::InitializeTableFunctionLateralOptTrampoline,
-    &PEGTransformerFactory::FinalizeTableFunctionLateralOptTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeTableFunctionLateralOptTrampoline, nullptr, nullptr};
 static const TransformFrameOps TABLE_FUNCTION_ALIAS_COLON_OPS = {
     "TableFunctionAliasColon", &PEGTransformerFactory::InitializeTableFunctionAliasColonTrampoline,
-    &PEGTransformerFactory::FinalizeTableFunctionAliasColonTrampoline, nullptr};
-static const TransformFrameOps WITH_ORDINALITY_OPS = {
-    "WithOrdinality", &PEGTransformerFactory::InitializeWithOrdinalityTrampoline,
-    &PEGTransformerFactory::FinalizeWithOrdinalityTrampoline, &GeneratedSingleChildTransform::ExecuteWithOrdinality};
+    &PEGTransformerFactory::FinalizeTableFunctionAliasColonTrampoline, nullptr, nullptr};
+static const TransformFrameOps WITH_ORDINALITY_OPS = {"WithOrdinality",
+                                                      &PEGTransformerFactory::InitializeWithOrdinalityTrampoline,
+                                                      &PEGTransformerFactory::FinalizeWithOrdinalityTrampoline,
+                                                      &GeneratedSingleChildTransform::ExecuteWithOrdinality, nullptr};
 static const TransformFrameOps QUALIFIED_TABLE_FUNCTION_OPS = {
     "QualifiedTableFunction", &PEGTransformerFactory::InitializeQualifiedTableFunctionTrampoline,
-    &PEGTransformerFactory::FinalizeQualifiedTableFunctionTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeQualifiedTableFunctionTrampoline, nullptr, nullptr};
 static const TransformFrameOps TABLE_FUNCTION_ARGUMENTS_OPS = {
     "TableFunctionArguments", &PEGTransformerFactory::InitializeTableFunctionArgumentsTrampoline,
-    &PEGTransformerFactory::FinalizeTableFunctionArgumentsTrampoline, nullptr};
-static const TransformFrameOps FUNCTION_ARGUMENT_OPS = {"FunctionArgument",
-                                                        &PEGTransformerFactory::InitializeFunctionArgumentTrampoline,
-                                                        &PEGTransformerFactory::FinalizeFunctionArgumentTrampoline,
-                                                        &GeneratedSingleChildTransform::ExecuteFunctionArgument};
+    &PEGTransformerFactory::FinalizeTableFunctionArgumentsTrampoline, nullptr, nullptr};
+static const TransformFrameOps FUNCTION_ARGUMENT_OPS = {
+    "FunctionArgument", &PEGTransformerFactory::InitializeFunctionArgumentTrampoline,
+    &PEGTransformerFactory::FinalizeFunctionArgumentTrampoline, &GeneratedSingleChildTransform::ExecuteFunctionArgument,
+    &GeneratedSingleChildTransform::ForwardFunctionArgument};
 static const TransformFrameOps NAMED_FUNCTION_ARGUMENT_OPS = {
     "NamedFunctionArgument", &PEGTransformerFactory::InitializeNamedFunctionArgumentTrampoline,
-    &PEGTransformerFactory::FinalizeNamedFunctionArgumentTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeNamedFunctionArgumentTrampoline, nullptr, nullptr};
 static const TransformFrameOps POSITIONAL_FUNCTION_ARGUMENT_OPS = {
     "PositionalFunctionArgument", &PEGTransformerFactory::InitializePositionalFunctionArgumentTrampoline,
     &PEGTransformerFactory::FinalizePositionalFunctionArgumentTrampoline,
-    &GeneratedSingleChildTransform::ExecutePositionalFunctionArgument};
+    &GeneratedSingleChildTransform::ExecutePositionalFunctionArgument, nullptr};
 static const TransformFrameOps NAMED_PARAMETER_OPS = {
     "NamedParameter", &PEGTransformerFactory::InitializeNamedParameterTrampoline,
-    &PEGTransformerFactory::FinalizeNamedParameterTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeNamedParameterTrampoline, nullptr, nullptr};
 static const TransformFrameOps TABLE_ALIAS_OPS = {"TableAlias", &PEGTransformerFactory::InitializeTableAliasTrampoline,
                                                   &PEGTransformerFactory::FinalizeTableAliasTrampoline,
-                                                  &GeneratedSingleChildTransform::ExecuteTableAlias};
-static const TransformFrameOps TABLE_ALIAS_AS_OPS = {"TableAliasAs",
-                                                     &PEGTransformerFactory::InitializeTableAliasAsTrampoline,
-                                                     &PEGTransformerFactory::FinalizeTableAliasAsTrampoline, nullptr};
+                                                  &GeneratedSingleChildTransform::ExecuteTableAlias,
+                                                  &GeneratedSingleChildTransform::ForwardTableAlias};
+static const TransformFrameOps TABLE_ALIAS_AS_OPS = {
+    "TableAliasAs", &PEGTransformerFactory::InitializeTableAliasAsTrampoline,
+    &PEGTransformerFactory::FinalizeTableAliasAsTrampoline, nullptr, nullptr};
 static const TransformFrameOps TABLE_ALIAS_WITHOUT_AS_OPS = {
     "TableAliasWithoutAs", &PEGTransformerFactory::InitializeTableAliasWithoutAsTrampoline,
     &PEGTransformerFactory::FinalizeTableAliasWithoutAsTrampoline,
-    &GeneratedSingleChildTransform::ExecuteTableAliasWithoutAs};
+    &GeneratedSingleChildTransform::ExecuteTableAliasWithoutAs, nullptr};
 static const TransformFrameOps AT_CLAUSE_OPS = {"AtClause", &PEGTransformerFactory::InitializeAtClauseTrampoline,
                                                 &PEGTransformerFactory::FinalizeAtClauseTrampoline,
-                                                &GeneratedSingleChildTransform::ExecuteAtClause};
-static const TransformFrameOps AT_SPECIFIER_OPS = {"AtSpecifier",
-                                                   &PEGTransformerFactory::InitializeAtSpecifierTrampoline,
-                                                   &PEGTransformerFactory::FinalizeAtSpecifierTrampoline, nullptr};
+                                                &GeneratedSingleChildTransform::ExecuteAtClause, nullptr};
+static const TransformFrameOps AT_SPECIFIER_OPS = {
+    "AtSpecifier", &PEGTransformerFactory::InitializeAtSpecifierTrampoline,
+    &PEGTransformerFactory::FinalizeAtSpecifierTrampoline, nullptr, nullptr};
 static const TransformFrameOps AT_UNIT_OPS = {"AtUnit", &PEGTransformerFactory::InitializeAtUnitTrampoline,
                                               &PEGTransformerFactory::FinalizeAtUnitTrampoline,
-                                              &GeneratedSingleChildTransform::ExecuteAtUnit};
-static const TransformFrameOps VERSION_AT_UNIT_OPS = {
-    "VersionAtUnit", &PEGTransformerFactory::InitializeVersionAtUnitTrampoline,
-    &PEGTransformerFactory::FinalizeVersionAtUnitTrampoline, &GeneratedSingleChildTransform::ExecuteVersionAtUnit};
+                                              &GeneratedSingleChildTransform::ExecuteAtUnit, nullptr};
+static const TransformFrameOps VERSION_AT_UNIT_OPS = {"VersionAtUnit",
+                                                      &PEGTransformerFactory::InitializeVersionAtUnitTrampoline,
+                                                      &PEGTransformerFactory::FinalizeVersionAtUnitTrampoline,
+                                                      &GeneratedSingleChildTransform::ExecuteVersionAtUnit, nullptr};
 static const TransformFrameOps TIMESTAMP_AT_UNIT_OPS = {
     "TimestampAtUnit", &PEGTransformerFactory::InitializeTimestampAtUnitTrampoline,
-    &PEGTransformerFactory::FinalizeTimestampAtUnitTrampoline, &GeneratedSingleChildTransform::ExecuteTimestampAtUnit};
+    &PEGTransformerFactory::FinalizeTimestampAtUnitTrampoline, &GeneratedSingleChildTransform::ExecuteTimestampAtUnit,
+    nullptr};
 static const TransformFrameOps JOIN_CLAUSE_OPS = {"JoinClause", &PEGTransformerFactory::InitializeJoinClauseTrampoline,
                                                   &PEGTransformerFactory::FinalizeJoinClauseTrampoline,
-                                                  &GeneratedSingleChildTransform::ExecuteJoinClause};
-static const TransformFrameOps NEAREST_JOIN_CLAUSE_OPS = {"NearestJoinClause",
-                                                          &PEGTransformerFactory::InitializeNearestJoinClauseTrampoline,
-                                                          &PEGTransformerFactory::FinalizeNearestJoinClauseTrampoline,
-                                                          &GeneratedSingleChildTransform::ExecuteNearestJoinClause};
+                                                  &GeneratedSingleChildTransform::ExecuteJoinClause,
+                                                  &GeneratedSingleChildTransform::ForwardJoinClause};
+static const TransformFrameOps NEAREST_JOIN_CLAUSE_OPS = {
+    "NearestJoinClause", &PEGTransformerFactory::InitializeNearestJoinClauseTrampoline,
+    &PEGTransformerFactory::FinalizeNearestJoinClauseTrampoline,
+    &GeneratedSingleChildTransform::ExecuteNearestJoinClause, &GeneratedSingleChildTransform::ForwardNearestJoinClause};
 static const TransformFrameOps NEAREST_JOIN_ALIASED_OPS = {
     "NearestJoinAliased", &PEGTransformerFactory::InitializeNearestJoinAliasedTrampoline,
-    &PEGTransformerFactory::FinalizeNearestJoinAliasedTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeNearestJoinAliasedTrampoline, nullptr, nullptr};
 static const TransformFrameOps NEAREST_JOIN_BARE_OPS = {
     "NearestJoinBare", &PEGTransformerFactory::InitializeNearestJoinBareTrampoline,
-    &PEGTransformerFactory::FinalizeNearestJoinBareTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeNearestJoinBareTrampoline, nullptr, nullptr};
 static const TransformFrameOps NEAREST_BARE_TABLE_REF_OPS = {
     "NearestBareTableRef", &PEGTransformerFactory::InitializeNearestBareTableRefTrampoline,
     &PEGTransformerFactory::FinalizeNearestBareTableRefTrampoline,
-    &GeneratedSingleChildTransform::ExecuteNearestBareTableRef};
-static const TransformFrameOps NEAREST_VALUES_REF_OPS = {"NearestValuesRef",
-                                                         &PEGTransformerFactory::InitializeNearestValuesRefTrampoline,
-                                                         &PEGTransformerFactory::FinalizeNearestValuesRefTrampoline,
-                                                         &GeneratedSingleChildTransform::ExecuteNearestValuesRef};
+    &GeneratedSingleChildTransform::ExecuteNearestBareTableRef,
+    &GeneratedSingleChildTransform::ForwardNearestBareTableRef};
+static const TransformFrameOps NEAREST_VALUES_REF_OPS = {
+    "NearestValuesRef", &PEGTransformerFactory::InitializeNearestValuesRefTrampoline,
+    &PEGTransformerFactory::FinalizeNearestValuesRefTrampoline, &GeneratedSingleChildTransform::ExecuteNearestValuesRef,
+    nullptr};
 static const TransformFrameOps NEAREST_TABLE_FUNCTION_OPS = {
     "NearestTableFunction", &PEGTransformerFactory::InitializeNearestTableFunctionTrampoline,
-    &PEGTransformerFactory::FinalizeNearestTableFunctionTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeNearestTableFunctionTrampoline, nullptr, nullptr};
 static const TransformFrameOps NEAREST_TABLE_SUBQUERY_OPS = {
     "NearestTableSubquery", &PEGTransformerFactory::InitializeNearestTableSubqueryTrampoline,
-    &PEGTransformerFactory::FinalizeNearestTableSubqueryTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeNearestTableSubqueryTrampoline, nullptr, nullptr};
 static const TransformFrameOps NEAREST_BASE_TABLE_REF_OPS = {
     "NearestBaseTableRef", &PEGTransformerFactory::InitializeNearestBaseTableRefTrampoline,
-    &PEGTransformerFactory::FinalizeNearestBaseTableRefTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeNearestBaseTableRefTrampoline, nullptr, nullptr};
 static const TransformFrameOps NEAREST_PARENS_TABLE_REF_OPS = {
     "NearestParensTableRef", &PEGTransformerFactory::InitializeNearestParensTableRefTrampoline,
-    &PEGTransformerFactory::FinalizeNearestParensTableRefTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeNearestParensTableRefTrampoline, nullptr, nullptr};
 static const TransformFrameOps APPROX_OR_EXACT_OPS = {
     "ApproxOrExact", &PEGTransformerFactory::InitializeApproxOrExactTrampoline,
-    &PEGTransformerFactory::FinalizeApproxOrExactTrampoline, &GeneratedSingleChildTransform::ExecuteApproxOrExact};
-static const TransformFrameOps NEAREST_APPROX_OPS = {
-    "NearestApprox", &PEGTransformerFactory::InitializeNearestApproxTrampoline,
-    &PEGTransformerFactory::FinalizeNearestApproxTrampoline, &GeneratedSingleChildTransform::ExecuteNearestApprox};
-static const TransformFrameOps NEAREST_EXACT_OPS = {
-    "NearestExact", &PEGTransformerFactory::InitializeNearestExactTrampoline,
-    &PEGTransformerFactory::FinalizeNearestExactTrampoline, &GeneratedSingleChildTransform::ExecuteNearestExact};
+    &PEGTransformerFactory::FinalizeApproxOrExactTrampoline, &GeneratedSingleChildTransform::ExecuteApproxOrExact,
+    &GeneratedSingleChildTransform::ForwardApproxOrExact};
+static const TransformFrameOps NEAREST_APPROX_OPS = {"NearestApprox",
+                                                     &PEGTransformerFactory::InitializeNearestApproxTrampoline,
+                                                     &PEGTransformerFactory::FinalizeNearestApproxTrampoline,
+                                                     &GeneratedSingleChildTransform::ExecuteNearestApprox, nullptr};
+static const TransformFrameOps NEAREST_EXACT_OPS = {"NearestExact",
+                                                    &PEGTransformerFactory::InitializeNearestExactTrampoline,
+                                                    &PEGTransformerFactory::FinalizeNearestExactTrampoline,
+                                                    &GeneratedSingleChildTransform::ExecuteNearestExact, nullptr};
 static const TransformFrameOps DISTANCE_OR_SIMILARITY_OPS = {
     "DistanceOrSimilarity", &PEGTransformerFactory::InitializeDistanceOrSimilarityTrampoline,
     &PEGTransformerFactory::FinalizeDistanceOrSimilarityTrampoline,
-    &GeneratedSingleChildTransform::ExecuteDistanceOrSimilarity};
-static const TransformFrameOps NEAREST_DISTANCE_OPS = {
-    "NearestDistance", &PEGTransformerFactory::InitializeNearestDistanceTrampoline,
-    &PEGTransformerFactory::FinalizeNearestDistanceTrampoline, &GeneratedSingleChildTransform::ExecuteNearestDistance};
-static const TransformFrameOps NEAREST_SIMILARITY_OPS = {"NearestSimilarity",
-                                                         &PEGTransformerFactory::InitializeNearestSimilarityTrampoline,
-                                                         &PEGTransformerFactory::FinalizeNearestSimilarityTrampoline,
-                                                         &GeneratedSingleChildTransform::ExecuteNearestSimilarity};
+    &GeneratedSingleChildTransform::ExecuteDistanceOrSimilarity,
+    &GeneratedSingleChildTransform::ForwardDistanceOrSimilarity};
+static const TransformFrameOps NEAREST_DISTANCE_OPS = {"NearestDistance",
+                                                       &PEGTransformerFactory::InitializeNearestDistanceTrampoline,
+                                                       &PEGTransformerFactory::FinalizeNearestDistanceTrampoline,
+                                                       &GeneratedSingleChildTransform::ExecuteNearestDistance, nullptr};
+static const TransformFrameOps NEAREST_SIMILARITY_OPS = {
+    "NearestSimilarity", &PEGTransformerFactory::InitializeNearestSimilarityTrampoline,
+    &PEGTransformerFactory::FinalizeNearestSimilarityTrampoline,
+    &GeneratedSingleChildTransform::ExecuteNearestSimilarity, nullptr};
 static const TransformFrameOps REGULAR_JOIN_CLAUSE_OPS = {
     "RegularJoinClause", &PEGTransformerFactory::InitializeRegularJoinClauseTrampoline,
-    &PEGTransformerFactory::FinalizeRegularJoinClauseTrampoline, nullptr};
-static const TransformFrameOps JOIN_BY_CLAUSE_OPS = {"JoinByClause",
-                                                     &PEGTransformerFactory::InitializeJoinByClauseTrampoline,
-                                                     &PEGTransformerFactory::FinalizeJoinByClauseTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeRegularJoinClauseTrampoline, nullptr, nullptr};
+static const TransformFrameOps JOIN_BY_CLAUSE_OPS = {
+    "JoinByClause", &PEGTransformerFactory::InitializeJoinByClauseTrampoline,
+    &PEGTransformerFactory::FinalizeJoinByClauseTrampoline, nullptr, nullptr};
 static const TransformFrameOps ASOF_OPS = {"Asof", &PEGTransformerFactory::InitializeAsofTrampoline,
                                            &PEGTransformerFactory::FinalizeAsofTrampoline,
-                                           &GeneratedSingleChildTransform::ExecuteAsof};
+                                           &GeneratedSingleChildTransform::ExecuteAsof, nullptr};
 static const TransformFrameOps JOIN_WITHOUT_ON_CLAUSE_OPS = {
     "JoinWithoutOnClause", &PEGTransformerFactory::InitializeJoinWithoutOnClauseTrampoline,
-    &PEGTransformerFactory::FinalizeJoinWithoutOnClauseTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeJoinWithoutOnClauseTrampoline, nullptr, nullptr};
 static const TransformFrameOps JOIN_QUALIFIER_OPS = {
     "JoinQualifier", &PEGTransformerFactory::InitializeJoinQualifierTrampoline,
-    &PEGTransformerFactory::FinalizeJoinQualifierTrampoline, &GeneratedSingleChildTransform::ExecuteJoinQualifier};
+    &PEGTransformerFactory::FinalizeJoinQualifierTrampoline, &GeneratedSingleChildTransform::ExecuteJoinQualifier,
+    &GeneratedSingleChildTransform::ForwardJoinQualifier};
 static const TransformFrameOps ON_CLAUSE_OPS = {"OnClause", &PEGTransformerFactory::InitializeOnClauseTrampoline,
                                                 &PEGTransformerFactory::FinalizeOnClauseTrampoline,
-                                                &GeneratedSingleChildTransform::ExecuteOnClause};
-static const TransformFrameOps USING_CLAUSE_OPS = {"UsingClause",
-                                                   &PEGTransformerFactory::InitializeUsingClauseTrampoline,
-                                                   &PEGTransformerFactory::FinalizeUsingClauseTrampoline, nullptr};
+                                                &GeneratedSingleChildTransform::ExecuteOnClause, nullptr};
+static const TransformFrameOps USING_CLAUSE_OPS = {
+    "UsingClause", &PEGTransformerFactory::InitializeUsingClauseTrampoline,
+    &PEGTransformerFactory::FinalizeUsingClauseTrampoline, nullptr, nullptr};
 static const TransformFrameOps USING_COLUMN_NAME_OPS = {
     "UsingColumnName", &PEGTransformerFactory::InitializeUsingColumnNameTrampoline,
-    &PEGTransformerFactory::FinalizeUsingColumnNameTrampoline, &GeneratedSingleChildTransform::ExecuteUsingColumnName};
+    &PEGTransformerFactory::FinalizeUsingColumnNameTrampoline, &GeneratedSingleChildTransform::ExecuteUsingColumnName,
+    nullptr};
 static const TransformFrameOps JOIN_TYPE_OPS = {"JoinType", &PEGTransformerFactory::InitializeJoinTypeTrampoline,
                                                 &PEGTransformerFactory::FinalizeJoinTypeTrampoline,
-                                                &GeneratedSingleChildTransform::ExecuteJoinType};
+                                                &GeneratedSingleChildTransform::ExecuteJoinType,
+                                                &GeneratedSingleChildTransform::ForwardJoinType};
 static const TransformFrameOps JOIN_PREFIX_OPS = {"JoinPrefix", &PEGTransformerFactory::InitializeJoinPrefixTrampoline,
                                                   &PEGTransformerFactory::FinalizeJoinPrefixTrampoline,
-                                                  &GeneratedSingleChildTransform::ExecuteJoinPrefix};
+                                                  &GeneratedSingleChildTransform::ExecuteJoinPrefix,
+                                                  &GeneratedSingleChildTransform::ForwardJoinPrefix};
 static const TransformFrameOps CROSS_JOIN_PREFIX_OPS = {
     "CrossJoinPrefix", &PEGTransformerFactory::InitializeCrossJoinPrefixTrampoline,
-    &PEGTransformerFactory::FinalizeCrossJoinPrefixTrampoline, &GeneratedSingleChildTransform::ExecuteCrossJoinPrefix};
-static const TransformFrameOps NATURAL_JOIN_PREFIX_OPS = {"NaturalJoinPrefix",
-                                                          &PEGTransformerFactory::InitializeNaturalJoinPrefixTrampoline,
-                                                          &PEGTransformerFactory::FinalizeNaturalJoinPrefixTrampoline,
-                                                          &GeneratedSingleChildTransform::ExecuteNaturalJoinPrefix};
+    &PEGTransformerFactory::FinalizeCrossJoinPrefixTrampoline, &GeneratedSingleChildTransform::ExecuteCrossJoinPrefix,
+    nullptr};
+static const TransformFrameOps NATURAL_JOIN_PREFIX_OPS = {
+    "NaturalJoinPrefix", &PEGTransformerFactory::InitializeNaturalJoinPrefixTrampoline,
+    &PEGTransformerFactory::FinalizeNaturalJoinPrefixTrampoline,
+    &GeneratedSingleChildTransform::ExecuteNaturalJoinPrefix, nullptr};
 static const TransformFrameOps POSITIONAL_JOIN_PREFIX_OPS = {
     "PositionalJoinPrefix", &PEGTransformerFactory::InitializePositionalJoinPrefixTrampoline,
     &PEGTransformerFactory::FinalizePositionalJoinPrefixTrampoline,
-    &GeneratedSingleChildTransform::ExecutePositionalJoinPrefix};
+    &GeneratedSingleChildTransform::ExecutePositionalJoinPrefix, nullptr};
 static const TransformFrameOps FULL_JOIN_OPS = {"FullJoin", &PEGTransformerFactory::InitializeFullJoinTrampoline,
                                                 &PEGTransformerFactory::FinalizeFullJoinTrampoline,
-                                                &GeneratedSingleChildTransform::ExecuteFullJoin};
+                                                &GeneratedSingleChildTransform::ExecuteFullJoin, nullptr};
 static const TransformFrameOps LEFT_JOIN_OPS = {"LeftJoin", &PEGTransformerFactory::InitializeLeftJoinTrampoline,
                                                 &PEGTransformerFactory::FinalizeLeftJoinTrampoline,
-                                                &GeneratedSingleChildTransform::ExecuteLeftJoin};
+                                                &GeneratedSingleChildTransform::ExecuteLeftJoin, nullptr};
 static const TransformFrameOps RIGHT_JOIN_OPS = {"RightJoin", &PEGTransformerFactory::InitializeRightJoinTrampoline,
                                                  &PEGTransformerFactory::FinalizeRightJoinTrampoline,
-                                                 &GeneratedSingleChildTransform::ExecuteRightJoin};
+                                                 &GeneratedSingleChildTransform::ExecuteRightJoin, nullptr};
 static const TransformFrameOps SEMI_JOIN_OPS = {"SemiJoin", &PEGTransformerFactory::InitializeSemiJoinTrampoline,
                                                 &PEGTransformerFactory::FinalizeSemiJoinTrampoline,
-                                                &GeneratedSingleChildTransform::ExecuteSemiJoin};
+                                                &GeneratedSingleChildTransform::ExecuteSemiJoin, nullptr};
 static const TransformFrameOps ANTI_JOIN_OPS = {"AntiJoin", &PEGTransformerFactory::InitializeAntiJoinTrampoline,
                                                 &PEGTransformerFactory::FinalizeAntiJoinTrampoline,
-                                                &GeneratedSingleChildTransform::ExecuteAntiJoin};
+                                                &GeneratedSingleChildTransform::ExecuteAntiJoin, nullptr};
 static const TransformFrameOps INNER_JOIN_OPS = {"InnerJoin", &PEGTransformerFactory::InitializeInnerJoinTrampoline,
                                                  &PEGTransformerFactory::FinalizeInnerJoinTrampoline,
-                                                 &GeneratedSingleChildTransform::ExecuteInnerJoin};
+                                                 &GeneratedSingleChildTransform::ExecuteInnerJoin, nullptr};
 static const TransformFrameOps FROM_CLAUSE_OPS = {"FromClause", &PEGTransformerFactory::InitializeFromClauseTrampoline,
-                                                  &PEGTransformerFactory::FinalizeFromClauseTrampoline, nullptr};
+                                                  &PEGTransformerFactory::FinalizeFromClauseTrampoline, nullptr,
+                                                  nullptr};
 static const TransformFrameOps WHERE_CLAUSE_OPS = {
     "WhereClause", &PEGTransformerFactory::InitializeWhereClauseTrampoline,
-    &PEGTransformerFactory::FinalizeWhereClauseTrampoline, &GeneratedSingleChildTransform::ExecuteWhereClause};
-static const TransformFrameOps GROUP_BY_CLAUSE_OPS = {
-    "GroupByClause", &PEGTransformerFactory::InitializeGroupByClauseTrampoline,
-    &PEGTransformerFactory::FinalizeGroupByClauseTrampoline, &GeneratedSingleChildTransform::ExecuteGroupByClause};
-static const TransformFrameOps HAVING_CLAUSE_OPS = {
-    "HavingClause", &PEGTransformerFactory::InitializeHavingClauseTrampoline,
-    &PEGTransformerFactory::FinalizeHavingClauseTrampoline, &GeneratedSingleChildTransform::ExecuteHavingClause};
-static const TransformFrameOps QUALIFY_CLAUSE_OPS = {
-    "QualifyClause", &PEGTransformerFactory::InitializeQualifyClauseTrampoline,
-    &PEGTransformerFactory::FinalizeQualifyClauseTrampoline, &GeneratedSingleChildTransform::ExecuteQualifyClause};
-static const TransformFrameOps SAMPLE_CLAUSE_OPS = {
-    "SampleClause", &PEGTransformerFactory::InitializeSampleClauseTrampoline,
-    &PEGTransformerFactory::FinalizeSampleClauseTrampoline, &GeneratedSingleChildTransform::ExecuteSampleClause};
+    &PEGTransformerFactory::FinalizeWhereClauseTrampoline, &GeneratedSingleChildTransform::ExecuteWhereClause, nullptr};
+static const TransformFrameOps GROUP_BY_CLAUSE_OPS = {"GroupByClause",
+                                                      &PEGTransformerFactory::InitializeGroupByClauseTrampoline,
+                                                      &PEGTransformerFactory::FinalizeGroupByClauseTrampoline,
+                                                      &GeneratedSingleChildTransform::ExecuteGroupByClause, nullptr};
+static const TransformFrameOps HAVING_CLAUSE_OPS = {"HavingClause",
+                                                    &PEGTransformerFactory::InitializeHavingClauseTrampoline,
+                                                    &PEGTransformerFactory::FinalizeHavingClauseTrampoline,
+                                                    &GeneratedSingleChildTransform::ExecuteHavingClause, nullptr};
+static const TransformFrameOps QUALIFY_CLAUSE_OPS = {"QualifyClause",
+                                                     &PEGTransformerFactory::InitializeQualifyClauseTrampoline,
+                                                     &PEGTransformerFactory::FinalizeQualifyClauseTrampoline,
+                                                     &GeneratedSingleChildTransform::ExecuteQualifyClause, nullptr};
+static const TransformFrameOps SAMPLE_CLAUSE_OPS = {"SampleClause",
+                                                    &PEGTransformerFactory::InitializeSampleClauseTrampoline,
+                                                    &PEGTransformerFactory::FinalizeSampleClauseTrampoline,
+                                                    &GeneratedSingleChildTransform::ExecuteSampleClause, nullptr};
 static const TransformFrameOps SELECT_SAMPLE_CLAUSE_OPS = {
     "SelectSampleClause", &PEGTransformerFactory::InitializeSelectSampleClauseTrampoline,
     &PEGTransformerFactory::FinalizeSelectSampleClauseTrampoline,
-    &GeneratedSingleChildTransform::ExecuteSelectSampleClause};
-static const TransformFrameOps WINDOW_CLAUSE_OPS = {"WindowClause",
-                                                    &PEGTransformerFactory::InitializeWindowClauseTrampoline,
-                                                    &PEGTransformerFactory::FinalizeWindowClauseTrampoline, nullptr};
+    &GeneratedSingleChildTransform::ExecuteSelectSampleClause, nullptr};
+static const TransformFrameOps WINDOW_CLAUSE_OPS = {
+    "WindowClause", &PEGTransformerFactory::InitializeWindowClauseTrampoline,
+    &PEGTransformerFactory::FinalizeWindowClauseTrampoline, nullptr, nullptr};
 static const TransformFrameOps WINDOW_DEFINITION_OPS = {
     "WindowDefinition", &PEGTransformerFactory::InitializeWindowDefinitionTrampoline,
-    &PEGTransformerFactory::FinalizeWindowDefinitionTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeWindowDefinitionTrampoline, nullptr, nullptr};
 static const TransformFrameOps SAMPLE_ENTRY_OPS = {
     "SampleEntry", &PEGTransformerFactory::InitializeSampleEntryTrampoline,
-    &PEGTransformerFactory::FinalizeSampleEntryTrampoline, &GeneratedSingleChildTransform::ExecuteSampleEntry};
+    &PEGTransformerFactory::FinalizeSampleEntryTrampoline, &GeneratedSingleChildTransform::ExecuteSampleEntry,
+    &GeneratedSingleChildTransform::ForwardSampleEntry};
 static const TransformFrameOps SAMPLE_ENTRY_COUNT_OPS = {
     "SampleEntryCount", &PEGTransformerFactory::InitializeSampleEntryCountTrampoline,
-    &PEGTransformerFactory::FinalizeSampleEntryCountTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeSampleEntryCountTrampoline, nullptr, nullptr};
 static const TransformFrameOps SAMPLE_ENTRY_FUNCTION_OPS = {
     "SampleEntryFunction", &PEGTransformerFactory::InitializeSampleEntryFunctionTrampoline,
-    &PEGTransformerFactory::FinalizeSampleEntryFunctionTrampoline, nullptr};
-static const TransformFrameOps SAMPLE_FUNCTION_OPS = {
-    "SampleFunction", &PEGTransformerFactory::InitializeSampleFunctionTrampoline,
-    &PEGTransformerFactory::FinalizeSampleFunctionTrampoline, &GeneratedSingleChildTransform::ExecuteSampleFunction};
+    &PEGTransformerFactory::FinalizeSampleEntryFunctionTrampoline, nullptr, nullptr};
+static const TransformFrameOps SAMPLE_FUNCTION_OPS = {"SampleFunction",
+                                                      &PEGTransformerFactory::InitializeSampleFunctionTrampoline,
+                                                      &PEGTransformerFactory::FinalizeSampleFunctionTrampoline,
+                                                      &GeneratedSingleChildTransform::ExecuteSampleFunction, nullptr};
 static const TransformFrameOps SAMPLE_PROPERTIES_OPS = {
     "SampleProperties", &PEGTransformerFactory::InitializeSamplePropertiesTrampoline,
-    &PEGTransformerFactory::FinalizeSamplePropertiesTrampoline, nullptr};
-static const TransformFrameOps REPEATABLE_SAMPLE_OPS = {"RepeatableSample",
-                                                        &PEGTransformerFactory::InitializeRepeatableSampleTrampoline,
-                                                        &PEGTransformerFactory::FinalizeRepeatableSampleTrampoline,
-                                                        &GeneratedSingleChildTransform::ExecuteRepeatableSample};
+    &PEGTransformerFactory::FinalizeSamplePropertiesTrampoline, nullptr, nullptr};
+static const TransformFrameOps REPEATABLE_SAMPLE_OPS = {
+    "RepeatableSample", &PEGTransformerFactory::InitializeRepeatableSampleTrampoline,
+    &PEGTransformerFactory::FinalizeRepeatableSampleTrampoline, &GeneratedSingleChildTransform::ExecuteRepeatableSample,
+    nullptr};
 static const TransformFrameOps SAMPLE_SEED_OPS = {"SampleSeed", &PEGTransformerFactory::InitializeSampleSeedTrampoline,
                                                   &PEGTransformerFactory::FinalizeSampleSeedTrampoline,
-                                                  &GeneratedSingleChildTransform::ExecuteSampleSeed};
-static const TransformFrameOps SAMPLE_COUNT_OPS = {"SampleCount",
-                                                   &PEGTransformerFactory::InitializeSampleCountTrampoline,
-                                                   &PEGTransformerFactory::FinalizeSampleCountTrampoline, nullptr};
+                                                  &GeneratedSingleChildTransform::ExecuteSampleSeed, nullptr};
+static const TransformFrameOps SAMPLE_COUNT_OPS = {
+    "SampleCount", &PEGTransformerFactory::InitializeSampleCountTrampoline,
+    &PEGTransformerFactory::FinalizeSampleCountTrampoline, nullptr, nullptr};
 static const TransformFrameOps SAMPLE_VALUE_OPS = {
     "SampleValue", &PEGTransformerFactory::InitializeSampleValueTrampoline,
-    &PEGTransformerFactory::FinalizeSampleValueTrampoline, &GeneratedSingleChildTransform::ExecuteSampleValue};
+    &PEGTransformerFactory::FinalizeSampleValueTrampoline, &GeneratedSingleChildTransform::ExecuteSampleValue,
+    &GeneratedSingleChildTransform::ForwardSampleValue};
 static const TransformFrameOps SAMPLE_UNIT_OPS = {"SampleUnit", &PEGTransformerFactory::InitializeSampleUnitTrampoline,
                                                   &PEGTransformerFactory::FinalizeSampleUnitTrampoline,
-                                                  &GeneratedSingleChildTransform::ExecuteSampleUnit};
-static const TransformFrameOps SAMPLE_PERCENTAGE_OPS = {"SamplePercentage",
-                                                        &PEGTransformerFactory::InitializeSamplePercentageTrampoline,
-                                                        &PEGTransformerFactory::FinalizeSamplePercentageTrampoline,
-                                                        &GeneratedSingleChildTransform::ExecuteSamplePercentage};
+                                                  &GeneratedSingleChildTransform::ExecuteSampleUnit,
+                                                  &GeneratedSingleChildTransform::ForwardSampleUnit};
+static const TransformFrameOps SAMPLE_PERCENTAGE_OPS = {
+    "SamplePercentage", &PEGTransformerFactory::InitializeSamplePercentageTrampoline,
+    &PEGTransformerFactory::FinalizeSamplePercentageTrampoline, &GeneratedSingleChildTransform::ExecuteSamplePercentage,
+    nullptr};
 static const TransformFrameOps SAMPLE_ROWS_OPS = {"SampleRows", &PEGTransformerFactory::InitializeSampleRowsTrampoline,
                                                   &PEGTransformerFactory::FinalizeSampleRowsTrampoline,
-                                                  &GeneratedSingleChildTransform::ExecuteSampleRows};
+                                                  &GeneratedSingleChildTransform::ExecuteSampleRows, nullptr};
 static const TransformFrameOps GROUP_BY_EXPRESSIONS_OPS = {
     "GroupByExpressions", &PEGTransformerFactory::InitializeGroupByExpressionsTrampoline,
     &PEGTransformerFactory::FinalizeGroupByExpressionsTrampoline,
-    &GeneratedSingleChildTransform::ExecuteGroupByExpressions};
+    &GeneratedSingleChildTransform::ExecuteGroupByExpressions,
+    &GeneratedSingleChildTransform::ForwardGroupByExpressions};
 static const TransformFrameOps GROUP_BY_ALL_OPS = {"GroupByAll", &PEGTransformerFactory::InitializeGroupByAllTrampoline,
                                                    &PEGTransformerFactory::FinalizeGroupByAllTrampoline,
-                                                   &GeneratedSingleChildTransform::ExecuteGroupByAll};
-static const TransformFrameOps GROUP_BY_LIST_OPS = {"GroupByList",
-                                                    &PEGTransformerFactory::InitializeGroupByListTrampoline,
-                                                    &PEGTransformerFactory::FinalizeGroupByListTrampoline, nullptr};
-static const TransformFrameOps GROUP_BY_EXPRESSION_OPS = {"GroupByExpression",
-                                                          &PEGTransformerFactory::InitializeGroupByExpressionTrampoline,
-                                                          &PEGTransformerFactory::FinalizeGroupByExpressionTrampoline,
-                                                          &GeneratedSingleChildTransform::ExecuteGroupByExpression};
+                                                   &GeneratedSingleChildTransform::ExecuteGroupByAll, nullptr};
+static const TransformFrameOps GROUP_BY_LIST_OPS = {
+    "GroupByList", &PEGTransformerFactory::InitializeGroupByListTrampoline,
+    &PEGTransformerFactory::FinalizeGroupByListTrampoline, nullptr, nullptr};
+static const TransformFrameOps GROUP_BY_EXPRESSION_OPS = {
+    "GroupByExpression", &PEGTransformerFactory::InitializeGroupByExpressionTrampoline,
+    &PEGTransformerFactory::FinalizeGroupByExpressionTrampoline,
+    &GeneratedSingleChildTransform::ExecuteGroupByExpression, &GeneratedSingleChildTransform::ForwardGroupByExpression};
 static const TransformFrameOps GROUP_BY_BASE_EXPRESSION_OPS = {
     "GroupByBaseExpression", &PEGTransformerFactory::InitializeGroupByBaseExpressionTrampoline,
     &PEGTransformerFactory::FinalizeGroupByBaseExpressionTrampoline,
-    &GeneratedSingleChildTransform::ExecuteGroupByBaseExpression};
-static const TransformFrameOps EMPTY_GROUPING_ITEM_OPS = {"EmptyGroupingItem",
-                                                          &PEGTransformerFactory::InitializeEmptyGroupingItemTrampoline,
-                                                          &PEGTransformerFactory::FinalizeEmptyGroupingItemTrampoline,
-                                                          &GeneratedSingleChildTransform::ExecuteEmptyGroupingItem};
+    &GeneratedSingleChildTransform::ExecuteGroupByBaseExpression, nullptr};
+static const TransformFrameOps EMPTY_GROUPING_ITEM_OPS = {
+    "EmptyGroupingItem", &PEGTransformerFactory::InitializeEmptyGroupingItemTrampoline,
+    &PEGTransformerFactory::FinalizeEmptyGroupingItemTrampoline,
+    &GeneratedSingleChildTransform::ExecuteEmptyGroupingItem, nullptr};
 static const TransformFrameOps CUBE_OR_ROLLUP_CLAUSE_OPS = {
     "CubeOrRollupClause", &PEGTransformerFactory::InitializeCubeOrRollupClauseTrampoline,
-    &PEGTransformerFactory::FinalizeCubeOrRollupClauseTrampoline, nullptr};
-static const TransformFrameOps CUBE_OR_ROLLUP_OPS = {
-    "CubeOrRollup", &PEGTransformerFactory::InitializeCubeOrRollupTrampoline,
-    &PEGTransformerFactory::FinalizeCubeOrRollupTrampoline, &GeneratedSingleChildTransform::ExecuteCubeOrRollup};
+    &PEGTransformerFactory::FinalizeCubeOrRollupClauseTrampoline, nullptr, nullptr};
+static const TransformFrameOps CUBE_OR_ROLLUP_OPS = {"CubeOrRollup",
+                                                     &PEGTransformerFactory::InitializeCubeOrRollupTrampoline,
+                                                     &PEGTransformerFactory::FinalizeCubeOrRollupTrampoline,
+                                                     &GeneratedSingleChildTransform::ExecuteCubeOrRollup, nullptr};
 static const TransformFrameOps CUBE_KEYWORD_OPS = {
     "CubeKeyword", &PEGTransformerFactory::InitializeCubeKeywordTrampoline,
-    &PEGTransformerFactory::FinalizeCubeKeywordTrampoline, &GeneratedSingleChildTransform::ExecuteCubeKeyword};
-static const TransformFrameOps ROLLUP_KEYWORD_OPS = {
-    "RollupKeyword", &PEGTransformerFactory::InitializeRollupKeywordTrampoline,
-    &PEGTransformerFactory::FinalizeRollupKeywordTrampoline, &GeneratedSingleChildTransform::ExecuteRollupKeyword};
+    &PEGTransformerFactory::FinalizeCubeKeywordTrampoline, &GeneratedSingleChildTransform::ExecuteCubeKeyword, nullptr};
+static const TransformFrameOps ROLLUP_KEYWORD_OPS = {"RollupKeyword",
+                                                     &PEGTransformerFactory::InitializeRollupKeywordTrampoline,
+                                                     &PEGTransformerFactory::FinalizeRollupKeywordTrampoline,
+                                                     &GeneratedSingleChildTransform::ExecuteRollupKeyword, nullptr};
 static const TransformFrameOps GROUPING_SETS_CLAUSE_OPS = {
     "GroupingSetsClause", &PEGTransformerFactory::InitializeGroupingSetsClauseTrampoline,
-    &PEGTransformerFactory::FinalizeGroupingSetsClauseTrampoline, nullptr};
-static const TransformFrameOps SUBQUERY_REFERENCE_OPS = {"SubqueryReference",
-                                                         &PEGTransformerFactory::InitializeSubqueryReferenceTrampoline,
-                                                         &PEGTransformerFactory::FinalizeSubqueryReferenceTrampoline,
-                                                         &GeneratedSingleChildTransform::ExecuteSubqueryReference};
+    &PEGTransformerFactory::FinalizeGroupingSetsClauseTrampoline, nullptr, nullptr};
+static const TransformFrameOps SUBQUERY_REFERENCE_OPS = {
+    "SubqueryReference", &PEGTransformerFactory::InitializeSubqueryReferenceTrampoline,
+    &PEGTransformerFactory::FinalizeSubqueryReferenceTrampoline,
+    &GeneratedSingleChildTransform::ExecuteSubqueryReference, nullptr};
 static const TransformFrameOps ORDER_BY_EXPRESSION_OPS = {
     "OrderByExpression", &PEGTransformerFactory::InitializeOrderByExpressionTrampoline,
-    &PEGTransformerFactory::FinalizeOrderByExpressionTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeOrderByExpressionTrampoline, nullptr, nullptr};
 static const TransformFrameOps DESC_OR_ASC_OPS = {"DescOrAsc", &PEGTransformerFactory::InitializeDescOrAscTrampoline,
                                                   &PEGTransformerFactory::FinalizeDescOrAscTrampoline,
-                                                  &GeneratedSingleChildTransform::ExecuteDescOrAsc};
-static const TransformFrameOps DESCENDING_ORDER_OPS = {
-    "DescendingOrder", &PEGTransformerFactory::InitializeDescendingOrderTrampoline,
-    &PEGTransformerFactory::FinalizeDescendingOrderTrampoline, &GeneratedSingleChildTransform::ExecuteDescendingOrder};
-static const TransformFrameOps ASCENDING_ORDER_OPS = {
-    "AscendingOrder", &PEGTransformerFactory::InitializeAscendingOrderTrampoline,
-    &PEGTransformerFactory::FinalizeAscendingOrderTrampoline, &GeneratedSingleChildTransform::ExecuteAscendingOrder};
-static const TransformFrameOps NULLS_FIRST_OR_LAST_OPS = {"NullsFirstOrLast",
-                                                          &PEGTransformerFactory::InitializeNullsFirstOrLastTrampoline,
-                                                          &PEGTransformerFactory::FinalizeNullsFirstOrLastTrampoline,
-                                                          &GeneratedSingleChildTransform::ExecuteNullsFirstOrLast};
+                                                  &GeneratedSingleChildTransform::ExecuteDescOrAsc,
+                                                  &GeneratedSingleChildTransform::ForwardDescOrAsc};
+static const TransformFrameOps DESCENDING_ORDER_OPS = {"DescendingOrder",
+                                                       &PEGTransformerFactory::InitializeDescendingOrderTrampoline,
+                                                       &PEGTransformerFactory::FinalizeDescendingOrderTrampoline,
+                                                       &GeneratedSingleChildTransform::ExecuteDescendingOrder, nullptr};
+static const TransformFrameOps ASCENDING_ORDER_OPS = {"AscendingOrder",
+                                                      &PEGTransformerFactory::InitializeAscendingOrderTrampoline,
+                                                      &PEGTransformerFactory::FinalizeAscendingOrderTrampoline,
+                                                      &GeneratedSingleChildTransform::ExecuteAscendingOrder, nullptr};
+static const TransformFrameOps NULLS_FIRST_OR_LAST_OPS = {
+    "NullsFirstOrLast", &PEGTransformerFactory::InitializeNullsFirstOrLastTrampoline,
+    &PEGTransformerFactory::FinalizeNullsFirstOrLastTrampoline, &GeneratedSingleChildTransform::ExecuteNullsFirstOrLast,
+    &GeneratedSingleChildTransform::ForwardNullsFirstOrLast};
 static const TransformFrameOps NULLS_FIRST_OPS = {"NullsFirst", &PEGTransformerFactory::InitializeNullsFirstTrampoline,
                                                   &PEGTransformerFactory::FinalizeNullsFirstTrampoline,
-                                                  &GeneratedSingleChildTransform::ExecuteNullsFirst};
+                                                  &GeneratedSingleChildTransform::ExecuteNullsFirst, nullptr};
 static const TransformFrameOps NULLS_LAST_OPS = {"NullsLast", &PEGTransformerFactory::InitializeNullsLastTrampoline,
                                                  &PEGTransformerFactory::FinalizeNullsLastTrampoline,
-                                                 &GeneratedSingleChildTransform::ExecuteNullsLast};
-static const TransformFrameOps ORDER_BY_CLAUSE_OPS = {
-    "OrderByClause", &PEGTransformerFactory::InitializeOrderByClauseTrampoline,
-    &PEGTransformerFactory::FinalizeOrderByClauseTrampoline, &GeneratedSingleChildTransform::ExecuteOrderByClause};
+                                                 &GeneratedSingleChildTransform::ExecuteNullsLast, nullptr};
+static const TransformFrameOps ORDER_BY_CLAUSE_OPS = {"OrderByClause",
+                                                      &PEGTransformerFactory::InitializeOrderByClauseTrampoline,
+                                                      &PEGTransformerFactory::FinalizeOrderByClauseTrampoline,
+                                                      &GeneratedSingleChildTransform::ExecuteOrderByClause, nullptr};
 static const TransformFrameOps ORDER_BY_EXPRESSIONS_OPS = {
     "OrderByExpressions", &PEGTransformerFactory::InitializeOrderByExpressionsTrampoline,
     &PEGTransformerFactory::FinalizeOrderByExpressionsTrampoline,
-    &GeneratedSingleChildTransform::ExecuteOrderByExpressions};
+    &GeneratedSingleChildTransform::ExecuteOrderByExpressions,
+    &GeneratedSingleChildTransform::ForwardOrderByExpressions};
 static const TransformFrameOps ORDER_BY_EXPRESSION_LIST_OPS = {
     "OrderByExpressionList", &PEGTransformerFactory::InitializeOrderByExpressionListTrampoline,
-    &PEGTransformerFactory::FinalizeOrderByExpressionListTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeOrderByExpressionListTrampoline, nullptr, nullptr};
 static const TransformFrameOps ORDER_BY_ALL_OPS = {"OrderByAll", &PEGTransformerFactory::InitializeOrderByAllTrampoline,
-                                                   &PEGTransformerFactory::FinalizeOrderByAllTrampoline, nullptr};
+                                                   &PEGTransformerFactory::FinalizeOrderByAllTrampoline, nullptr,
+                                                   nullptr};
 static const TransformFrameOps LIMIT_CLAUSE_OPS = {
     "LimitClause", &PEGTransformerFactory::InitializeLimitClauseTrampoline,
-    &PEGTransformerFactory::FinalizeLimitClauseTrampoline, &GeneratedSingleChildTransform::ExecuteLimitClause};
-static const TransformFrameOps OFFSET_CLAUSE_OPS = {
-    "OffsetClause", &PEGTransformerFactory::InitializeOffsetClauseTrampoline,
-    &PEGTransformerFactory::FinalizeOffsetClauseTrampoline, &GeneratedSingleChildTransform::ExecuteOffsetClause};
+    &PEGTransformerFactory::FinalizeLimitClauseTrampoline, &GeneratedSingleChildTransform::ExecuteLimitClause, nullptr};
+static const TransformFrameOps OFFSET_CLAUSE_OPS = {"OffsetClause",
+                                                    &PEGTransformerFactory::InitializeOffsetClauseTrampoline,
+                                                    &PEGTransformerFactory::FinalizeOffsetClauseTrampoline,
+                                                    &GeneratedSingleChildTransform::ExecuteOffsetClause, nullptr};
 static const TransformFrameOps OFFSET_VALUE_OPS = {
     "OffsetValue", &PEGTransformerFactory::InitializeOffsetValueTrampoline,
-    &PEGTransformerFactory::FinalizeOffsetValueTrampoline, &GeneratedSingleChildTransform::ExecuteOffsetValue};
+    &PEGTransformerFactory::FinalizeOffsetValueTrampoline, &GeneratedSingleChildTransform::ExecuteOffsetValue, nullptr};
 static const TransformFrameOps LIMIT_VALUE_OPS = {"LimitValue", &PEGTransformerFactory::InitializeLimitValueTrampoline,
                                                   &PEGTransformerFactory::FinalizeLimitValueTrampoline,
-                                                  &GeneratedSingleChildTransform::ExecuteLimitValue};
+                                                  &GeneratedSingleChildTransform::ExecuteLimitValue,
+                                                  &GeneratedSingleChildTransform::ForwardLimitValue};
 static const TransformFrameOps LIMIT_ALL_OPS = {"LimitAll", &PEGTransformerFactory::InitializeLimitAllTrampoline,
                                                 &PEGTransformerFactory::FinalizeLimitAllTrampoline,
-                                                &GeneratedSingleChildTransform::ExecuteLimitAll};
+                                                &GeneratedSingleChildTransform::ExecuteLimitAll, nullptr};
 static const TransformFrameOps LIMIT_LITERAL_PERCENT_OPS = {
     "LimitLiteralPercent", &PEGTransformerFactory::InitializeLimitLiteralPercentTrampoline,
     &PEGTransformerFactory::FinalizeLimitLiteralPercentTrampoline,
-    &GeneratedSingleChildTransform::ExecuteLimitLiteralPercent};
-static const TransformFrameOps LIMIT_EXPRESSION_OPS = {
-    "LimitExpression", &PEGTransformerFactory::InitializeLimitExpressionTrampoline,
-    &PEGTransformerFactory::FinalizeLimitExpressionTrampoline, &GeneratedSingleChildTransform::ExecuteLimitExpression};
+    &GeneratedSingleChildTransform::ExecuteLimitLiteralPercent, nullptr};
+static const TransformFrameOps LIMIT_EXPRESSION_OPS = {"LimitExpression",
+                                                       &PEGTransformerFactory::InitializeLimitExpressionTrampoline,
+                                                       &PEGTransformerFactory::FinalizeLimitExpressionTrampoline,
+                                                       &GeneratedSingleChildTransform::ExecuteLimitExpression, nullptr};
 static const TransformFrameOps FETCH_CLAUSE_OPS = {
     "FetchClause", &PEGTransformerFactory::InitializeFetchClauseTrampoline,
-    &PEGTransformerFactory::FinalizeFetchClauseTrampoline, &GeneratedSingleChildTransform::ExecuteFetchClause};
+    &PEGTransformerFactory::FinalizeFetchClauseTrampoline, &GeneratedSingleChildTransform::ExecuteFetchClause,
+    &GeneratedSingleChildTransform::ForwardFetchClause};
 static const TransformFrameOps FETCH_CLAUSE_WITHOUT_VALUE_OPS = {
     "FetchClauseWithoutValue", &PEGTransformerFactory::InitializeFetchClauseWithoutValueTrampoline,
     &PEGTransformerFactory::FinalizeFetchClauseWithoutValueTrampoline,
-    &GeneratedSingleChildTransform::ExecuteFetchClauseWithoutValue};
+    &GeneratedSingleChildTransform::ExecuteFetchClauseWithoutValue, nullptr};
 static const TransformFrameOps FETCH_CLAUSE_WITH_VALUE_OPS = {
     "FetchClauseWithValue", &PEGTransformerFactory::InitializeFetchClauseWithValueTrampoline,
     &PEGTransformerFactory::FinalizeFetchClauseWithValueTrampoline,
-    &GeneratedSingleChildTransform::ExecuteFetchClauseWithValue};
+    &GeneratedSingleChildTransform::ExecuteFetchClauseWithValue,
+    &GeneratedSingleChildTransform::ForwardFetchClauseWithValue};
 static const TransformFrameOps FETCH_VALUE_OPS = {"FetchValue", &PEGTransformerFactory::InitializeFetchValueTrampoline,
                                                   &PEGTransformerFactory::FinalizeFetchValueTrampoline,
-                                                  &GeneratedSingleChildTransform::ExecuteFetchValue};
-static const TransformFrameOps ALIASED_EXPRESSION_OPS = {"AliasedExpression",
-                                                         &PEGTransformerFactory::InitializeAliasedExpressionTrampoline,
-                                                         &PEGTransformerFactory::FinalizeAliasedExpressionTrampoline,
-                                                         &GeneratedSingleChildTransform::ExecuteAliasedExpression};
+                                                  &GeneratedSingleChildTransform::ExecuteFetchValue, nullptr};
+static const TransformFrameOps ALIASED_EXPRESSION_OPS = {
+    "AliasedExpression", &PEGTransformerFactory::InitializeAliasedExpressionTrampoline,
+    &PEGTransformerFactory::FinalizeAliasedExpressionTrampoline,
+    &GeneratedSingleChildTransform::ExecuteAliasedExpression, &GeneratedSingleChildTransform::ForwardAliasedExpression};
 static const TransformFrameOps COL_ID_EXPRESSION_OPS = {
     "ColIdExpression", &PEGTransformerFactory::InitializeColIdExpressionTrampoline,
-    &PEGTransformerFactory::FinalizeColIdExpressionTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeColIdExpressionTrampoline, nullptr, nullptr};
 static const TransformFrameOps EXPRESSION_AS_COLLABEL_OPS = {
     "ExpressionAsCollabel", &PEGTransformerFactory::InitializeExpressionAsCollabelTrampoline,
-    &PEGTransformerFactory::FinalizeExpressionAsCollabelTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeExpressionAsCollabelTrampoline, nullptr, nullptr};
 static const TransformFrameOps EXPRESSION_OPT_IDENTIFIER_OPS = {
     "ExpressionOptIdentifier", &PEGTransformerFactory::InitializeExpressionOptIdentifierTrampoline,
     &PEGTransformerFactory::FinalizeExpressionOptIdentifierTrampoline,
-    &GeneratedSingleChildTransform::ExecuteExpressionOptIdentifier};
-static const TransformFrameOps VALUES_CLAUSE_OPS = {"ValuesClause",
-                                                    &PEGTransformerFactory::InitializeValuesClauseTrampoline,
-                                                    &PEGTransformerFactory::FinalizeValuesClauseTrampoline, nullptr};
+    &GeneratedSingleChildTransform::ExecuteExpressionOptIdentifier, nullptr};
+static const TransformFrameOps VALUES_CLAUSE_OPS = {
+    "ValuesClause", &PEGTransformerFactory::InitializeValuesClauseTrampoline,
+    &PEGTransformerFactory::FinalizeValuesClauseTrampoline, nullptr, nullptr};
 static const TransformFrameOps VALUES_EXPRESSIONS_OPS = {
     "ValuesExpressions", &PEGTransformerFactory::InitializeValuesExpressionsTrampoline,
-    &PEGTransformerFactory::FinalizeValuesExpressionsTrampoline, nullptr};
-static const TransformFrameOps SET_STATEMENT_OPS = {
-    "SetStatement", &PEGTransformerFactory::InitializeSetStatementTrampoline,
-    &PEGTransformerFactory::FinalizeSetStatementTrampoline, &GeneratedSingleChildTransform::ExecuteSetStatement};
+    &PEGTransformerFactory::FinalizeValuesExpressionsTrampoline, nullptr, nullptr};
+static const TransformFrameOps SET_STATEMENT_OPS = {"SetStatement",
+                                                    &PEGTransformerFactory::InitializeSetStatementTrampoline,
+                                                    &PEGTransformerFactory::FinalizeSetStatementTrampoline,
+                                                    &GeneratedSingleChildTransform::ExecuteSetStatement, nullptr};
 static const TransformFrameOps SET_ASSIGNMENT_OR_TIME_ZONE_OPS = {
     "SetAssignmentOrTimeZone", &PEGTransformerFactory::InitializeSetAssignmentOrTimeZoneTrampoline,
     &PEGTransformerFactory::FinalizeSetAssignmentOrTimeZoneTrampoline,
-    &GeneratedSingleChildTransform::ExecuteSetAssignmentOrTimeZone};
-static const TransformFrameOps RESET_STATEMENT_OPS = {
-    "ResetStatement", &PEGTransformerFactory::InitializeResetStatementTrampoline,
-    &PEGTransformerFactory::FinalizeResetStatementTrampoline, &GeneratedSingleChildTransform::ExecuteResetStatement};
+    &GeneratedSingleChildTransform::ExecuteSetAssignmentOrTimeZone,
+    &GeneratedSingleChildTransform::ForwardSetAssignmentOrTimeZone};
+static const TransformFrameOps RESET_STATEMENT_OPS = {"ResetStatement",
+                                                      &PEGTransformerFactory::InitializeResetStatementTrampoline,
+                                                      &PEGTransformerFactory::FinalizeResetStatementTrampoline,
+                                                      &GeneratedSingleChildTransform::ExecuteResetStatement, nullptr};
 static const TransformFrameOps SET_SCHEMA_OPS = {"SetSchema", &PEGTransformerFactory::InitializeSetSchemaTrampoline,
                                                  &PEGTransformerFactory::FinalizeSetSchemaTrampoline,
-                                                 &GeneratedSingleChildTransform::ExecuteSetSchema};
+                                                 &GeneratedSingleChildTransform::ExecuteSetSchema, nullptr};
 static const TransformFrameOps STANDARD_ASSIGNMENT_OPS = {
     "StandardAssignment", &PEGTransformerFactory::InitializeStandardAssignmentTrampoline,
-    &PEGTransformerFactory::FinalizeStandardAssignmentTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeStandardAssignmentTrampoline, nullptr, nullptr};
 static const TransformFrameOps SET_VARIABLE_OR_SETTING_OPS = {
     "SetVariableOrSetting", &PEGTransformerFactory::InitializeSetVariableOrSettingTrampoline,
     &PEGTransformerFactory::FinalizeSetVariableOrSettingTrampoline,
-    &GeneratedSingleChildTransform::ExecuteSetVariableOrSetting};
+    &GeneratedSingleChildTransform::ExecuteSetVariableOrSetting,
+    &GeneratedSingleChildTransform::ForwardSetVariableOrSetting};
 static const TransformFrameOps SET_TIME_ZONE_OPS = {
     "SetTimeZone", &PEGTransformerFactory::InitializeSetTimeZoneTrampoline,
-    &PEGTransformerFactory::FinalizeSetTimeZoneTrampoline, &GeneratedSingleChildTransform::ExecuteSetTimeZone};
+    &PEGTransformerFactory::FinalizeSetTimeZoneTrampoline, &GeneratedSingleChildTransform::ExecuteSetTimeZone, nullptr};
 static const TransformFrameOps ZONE_VALUE_OPS = {"ZoneValue", &PEGTransformerFactory::InitializeZoneValueTrampoline,
                                                  &PEGTransformerFactory::FinalizeZoneValueTrampoline,
-                                                 &GeneratedSingleChildTransform::ExecuteZoneValue};
+                                                 &GeneratedSingleChildTransform::ExecuteZoneValue,
+                                                 &GeneratedSingleChildTransform::ForwardZoneValue};
 static const TransformFrameOps ZONE_LOCAL_OPS = {"ZoneLocal", &PEGTransformerFactory::InitializeZoneLocalTrampoline,
                                                  &PEGTransformerFactory::FinalizeZoneLocalTrampoline,
-                                                 &GeneratedSingleChildTransform::ExecuteZoneLocal};
+                                                 &GeneratedSingleChildTransform::ExecuteZoneLocal, nullptr};
 static const TransformFrameOps ZONE_DEFAULT_OPS = {
     "ZoneDefault", &PEGTransformerFactory::InitializeZoneDefaultTrampoline,
-    &PEGTransformerFactory::FinalizeZoneDefaultTrampoline, &GeneratedSingleChildTransform::ExecuteZoneDefault};
-static const TransformFrameOps ZONE_STRING_LITERAL_OPS = {"ZoneStringLiteral",
-                                                          &PEGTransformerFactory::InitializeZoneStringLiteralTrampoline,
-                                                          &PEGTransformerFactory::FinalizeZoneStringLiteralTrampoline,
-                                                          &GeneratedSingleChildTransform::ExecuteZoneStringLiteral};
-static const TransformFrameOps ZONE_IDENTIFIER_OPS = {
-    "ZoneIdentifier", &PEGTransformerFactory::InitializeZoneIdentifierTrampoline,
-    &PEGTransformerFactory::FinalizeZoneIdentifierTrampoline, &GeneratedSingleChildTransform::ExecuteZoneIdentifier};
+    &PEGTransformerFactory::FinalizeZoneDefaultTrampoline, &GeneratedSingleChildTransform::ExecuteZoneDefault, nullptr};
+static const TransformFrameOps ZONE_STRING_LITERAL_OPS = {
+    "ZoneStringLiteral", &PEGTransformerFactory::InitializeZoneStringLiteralTrampoline,
+    &PEGTransformerFactory::FinalizeZoneStringLiteralTrampoline,
+    &GeneratedSingleChildTransform::ExecuteZoneStringLiteral, nullptr};
+static const TransformFrameOps ZONE_IDENTIFIER_OPS = {"ZoneIdentifier",
+                                                      &PEGTransformerFactory::InitializeZoneIdentifierTrampoline,
+                                                      &PEGTransformerFactory::FinalizeZoneIdentifierTrampoline,
+                                                      &GeneratedSingleChildTransform::ExecuteZoneIdentifier, nullptr};
 static const TransformFrameOps ZONE_INTERVAL_WITH_INTERVAL_OPS = {
     "ZoneIntervalWithInterval", &PEGTransformerFactory::InitializeZoneIntervalWithIntervalTrampoline,
     &PEGTransformerFactory::FinalizeZoneIntervalWithIntervalTrampoline,
-    &GeneratedSingleChildTransform::ExecuteZoneIntervalWithInterval};
+    &GeneratedSingleChildTransform::ExecuteZoneIntervalWithInterval, nullptr};
 static const TransformFrameOps ZONE_INTERVAL_WITH_PRECISION_OPS = {
     "ZoneIntervalWithPrecision", &PEGTransformerFactory::InitializeZoneIntervalWithPrecisionTrampoline,
     &PEGTransformerFactory::FinalizeZoneIntervalWithPrecisionTrampoline,
-    &GeneratedSingleChildTransform::ExecuteZoneIntervalWithPrecision};
+    &GeneratedSingleChildTransform::ExecuteZoneIntervalWithPrecision, nullptr};
 static const TransformFrameOps SET_SETTING_OPS = {"SetSetting", &PEGTransformerFactory::InitializeSetSettingTrampoline,
                                                   &PEGTransformerFactory::FinalizeSetSettingTrampoline,
-                                                  &GeneratedSingleChildTransform::ExecuteSetSetting};
+                                                  &GeneratedSingleChildTransform::ExecuteSetSetting, nullptr};
 static const TransformFrameOps SET_VARIABLE_OPS = {
     "SetVariable", &PEGTransformerFactory::InitializeSetVariableTrampoline,
-    &PEGTransformerFactory::FinalizeSetVariableTrampoline, &GeneratedSingleChildTransform::ExecuteSetVariable};
-static const TransformFrameOps VARIABLE_SCOPE_OPS = {
-    "VariableScope", &PEGTransformerFactory::InitializeVariableScopeTrampoline,
-    &PEGTransformerFactory::FinalizeVariableScopeTrampoline, &GeneratedSingleChildTransform::ExecuteVariableScope};
+    &PEGTransformerFactory::FinalizeSetVariableTrampoline, &GeneratedSingleChildTransform::ExecuteSetVariable, nullptr};
+static const TransformFrameOps VARIABLE_SCOPE_OPS = {"VariableScope",
+                                                     &PEGTransformerFactory::InitializeVariableScopeTrampoline,
+                                                     &PEGTransformerFactory::FinalizeVariableScopeTrampoline,
+                                                     &GeneratedSingleChildTransform::ExecuteVariableScope, nullptr};
 static const TransformFrameOps SETTING_SCOPE_OPS = {
     "SettingScope", &PEGTransformerFactory::InitializeSettingScopeTrampoline,
-    &PEGTransformerFactory::FinalizeSettingScopeTrampoline, &GeneratedSingleChildTransform::ExecuteSettingScope};
+    &PEGTransformerFactory::FinalizeSettingScopeTrampoline, &GeneratedSingleChildTransform::ExecuteSettingScope,
+    &GeneratedSingleChildTransform::ForwardSettingScope};
 static const TransformFrameOps LOCAL_SCOPE_OPS = {"LocalScope", &PEGTransformerFactory::InitializeLocalScopeTrampoline,
                                                   &PEGTransformerFactory::FinalizeLocalScopeTrampoline,
-                                                  &GeneratedSingleChildTransform::ExecuteLocalScope};
-static const TransformFrameOps SESSION_SCOPE_OPS = {
-    "SessionScope", &PEGTransformerFactory::InitializeSessionScopeTrampoline,
-    &PEGTransformerFactory::FinalizeSessionScopeTrampoline, &GeneratedSingleChildTransform::ExecuteSessionScope};
+                                                  &GeneratedSingleChildTransform::ExecuteLocalScope, nullptr};
+static const TransformFrameOps SESSION_SCOPE_OPS = {"SessionScope",
+                                                    &PEGTransformerFactory::InitializeSessionScopeTrampoline,
+                                                    &PEGTransformerFactory::FinalizeSessionScopeTrampoline,
+                                                    &GeneratedSingleChildTransform::ExecuteSessionScope, nullptr};
 static const TransformFrameOps GLOBAL_SCOPE_OPS = {
     "GlobalScope", &PEGTransformerFactory::InitializeGlobalScopeTrampoline,
-    &PEGTransformerFactory::FinalizeGlobalScopeTrampoline, &GeneratedSingleChildTransform::ExecuteGlobalScope};
-static const TransformFrameOps SET_ASSIGNMENT_OPS = {
-    "SetAssignment", &PEGTransformerFactory::InitializeSetAssignmentTrampoline,
-    &PEGTransformerFactory::FinalizeSetAssignmentTrampoline, &GeneratedSingleChildTransform::ExecuteSetAssignment};
-static const TransformFrameOps VARIABLE_LIST_OPS = {"VariableList",
-                                                    &PEGTransformerFactory::InitializeVariableListTrampoline,
-                                                    &PEGTransformerFactory::FinalizeVariableListTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeGlobalScopeTrampoline, &GeneratedSingleChildTransform::ExecuteGlobalScope, nullptr};
+static const TransformFrameOps SET_ASSIGNMENT_OPS = {"SetAssignment",
+                                                     &PEGTransformerFactory::InitializeSetAssignmentTrampoline,
+                                                     &PEGTransformerFactory::FinalizeSetAssignmentTrampoline,
+                                                     &GeneratedSingleChildTransform::ExecuteSetAssignment, nullptr};
+static const TransformFrameOps VARIABLE_LIST_OPS = {
+    "VariableList", &PEGTransformerFactory::InitializeVariableListTrampoline,
+    &PEGTransformerFactory::FinalizeVariableListTrampoline, nullptr, nullptr};
 static const TransformFrameOps TRANSACTION_STATEMENT_OPS = {
     "TransactionStatement", &PEGTransformerFactory::InitializeTransactionStatementTrampoline,
     &PEGTransformerFactory::FinalizeTransactionStatementTrampoline,
-    &GeneratedSingleChildTransform::ExecuteTransactionStatement};
-static const TransformFrameOps BEGIN_TRANSACTION_OPS = {"BeginTransaction",
-                                                        &PEGTransformerFactory::InitializeBeginTransactionTrampoline,
-                                                        &PEGTransformerFactory::FinalizeBeginTransactionTrampoline,
-                                                        &GeneratedSingleChildTransform::ExecuteBeginTransaction};
+    &GeneratedSingleChildTransform::ExecuteTransactionStatement,
+    &GeneratedSingleChildTransform::ForwardTransactionStatement};
+static const TransformFrameOps BEGIN_TRANSACTION_OPS = {
+    "BeginTransaction", &PEGTransformerFactory::InitializeBeginTransactionTrampoline,
+    &PEGTransformerFactory::FinalizeBeginTransactionTrampoline, &GeneratedSingleChildTransform::ExecuteBeginTransaction,
+    nullptr};
 static const TransformFrameOps ROLLBACK_TRANSACTION_OPS = {
     "RollbackTransaction", &PEGTransformerFactory::InitializeRollbackTransactionTrampoline,
     &PEGTransformerFactory::FinalizeRollbackTransactionTrampoline,
-    &GeneratedSingleChildTransform::ExecuteRollbackTransaction};
-static const TransformFrameOps COMMIT_TRANSACTION_OPS = {"CommitTransaction",
-                                                         &PEGTransformerFactory::InitializeCommitTransactionTrampoline,
-                                                         &PEGTransformerFactory::FinalizeCommitTransactionTrampoline,
-                                                         &GeneratedSingleChildTransform::ExecuteCommitTransaction};
+    &GeneratedSingleChildTransform::ExecuteRollbackTransaction, nullptr};
+static const TransformFrameOps COMMIT_TRANSACTION_OPS = {
+    "CommitTransaction", &PEGTransformerFactory::InitializeCommitTransactionTrampoline,
+    &PEGTransformerFactory::FinalizeCommitTransactionTrampoline,
+    &GeneratedSingleChildTransform::ExecuteCommitTransaction, nullptr};
 static const TransformFrameOps READ_OR_WRITE_OPS = {
     "ReadOrWrite", &PEGTransformerFactory::InitializeReadOrWriteTrampoline,
-    &PEGTransformerFactory::FinalizeReadOrWriteTrampoline, &GeneratedSingleChildTransform::ExecuteReadOrWrite};
+    &PEGTransformerFactory::FinalizeReadOrWriteTrampoline, &GeneratedSingleChildTransform::ExecuteReadOrWrite, nullptr};
 static const TransformFrameOps READ_ONLY_OR_READ_WRITE_OPS = {
     "ReadOnlyOrReadWrite", &PEGTransformerFactory::InitializeReadOnlyOrReadWriteTrampoline,
     &PEGTransformerFactory::FinalizeReadOnlyOrReadWriteTrampoline,
-    &GeneratedSingleChildTransform::ExecuteReadOnlyOrReadWrite};
+    &GeneratedSingleChildTransform::ExecuteReadOnlyOrReadWrite,
+    &GeneratedSingleChildTransform::ForwardReadOnlyOrReadWrite};
 static const TransformFrameOps READ_ONLY_OPS = {"ReadOnly", &PEGTransformerFactory::InitializeReadOnlyTrampoline,
                                                 &PEGTransformerFactory::FinalizeReadOnlyTrampoline,
-                                                &GeneratedSingleChildTransform::ExecuteReadOnly};
+                                                &GeneratedSingleChildTransform::ExecuteReadOnly, nullptr};
 static const TransformFrameOps READ_WRITE_OPS = {"ReadWrite", &PEGTransformerFactory::InitializeReadWriteTrampoline,
                                                  &PEGTransformerFactory::FinalizeReadWriteTrampoline,
-                                                 &GeneratedSingleChildTransform::ExecuteReadWrite};
+                                                 &GeneratedSingleChildTransform::ExecuteReadWrite, nullptr};
 static const TransformFrameOps UPDATE_STATEMENT_OPS = {
     "UpdateStatement", &PEGTransformerFactory::InitializeUpdateStatementTrampoline,
-    &PEGTransformerFactory::FinalizeUpdateStatementTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeUpdateStatementTrampoline, nullptr, nullptr};
 static const TransformFrameOps UPDATE_TARGET_OPS = {
     "UpdateTarget", &PEGTransformerFactory::InitializeUpdateTargetTrampoline,
-    &PEGTransformerFactory::FinalizeUpdateTargetTrampoline, &GeneratedSingleChildTransform::ExecuteUpdateTarget};
-static const TransformFrameOps BASE_TABLE_SET_OPS = {
-    "BaseTableSet", &PEGTransformerFactory::InitializeBaseTableSetTrampoline,
-    &PEGTransformerFactory::FinalizeBaseTableSetTrampoline, &GeneratedSingleChildTransform::ExecuteBaseTableSet};
+    &PEGTransformerFactory::FinalizeUpdateTargetTrampoline, &GeneratedSingleChildTransform::ExecuteUpdateTarget,
+    &GeneratedSingleChildTransform::ForwardUpdateTarget};
+static const TransformFrameOps BASE_TABLE_SET_OPS = {"BaseTableSet",
+                                                     &PEGTransformerFactory::InitializeBaseTableSetTrampoline,
+                                                     &PEGTransformerFactory::FinalizeBaseTableSetTrampoline,
+                                                     &GeneratedSingleChildTransform::ExecuteBaseTableSet, nullptr};
 static const TransformFrameOps BASE_TABLE_ALIAS_SET_OPS = {
     "BaseTableAliasSet", &PEGTransformerFactory::InitializeBaseTableAliasSetTrampoline,
-    &PEGTransformerFactory::FinalizeBaseTableAliasSetTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeBaseTableAliasSetTrampoline, nullptr, nullptr};
 static const TransformFrameOps UPDATE_ALIAS_OPS = {
     "UpdateAlias", &PEGTransformerFactory::InitializeUpdateAliasTrampoline,
-    &PEGTransformerFactory::FinalizeUpdateAliasTrampoline, &GeneratedSingleChildTransform::ExecuteUpdateAlias};
+    &PEGTransformerFactory::FinalizeUpdateAliasTrampoline, &GeneratedSingleChildTransform::ExecuteUpdateAlias, nullptr};
 static const TransformFrameOps UPDATE_SET_CLAUSE_LIST_OPS = {
     "UpdateSetClauseList", &PEGTransformerFactory::InitializeUpdateSetClauseListTrampoline,
-    &PEGTransformerFactory::FinalizeUpdateSetClauseListTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeUpdateSetClauseListTrampoline, nullptr, nullptr};
 static const TransformFrameOps UPDATE_SET_CLAUSE_OPS = {
     "UpdateSetClause", &PEGTransformerFactory::InitializeUpdateSetClauseTrampoline,
-    &PEGTransformerFactory::FinalizeUpdateSetClauseTrampoline, &GeneratedSingleChildTransform::ExecuteUpdateSetClause};
-static const TransformFrameOps UPDATE_SET_TUPLE_OPS = {
-    "UpdateSetTuple", &PEGTransformerFactory::InitializeUpdateSetTupleTrampoline,
-    &PEGTransformerFactory::FinalizeUpdateSetTupleTrampoline, &GeneratedSingleChildTransform::ExecuteUpdateSetTuple};
+    &PEGTransformerFactory::FinalizeUpdateSetClauseTrampoline, &GeneratedSingleChildTransform::ExecuteUpdateSetClause,
+    &GeneratedSingleChildTransform::ForwardUpdateSetClause};
+static const TransformFrameOps UPDATE_SET_TUPLE_OPS = {"UpdateSetTuple",
+                                                       &PEGTransformerFactory::InitializeUpdateSetTupleTrampoline,
+                                                       &PEGTransformerFactory::FinalizeUpdateSetTupleTrampoline,
+                                                       &GeneratedSingleChildTransform::ExecuteUpdateSetTuple, nullptr};
 static const TransformFrameOps UPDATE_SET_ELEMENT_OPS = {
     "UpdateSetElement", &PEGTransformerFactory::InitializeUpdateSetElementTrampoline,
-    &PEGTransformerFactory::FinalizeUpdateSetElementTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeUpdateSetElementTrampoline, nullptr, nullptr};
 static const TransformFrameOps UPDATE_SET_COLUMN_TARGET_OPS = {
     "UpdateSetColumnTarget", &PEGTransformerFactory::InitializeUpdateSetColumnTargetTrampoline,
-    &PEGTransformerFactory::FinalizeUpdateSetColumnTargetTrampoline, nullptr};
-static const TransformFrameOps USE_STATEMENT_OPS = {
-    "UseStatement", &PEGTransformerFactory::InitializeUseStatementTrampoline,
-    &PEGTransformerFactory::FinalizeUseStatementTrampoline, &GeneratedSingleChildTransform::ExecuteUseStatement};
+    &PEGTransformerFactory::FinalizeUpdateSetColumnTargetTrampoline, nullptr, nullptr};
+static const TransformFrameOps USE_STATEMENT_OPS = {"UseStatement",
+                                                    &PEGTransformerFactory::InitializeUseStatementTrampoline,
+                                                    &PEGTransformerFactory::FinalizeUseStatementTrampoline,
+                                                    &GeneratedSingleChildTransform::ExecuteUseStatement, nullptr};
 static const TransformFrameOps USE_TARGET_OPS = {"UseTarget", &PEGTransformerFactory::InitializeUseTargetTrampoline,
                                                  &PEGTransformerFactory::FinalizeUseTargetTrampoline,
-                                                 &GeneratedSingleChildTransform::ExecuteUseTarget};
+                                                 &GeneratedSingleChildTransform::ExecuteUseTarget,
+                                                 &GeneratedSingleChildTransform::ForwardUseTarget};
 static const TransformFrameOps SCHEMA_NAME_AS_USE_TARGET_OPS = {
     "SchemaNameAsUseTarget", &PEGTransformerFactory::InitializeSchemaNameAsUseTargetTrampoline,
     &PEGTransformerFactory::FinalizeSchemaNameAsUseTargetTrampoline,
-    &GeneratedSingleChildTransform::ExecuteSchemaNameAsUseTarget};
+    &GeneratedSingleChildTransform::ExecuteSchemaNameAsUseTarget, nullptr};
 static const TransformFrameOps CATALOG_NAME_AS_USE_TARGET_OPS = {
     "CatalogNameAsUseTarget", &PEGTransformerFactory::InitializeCatalogNameAsUseTargetTrampoline,
     &PEGTransformerFactory::FinalizeCatalogNameAsUseTargetTrampoline,
-    &GeneratedSingleChildTransform::ExecuteCatalogNameAsUseTarget};
+    &GeneratedSingleChildTransform::ExecuteCatalogNameAsUseTarget, nullptr};
 static const TransformFrameOps USE_TARGET_CATALOG_SCHEMA_OPS = {
     "UseTargetCatalogSchema", &PEGTransformerFactory::InitializeUseTargetCatalogSchemaTrampoline,
-    &PEGTransformerFactory::FinalizeUseTargetCatalogSchemaTrampoline, nullptr};
-static const TransformFrameOps DOT_IDENTIFIER_OPS = {
-    "DotIdentifier", &PEGTransformerFactory::InitializeDotIdentifierTrampoline,
-    &PEGTransformerFactory::FinalizeDotIdentifierTrampoline, &GeneratedSingleChildTransform::ExecuteDotIdentifier};
+    &PEGTransformerFactory::FinalizeUseTargetCatalogSchemaTrampoline, nullptr, nullptr};
+static const TransformFrameOps DOT_IDENTIFIER_OPS = {"DotIdentifier",
+                                                     &PEGTransformerFactory::InitializeDotIdentifierTrampoline,
+                                                     &PEGTransformerFactory::FinalizeDotIdentifierTrampoline,
+                                                     &GeneratedSingleChildTransform::ExecuteDotIdentifier, nullptr};
 static const TransformFrameOps VACUUM_STATEMENT_OPS = {
     "VacuumStatement", &PEGTransformerFactory::InitializeVacuumStatementTrampoline,
-    &PEGTransformerFactory::FinalizeVacuumStatementTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeVacuumStatementTrampoline, nullptr, nullptr};
 static const TransformFrameOps VACUUM_OPTIONS_OPS = {
     "VacuumOptions", &PEGTransformerFactory::InitializeVacuumOptionsTrampoline,
-    &PEGTransformerFactory::FinalizeVacuumOptionsTrampoline, &GeneratedSingleChildTransform::ExecuteVacuumOptions};
+    &PEGTransformerFactory::FinalizeVacuumOptionsTrampoline, &GeneratedSingleChildTransform::ExecuteVacuumOptions,
+    &GeneratedSingleChildTransform::ForwardVacuumOptions};
 static const TransformFrameOps VACUUM_PARENS_OPTIONS_OPS = {
     "VacuumParensOptions", &PEGTransformerFactory::InitializeVacuumParensOptionsTrampoline,
-    &PEGTransformerFactory::FinalizeVacuumParensOptionsTrampoline, nullptr};
+    &PEGTransformerFactory::FinalizeVacuumParensOptionsTrampoline, nullptr, nullptr};
 static const TransformFrameOps VACUUM_LEGACY_OPTIONS_OPS = {
     "VacuumLegacyOptions", &PEGTransformerFactory::InitializeVacuumLegacyOptionsTrampoline,
-    &PEGTransformerFactory::FinalizeVacuumLegacyOptionsTrampoline, nullptr};
-static const TransformFrameOps VACUUM_OPTION_OPS = {
-    "VacuumOption", &PEGTransformerFactory::InitializeVacuumOptionTrampoline,
-    &PEGTransformerFactory::FinalizeVacuumOptionTrampoline, &GeneratedSingleChildTransform::ExecuteVacuumOption};
+    &PEGTransformerFactory::FinalizeVacuumLegacyOptionsTrampoline, nullptr, nullptr};
+static const TransformFrameOps VACUUM_OPTION_OPS = {"VacuumOption",
+                                                    &PEGTransformerFactory::InitializeVacuumOptionTrampoline,
+                                                    &PEGTransformerFactory::FinalizeVacuumOptionTrampoline,
+                                                    &GeneratedSingleChildTransform::ExecuteVacuumOption, nullptr};
 static const TransformFrameOps OPT_ANALYZE_OPS = {"OptAnalyze", &PEGTransformerFactory::InitializeOptAnalyzeTrampoline,
                                                   &PEGTransformerFactory::FinalizeOptAnalyzeTrampoline,
-                                                  &GeneratedSingleChildTransform::ExecuteOptAnalyze};
+                                                  &GeneratedSingleChildTransform::ExecuteOptAnalyze, nullptr};
 static const TransformFrameOps OPT_FULL_OPS = {"OptFull", &PEGTransformerFactory::InitializeOptFullTrampoline,
                                                &PEGTransformerFactory::FinalizeOptFullTrampoline,
-                                               &GeneratedSingleChildTransform::ExecuteOptFull};
+                                               &GeneratedSingleChildTransform::ExecuteOptFull, nullptr};
 static const TransformFrameOps OPT_FREEZE_OPS = {"OptFreeze", &PEGTransformerFactory::InitializeOptFreezeTrampoline,
                                                  &PEGTransformerFactory::FinalizeOptFreezeTrampoline,
-                                                 &GeneratedSingleChildTransform::ExecuteOptFreeze};
+                                                 &GeneratedSingleChildTransform::ExecuteOptFreeze, nullptr};
 static const TransformFrameOps OPT_VERBOSE_OPS = {"OptVerbose", &PEGTransformerFactory::InitializeOptVerboseTrampoline,
                                                   &PEGTransformerFactory::FinalizeOptVerboseTrampoline,
-                                                  &GeneratedSingleChildTransform::ExecuteOptVerbose};
+                                                  &GeneratedSingleChildTransform::ExecuteOptVerbose, nullptr};
 static const TransformFrameOps NAME_LIST_OPS = {"NameList", &PEGTransformerFactory::InitializeNameListTrampoline,
-                                                &PEGTransformerFactory::FinalizeNameListTrampoline, nullptr};
+                                                &PEGTransformerFactory::FinalizeNameListTrampoline, nullptr, nullptr};
 
 const case_insensitive_map_t<const TransformFrameOps *> &PEGTransformerFactory::GeneratedTransformFrameOps() {
 	static const case_insensitive_map_t<const TransformFrameOps *> result = {
@@ -57238,6 +57837,1382 @@ TransformStep GeneratedSingleChildTransform::ExecuteOptVerbose(PEGTransformer &t
 	auto result = FinalizeOptVerboseTrampoline(transformer, parse_result, process);
 	D_ASSERT(!process.child);
 	return TransformStep::Complete(std::move(result));
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardAddOrDropDefault(PEGTransformer &transformer,
+                                                                      ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeAddOrDropDefaultTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardAfterMatchSkip(PEGTransformer &transformer,
+                                                                    ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeAfterMatchSkipTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardAfterMatchSkipTarget(PEGTransformer &transformer,
+                                                                          ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeAfterMatchSkipTargetTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardAliasedExpression(PEGTransformer &transformer,
+                                                                       ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeAliasedExpressionTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardAllRowsEmptyMatches(PEGTransformer &transformer,
+                                                                         ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeAllRowsEmptyMatchesTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardAlterColumnEntry(PEGTransformer &transformer,
+                                                                      ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeAlterColumnEntryTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardAlterOptions(PEGTransformer &transformer,
+                                                                  ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeAlterOptionsTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardAlterSchemaOptions(PEGTransformer &transformer,
+                                                                        ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeAlterSchemaOptionsTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardAlterSequenceOptions(PEGTransformer &transformer,
+                                                                          ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeAlterSequenceOptionsTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardAlterTableOptions(PEGTransformer &transformer,
+                                                                       ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeAlterTableOptionsTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardAnyOrAll(PEGTransformer &transformer, ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeAnyOrAllTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardApproxOrExact(PEGTransformer &transformer,
+                                                                   ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeApproxOrExactTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardArrayBounds(PEGTransformer &transformer,
+                                                                 ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeArrayBoundsTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardBaseTableName(PEGTransformer &transformer,
+                                                                   ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeBaseTableNameTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardBetweenLikeOpExpression(PEGTransformer &transformer,
+                                                                             ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeBetweenLikeOpExpressionTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardByNameOrPosition(PEGTransformer &transformer,
+                                                                      ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeByNameOrPositionTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardBySourceOrTarget(PEGTransformer &transformer,
+                                                                      ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeBySourceOrTargetTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardCTEBody(PEGTransformer &transformer, ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeCTEBodyTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardCastOrTryCast(PEGTransformer &transformer,
+                                                                   ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeCastOrTryCastTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardColumnConstraint(PEGTransformer &transformer,
+                                                                      ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeColumnConstraintTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardColumnConstraintElement(PEGTransformer &transformer,
+                                                                             ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeColumnConstraintElementTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardCommentOnType(PEGTransformer &transformer,
+                                                                   ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeCommentOnTypeTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardCommentTarget(PEGTransformer &transformer,
+                                                                   ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeCommentTargetTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardCommentValue(PEGTransformer &transformer,
+                                                                  ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeCommentValueTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardComparisonOperand(PEGTransformer &transformer,
+                                                                       ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeComparisonOperandTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardComparisonOperator(PEGTransformer &transformer,
+                                                                        ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeComparisonOperatorTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardConstraintTiming(PEGTransformer &transformer,
+                                                                      ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeConstraintTimingTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardCopyFileName(PEGTransformer &transformer,
+                                                                  ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeCopyFileNameTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardCopyFileNameExpression(PEGTransformer &transformer,
+                                                                            ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeCopyFileNameExpressionTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardCopyFileNameSuffix(PEGTransformer &transformer,
+                                                                        ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeCopyFileNameSuffixTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardCopyFromDatabase(PEGTransformer &transformer,
+                                                                      ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeCopyFromDatabaseTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardCopyGenericOption(PEGTransformer &transformer,
+                                                                       ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeCopyGenericOptionTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardCopyOptionList(PEGTransformer &transformer,
+                                                                    ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeCopyOptionListTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardCopyVariations(PEGTransformer &transformer,
+                                                                    ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeCopyVariationsTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardCreateStatementVariation(PEGTransformer &transformer,
+                                                                              ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeCreateStatementVariationTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardCreateTableColumnElement(PEGTransformer &transformer,
+                                                                              ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeCreateTableColumnElementTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardCreateTableDefinition(PEGTransformer &transformer,
+                                                                           ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeCreateTableDefinitionTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardCreateType(PEGTransformer &transformer,
+                                                                ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeCreateTypeTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardDecimalNumericType(PEGTransformer &transformer,
+                                                                        ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeDecimalNumericTypeTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardDefArg(PEGTransformer &transformer, ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeDefArgTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardDescOrAsc(PEGTransformer &transformer, ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeDescOrAscTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardDescribeOrSummarize(PEGTransformer &transformer,
+                                                                         ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeDescribeOrSummarizeTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardDescribeRule(PEGTransformer &transformer,
+                                                                  ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeDescribeRuleTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardDescribeTarget(PEGTransformer &transformer,
+                                                                    ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeDescribeTargetTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardDistanceOrSimilarity(PEGTransformer &transformer,
+                                                                          ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeDistanceOrSimilarityTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardDistinctClause(PEGTransformer &transformer,
+                                                                    ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeDistinctClauseTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardDistinctOrAll(PEGTransformer &transformer,
+                                                                   ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeDistinctOrAllTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardDotOperator(PEGTransformer &transformer,
+                                                                 ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeDotOperatorTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardDropBehavior(PEGTransformer &transformer,
+                                                                  ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeDropBehaviorTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardDropEntries(PEGTransformer &transformer,
+                                                                 ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeDropEntriesTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardExcludeName(PEGTransformer &transformer,
+                                                                 ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeExcludeNameTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardExcludeNames(PEGTransformer &transformer,
+                                                                  ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeExcludeNamesTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardExplainableStatements(PEGTransformer &transformer,
+                                                                           ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeExplainableStatementsTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardExpression(PEGTransformer &transformer,
+                                                                ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeExpressionTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardExtensionRepositoryStatement(PEGTransformer &transformer,
+                                                                                  ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeExtensionRepositoryStatementTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardExternalResourceCreationOptions(PEGTransformer &transformer,
+                                                                                     ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeExternalResourceCreationOptionsTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardExternalResourceSource(PEGTransformer &transformer,
+                                                                            ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeExternalResourceSourceTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardExternalResourceStatement(PEGTransformer &transformer,
+                                                                               ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeExternalResourceStatementTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardExtractArgument(PEGTransformer &transformer,
+                                                                     ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeExtractArgumentTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardExtractDatePart(PEGTransformer &transformer,
+                                                                     ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeExtractDatePartTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardFetchClause(PEGTransformer &transformer,
+                                                                 ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeFetchClauseTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardFetchClauseWithValue(PEGTransformer &transformer,
+                                                                          ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeFetchClauseWithValueTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardForEachClause(PEGTransformer &transformer,
+                                                                   ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeForEachClauseTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardFrameBound(PEGTransformer &transformer,
+                                                                ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeFrameBoundTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardFrameExtent(PEGTransformer &transformer,
+                                                                 ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeFrameExtentTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardFromOrTo(PEGTransformer &transformer, ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeFromOrToTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardFromSource(PEGTransformer &transformer,
+                                                                ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeFromSourceTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardFunctionArgument(PEGTransformer &transformer,
+                                                                      ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeFunctionArgumentTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardFunctionIdentifier(PEGTransformer &transformer,
+                                                                        ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeFunctionIdentifierTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardFunctionTypeMacro(PEGTransformer &transformer,
+                                                                       ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeFunctionTypeMacroTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardGenerated(PEGTransformer &transformer, ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeGeneratedTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardGeneratedColumnType(PEGTransformer &transformer,
+                                                                         ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeGeneratedColumnTypeTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardGenericCopyOptionValue(PEGTransformer &transformer,
+                                                                            ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeGenericCopyOptionValueTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardGroupByExpression(PEGTransformer &transformer,
+                                                                       ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeGroupByExpressionTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardGroupByExpressions(PEGTransformer &transformer,
+                                                                        ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeGroupByExpressionsTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardGroupingOrGroupingId(PEGTransformer &transformer,
+                                                                          ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeGroupingOrGroupingIdTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardIgnoreOrRespectNulls(PEGTransformer &transformer,
+                                                                          ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeIgnoreOrRespectNullsTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardInExpression(PEGTransformer &transformer,
+                                                                  ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeInExpressionTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardIncludeOrExcludeNulls(PEGTransformer &transformer,
+                                                                           ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeIncludeOrExcludeNullsTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardIndirection(PEGTransformer &transformer,
+                                                                 ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeIndirectionTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardInnerTableRef(PEGTransformer &transformer,
+                                                                   ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeInnerTableRefTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardInsertByNameOrder(PEGTransformer &transformer,
+                                                                       ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeInsertByNameOrderTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardInsertByPositionOrder(PEGTransformer &transformer,
+                                                                           ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeInsertByPositionOrderTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardInsertMatchInfo(PEGTransformer &transformer,
+                                                                     ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeInsertMatchInfoTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardInsertValues(PEGTransformer &transformer,
+                                                                  ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeInsertValuesTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardInterval(PEGTransformer &transformer, ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeIntervalTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardIntervalInterval(PEGTransformer &transformer,
+                                                                      ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeIntervalIntervalTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardIntervalParameter(PEGTransformer &transformer,
+                                                                       ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeIntervalParameterTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardIntervalToInterval(PEGTransformer &transformer,
+                                                                        ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeIntervalToIntervalTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardIntervalType(PEGTransformer &transformer,
+                                                                  ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeIntervalTypeTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardIntervalWithSpecifier(PEGTransformer &transformer,
+                                                                           ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeIntervalWithSpecifierTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardIsExpressionTail(PEGTransformer &transformer,
+                                                                      ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeIsExpressionTailTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardIsLiteralValue(PEGTransformer &transformer,
+                                                                    ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeIsLiteralValueTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardIsTest(PEGTransformer &transformer, ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeIsTestTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardJoinClause(PEGTransformer &transformer,
+                                                                ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeJoinClauseTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardJoinOrPivot(PEGTransformer &transformer,
+                                                                 ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeJoinOrPivotTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardJoinPrefix(PEGTransformer &transformer,
+                                                                ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeJoinPrefixTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardJoinQualifier(PEGTransformer &transformer,
+                                                                   ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeJoinQualifierTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardJoinType(PEGTransformer &transformer, ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeJoinTypeTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardKeyActions(PEGTransformer &transformer,
+                                                                ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeKeyActionsTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardLimitOffset(PEGTransformer &transformer,
+                                                                 ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeLimitOffsetTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardLimitValue(PEGTransformer &transformer,
+                                                                ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeLimitValueTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardListExpression(PEGTransformer &transformer,
+                                                                    ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeListExpressionTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardMacroDefinitionBody(PEGTransformer &transformer,
+                                                                         ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeMacroDefinitionBodyTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardMacroOrFunction(PEGTransformer &transformer,
+                                                                     ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeMacroOrFunctionTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardMacroParameter(PEGTransformer &transformer,
+                                                                    ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeMacroParameterTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardMatchRecognizeClause(PEGTransformer &transformer,
+                                                                          ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeMatchRecognizeClauseTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardMatchedClauseAction(PEGTransformer &transformer,
+                                                                         ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeMatchedClauseActionTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardMeasureSemantics(PEGTransformer &transformer,
+                                                                      ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeMeasureSemanticsTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardMergeMatch(PEGTransformer &transformer,
+                                                                ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeMergeMatchTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardNearestBareTableRef(PEGTransformer &transformer,
+                                                                         ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeNearestBareTableRefTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardNearestJoinClause(PEGTransformer &transformer,
+                                                                       ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeNearestJoinClauseTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardNotNull(PEGTransformer &transformer, ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeNotNullTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardNullsFirstOrLast(PEGTransformer &transformer,
+                                                                      ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeNullsFirstOrLastTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardNumericType(PEGTransformer &transformer,
+                                                                 ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeNumericTypeTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardOnConflictAction(PEGTransformer &transformer,
+                                                                      ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeOnConflictActionTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardOnConflictTarget(PEGTransformer &transformer,
+                                                                      ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeOnConflictTargetTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardOptionalParensNameList(PEGTransformer &transformer,
+                                                                            ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeOptionalParensNameListTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardOptionalParensSimpleSelect(PEGTransformer &transformer,
+                                                                                ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeOptionalParensSimpleSelectTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardOrAction(PEGTransformer &transformer, ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeOrActionTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardOrderByExpressions(PEGTransformer &transformer,
+                                                                        ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeOrderByExpressionsTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardOtherOperator(PEGTransformer &transformer,
+                                                                   ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeOtherOperatorTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardOtherOperatorExpression(PEGTransformer &transformer,
+                                                                             ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeOtherOperatorExpressionTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardOverlayArguments(PEGTransformer &transformer,
+                                                                      ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeOverlayArgumentsTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardParameter(PEGTransformer &transformer, ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeParameterTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardPartitionByColumnList(PEGTransformer &transformer,
+                                                                           ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializePartitionByColumnListTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardPartitionSortedOptions(PEGTransformer &transformer,
+                                                                            ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializePartitionSortedOptionsTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardPatternClause(PEGTransformer &transformer,
+                                                                   ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializePatternClauseTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardPivotColumnEntry(PEGTransformer &transformer,
+                                                                      ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializePivotColumnEntryTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardPivotValueTarget(PEGTransformer &transformer,
+                                                                      ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializePivotValueTargetTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardPragmaAssignOrFunction(PEGTransformer &transformer,
+                                                                            ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializePragmaAssignOrFunctionTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardPrecedingOrFollowing(PEGTransformer &transformer,
+                                                                          ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializePrecedingOrFollowingTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardPreserveOrDelete(PEGTransformer &transformer,
+                                                                      ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializePreserveOrDeleteTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardQualifiedIndexName(PEGTransformer &transformer,
+                                                                        ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeQualifiedIndexNameTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardQualifiedName(PEGTransformer &transformer,
+                                                                   ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeQualifiedNameTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardQualifiedTableName(PEGTransformer &transformer,
+                                                                        ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeQualifiedTableNameTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardQualifiedTypeName(PEGTransformer &transformer,
+                                                                       ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeQualifiedTypeNameTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardQuantifierBounds(PEGTransformer &transformer,
+                                                                      ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeQuantifierBoundsTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardQuantifierRange(PEGTransformer &transformer,
+                                                                     ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeQuantifierRangeTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardReadOnlyOrReadWrite(PEGTransformer &transformer,
+                                                                         ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeReadOnlyOrReadWriteTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardReferencingItem(PEGTransformer &transformer,
+                                                                     ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeReferencingItemTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardRelOptionOrOids(PEGTransformer &transformer,
+                                                                     ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeRelOptionOrOidsTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardRenameEntries(PEGTransformer &transformer,
+                                                                   ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeRenameEntriesTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardReplaceEntries(PEGTransformer &transformer,
+                                                                    ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeReplaceEntriesTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardRowPatternAlternative(PEGTransformer &transformer,
+                                                                           ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeRowPatternAlternativeTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardRowPatternAnchor(PEGTransformer &transformer,
+                                                                      ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeRowPatternAnchorTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardRowPatternGroup(PEGTransformer &transformer,
+                                                                     ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeRowPatternGroupTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardRowPatternPrimary(PEGTransformer &transformer,
+                                                                       ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeRowPatternPrimaryTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardRowPatternQuantifierKind(PEGTransformer &transformer,
+                                                                              ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeRowPatternQuantifierKindTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardRowsPerMatch(PEGTransformer &transformer,
+                                                                  ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeRowsPerMatchTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardSampleEntry(PEGTransformer &transformer,
+                                                                 ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeSampleEntryTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardSampleUnit(PEGTransformer &transformer,
+                                                                ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeSampleUnitTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardSampleValue(PEGTransformer &transformer,
+                                                                 ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeSampleValueTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardSchemaOrData(PEGTransformer &transformer,
+                                                                  ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeSchemaOrDataTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardSelectAtom(PEGTransformer &transformer,
+                                                                ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeSelectAtomTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardSelectFrom(PEGTransformer &transformer,
+                                                                ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeSelectFromTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardSelectStatementType(PEGTransformer &transformer,
+                                                                         ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeSelectStatementTypeTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardSeqSetCycle(PEGTransformer &transformer,
+                                                                 ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeSeqSetCycleTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardSequenceOption(PEGTransformer &transformer,
+                                                                    ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeSequenceOptionTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardSessionTarget(PEGTransformer &transformer,
+                                                                   ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeSessionTargetTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardSetAssignmentOrTimeZone(PEGTransformer &transformer,
+                                                                             ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeSetAssignmentOrTimeZoneTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardSetVariableOrSetting(PEGTransformer &transformer,
+                                                                          ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeSetVariableOrSettingTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardSetopType(PEGTransformer &transformer, ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeSetopTypeTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardSettingScope(PEGTransformer &transformer,
+                                                                  ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeSettingScopeTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardShowOrDescribe(PEGTransformer &transformer,
+                                                                    ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeShowOrDescribeTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardSimpleType(PEGTransformer &transformer,
+                                                                ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeSimpleTypeTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardSingleExpression(PEGTransformer &transformer,
+                                                                      ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeSingleExpressionTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardSingleOption(PEGTransformer &transformer,
+                                                                  ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeSingleOptionTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardSliceUpperBound(PEGTransformer &transformer,
+                                                                     ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeSliceUpperBoundTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardSpecialFunctionExpression(PEGTransformer &transformer,
+                                                                               ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeSpecialFunctionExpressionTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardSpecializedOption(PEGTransformer &transformer,
+                                                                       ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeSpecializedOptionTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardSubstringArguments(PEGTransformer &transformer,
+                                                                        ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeSubstringArgumentsTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardSubstringFromFor(PEGTransformer &transformer,
+                                                                      ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeSubstringFromForTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardTableAlias(PEGTransformer &transformer,
+                                                                ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeTableAliasTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardTableFunction(PEGTransformer &transformer,
+                                                                   ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeTableFunctionTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardTableOrView(PEGTransformer &transformer,
+                                                                 ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeTableOrViewTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardTemporary(PEGTransformer &transformer, ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeTemporaryTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardTimeOrTimestamp(PEGTransformer &transformer,
+                                                                     ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeTimeOrTimestampTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardTopLevelConstraintList(PEGTransformer &transformer,
+                                                                            ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeTopLevelConstraintListTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardTransactionStatement(PEGTransformer &transformer,
+                                                                          ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeTransactionStatementTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardTriggerBody(PEGTransformer &transformer,
+                                                                 ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeTriggerBodyTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardTriggerEvent(PEGTransformer &transformer,
+                                                                  ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeTriggerEventTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardTriggerTiming(PEGTransformer &transformer,
+                                                                   ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeTriggerTimingTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardTruncateOptions(PEGTransformer &transformer,
+                                                                     ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeTruncateOptionsTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardTypeVariations(PEGTransformer &transformer,
+                                                                    ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeTypeVariationsTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardUnpivotHeader(PEGTransformer &transformer,
+                                                                   ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeUnpivotHeaderTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardUpdateMatchInfo(PEGTransformer &transformer,
+                                                                     ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeUpdateMatchInfoTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardUpdateMatchSetClause(PEGTransformer &transformer,
+                                                                          ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeUpdateMatchSetClauseTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardUpdateSetClause(PEGTransformer &transformer,
+                                                                     ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeUpdateSetClauseTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardUpdateTarget(PEGTransformer &transformer,
+                                                                  ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeUpdateTargetTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardUseTarget(PEGTransformer &transformer, ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeUseTargetTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardVacuumOptions(PEGTransformer &transformer,
+                                                                   ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeVacuumOptionsTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardWindowExcludeElement(PEGTransformer &transformer,
+                                                                          ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeWindowExcludeElementTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardWindowFrame(PEGTransformer &transformer,
+                                                                 ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeWindowFrameTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardWindowFrameDefinition(PEGTransformer &transformer,
+                                                                           ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeWindowFrameDefinitionTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardWithData(PEGTransformer &transformer, ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeWithDataTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardWithOrWithout(PEGTransformer &transformer,
+                                                                   ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeWithOrWithoutTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardWithOrWithoutOids(PEGTransformer &transformer,
+                                                                       ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeWithOrWithoutOidsTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
+}
+
+TransformInput GeneratedSingleChildTransform::ForwardZoneValue(PEGTransformer &transformer, ParseResult &parse_result) {
+	ForwardTransformState process;
+	InitializeZoneValueTrampoline(transformer, parse_result, process);
+	return process.Take(parse_result);
 }
 
 } // namespace duckdb

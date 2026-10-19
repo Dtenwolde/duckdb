@@ -40,11 +40,31 @@ struct SingleChildTransformState {
 	idx_t child_slots;
 };
 
+//! Runs a forwarding rule's initialize schedule only to find the child that stands in for the rule
+struct ForwardTransformState {
+	void ReserveChildSlots(idx_t count) {
+		D_ASSERT(count == 1);
+	}
+	void PushChild(TransformInput input, idx_t slot) {
+		D_ASSERT(slot == 0);
+		D_ASSERT(!child);
+		child.emplace(input);
+	}
+	TransformInput Take(ParseResult &parse_result) {
+		if (!child) {
+			throw InternalException("Forwarding rule '%s' selected no child", parse_result.Name());
+		}
+		return *child;
+	}
+
+	optional<TransformInput> child;
+};
+
 } // namespace
 """
 
 
-def single_child_source_declarations(rules):
+def single_child_source_declarations(rules, forward_rules):
     lines = [
         SINGLE_CHILD_STATE,
         "namespace {",
@@ -60,11 +80,13 @@ def single_child_source_declarations(rules):
             f"static TransformStep Execute{rule}(PEGTransformer &transformer, "
             "ParseResult &parse_result, arena_ptr<TransformResultValue> child_result);"
         )
+    for rule in sorted(forward_rules):
+        lines.append(f"static TransformInput Forward{rule}(PEGTransformer &transformer, ParseResult &parse_result);")
     lines.extend(["};", "} // namespace", ""])
     return lines
 
 
-def single_child_source_definitions(rules):
+def single_child_source_definitions(rules, forward_rules):
     lines = []
     for name, result in hooks(rules).items():
         forward = "" if result == "void" else "return "
@@ -91,6 +113,17 @@ TransformStep GeneratedSingleChildTransform::Execute{rule}(PEGTransformer &trans
     auto result = {finalize}(transformer, parse_result, process);
     D_ASSERT(!process.child);
     return TransformStep::Complete(std::move(result));
+}}
+"""
+        )
+    for rule in sorted(forward_rules):
+        _, initialize, _ = rules[rule]
+        lines.append(
+            f"""
+TransformInput GeneratedSingleChildTransform::Forward{rule}(PEGTransformer &transformer, ParseResult &parse_result) {{
+    ForwardTransformState process;
+    {initialize}(transformer, parse_result, process);
+    return process.Take(parse_result);
 }}
 """
         )

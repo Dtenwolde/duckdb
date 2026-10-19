@@ -140,11 +140,41 @@ TransformStack::~TransformStack() {
 	}
 }
 
+//! Whether a forwarding rule can hand its location duty to the child: the child spans the same source range
+static bool ForwardsLocation(const ParseResult &parent, const ParseResult &child) {
+	if (!parent.GetOffset().IsValid()) {
+		return true;
+	}
+	auto parent_location = parent.GetLocation();
+	auto child_location = child.GetLocation();
+	return child.GetOffset().IsValid() && parent_location.offset == child_location.offset &&
+	       parent_location.length == child_location.length;
+}
+
 void TransformStack::PushFrame(TransformInput input) {
-	frames.emplace_back(input);
+	// rules that return their child's result unchanged are transformed through the child, keeping their depth
+	idx_t weight = 0;
+	optional_ptr<const CompiledGrammarRule> rule = input.GetRule();
+	reference<ParseResult> parse_result(input.parse_result);
+	while (true) {
+		weight += transformer.ExpressionDepthWeight(rule, parse_result.get());
+		if (!rule || !rule->generated_ops || !rule->generated_ops->forward) {
+			break;
+		}
+		auto child = rule->generated_ops->forward(transformer, parse_result.get());
+		if (!ForwardsLocation(parse_result.get(), child.parse_result)) {
+			break;
+		}
+		rule = child.GetRule();
+		parse_result = child.parse_result;
+	}
+	if (rule) {
+		frames.emplace_back(TransformInput(*rule, parse_result.get()));
+	} else {
+		frames.emplace_back(input);
+	}
 	auto &frame = frames.back();
 	frame.process_arena_position = transformer.process_allocator.GetPosition();
-	auto weight = transformer.ExpressionDepthWeight(frame.rule, frame.parse_result);
 	if (weight) {
 		// recorded first: the frame is released (and the weight subtracted) when entering throws
 		frame.expression_depth_weight = weight;
@@ -165,9 +195,9 @@ void TransformStack::InitializeFrame(TransformStackFrame &frame) {
 	if (!frame.rule) {
 		throw InternalException("No registered data exists for rule '%s'", frame.parse_result.Name());
 	}
-	auto factory = frame.rule->transform_process.target<GeneratedTransformFactory>();
-	if (factory && factory->info.single_child) {
-		frame.single_child = factory->info.single_child;
+	auto ops = frame.rule->generated_ops;
+	if (ops && ops->single_child) {
+		frame.single_child = ops->single_child;
 	} else {
 		frame.process = frame.rule->StartTransform(transformer, frame.parse_result);
 	}

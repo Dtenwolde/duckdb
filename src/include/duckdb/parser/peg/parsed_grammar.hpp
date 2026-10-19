@@ -118,6 +118,8 @@ private:
 	vector<terminal_rule_override_callback_t> terminal_rule_override_callbacks;
 };
 
+struct TransformFrameOps;
+
 //! Immutable semantic data referenced directly by matchers and parse results.
 struct CompiledGrammarRule {
 	CompiledGrammarRule(string name_p, grammar_transform_process_function_t transform_process_p,
@@ -133,6 +135,8 @@ struct CompiledGrammarRule {
 	//! Built-in rules get their generated constant, rules added at runtime get an ID past BUILTIN_COUNT
 	PEGRuleId rule_id = PEGRuleId::INVALID;
 	grammar_transform_process_function_t transform_process;
+	//! The generated schedule behind transform_process, resolved once when the grammar is compiled
+	optional_ptr<const TransformFrameOps> generated_ops;
 	//! See ParsedGrammar::SetTransformProcess
 	bool collapsible;
 	//! See ParsedGrammar::AddRule

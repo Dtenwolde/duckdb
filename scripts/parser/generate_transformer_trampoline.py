@@ -26,6 +26,7 @@ from transformer_trampoline_config import (
 )
 from transformer_plan import (
     ChoiceNode,
+    LiteralNode,
     DirectOptionalArg,
     DirectOptionalListArg,
     DirectOptionalMatcherArg,
@@ -293,8 +294,12 @@ class UseGramPreviewEmitter:
         self.syntax_only_rules = self.collect_syntax_only_rules()
         # Classification probes ordinary emission before specialization is prepared.
         self.single_child_rule_info = {}
+        self.forward_rules = set()
+        self.collapsible_forward_rules = set()
         self.rule_capabilities = self.collect_rule_capabilities()
         self.single_child_rule_info = self.collect_single_child_rules()
+        self.forward_rules = self.collect_forward_rules()
+        self.collapsible_forward_rules = self.collect_collapsible_forward_rules()
 
     def collect_syntax_only_rules(self):
         result = {rule_name for rule_name in self.excluded_rules if rule_name not in self.rule_types}
@@ -558,6 +563,72 @@ class UseGramPreviewEmitter:
         slots = max([arg.slot_idx + 1 for arg in children], default=0)
         return slots if slots <= 1 else None
 
+    def is_pure_forward_rule(self, rule_name):
+        """A single-child rule whose initialize always selects one child and whose finalize returns it unchanged."""
+        if rule_name not in self.single_child_rule_info:
+            return False
+        if (
+            rule_name in SPECIAL_DISPATCH_RULES
+            or rule_name in IDENTIFIER_OR_KEYWORD_RULES
+            or rule_name in self.matcher_overrides
+        ):
+            return False
+        capability = self.rule_capabilities[rule_name]
+        if capability.status != RuleCapabilityStatus.GENERATED or self.is_manual_finalize_rule(rule_name):
+            return False
+        ast = capability.ast
+        if self.is_forward_rule(rule_name):
+            return True
+        if (
+            literal_string_values(ast) is not None
+            or self.is_no_arg_syntax_only_rule(rule_name, ast)
+            or self.is_parse_result_syntax_only_rule(rule_name, ast)
+        ):
+            return False
+        cpp_type = self.cpp_type(rule_name)
+        if isinstance(ast, ChoiceNode):
+            if cpp_type in ("string", "Identifier") or self.is_parse_result_manual_choice_rule(rule_name, ast):
+                return False
+            if self.choice_syntax_only_alternative_names(ast):
+                return False
+            child_cpp_types = set()
+            for alternative in ast.alternatives:
+                if isinstance(alternative, ReferenceNode) and alternative.name in self.rule_types:
+                    child_cpp_types.add(self.cpp_type(alternative.name))
+            if len(child_cpp_types) == 1 and cpp_type not in child_cpp_types and manual_body_exists(rule_name):
+                return False
+            return True
+        sequence = ast if isinstance(ast, SequenceNode) else SequenceNode([ast])
+        plan = plan_trampoline_sequence_rule_with_terminals(
+            sequence,
+            self.matcher_overrides,
+            self.syntax_only_rules,
+            allow_dynamic_stack_followers=True,
+            allow_top_level_repeat=True,
+        )
+        return self.auto_sequence_forward_child(rule_name, plan) is not None
+
+    def collect_forward_rules(self):
+        return {rule for rule in self.single_child_rule_info if self.is_pure_forward_rule(rule)}
+
+    def is_direct_forward_shape(self, ast):
+        """The forwarded child's own parse result is what the rule forwards: a choice of rule references, a rule
+        alias, or a sequence of rule references and keywords (keywords leave results, so such lists never collapse)."""
+        if isinstance(ast, ChoiceNode):
+            return all(isinstance(alt, ReferenceNode) and alt.name in self.rules for alt in ast.alternatives)
+        if isinstance(ast, ReferenceNode):
+            return ast.name in self.rules
+        if isinstance(ast, SequenceNode):
+            return all(
+                isinstance(child, LiteralNode) or (isinstance(child, ReferenceNode) and child.name in self.rules)
+                for child in ast.children
+            )
+        return False
+
+    def collect_collapsible_forward_rules(self):
+        """Forwarding rules whose result the matcher can replace by the forwarded child's result."""
+        return {rule for rule in self.forward_rules if self.is_direct_forward_shape(self.rule_capabilities[rule].ast)}
+
     def collect_single_child_rules(self):
         return {
             rule: (ops_name(rule), self.initialize_hook(rule), self.finalize_hook(rule))
@@ -598,15 +669,18 @@ class UseGramPreviewEmitter:
         lines.append("namespace duckdb {\n\n")
         lines.append(f"")
         single_child_rules = self.single_child_rule_info
-        lines.extend(single_child_source_declarations(single_child_rules))
+        lines.extend(single_child_source_declarations(single_child_rules, self.forward_rules))
         for rule_name in self.emitted_ops_rules():
             callback = (
                 f"&GeneratedSingleChildTransform::Execute{rule_name}" if rule_name in single_child_rules else "nullptr"
             )
+            forward = (
+                f"&GeneratedSingleChildTransform::Forward{rule_name}" if rule_name in self.forward_rules else "nullptr"
+            )
             lines.append(
                 f"static const TransformFrameOps {ops_name(rule_name)} = "
                 f'{{"{rule_name}", &PEGTransformerFactory::{self.initialize_hook(rule_name)}, '
-                f"&PEGTransformerFactory::{self.finalize_hook(rule_name)}, {callback}}};"
+                f"&PEGTransformerFactory::{self.finalize_hook(rule_name)}, {callback}, {forward}}};"
             )
         lines.append(f"")
         lines.extend(self.emit_ops_lookup())
@@ -626,7 +700,7 @@ class UseGramPreviewEmitter:
                 continue
             lines.extend(self.emit_rule(rule_name, tokens_to_ast(rule.tokens)))
             lines.append(f"")
-        lines.extend(single_child_source_definitions(single_child_rules))
+        lines.extend(single_child_source_definitions(single_child_rules, self.forward_rules))
         lines.append("} // namespace duckdb")
         return "\n".join(lines)
 
@@ -1756,9 +1830,18 @@ def main():
         write_matcher_rule_overrides(matcher_override_config)
         packrat_rules = load_packrat_memoized_rules(grammar_types_file, all_rules.keys())
         collapsible_rules = load_collapsible_rules(grammar_types_file, emitter.emitted_ops_rules())
+        nesting_rules, chain_rules = load_expression_depth_rules(grammar_types_file, all_rules.keys())
+        # forwarding rules return their only child unchanged, so the matcher can hand out the child directly;
+        # rules that count towards the expression depth keep their result so the transformer still sees them
+        depth_rules = set(nesting_rules) | set(chain_rules)
+        collapsible_rules = list(collapsible_rules) + sorted(
+            rule
+            for rule in emitter.collapsible_forward_rules
+            if rule not in collapsible_rules and rule not in depth_rules
+        )
         write_packrat_memoized_rules(packrat_rules)
         write_collapsible_rules(collapsible_rules)
-        write_expression_depth_rules(*load_expression_depth_rules(grammar_types_file, all_rules.keys()))
+        write_expression_depth_rules(nesting_rules, chain_rules)
         write_rule_ids(all_rules)
     elif args.report:
         print(f"grammar files: {', '.join(grammar_files)}")

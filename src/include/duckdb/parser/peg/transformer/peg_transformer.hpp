@@ -270,7 +270,9 @@ using transform_process_initialize_t = void (*)(PEGTransformer &transformer, Gen
 using transform_process_finalize_t = arena_ptr<TransformResultValue> (*)(PEGTransformer &transformer,
                                                                          GeneratedTransformProcess &process);
 
+struct TransformInput;
 using transform_single_child_t = TransformStep (*)(PEGTransformer &, ParseResult &, arena_ptr<TransformResultValue>);
+using transform_forward_t = TransformInput (*)(PEGTransformer &, ParseResult &);
 
 struct TransformFrameOps {
 	const char *name;
@@ -278,6 +280,8 @@ struct TransformFrameOps {
 	transform_process_finalize_t finalize;
 	//! Generated plans that retain no mutable state while waiting for their single child.
 	transform_single_child_t single_child = nullptr;
+	//! Rules that return their single child's result unchanged: the child can be transformed in their place.
+	transform_forward_t forward = nullptr;
 };
 
 struct GeneratedTransformFactory {

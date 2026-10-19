@@ -1,5 +1,6 @@
 #include "duckdb/parser/peg/compiled_grammar.hpp"
 #include "duckdb/parser/peg/matcher_factory.hpp"
+#include "duckdb/parser/peg/transformer/peg_transformer.hpp"
 #include "duckdb/parser/peg/keyword_helper/parsed_grammar_keyword_helper.hpp"
 #include "duckdb/common/string_util.hpp"
 #include "duckdb/parser/grammar_extension.hpp"
@@ -155,8 +156,13 @@ shared_ptr<CompiledGrammar> CompiledGrammar::Create(const vector<reference<Gramm
 	compiled_rules_map_t rules;
 	for (auto &entry : grammar.rules) {
 		auto &rule = *entry.second;
-		rules.emplace(rule.name, make_uniq<CompiledGrammarRule>(rule.name, rule.transform_process, rule.collapsible,
-		                                                        rule.expression_depth, rule.suppress_suggestions));
+		auto compiled_rule = make_uniq<CompiledGrammarRule>(rule.name, rule.transform_process, rule.collapsible,
+		                                                    rule.expression_depth, rule.suppress_suggestions);
+		auto factory = compiled_rule->transform_process.target<GeneratedTransformFactory>();
+		if (factory) {
+			compiled_rule->generated_ops = &factory->info;
+		}
+		rules.emplace(rule.name, std::move(compiled_rule));
 	}
 
 	MatcherAllocator allocator;

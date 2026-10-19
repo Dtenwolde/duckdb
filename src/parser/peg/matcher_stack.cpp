@@ -184,9 +184,22 @@ public:
 		return result.type == ParseResultType::OPTIONAL && !result.Cast<OptionalParseResult>().HasResult();
 	}
 
+	//! The result that is transformed in place of a collapsed rule: a choice forwards its selected alternative.
+	//! Null when that result carries no rule of its own.
+	static optional_ptr<ParseResult> CollapseTarget(ParseResult &result) {
+		reference<ParseResult> target(result);
+		while (target.get().type == ParseResultType::CHOICE) {
+			target = target.get().Cast<ChoiceParseResult>().GetResult();
+		}
+		if (!target.get().GetRule()) {
+			return nullptr;
+		}
+		return target.get();
+	}
+
 	//! Return the first child directly when either a whole prepared group or this list has no remaining value.
 	bool TryCollapseEmptyTail(ParseResult &first_result) {
-		if (!matcher.get().IsCollapsible() || !state.BuildParseResult() || !first_result.GetRule() ||
+		if (!matcher.get().IsCollapsible() || !state.BuildParseResult() || !CollapseTarget(first_result) ||
 		    IsEmptyOptional(first_result)) {
 			return false;
 		}
@@ -272,13 +285,9 @@ public:
 		}
 
 		// only results that carry a rule of their own are collapsible into this one, since the result is
-		// transformed by that rule
-		if (collapsible && !collapsible->GetRule()) {
-			return nullptr;
-		}
-
-		// null when no child produced a result, so a rule that matched empty still gets a result of its own
-		return collapsible;
+		// transformed by that rule; null when no child produced a result, so a rule that matched empty still gets a
+		// result of its own
+		return collapsible ? CollapseTarget(*collapsible) : nullptr;
 	}
 
 	void DiscardSuggestions() {
@@ -556,8 +565,9 @@ MatchStep MatchStack::ExecuteInternal(optional_ptr<MatchStack> stack, MatchStack
 						f.state.token_iterator.SetPosition(f.list_state.token_iterator);
 					}
 					f.DiscardSuggestions();
-					child_result->GetParseResult()->collapsed = true;
-					completed = *child_result;
+					auto collapsed = ListMatchFrame::CollapseTarget(*child_result->GetParseResult());
+					collapsed->collapsed = true;
+					completed = MatcherResult::Success(collapsed);
 					goto finish_list;
 				}
 				if (child_result) {
