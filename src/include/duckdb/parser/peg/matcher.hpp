@@ -31,6 +31,7 @@ class ParseResultAllocator;
 class Matcher;
 class MatcherAllocator;
 struct ListMatchChain;
+struct MatcherTailCheck;
 class MatchProcess;
 class MatchStack;
 
@@ -168,6 +169,11 @@ struct MatchContext {
 	IdentifierCaseMode identifier_case_mode;
 	ParserPackratCache *packrat_cache;
 	MatchMode mode;
+	//! The grammar's tail checks; unset when sequences must not be skipped, e.g. for the exact error position of a
+	//! failed match
+	optional_ptr<const vector<unique_ptr<MatcherTailCheck>>> tail_checks;
+	//! Furthest token index a sequence skipped by a tail check could have reached
+	idx_t tail_rejected_until = 0;
 };
 
 struct MatchState {
@@ -303,6 +309,13 @@ struct MatcherTokenSet {
 	}
 };
 
+//! Lookahead over a sequence whose prefix consumes only tokens of `alphabet` outside of balanced brackets: the first
+//! other token has to start the element after the prefix (`required`)
+struct MatcherTailCheck {
+	MatcherTokenSet alphabet;
+	MatcherTokenSet required;
+};
+
 //! Over-approximation of the tokens a matcher can start with (its FIRST set), computed once per grammar, together with
 //! the tokens for which it can match exactly one token (ONE) and the tokens it can see second (SECOND). Lets the
 //! matcher skip sub-matchers that certainly cannot match at the current token.
@@ -312,6 +325,8 @@ struct MatcherFirstSet : public MatcherTokenSet {
 	bool nullable = false;
 	//! every token in FIRST passes the lookahead check, so only FIRST has to be tested
 	bool first_suffices = true;
+	//! one-based index of the tail check of this sequence in the grammar's tail checks, zero when there is none
+	uint16_t tail_check_index = 0;
 	optional_ptr<const GrammarLiteralTable> table;
 	//! first tokens for which a match consuming exactly one token is possible
 	MatcherTokenSet one;
@@ -361,8 +376,10 @@ struct MatcherFirstSet : public MatcherTokenSet {
 		}
 		return MightMatchSecond(state);
 	}
-	//! The lookahead check for a token in FIRST: a one-token match or a valid second token
+	//! The lookahead check for a token in FIRST: a one-token match or a valid second token, then the tail check
 	DUCKDB_API bool MightMatchSecond(MatchState &state) const;
+	//! Scans past the tokens the prefix can consume and checks that the element after it can start there
+	DUCKDB_API bool MightMatchTail(const MatcherTailCheck &check, MatchState &state) const;
 };
 
 class Matcher {
@@ -504,10 +521,16 @@ public:
 
 	Matcher &Allocate(unique_ptr<Matcher> matcher);
 	void InitializeListChains();
+	//! Derive tail checks for sequences after the FIRST sets are final
+	DUCKDB_API void InitializeTailChecks(const GrammarLiteralTable &table);
+	const vector<unique_ptr<MatcherTailCheck>> &GetTailChecks() const {
+		return tail_checks;
+	}
 
 private:
 	vector<unique_ptr<Matcher>> matchers;
 	vector<unique_ptr<ListMatchChain>> list_chains;
+	vector<unique_ptr<MatcherTailCheck>> tail_checks;
 };
 
 class ParseResultAllocator {

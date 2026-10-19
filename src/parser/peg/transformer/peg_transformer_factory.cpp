@@ -82,6 +82,30 @@ unique_ptr<SQLStatement> PEGTransformerFactory::TransformTopLevelStatement(Token
 	return TransformTopLevelStatement(token_iterator, options, grammar, resources);
 }
 
+//! Matches one TopLevelStatement, returning the furthest token index seen, the furthest index a sequence skipped by
+//! a tail check could have reached, and the position after the match
+static MatcherResult MatchTopLevelStatement(TokenIterator &token_iterator, ParserOptions &options,
+                                            const CompiledGrammar &grammar, PEGStatementResources &resources,
+                                            bool tail_checks, idx_t &max_token_index, idx_t &tail_rejected_until,
+                                            idx_t &end_position) {
+	resources.Reset();
+	max_token_index = token_iterator.Position();
+	// the packrat cache outlives the match processes, so they need separate arenas
+	ParserPackratCache packrat_cache(resources.packrat_allocator, token_iterator.Position(), token_iterator.Size());
+	MatchContext match_context(resources.suggestions, resources.parse_results, resources.process_allocator,
+	                           max_token_index, MatchMode::BUILD_PARSE_RESULT, options.identifier_case_mode,
+	                           &packrat_cache);
+	if (tail_checks) {
+		match_context.tail_checks = grammar.GetTailChecks();
+	}
+	MatchState state(token_iterator, match_context);
+	auto match_result = grammar.TopLevelStatementMatcher().MatchParseResult(state, resources.match_stack);
+	resources.process_allocator.Reset();
+	tail_rejected_until = match_context.tail_rejected_until;
+	end_position = state.token_iterator.Position();
+	return match_result;
+}
+
 unique_ptr<SQLStatement> PEGTransformerFactory::TransformTopLevelStatement(TokenIterator &token_iterator,
                                                                            ParserOptions &options,
                                                                            const CompiledGrammar &grammar,
@@ -89,20 +113,21 @@ unique_ptr<SQLStatement> PEGTransformerFactory::TransformTopLevelStatement(Token
 	if (!token_iterator.Current()) {
 		return nullptr;
 	}
-	resources.Reset();
-	idx_t max_token_index = token_iterator.Position();
-	// the packrat cache outlives the match processes, so they need separate arenas
-	ParserPackratCache packrat_cache(resources.packrat_allocator, token_iterator.Position(), token_iterator.Size());
-	MatchContext match_context(resources.suggestions, resources.parse_results, resources.process_allocator,
-	                           max_token_index, MatchMode::BUILD_PARSE_RESULT, options.identifier_case_mode,
-	                           &packrat_cache);
-	MatchState state(token_iterator, match_context);
-	auto match_result = grammar.TopLevelStatementMatcher().MatchParseResult(state, resources.match_stack);
-	resources.process_allocator.Reset();
+	idx_t max_token_index;
+	idx_t tail_rejected_until;
+	idx_t end_position;
+	auto match_result = MatchTopLevelStatement(token_iterator, options, grammar, resources, true, max_token_index,
+	                                           tail_rejected_until, end_position);
 	if (!match_result.IsSuccess()) {
+		if (tail_rejected_until > max_token_index) {
+			// a skipped sequence could have come further than the match did: match again without tail checks for
+			// the exact error position
+			MatchTopLevelStatement(token_iterator, options, grammar, resources, false, max_token_index,
+			                       tail_rejected_until, end_position);
+		}
 		// syntax error — surface as a parser exception in the same shape as Transform()
 		auto token_stream = token_iterator.ToString();
-		idx_t error_token_idx = state.GetMaxTokenIndex();
+		idx_t error_token_idx = max_token_index;
 		if (error_token_idx >= token_iterator.Size()) {
 			error_token_idx = token_iterator.Size() - 1;
 		}
@@ -120,7 +145,7 @@ unique_ptr<SQLStatement> PEGTransformerFactory::TransformTopLevelStatement(Token
 	D_ASSERT(match_result.HasParseResult());
 
 	// Advance the caller's cursor past the consumed tokens.
-	token_iterator.SetPosition(state.token_iterator);
+	token_iterator.SetPosition(end_position);
 
 	// TopLevelStatement <- Statement? (';'+ / EndOfInput)
 	//   child 0: Optional<Statement>
