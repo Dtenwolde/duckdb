@@ -186,6 +186,20 @@ public:
 
 	//! The result that is transformed in place of a collapsed rule: a choice forwards its selected alternative.
 	//! Null when that result carries no rule of its own.
+	static void AddNesting(ParseResult &target, idx_t levels) {
+		target.collapsed_nesting =
+		    static_cast<uint8_t>(MinValue<idx_t>(target.collapsed_nesting + levels, NumericLimits<uint8_t>::Maximum()));
+	}
+
+	//! The collapsed result takes over the rule's expression nesting level
+	static void MarkCollapsed(ParseResult &target, const Matcher &collapsed_matcher) {
+		target.collapsed = true;
+		auto rule = collapsed_matcher.GetRule();
+		if (rule && rule->expression_depth == ExpressionDepthKind::NESTING) {
+			AddNesting(target, 1);
+		}
+	}
+
 	static optional_ptr<ParseResult> CollapseTarget(ParseResult &result) {
 		reference<ParseResult> target(result);
 		while (target.get().type == ParseResultType::CHOICE) {
@@ -217,6 +231,9 @@ public:
 		if (chain && pending && pending->matcher.GetPreparedChain() == chain &&
 		    (chain->tail_first_set.literals.empty() || !chain->tail_first_set.MightMatch(list_state))) {
 			D_ASSERT(matcher.get().GetPreparedChainIndex() > pending->matcher.GetPreparedChainIndex());
+			// the members between the group root and this list collapse along with it
+			group_nesting =
+			    chain->NestingLevels(pending->matcher.GetPreparedChainIndex(), matcher.get().GetPreparedChainIndex());
 			matcher = pending->matcher;
 			pending = pending->parent;
 			list_state.added_suggestions.reset();
@@ -250,7 +267,7 @@ public:
 		if (current_matcher.IsCollapsible()) {
 			auto collapsible = FindCollapsibleResult();
 			if (collapsible) {
-				collapsible->collapsed = true;
+				MarkCollapsed(*collapsible, current_matcher);
 				return MatcherResult::Success(collapsible);
 			}
 		}
@@ -314,6 +331,8 @@ public:
 	optional_ptr<PendingChoice> choice_regions;
 	idx_t child_index = 0;
 	idx_t saved_suggestion_size = 0;
+	//! Nesting levels of group members a pending collapse skips, applied with the root's own level
+	uint8_t group_nesting = 0;
 	//! Before the first child commits, a prepared choice uses this list's speculative cursor.
 	optional_ptr<const ChoiceMatcher> first_choice;
 	idx_t choice_index = 0;
@@ -566,7 +585,9 @@ MatchStep MatchStack::ExecuteInternal(optional_ptr<MatchStack> stack, MatchStack
 					}
 					f.DiscardSuggestions();
 					auto collapsed = ListMatchFrame::CollapseTarget(*child_result->GetParseResult());
-					collapsed->collapsed = true;
+					ListMatchFrame::MarkCollapsed(*collapsed, current_matcher);
+					ListMatchFrame::AddNesting(*collapsed, f.group_nesting);
+					f.group_nesting = 0;
 					completed = MatcherResult::Success(collapsed);
 					goto finish_list;
 				}

@@ -1832,8 +1832,8 @@ def main():
         collapsible_rules = load_collapsible_rules(grammar_types_file, emitter.emitted_ops_rules())
         nesting_rules, chain_rules = load_expression_depth_rules(grammar_types_file, all_rules.keys())
         # forwarding rules return their only child unchanged, so the matcher can hand out the child directly;
-        # rules that count towards the expression depth keep their result so the transformer still sees them
-        depth_rules = set(nesting_rules) | set(chain_rules)
+        # nesting levels move to the child, chain rules keep their result so their links can be counted
+        depth_rules = set(chain_rules)
         collapsible_rules = list(collapsible_rules) + sorted(
             rule
             for rule in emitter.collapsible_forward_rules

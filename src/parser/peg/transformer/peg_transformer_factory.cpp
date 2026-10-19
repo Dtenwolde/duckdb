@@ -307,6 +307,7 @@ PEGTransformerFactory::PEGTransformerFactory(ParsedGrammar &grammar_p) : grammar
 	collapsible_rules.insert("SettingScope");
 	collapsible_rules.insert("ShowOrDescribe");
 	collapsible_rules.insert("SimpleType");
+	collapsible_rules.insert("SingleExpression");
 	collapsible_rules.insert("SingleOption");
 	collapsible_rules.insert("SliceUpperBound");
 	collapsible_rules.insert("SpecialFunctionExpression");

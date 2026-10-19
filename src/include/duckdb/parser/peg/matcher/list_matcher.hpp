@@ -12,6 +12,13 @@ struct ListMatchChain {
 	MatcherFirstSet tail_first_set;
 	MatcherFirstSet prefix_first_set;
 	bool has_optional_prefix = false;
+	//! Expression nesting rules among lists[0..i], so a collapse over several members can count them
+	vector<uint8_t> nesting_levels;
+
+	//! Nesting levels of the members after index from up to and including index to
+	uint8_t NestingLevels(idx_t from, idx_t to) const {
+		return static_cast<uint8_t>(nesting_levels[to] - nesting_levels[from]);
+	}
 };
 
 class ListMatcher : public Matcher {

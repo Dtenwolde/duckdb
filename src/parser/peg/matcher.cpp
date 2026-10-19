@@ -158,9 +158,16 @@ void MatcherAllocator::InitializeListChains() {
 		chain->tail_first_set.table = matchers[i]->first_set.table;
 		chain->prefix_first_set.computed = true;
 		chain->prefix_first_set.table = matchers[i]->first_set.table;
+		uint8_t nesting_levels = 0;
 		for (auto member : members) {
 			auto &list = matchers[member]->Cast<ListMatcher>();
 			chain->lists.push_back(list);
+			auto rule = list.GetRule();
+			if (rule && rule->expression_depth == ExpressionDepthKind::NESTING &&
+			    nesting_levels < NumericLimits<uint8_t>::Maximum()) {
+				nesting_levels++;
+			}
+			chain->nesting_levels.push_back(nesting_levels);
 
 			const auto chain_child = list.GetChainChild();
 			const idx_t child_index = chain_child ? list.GetChainChildIndex() : 0;

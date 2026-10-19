@@ -144,6 +144,8 @@ public:
 	//! Set when a collapsible rule handed this result out in place of its own, so the transformer runs this
 	//! result's rule rather than the one the parent asked for
 	bool collapsed = false;
+	//! Expression nesting levels of collapsed rules this result stands in for, counted by the transformer
+	uint8_t collapsed_nesting = 0;
 
 	void SetRule(const CompiledGrammarRule &rule_p) {
 		rule = rule_p;

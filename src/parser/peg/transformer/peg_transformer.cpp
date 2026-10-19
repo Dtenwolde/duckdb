@@ -293,16 +293,17 @@ static idx_t CountChainLinks(ParseResult &parse_result) {
 }
 
 idx_t PEGTransformer::ExpressionDepthWeight(optional_ptr<const CompiledGrammarRule> rule, ParseResult &parse_result) {
+	idx_t weight = parse_result.collapsed_nesting;
 	if (!rule) {
-		return 0;
+		return weight;
 	}
 	switch (rule->expression_depth) {
 	case ExpressionDepthKind::NESTING:
-		return 1;
+		return weight + 1;
 	case ExpressionDepthKind::CHAIN:
-		return CountChainLinks(parse_result);
+		return weight + CountChainLinks(parse_result);
 	default:
-		return 0;
+		return weight;
 	}
 }
 
