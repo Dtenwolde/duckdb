@@ -362,9 +362,35 @@ public:
 	virtual TransformStep Resume(arena_ptr<TransformResultValue> child_result) = 0;
 };
 
+//! The child result slots of a generated transform process, allocated once the schedule knows their number
+class TransformChildResults {
+public:
+	arena_ptr<TransformResultValue> &operator[](idx_t slot) {
+		D_ASSERT(slot < count);
+		return slots[slot];
+	}
+	idx_t size() const { // NOLINT: match stl API
+		return count;
+	}
+	arena_ptr<TransformResultValue> *data() { // NOLINT: match stl API
+		return slots;
+	}
+	void Reset() {
+		for (idx_t i = 0; i < count; i++) {
+			slots[i].reset();
+		}
+	}
+
+private:
+	friend class GeneratedTransformProcess;
+	arena_ptr<TransformResultValue> *slots = nullptr;
+	idx_t count = 0;
+};
+
 class GeneratedTransformProcess final : public TransformProcess {
 public:
 	GeneratedTransformProcess(PEGTransformer &transformer, TransformInput input, const TransformFrameOps &info);
+	~GeneratedTransformProcess() override;
 
 	void ReserveChildSlots(idx_t count);
 	void SetChildResult(idx_t slot, arena_ptr<TransformResultValue> result);
@@ -391,7 +417,7 @@ public:
 	ParseResult &parse_result;
 	const TransformFrameOps &info;
 	idx_t manual_state = 0;
-	arena_vector<arena_ptr<TransformResultValue>> child_results;
+	TransformChildResults child_results;
 
 private:
 	struct PendingChild {
@@ -403,7 +429,9 @@ private:
 
 private:
 	PEGTransformer &transformer;
-	arena_vector<PendingChild> pending_children;
+	//! At most one pending child per slot, stored behind the result slots in the same arena allocation
+	PendingChild *pending_children = nullptr;
+	idx_t pending_count = 0;
 	optional_idx child_result_slot;
 	bool completed = false;
 };
