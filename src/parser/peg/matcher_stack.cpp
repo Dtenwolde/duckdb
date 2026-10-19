@@ -542,7 +542,15 @@ MatchStep MatchStack::ExecuteInternal(optional_ptr<MatchStack> stack, MatchStack
 					f.list_state.added_suggestions.reset();
 					f.list_state.rule = f.first_choice->GetRule();
 					if (child_result->IsSuccess()) {
-						child_result = MakeChoiceResult(f.list_state, *child_result, f.choice_index, f.start_offset);
+						// a collapsible rule with only this choice hands out the alternative's result itself
+						auto &list = f.matcher.get();
+						auto direct = list.IsCollapsible() && list.matchers.size() == 1 &&
+						              child_result->HasParseResult() &&
+						              f.CollapseTarget(*child_result->GetParseResult());
+						if (!direct) {
+							child_result =
+							    MakeChoiceResult(f.list_state, *child_result, f.choice_index, f.start_offset);
+						}
 						f.first_choice = nullptr;
 					} else {
 						if (f.single_choice) {
