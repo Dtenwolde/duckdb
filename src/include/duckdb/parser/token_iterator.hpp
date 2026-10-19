@@ -105,6 +105,10 @@ public:
 
 	DUCKDB_API vector<SimpleToken> RemainingTokens() const;
 	DUCKDB_API string ToString() const;
+	//! Gives up the owned tokens; the iterator must not be used afterwards
+	unique_ptr<vector<MatcherToken>> ReleaseTokens() {
+		return std::move(owned_tokens);
+	}
 
 private:
 	unique_ptr<vector<MatcherToken>> owned_tokens;

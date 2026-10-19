@@ -7,7 +7,40 @@
 
 #include <algorithm>
 
+#include "duckdb/parser/peg/transformer/peg_transformer.hpp"
+#include "duckdb/common/mutex.hpp"
 namespace duckdb {
+
+CompiledGrammar::~CompiledGrammar() = default;
+
+unique_ptr<PEGStatementResources> CompiledGrammar::AcquireStatementResources() {
+	{
+		lock_guard<mutex> guard(resources_lock);
+		if (!free_resources.empty()) {
+			auto resources = std::move(free_resources.back());
+			free_resources.pop_back();
+			return resources;
+		}
+	}
+	return make_uniq<PEGStatementResources>();
+}
+
+void CompiledGrammar::ReleaseStatementResources(unique_ptr<PEGStatementResources> resources) {
+	resources->ReleaseQuery();
+	// a query that needed a lot of memory does not keep it reserved
+	idx_t retained = resources->process_allocator.AllocationSize() + resources->packrat_allocator.AllocationSize() +
+	                 resources->transformer_allocator.AllocationSize();
+	if (resources->tokens) {
+		retained += resources->tokens->capacity() * sizeof(MatcherToken);
+	}
+	if (retained > MAX_POOLED_RESOURCE_BYTES) {
+		return;
+	}
+	lock_guard<mutex> guard(resources_lock);
+	if (free_resources.size() < MAX_POOLED_STATEMENT_RESOURCES) {
+		free_resources.push_back(std::move(resources));
+	}
+}
 
 CompiledGrammar::CompiledGrammar(MatcherAllocator &&allocator_p, unique_ptr<PEGKeywordHelper> &&keyword_helper_p,
                                  unique_ptr<Tokenizer> &&tokenizer_p, compiled_rules_map_t &&rules_p,

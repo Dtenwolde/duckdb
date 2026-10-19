@@ -63,6 +63,11 @@ PEGTransformer &PEGStatementResources::GetTransformer(TokenIterator &token_itera
 	return *transformer;
 }
 
+void PEGStatementResources::ReleaseQuery() {
+	transformer.reset();
+	Reset();
+}
+
 void PEGStatementResources::Reset() {
 	suggestions.clear();
 	parse_results.Reset();

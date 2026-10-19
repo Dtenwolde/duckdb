@@ -13,11 +13,14 @@ class PassthroughDialect;
 
 using compiled_rules_map_t = case_insensitive_map_t<unique_ptr<CompiledGrammarRule>>;
 
+class PEGStatementResources;
+
 struct CompiledGrammar {
 public:
 	CompiledGrammar(MatcherAllocator &&allocator, unique_ptr<PEGKeywordHelper> &&keyword_helper,
 	                unique_ptr<Tokenizer> &&tokenizer, compiled_rules_map_t &&rules, const Matcher &program_matcher,
 	                const Matcher &top_level_statement_matcher);
+	~CompiledGrammar();
 	static shared_ptr<CompiledGrammar> Create(const vector<reference<GrammarExtension>> &grammar_extensions);
 
 public:
@@ -27,6 +30,9 @@ public:
 	const vector<unique_ptr<MatcherSequenceCheck>> &GetSequenceChecks() const {
 		return allocator.GetSequenceChecks();
 	}
+	//! Statement resources for one query, pooled so that arenas and token storage are reused across queries
+	unique_ptr<PEGStatementResources> AcquireStatementResources();
+	void ReleaseStatementResources(unique_ptr<PEGStatementResources> resources);
 	const Matcher &TopLevelStatementMatcher() const {
 		return top_level_statement_matcher;
 	}
@@ -49,6 +55,12 @@ public:
 	static shared_ptr<CompiledGrammar> Create(const ClientContext &context, const vector<string> &active_extensions);
 
 private:
+	static constexpr idx_t MAX_POOLED_STATEMENT_RESOURCES = 8;
+	//! resources that retain more memory than this are not pooled
+	static constexpr idx_t MAX_POOLED_RESOURCE_BYTES = 4 * 1024 * 1024;
+
+	std::mutex resources_lock;
+	vector<unique_ptr<PEGStatementResources>> free_resources;
 	MatcherAllocator allocator;
 	unique_ptr<PEGKeywordHelper> keyword_helper;
 	unique_ptr<Tokenizer> tokenizer;

@@ -678,7 +678,11 @@ public:
 	                               const CompiledGrammar &grammar);
 	//! Release everything the previous statement allocated
 	void Reset();
+	//! Drop everything bound to the query, keeping the memory for the next one
+	void ReleaseQuery();
 
+	//! Token storage of the previous query, reused by the next one
+	unique_ptr<vector<MatcherToken>> tokens;
 	vector<MatcherSuggestion> suggestions;
 	ParseResultAllocator parse_results;
 	ArenaAllocator process_allocator;
