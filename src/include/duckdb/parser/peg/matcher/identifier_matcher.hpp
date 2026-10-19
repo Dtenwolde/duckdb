@@ -29,9 +29,15 @@ public:
 
 	//! Strip the surrounding delimiters of a quoted identifier and un-double any escaped delimiters
 	static void UnquoteIdentifier(string &text) {
-		const string delimiter(1, text.front());
-		text = text.substr(1, text.size() - 2);
-		text = StringUtil::Replace(text, delimiter + delimiter, delimiter);
+		const char delimiter = text.front();
+		text.pop_back();
+		text.erase(0, 1);
+		// escaped delimiters are rare: only then rewrite the text
+		if (text.find(delimiter) == string::npos) {
+			return;
+		}
+		const string doubled(2, delimiter);
+		text = StringUtil::Replace(text, doubled, string(1, delimiter));
 	}
 
 	bool IsSingleQuoted(const string &text) const {
@@ -87,7 +93,7 @@ public:
 		} else {
 			state.FoldIdentifier(result_text);
 		}
-		return state.AllocateParseResult<IdentifierParseResult>(result_text, start_offset, token_length);
+		return state.AllocateParseResult<IdentifierParseResult>(std::move(result_text), start_offset, token_length);
 	}
 
 	TokenType GetTokenType() const {
@@ -232,7 +238,7 @@ public:
 		} else if (!is_path_literal) {
 			state.FoldIdentifier(result_text);
 		}
-		return state.AllocateParseResult<IdentifierParseResult>(result_text, start_offset, token_length);
+		return state.AllocateParseResult<IdentifierParseResult>(std::move(result_text), start_offset, token_length);
 	}
 
 	void InitializeFirstSet(MatcherFirstSet &first_set, const GrammarLiteralTable &table) const override {
