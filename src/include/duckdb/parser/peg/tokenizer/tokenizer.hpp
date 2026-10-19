@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "duckdb/common/array.hpp"
+#include "duckdb/common/once_flag.hpp"
 #include "duckdb/parser/peg/keyword_helper.hpp"
 #include "duckdb/parser/peg/token_type.hpp"
 #include "duckdb/parser/peg/matcher_token.hpp"
@@ -76,6 +78,27 @@ private:
 	//! (dirty) based on the return value.
 	bool TokenizeInputInternal(TokenizerBehavior &behavior) const;
 	bool IsCompoundColonToken(const string &sql, idx_t pos, idx_t &token_length) const;
+	//! Scan the word starting at position i and push it, or enter the KEYWORD state when the input ends in it
+	void TokenizeWord(TokenizerBehavior &behavior, idx_t &i, idx_t &last_pos, TokenizeState &state) const;
+
+	//! The first check of the STANDARD state that applies to a byte, in the order the checks are made
+	enum class StandardByteClass : uint8_t {
+		STRING_QUOTE,
+		QUOTED_IDENTIFIER,
+		SEMICOLON,
+		DOLLAR,
+		MINUS,
+		SLASH,
+		SPACE,
+		COLON,
+		SINGLE_BYTE_OPERATOR,
+		NUMBER,
+		SPECIAL_STRING_PREFIX,
+		OPERATOR,
+		WORD
+	};
+	//! Built on first use, since the quoted identifier delimiters are a virtual property of the tokenizer
+	const array<StandardByteClass, 256> &StandardByteClasses() const;
 
 public:
 	static bool IsSingleByteOperator(char c);
@@ -92,6 +115,10 @@ public:
 
 public:
 	const PEGKeywordHelper &keyword_helper;
+
+private:
+	mutable OnceFlag standard_byte_classes_once;
+	mutable array<StandardByteClass, 256> standard_byte_classes;
 };
 
 } // namespace duckdb

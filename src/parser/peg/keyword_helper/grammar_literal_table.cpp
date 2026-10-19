@@ -38,6 +38,25 @@ GrammarLiteralTable::GrammarLiteralTable(const ParsedGrammar &grammar,
 }
 
 void GrammarLiteralTable::Index() {
+	texts.clear();
+	infos.clear();
+	idx_t slot_count = 16;
+	while (slot_count < literals.size() * 2) {
+		slot_count *= 2;
+	}
+	slots.assign(slot_count, Slot());
+	slot_mask = static_cast<uint32_t>(slot_count - 1);
+	for (auto &entry : literals) {
+		texts.push_back(entry.first);
+		infos.push_back(entry.second);
+		auto hash = static_cast<uint32_t>(StringUtil::CIHash(entry.first));
+		auto index = hash & slot_mask;
+		while (slots[index].entry) {
+			index = (index + 1) & slot_mask;
+		}
+		slots[index].hash = hash;
+		slots[index].entry = static_cast<uint32_t>(texts.size());
+	}
 	for (auto &entry : literals) {
 		auto &text = entry.first;
 		auto first = static_cast<uint8_t>(text[0]);

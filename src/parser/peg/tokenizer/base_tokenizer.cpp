@@ -345,9 +345,8 @@ void Tokenizer::PushOperatorToken(TokenizerBehavior &behavior, idx_t start, idx_
 //! Classify a word once: its literal info decides between keyword and identifier and is kept on the token
 void Tokenizer::PushWordToken(TokenizerBehavior &behavior, idx_t start, idx_t end) const {
 	auto &tokens = behavior.tokens;
-	auto word = behavior.sql.substr(start, end - start);
 	auto &table = keyword_helper.GetLiteralTable();
-	auto info = table.Lookup(word);
+	auto info = table.Lookup(behavior.sql.data() + start, end - start);
 	auto count = tokens.size();
 	behavior.PushToken(start, end, info.IsKeyword() ? TokenType::KEYWORD : TokenType::IDENTIFIER);
 	if (tokens.size() > count) {
@@ -382,6 +381,63 @@ static idx_t SkipTokenizerBytes(const string &sql, idx_t pos, char first, char s
 	return pos;
 }
 
+void Tokenizer::TokenizeWord(TokenizerBehavior &behavior, idx_t &i, idx_t &last_pos, TokenizeState &state) const {
+	auto &sql = behavior.sql;
+	// scan the whole word at once; PushWordToken classifies it as a keyword or an identifier
+	auto &is_word = CharacterTable().is_word;
+	idx_t end = i + 1;
+	while (end < sql.size() && is_word[static_cast<uint8_t>(sql[end])]) {
+		end++;
+	}
+	if (end == sql.size()) {
+		state = TokenizeState::KEYWORD;
+		last_pos = i;
+		i = end - 1;
+		return;
+	}
+	PushWordToken(behavior, i, end);
+	last_pos = end;
+	i = end - 1;
+}
+
+const array<Tokenizer::StandardByteClass, 256> &Tokenizer::StandardByteClasses() const {
+	standard_byte_classes_once.Call([&]() {
+		for (idx_t byte = 0; byte < 256; byte++) {
+			auto c = static_cast<char>(byte);
+			StandardByteClass byte_class;
+			if (c == '\'') {
+				byte_class = StandardByteClass::STRING_QUOTE;
+			} else if (IsQuotedIdentifierDelimiter(c)) {
+				byte_class = StandardByteClass::QUOTED_IDENTIFIER;
+			} else if (c == ';') {
+				byte_class = StandardByteClass::SEMICOLON;
+			} else if (c == '$') {
+				byte_class = StandardByteClass::DOLLAR;
+			} else if (c == '-') {
+				byte_class = StandardByteClass::MINUS;
+			} else if (c == '/') {
+				byte_class = StandardByteClass::SLASH;
+			} else if (StringUtil::CharacterIsSpace(c)) {
+				byte_class = StandardByteClass::SPACE;
+			} else if (c == ':') {
+				byte_class = StandardByteClass::COLON;
+			} else if (IsSingleByteOperator(c)) {
+				byte_class = StandardByteClass::SINGLE_BYTE_OPERATOR;
+			} else if (CharacterIsInitialNumber(c)) {
+				byte_class = StandardByteClass::NUMBER;
+			} else if (CharacterIsSpecialStringCharacter(c)) {
+				byte_class = StandardByteClass::SPECIAL_STRING_PREFIX;
+			} else if (StringUtil::CharacterIsOperator(c)) {
+				byte_class = StandardByteClass::OPERATOR;
+			} else {
+				byte_class = StandardByteClass::WORD;
+			}
+			standard_byte_classes[byte] = byte_class;
+		}
+	});
+	return standard_byte_classes;
+}
+
 bool Tokenizer::TokenizeInputInternal(TokenizerBehavior &behavior) const {
 	auto &sql = behavior.sql;
 	auto &tokens = behavior.tokens;
@@ -392,29 +448,28 @@ bool Tokenizer::TokenizeInputInternal(TokenizerBehavior &behavior) const {
 	string dollar_quote_marker;
 	idx_t dollar_marker_start = 0;
 	idx_t multi_line_comment_depth = 0;
+	auto &classes = StandardByteClasses();
 	for (idx_t i = 0; i < sql.size(); i++) {
 		auto c = sql[i];
 		switch (state) {
 		case TokenizeState::STANDARD:
-			if (c == '\'') {
+			switch (classes[static_cast<uint8_t>(c)]) {
+			case StandardByteClass::STRING_QUOTE:
 				state = TokenizeState::STRING_LITERAL;
 				last_pos = i;
 				escape_string = false;
 				break;
-			}
-			if (IsQuotedIdentifierDelimiter(c)) {
+			case StandardByteClass::QUOTED_IDENTIFIER:
 				state = TokenizeState::QUOTED_IDENTIFIER;
 				quoted_identifier_delimiter = c;
 				last_pos = i;
 				break;
-			}
-			if (c == ';') {
+			case StandardByteClass::SEMICOLON:
 				// end of statement
 				behavior.OnStatementEnd(i);
 				last_pos = i + 1;
 				break;
-			}
-			if (c == '$') {
+			case StandardByteClass::DOLLAR: {
 				// Dollar-quoted string statement
 				if (i + 1 >= sql.size()) {
 					// We need more than a single dollar
@@ -453,48 +508,58 @@ bool Tokenizer::TokenizeInputInternal(TokenizerBehavior &behavior) const {
 				}
 				break;
 			}
-			if (c == '-' && i + 1 < sql.size() && sql[i + 1] == '-') {
-				i++;
-				state = TokenizeState::SINGLE_LINE_COMMENT;
+			case StandardByteClass::MINUS:
+				if (i + 1 < sql.size() && sql[i + 1] == '-') {
+					i++;
+					state = TokenizeState::SINGLE_LINE_COMMENT;
+					break;
+				}
+				state = TokenizeState::OPERATOR;
+				last_pos = i;
 				break;
-			}
-			if (c == '/' && i + 1 < sql.size() && sql[i + 1] == '*') {
-				i++;
-				state = TokenizeState::MULTI_LINE_COMMENT;
-				multi_line_comment_depth = 1;
+			case StandardByteClass::SLASH:
+				if (i + 1 < sql.size() && sql[i + 1] == '*') {
+					i++;
+					state = TokenizeState::MULTI_LINE_COMMENT;
+					multi_line_comment_depth = 1;
+					break;
+				}
+				state = TokenizeState::OPERATOR;
+				last_pos = i;
 				break;
-			}
-			if (StringUtil::CharacterIsSpace(c)) {
+			case StandardByteClass::SPACE:
 				// space character - skip
 				last_pos = i + 1;
 				break;
-			}
-			idx_t token_length;
-			if (IsCompoundColonToken(sql, i, token_length)) {
-				if (i + token_length < sql.size() && CharacterIsOperator(sql[i + token_length])) {
-					state = TokenizeState::OPERATOR;
-					last_pos = i;
+			case StandardByteClass::COLON: {
+				idx_t token_length;
+				if (IsCompoundColonToken(sql, i, token_length)) {
+					if (i + token_length < sql.size() && CharacterIsOperator(sql[i + token_length])) {
+						state = TokenizeState::OPERATOR;
+						last_pos = i;
+						break;
+					}
+					// Push the compound colon token
+					tokens.emplace_back(sql.substr(i, token_length), last_pos, TokenType::OPERATOR);
+					i += token_length - 1;
+					last_pos = i + 1;
 					break;
 				}
-				// Push the compound colon token
-				tokens.emplace_back(sql.substr(i, token_length), last_pos, TokenType::OPERATOR);
-				i += token_length - 1;
-				last_pos = i + 1;
-				break;
-			}
-			if (IsSingleByteOperator(c)) {
-				// single-byte operator - directly push the token
 				tokens.emplace_back(string(1, c), last_pos, TokenType::OPERATOR);
 				last_pos = i + 1;
 				break;
 			}
-			if (CharacterIsInitialNumber(c)) {
+			case StandardByteClass::SINGLE_BYTE_OPERATOR:
+				// single-byte operator - directly push the token
+				tokens.emplace_back(string(1, c), last_pos, TokenType::OPERATOR);
+				last_pos = i + 1;
+				break;
+			case StandardByteClass::NUMBER:
 				// parse a numeric literal
 				state = TokenizeState::NUMERIC;
 				last_pos = i;
 				break;
-			}
-			if (CharacterIsSpecialStringCharacter(c)) {
+			case StandardByteClass::SPECIAL_STRING_PREFIX:
 				// Look ahead to see if a quote follows
 				if (i + 1 < sql.size() && sql[i + 1] == '\'') {
 					state = TokenizeState::STRING_LITERAL;
@@ -505,30 +570,17 @@ bool Tokenizer::TokenizeInputInternal(TokenizerBehavior &behavior) const {
 					i++;
 					break;
 				}
-			}
-			if (StringUtil::CharacterIsOperator(c)) {
+				TokenizeWord(behavior, i, last_pos, state);
+				break;
+			case StandardByteClass::OPERATOR:
 				state = TokenizeState::OPERATOR;
 				last_pos = i;
 				break;
-			}
-			{
-				// scan the whole word at once; PushToken classifies it as a keyword or an identifier
-				auto &is_word = CharacterTable().is_word;
-				idx_t end = i + 1;
-				while (end < sql.size() && is_word[static_cast<uint8_t>(sql[end])]) {
-					end++;
-				}
-				if (end == sql.size()) {
-					state = TokenizeState::KEYWORD;
-					last_pos = i;
-					i = end - 1;
-					break;
-				}
-				PushWordToken(behavior, i, end);
-				last_pos = end;
-				i = end - 1;
+			case StandardByteClass::WORD:
+				TokenizeWord(behavior, i, last_pos, state);
 				break;
 			}
+			break;
 		case TokenizeState::NUMERIC:
 			// Check for "always allowed" numeric characters
 			if (CharacterIsInitialNumber(c)) {
