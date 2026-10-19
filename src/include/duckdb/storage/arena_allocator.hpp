@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "duckdb/common/helper.hpp"
+
 #include "duckdb/common/allocator.hpp"
 #include "duckdb/common/common.hpp"
 #include "duckdb/common/types/string.hpp"
@@ -47,11 +49,18 @@ public:
 	}
 	DUCKDB_API data_ptr_t Reallocate(data_ptr_t pointer, idx_t old_size, idx_t size);
 
-	DUCKDB_API data_ptr_t AllocateAligned(idx_t size);
+	data_ptr_t AllocateAligned(idx_t size) {
+		AlignNext();
+		return Allocate(AlignValue<idx_t>(size));
+	}
 	DUCKDB_API data_ptr_t ReallocateAligned(data_ptr_t pointer, idx_t old_size, idx_t size);
 
 	//! Increment the internal cursor (if required) so the next allocation is guaranteed to be aligned to 8 bytes
-	DUCKDB_API void AlignNext();
+	void AlignNext() {
+		if (head && !ValueIsAligned<idx_t>(head->current_position)) {
+			head->current_position = AlignValue<idx_t>(head->current_position);
+		}
+	}
 
 	//! This shrinks the LAST allocation that was made using the allocator
 	//! Note that we can ONLY safely call this method if Allocate has been called previously with a size >= shrink_size
@@ -66,9 +75,24 @@ public:
 		idx_t current_position = 0;
 	};
 	//! Returns the current position of the arena
-	DUCKDB_API Position GetPosition() const;
+	Position GetPosition() const {
+		Position result;
+		if (head) {
+			result.chunk = head.get();
+			result.current_position = head->current_position;
+		}
+		return result;
+	}
 	//! Releases everything that was allocated after the position was taken - those allocations may no longer be used
-	DUCKDB_API void Rewind(const Position &position);
+	void Rewind(const Position &position) {
+		if (position.chunk && head.get() == position.chunk) {
+			D_ASSERT(position.current_position <= head->current_position);
+			head->current_position = position.current_position;
+			return;
+		}
+		RewindSlow(position);
+	}
+	DUCKDB_API void RewindSlow(const Position &position);
 
 	//! Resets the current head and destroys all previous arena chunks
 	DUCKDB_API void Reset();
