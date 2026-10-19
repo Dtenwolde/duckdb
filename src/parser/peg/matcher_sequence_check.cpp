@@ -1,6 +1,7 @@
 #include "duckdb/parser/peg/matcher.hpp"
 #include "duckdb/parser/peg/matcher/list.hpp"
 #include "duckdb/common/reference_map.hpp"
+#include "duckdb/common/bit_utils.hpp"
 
 namespace duckdb {
 
@@ -73,7 +74,7 @@ static void ForEachLiteralId(const MatcherTokenSet &set, FUN &&fun) {
 	for (idx_t word = 0; word < set.literals.size(); word++) {
 		auto bits = set.literals[word];
 		while (bits) {
-			auto bit = static_cast<idx_t>(__builtin_ctzll(bits));
+			auto bit = static_cast<idx_t>(CountZeros<uint64_t>::Trailing(bits));
 			fun(word * 64 + bit);
 			bits &= bits - 1;
 		}
