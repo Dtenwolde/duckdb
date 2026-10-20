@@ -194,6 +194,20 @@ public:
 		length = enclosing.length;
 		has_length = true;
 	}
+	//! Children are in source order, so the last located child ends the composite location
+	template <class CHILDREN>
+	void EncloseLastChild(const CHILDREN &children) {
+		if (!has_offset) {
+			return;
+		}
+		for (idx_t i = children.size(); i-- > 0;) {
+			auto &child = children[i].get();
+			if (child.has_offset) {
+				EncloseChild(child);
+				return;
+			}
+		}
+	}
 
 	virtual void ToStringInternal(std::stringstream &ss, std::unordered_set<const ParseResult *> &visited,
 	                              const std::string &indent, bool is_last) const {
@@ -292,9 +306,7 @@ public:
 		if (named_matcher) {
 			SetNameFrom(*named_matcher);
 		}
-		for (auto &child : children) {
-			EncloseChild(child.get());
-		}
+		EncloseLastChild(children);
 	}
 
 	unsafe_array_ptr<reference<ParseResult>> GetChildren() const {
@@ -344,9 +356,7 @@ struct RepeatParseResult : ParseResult {
 
 	explicit RepeatParseResult(unsafe_array_ptr<reference<ParseResult>> results_p, optional_idx offset)
 	    : ParseResult(TYPE, offset), children(results_p) {
-		for (auto &child : children) {
-			EncloseChild(child.get());
-		}
+		EncloseLastChild(children);
 	}
 
 	unsafe_array_ptr<reference<ParseResult>> GetChildren() const {
