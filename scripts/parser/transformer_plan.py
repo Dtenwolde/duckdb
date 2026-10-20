@@ -372,16 +372,16 @@ class SequenceRulePlan:
 
 
 def _trampoline_parse_expr(child_idx, child):
-    parse_expr = f"list_pr.GetChild({child_idx})"
+    parse_expr = f"elements.Child({child_idx})"
     while isinstance(child, ParensNode):
-        parse_expr = f"PEGTransformerFactory::ExtractResultFromParens({parse_expr})"
+        parse_expr = f"{parse_expr}.Unwrap()"
         child = child.inner
     return parse_expr, child
 
 
 def _single_semantic_child_plan(node, source_expr_template, syntax_only_rules):
     while isinstance(node, ParensNode):
-        source_expr_template = f"PEGTransformerFactory::ExtractResultFromParens({source_expr_template})"
+        source_expr_template = f"{source_expr_template}.Unwrap()"
         node = node.inner
     if isinstance(node, ReferenceNode):
         return node.name, source_expr_template
@@ -401,9 +401,9 @@ def _single_semantic_child_plan(node, source_expr_template, syntax_only_rules):
 
 
 def _sequence_child_expr_template(source_expr_template, child_idx, child):
-    child_expr_template = f"{source_expr_template}.Cast<ListParseResult>().GetChild({child_idx})"
+    child_expr_template = f"{source_expr_template}.Child({child_idx})"
     while isinstance(child, ParensNode):
-        child_expr_template = f"PEGTransformerFactory::ExtractResultFromParens({child_expr_template})"
+        child_expr_template = f"{child_expr_template}.Unwrap()"
         child = child.inner
     return child_expr_template, child
 
@@ -444,7 +444,7 @@ def is_syntax_only_child(node, syntax_only_rules):
 
 def _unwrap_parens_node(node, source_expr_template):
     while isinstance(node, ParensNode):
-        source_expr_template = f"PEGTransformerFactory::ExtractResultFromParens({source_expr_template})"
+        source_expr_template = f"{source_expr_template}.Unwrap()"
         node = node.inner
     return node, source_expr_template
 
@@ -507,7 +507,7 @@ def plan_trampoline_sequence_rule_with_terminals(
             if _is_identifier_override(child.name, matcher_overrides):
                 arg = DirectParseArg(
                     to_snake_case(child.name),
-                    f"{parse_expr}.Cast<IdentifierParseResult>().identifier",
+                    f"{parse_expr}.GetIdentifier()",
                 )
                 direct_args.append(arg)
             elif _is_terminal_override(child.name, matcher_overrides):
@@ -615,7 +615,7 @@ def plan_trampoline_sequence_rule_with_terminals(
             if _is_identifier_override(rule_name, matcher_overrides):
                 arg = DirectParseArg(
                     to_snake_case(rule_name),
-                    f"{child_parse_expr}.Cast<IdentifierParseResult>().identifier",
+                    f"{child_parse_expr}.GetIdentifier()",
                 )
                 direct_args.append(arg)
             elif _is_terminal_override(rule_name, matcher_overrides):
@@ -655,7 +655,7 @@ def plan_trampoline_sequence_rule_with_terminals(
             result_expr_template = "{opt}.GetResult()"
             if isinstance(child.child, ParensNode):
                 list_node = child.child.inner
-                result_expr_template = "PEGTransformerFactory::ExtractResultFromParens({opt}.GetResult())"
+                result_expr_template = "{opt}.GetResult().Unwrap()"
             if isinstance(list_node, ReferenceNode):
                 if _is_identifier_override(list_node.name, matcher_overrides):
                     arg = DirectOptionalListArg(
@@ -1016,35 +1016,33 @@ def emit_extraction(plan, source_expr, target_name=None, indent="\t", declare=Tr
         return []
     if plan.kind == ExtractionKind.REFERENCE:
         if plan.identifier:
-            value_expr = f"{source_expr}.Cast<IdentifierParseResult>().identifier"
+            value_expr = f"{source_expr}.GetIdentifier()"
         else:
-            value_expr = f"transformer.Transform<{plan.cpp_type}>({source_expr})"
+            value_expr = f"transformer.Transform<{plan.cpp_type}>({source_expr}.Result())"
         prefix = "auto " if declare else ""
         return [f"{indent}{prefix}{target_name} = {value_expr};"]
     if plan.kind == ExtractionKind.PARENS:
         return emit_extraction(
             plan.child,
-            f"PEGTransformerFactory::ExtractResultFromParens({source_expr})",
+            f"{source_expr}.Unwrap()",
             target_name,
             indent,
             declare,
             depth,
         )
     if plan.kind == ExtractionKind.SEQUENCE:
-        list_expr = f"{source_expr}.Cast<ListParseResult>()"
         return emit_extraction(
             plan.child,
-            f"{list_expr}.GetChild({plan.child_index})",
+            f"{source_expr}.Child({plan.child_index})",
             target_name,
             indent,
             declare,
             depth,
         )
     if plan.kind == ExtractionKind.CHOICE:
-        choice_expr = f"{source_expr}.Cast<ChoiceParseResult>()"
         return emit_extraction(
             plan.child,
-            f"{choice_expr}.GetResult()",
+            f"{source_expr}.Choice()",
             target_name,
             indent,
             declare,
@@ -1055,7 +1053,7 @@ def emit_extraction(plan, source_expr, target_name=None, indent="\t", declare=Tr
         lines = []
         if declare:
             lines.append(f"{indent}{plan.cpp_type} {target_name} {{}};")
-        lines.append(f"{indent}auto &{opt_name} = {source_expr}.Cast<OptionalParseResult>();")
+        lines.append(f"{indent}auto {opt_name} = {source_expr};")
         if plan.child is None:
             lines.append(f"{indent}{target_name} = {opt_name}.HasResult();")
             return lines
@@ -1081,19 +1079,17 @@ def emit_extraction(plan, source_expr, target_name=None, indent="\t", declare=Tr
         lines = [f"{indent}{plan.cpp_type} {target_name};"] if declare else []
         if plan.kind == ExtractionKind.LIST:
             items_name = _temp_name(target_name, "items", depth)
-            lines.append(
-                f"{indent}auto {items_name} = PEGTransformerFactory::ExtractParseResultsFromList({source_expr});"
-            )
+            lines.append(f"{indent}auto {items_name} = {source_expr}.ListItems();")
             children_expr = items_name
         else:
             repeat_name = _temp_name(target_name, "repeat", depth)
-            lines.append(f"{indent}auto &{repeat_name} = {source_expr}.Cast<RepeatParseResult>();")
-            children_expr = f"{repeat_name}.GetChildren()"
+            lines.append(f"{indent}auto {repeat_name} = {source_expr}.Repeat();")
+            children_expr = repeat_name
         lines.append(f"{indent}for (auto {item_name} : {children_expr}) {{")
         lines.extend(
             emit_extraction(
                 plan.child,
-                f"{item_name}.get()",
+                f"{item_name}",
                 value_name,
                 indent + "\t",
                 depth=depth + 1,
@@ -1130,7 +1126,7 @@ def classify_sequence_element(
         var_name=plan.var_name,
         cpp_type=plan.cpp_type,
         by_value=plan.by_value,
-        extraction_lines=emit_extraction(plan, f"list_pr.GetChild({idx})"),
+        extraction_lines=emit_extraction(plan, f"elements.Child({idx})"),
     )
 
 

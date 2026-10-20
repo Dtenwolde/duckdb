@@ -734,17 +734,16 @@ class UseGramPreviewEmitter:
         for rule_name, dispatch in SPECIAL_DISPATCH_RULES.items():
             cpp_type = dispatch["cpp_type"]
             lines.append(self.process_function_signature(rule_name, False))
-            lines.append(f"\tauto &list_pr = {self.process_parse_result(rule_name)}.Cast<ListParseResult>();")
-            lines.append("\tauto &choice_pr = list_pr.Child<ChoiceParseResult>(0);")
-            lines.append("\tauto &choice_result = choice_pr.GetResult();")
+            lines.append(f"\tauto elements = ParseElement({self.process_parse_result(rule_name)});")
+            lines.append("\tauto choice_result = elements.Child(0).Choice();")
             lines.append("\tprocess.ReserveChildSlots(1);")
-            lines.append("\tauto child_rule = choice_result.GetRule();")
+            lines.append("\tauto child_rule = choice_result.Rule();")
             lines.append("\tif (!child_rule) {")
             lines.append(
                 "\t\tthrow InternalException(\"No transform process registered for rule '%s'\", choice_result.Name());"
             )
             lines.append("\t}")
-            lines.append("\tprocess.PushChild({*child_rule, choice_result}, 0);")
+            lines.append("\tprocess.PushChild({*child_rule, choice_result.Result()}, 0);")
             lines.append("}")
             lines.append(f"")
             lines.append(self.process_function_signature(rule_name, True))
@@ -800,7 +799,7 @@ class UseGramPreviewEmitter:
         raise NotImplementedError(f"unsupported preview shape for {rule_name}: {type(ast).__name__}")
 
     def emit_matcher_override_rule(self, rule_name):
-        result_expr = self.matcher_transform_expr(rule_name, f"{self.process_parse_result(rule_name)}")
+        result_expr = self.matcher_transform_expr(rule_name, f"ParseElement({self.process_parse_result(rule_name)})")
         lines = []
         lines.append(self.process_function_signature(rule_name, False))
         lines.append("\tprocess.ReserveChildSlots(0);")
@@ -877,7 +876,7 @@ class UseGramPreviewEmitter:
     def direct_matcher_value_expr(self, rule_name, parse_expr):
         matcher = self.matcher_overrides[rule_name].matcher
         if matcher in ("identifier", "reserved_identifier"):
-            return f"{parse_expr}.Cast<IdentifierParseResult>().identifier"
+            return f"{parse_expr}.GetIdentifier()"
         return self.matcher_transform_expr(rule_name, parse_expr)
 
     def is_identifier_matcher(self, rule_name):
@@ -905,19 +904,17 @@ class UseGramPreviewEmitter:
     def emit_stack_child_push(self, lines, plan, stack_child, indent="\t"):
         if isinstance(stack_child, OptionalStackChild):
             slot_expr = self.adjusted_slot_expr(plan, stack_child.slot_idx)
-            lines.append(
-                f"{indent}auto &{stack_child.var_name}_opt = {stack_child.parse_expr}.Cast<OptionalParseResult>();"
-            )
+            lines.append(f"{indent}auto {stack_child.var_name}_opt = {stack_child.parse_expr};")
             lines.append(f"{indent}if ({stack_child.var_name}_opt.HasResult()) {{")
             child_expr = stack_child.result_expr_template.format(opt=f"{stack_child.var_name}_opt")
             lines.append(
-                f"{indent}\tprocess.PushChild({{transformer.GetRule(PEGRuleId::{stack_child.rule_name}), {child_expr}}}, {slot_expr});"
+                f"{indent}\tprocess.PushChild({{transformer.GetRule(PEGRuleId::{stack_child.rule_name}), {child_expr}.Result()}}, {slot_expr});"
             )
             lines.append(f"{indent}}}")
         else:
             slot_expr = self.adjusted_slot_expr(plan, stack_child.slot_idx)
             lines.append(
-                f"{indent}process.PushChild({{transformer.GetRule(PEGRuleId::{stack_child.rule_name}), {stack_child.parse_expr}}}, "
+                f"{indent}process.PushChild({{transformer.GetRule(PEGRuleId::{stack_child.rule_name}), {stack_child.parse_expr}.Result()}}, "
                 f"{slot_expr});"
             )
 
@@ -928,27 +925,25 @@ class UseGramPreviewEmitter:
         lines = []
         if plan.list_child:
             list_child = plan.list_child
-            lines.append(f"\tauto dynamic_child_count = CountParseResultsFromList({list_child.parse_expr});")
+            lines.append(f"\tauto dynamic_child_count = {list_child.parse_expr}.ListItems().size();")
         elif plan.optional_list_child:
             list_child = plan.optional_list_child
             lines.append("\tidx_t dynamic_child_count = 0;")
-            lines.append(f"\tauto &dynamic_list_opt = {list_child.parse_expr}.Cast<OptionalParseResult>();")
+            lines.append(f"\tauto dynamic_list_opt = {list_child.parse_expr};")
             lines.append("\tif (dynamic_list_opt.HasResult()) {")
             child_expr = list_child.result_expr_template.format(opt="dynamic_list_opt")
-            lines.append(f"\t\tdynamic_child_count = CountParseResultsFromList({child_expr});")
+            lines.append(f"\t\tdynamic_child_count = {child_expr}.ListItems().size();")
             lines.append("\t}")
         elif plan.required_repeat_child:
             repeat_child = plan.required_repeat_child
-            lines.append(f"\tauto &dynamic_repeat_pr = {repeat_child.parse_expr}.Cast<RepeatParseResult>();")
-            lines.append("\tauto dynamic_repeat_children = dynamic_repeat_pr.GetChildren();")
+            lines.append(f"\tauto dynamic_repeat_children = {repeat_child.parse_expr}.Repeat();")
             lines.append("\tauto dynamic_child_count = dynamic_repeat_children.size();")
         else:
             repeat_child = plan.repeat_child
             lines.append("\tidx_t dynamic_child_count = 0;")
-            lines.append(f"\tauto &dynamic_repeat_opt = {repeat_child.parse_expr}.Cast<OptionalParseResult>();")
+            lines.append(f"\tauto dynamic_repeat_opt = {repeat_child.parse_expr};")
             lines.append("\tif (dynamic_repeat_opt.HasResult()) {")
-            lines.append("\t\tauto &dynamic_repeat_pr = dynamic_repeat_opt.GetResult().Cast<RepeatParseResult>();")
-            lines.append("\t\tauto dynamic_repeat_children = dynamic_repeat_pr.GetChildren();")
+            lines.append("\t\tauto dynamic_repeat_children = dynamic_repeat_opt.GetResult().Repeat();")
             lines.append("\t\tdynamic_child_count = dynamic_repeat_children.size();")
             lines.append("\t}")
         return lines
@@ -1007,9 +1002,9 @@ class UseGramPreviewEmitter:
         lines.append(self.process_function_signature(rule_name, True))
         if self.is_parse_result_syntax_only_rule(rule_name, ast):
             if isinstance(ast, ChoiceNode):
-                lines.append(f"\tauto &list_pr = {self.process_parse_result(rule_name)}.Cast<ListParseResult>();")
-                lines.append("\tauto &choice_pr = list_pr.Child<ChoiceParseResult>(0);")
-                result_expr = f"PEGTransformerFactory::Transform{rule_name}(transformer, choice_pr.GetResult())"
+                lines.append(f"\tauto elements = ParseElement({self.process_parse_result(rule_name)});")
+                lines.append("\tauto choice_result = elements.Child(0).Choice();")
+                result_expr = f"PEGTransformerFactory::Transform{rule_name}(transformer, choice_result.Result())"
             else:
                 result_expr = (
                     f"PEGTransformerFactory::Transform{rule_name}(transformer, {self.process_parse_result(rule_name)})"
@@ -1018,9 +1013,9 @@ class UseGramPreviewEmitter:
             if len(literal_values) == 1:
                 result_expr = f'"{literal_values[0]}"'
             else:
-                lines.append(f"\tauto &list_pr = {self.process_parse_result(rule_name)}.Cast<ListParseResult>();")
-                lines.append("\tauto &choice_pr = list_pr.Child<ChoiceParseResult>(0);")
-                result_expr = "choice_pr.GetResult().Cast<KeywordParseResult>().keyword"
+                lines.append(f"\tauto elements = ParseElement({self.process_parse_result(rule_name)});")
+                lines.append("\tauto choice_result = elements.Child(0).Choice();")
+                result_expr = "choice_result.Keyword()"
         else:
             result_expr = f"PEGTransformerFactory::Transform{rule_name}(transformer)"
         lines.append(f"\treturn {typed_result_expr(cpp_type, result_expr)};")
@@ -1054,11 +1049,11 @@ class UseGramPreviewEmitter:
         lines.append(self.process_function_signature(rule_name, True))
         result_expr = "std::move(result)"
         if self.is_parse_result_manual_choice_rule(rule_name, ast):
-            lines.append(f"\tauto &list_pr = {self.process_parse_result(rule_name)}.Cast<ListParseResult>();")
-            lines.append("\tauto &choice_result = list_pr.Child<ChoiceParseResult>(0).GetResult();")
+            lines.append(f"\tauto elements = ParseElement({self.process_parse_result(rule_name)});")
+            lines.append("\tauto choice_result = elements.Child(0).Choice();")
             result_expr = (
                 f"process.child_results[0] ? {self.process_take_result(rule_name)}<{cpp_type}>(0)"
-                f" : PEGTransformerFactory::Transform{rule_name}(transformer, choice_result)"
+                f" : PEGTransformerFactory::Transform{rule_name}(transformer, choice_result.Result())"
             )
         elif len(child_cpp_types) == 1 and cpp_type not in child_cpp_types and manual_body_exists(rule_name):
             child_cpp_type = next(iter(child_cpp_types))
@@ -1067,21 +1062,19 @@ class UseGramPreviewEmitter:
                 lines.append("\tif (process.child_results[0]) {")
                 lines.append(f"\t\tchild = {self.process_take_result(rule_name)}<string>(0);")
                 lines.append("\t} else {")
-                lines.append(f"\t\tauto &list_pr = {self.process_parse_result(rule_name)}.Cast<ListParseResult>();")
-                lines.append("\t\tauto &choice_result = list_pr.Child<ChoiceParseResult>(0).GetResult();")
-                lines.append("\t\tif (choice_result.type == ParseResultType::IDENTIFIER) {")
-                lines.append(
-                    "\t\t\tchild = choice_result.Cast<IdentifierParseResult>().identifier.GetIdentifierName();"
-                )
-                lines.append("\t\t} else if (choice_result.type == ParseResultType::KEYWORD) {")
-                lines.append("\t\t\tchild = choice_result.Cast<KeywordParseResult>().keyword;")
-                lines.append("\t\t} else if (choice_result.type == ParseResultType::STRING) {")
-                lines.append("\t\t\tchild = choice_result.Cast<StringLiteralParseResult>().result;")
-                lines.append("\t\t} else if (choice_result.type == ParseResultType::OPERATOR) {")
-                lines.append("\t\t\tchild = choice_result.Cast<OperatorParseResult>().operator_token;")
+                lines.append(f"\t\tauto elements = ParseElement({self.process_parse_result(rule_name)});")
+                lines.append("\t\tauto choice_result = elements.Child(0).Choice();")
+                lines.append("\t\tif (choice_result.Type() == ParseResultType::IDENTIFIER) {")
+                lines.append("\t\t\tchild = choice_result.GetIdentifier().GetIdentifierName();")
+                lines.append("\t\t} else if (choice_result.Type() == ParseResultType::KEYWORD) {")
+                lines.append("\t\t\tchild = choice_result.Keyword();")
+                lines.append("\t\t} else if (choice_result.Type() == ParseResultType::STRING) {")
+                lines.append("\t\t\tchild = choice_result.StringLiteral();")
+                lines.append("\t\t} else if (choice_result.Type() == ParseResultType::OPERATOR) {")
+                lines.append("\t\t\tchild = choice_result.Operator();")
                 lines.append("\t\t} else {")
                 lines.append(
-                    "\t\t\tchild = PEGTransformerFactory::TransformIdentifierOrKeyword(transformer, choice_result);"
+                    "\t\t\tchild = PEGTransformerFactory::TransformIdentifierOrKeyword(transformer, choice_result.Result());"
                 )
                 lines.append("\t\t}")
                 lines.append("\t}")
@@ -1094,18 +1087,18 @@ class UseGramPreviewEmitter:
             lines.append("\tif (process.child_results[0]) {")
             lines.append(f"\t\tresult = {self.process_take_result(rule_name)}<string>(0);")
             lines.append("\t} else {")
-            lines.append(f"\t\tauto &list_pr = {self.process_parse_result(rule_name)}.Cast<ListParseResult>();")
-            lines.append("\t\tauto &choice_result = list_pr.Child<ChoiceParseResult>(0).GetResult();")
-            lines.append("\t\tif (choice_result.type == ParseResultType::IDENTIFIER) {")
-            lines.append("\t\t\tresult = choice_result.Cast<IdentifierParseResult>().identifier.GetIdentifierName();")
-            lines.append("\t\t} else if (choice_result.type == ParseResultType::KEYWORD) {")
-            lines.append("\t\t\tresult = choice_result.Cast<KeywordParseResult>().keyword;")
-            lines.append("\t\t} else if (choice_result.type == ParseResultType::STRING) {")
-            lines.append("\t\t\tresult = choice_result.Cast<StringLiteralParseResult>().result;")
-            lines.append("\t\t} else if (choice_result.type == ParseResultType::OPERATOR) {")
-            lines.append("\t\t\tresult = choice_result.Cast<OperatorParseResult>().operator_token;")
+            lines.append(f"\t\tauto elements = ParseElement({self.process_parse_result(rule_name)});")
+            lines.append("\t\tauto choice_result = elements.Child(0).Choice();")
+            lines.append("\t\tif (choice_result.Type() == ParseResultType::IDENTIFIER) {")
+            lines.append("\t\t\tresult = choice_result.GetIdentifier().GetIdentifierName();")
+            lines.append("\t\t} else if (choice_result.Type() == ParseResultType::KEYWORD) {")
+            lines.append("\t\t\tresult = choice_result.Keyword();")
+            lines.append("\t\t} else if (choice_result.Type() == ParseResultType::STRING) {")
+            lines.append("\t\t\tresult = choice_result.StringLiteral();")
+            lines.append("\t\t} else if (choice_result.Type() == ParseResultType::OPERATOR) {")
+            lines.append("\t\t\tresult = choice_result.Operator();")
             lines.append("\t\t} else {")
-            lines.append("\t\t\tresult = transformer.Transform<string>(choice_result);")
+            lines.append("\t\t\tresult = transformer.Transform<string>(choice_result.Result());")
             lines.append("\t\t}")
             lines.append("\t}")
         elif cpp_type == "Identifier":
@@ -1113,17 +1106,17 @@ class UseGramPreviewEmitter:
             lines.append("\tif (process.child_results[0]) {")
             lines.append(f"\t\tresult = {self.process_take_result(rule_name)}<Identifier>(0);")
             lines.append("\t} else {")
-            lines.append(f"\t\tauto &list_pr = {self.process_parse_result(rule_name)}.Cast<ListParseResult>();")
-            lines.append("\t\tauto &choice_result = list_pr.Child<ChoiceParseResult>(0).GetResult();")
-            lines.append("\t\tif (choice_result.type == ParseResultType::IDENTIFIER) {")
-            lines.append("\t\t\tresult = choice_result.Cast<IdentifierParseResult>().identifier;")
-            lines.append("\t\t} else if (choice_result.type == ParseResultType::KEYWORD) {")
-            lines.append("\t\t\tresult = Identifier(choice_result.Cast<KeywordParseResult>().keyword);")
-            lines.append("\t\t} else if (choice_result.type == ParseResultType::STRING) {")
-            lines.append("\t\t\tresult = Identifier(choice_result.Cast<StringLiteralParseResult>().result);")
+            lines.append(f"\t\tauto elements = ParseElement({self.process_parse_result(rule_name)});")
+            lines.append("\t\tauto choice_result = elements.Child(0).Choice();")
+            lines.append("\t\tif (choice_result.Type() == ParseResultType::IDENTIFIER) {")
+            lines.append("\t\t\tresult = choice_result.GetIdentifier();")
+            lines.append("\t\t} else if (choice_result.Type() == ParseResultType::KEYWORD) {")
+            lines.append("\t\t\tresult = Identifier(choice_result.Keyword());")
+            lines.append("\t\t} else if (choice_result.Type() == ParseResultType::STRING) {")
+            lines.append("\t\t\tresult = Identifier(choice_result.StringLiteral());")
             lines.append("\t\t} else {")
             lines.append(
-                "\t\t\tresult = Identifier(PEGTransformerFactory::TransformIdentifierOrKeyword(transformer, choice_result));"
+                "\t\t\tresult = Identifier(PEGTransformerFactory::TransformIdentifierOrKeyword(transformer, choice_result.Result()));"
             )
             lines.append("\t\t}")
             lines.append("\t}")
@@ -1140,11 +1133,10 @@ class UseGramPreviewEmitter:
     def emit_choice_initialize(self, rule_name, ast):
         lines = []
         lines.append(self.process_function_signature(rule_name, False))
-        lines.append(f"\tauto &list_pr = {self.process_parse_result(rule_name)}.Cast<ListParseResult>();")
-        lines.append("\tauto &choice_pr = list_pr.Child<ChoiceParseResult>(0);")
-        lines.append("\tauto &choice_result = choice_pr.GetResult();")
+        lines.append(f"\tauto elements = ParseElement({self.process_parse_result(rule_name)});")
+        lines.append("\tauto choice_result = elements.Child(0).Choice();")
         lines.append("\tprocess.ReserveChildSlots(1);")
-        lines.append("\tauto child_rule = choice_result.GetRule();")
+        lines.append("\tauto child_rule = choice_result.Rule();")
         lines.append("\tauto has_transform_process = child_rule && child_rule->transform_process;")
         syntax_only_alternatives = self.choice_syntax_only_alternative_names(ast)
         child_cpp_types = set()
@@ -1168,9 +1160,9 @@ class UseGramPreviewEmitter:
         if self.cpp_type(rule_name) == "Identifier":
             direct_conditions = [
                 "choice_result.Name().empty()",
-                "choice_result.type == ParseResultType::IDENTIFIER",
-                "choice_result.type == ParseResultType::KEYWORD",
-                "choice_result.type == ParseResultType::STRING",
+                "choice_result.Type() == ParseResultType::IDENTIFIER",
+                "choice_result.Type() == ParseResultType::KEYWORD",
+                "choice_result.Type() == ParseResultType::STRING",
             ]
             lines.append("\tif (" + " || ".join(direct_conditions) + ") {")
             lines.append("\t\treturn;")
@@ -1182,10 +1174,10 @@ class UseGramPreviewEmitter:
                 lines.append("\t}")
         if self.cpp_type(rule_name) == "string":
             direct_conditions = [
-                "choice_result.type == ParseResultType::IDENTIFIER",
-                "choice_result.type == ParseResultType::KEYWORD",
-                "choice_result.type == ParseResultType::STRING",
-                "choice_result.type == ParseResultType::OPERATOR",
+                "choice_result.Type() == ParseResultType::IDENTIFIER",
+                "choice_result.Type() == ParseResultType::KEYWORD",
+                "choice_result.Type() == ParseResultType::STRING",
+                "choice_result.Type() == ParseResultType::OPERATOR",
             ]
             lines.append("\tif (" + " || ".join(direct_conditions) + ") {")
             lines.append("\t\treturn;")
@@ -1202,12 +1194,12 @@ class UseGramPreviewEmitter:
             lines.append("\t}")
         if has_string_child_manual_transform:
             direct_conditions = [
-                "choice_result.type == ParseResultType::IDENTIFIER",
-                "choice_result.type == ParseResultType::KEYWORD",
-                "choice_result.type == ParseResultType::STRING",
-                "choice_result.type == ParseResultType::OPERATOR",
-                "choice_result.type == ParseResultType::CHOICE",
-                "choice_result.type == ParseResultType::LIST",
+                "choice_result.Type() == ParseResultType::IDENTIFIER",
+                "choice_result.Type() == ParseResultType::KEYWORD",
+                "choice_result.Type() == ParseResultType::STRING",
+                "choice_result.Type() == ParseResultType::OPERATOR",
+                "choice_result.Type() == ParseResultType::CHOICE",
+                "choice_result.Type() == ParseResultType::LIST",
             ]
             lines.append("\tif (!has_transform_process && (" + " || ".join(direct_conditions) + ")) {")
             lines.append("\t\treturn;")
@@ -1222,7 +1214,7 @@ class UseGramPreviewEmitter:
                 "\t\tthrow InternalException(\"No transform process registered for rule '%s'\", choice_result.Name());"
             )
             lines.append("\t}")
-        lines.append("\tprocess.PushChild({*child_rule, choice_result}, 0);")
+        lines.append("\tprocess.PushChild({*child_rule, choice_result.Result()}, 0);")
         lines.append("}")
         return lines
 
@@ -1267,7 +1259,7 @@ class UseGramPreviewEmitter:
             for arg in plan.finalize_args
         )
         if needs_list_pr:
-            lines.append(f"\tauto &list_pr = {self.process_parse_result(rule_name)}.Cast<ListParseResult>();")
+            lines.append(f"\tauto elements = ParseElement({self.process_parse_result(rule_name)});")
         lines.extend(self.emit_dynamic_child_count(plan))
         arg_names = []
         for arg in plan.finalize_args:
@@ -1279,17 +1271,15 @@ class UseGramPreviewEmitter:
                 arg_names.append(self.transform_arg_expr(arg.rule_name, arg.var_name))
             elif isinstance(arg, DirectOptionalArg):
                 lines.append(f"\toptional<Identifier> {arg.var_name} {{}};")
-                lines.append(f"\tauto &{arg.var_name}_opt = {arg.parse_expr}.Cast<OptionalParseResult>();")
+                lines.append(f"\tauto {arg.var_name}_opt = {arg.parse_expr};")
                 lines.append(f"\tif ({arg.var_name}_opt.HasResult()) {{")
-                lines.append(
-                    f"\t\t{arg.var_name} = {arg.var_name}_opt.GetResult().Cast<IdentifierParseResult>().identifier;"
-                )
+                lines.append(f"\t\t{arg.var_name} = {arg.var_name}_opt.GetResult().GetIdentifier();")
                 lines.append("\t}")
                 arg_names.append(arg.var_name)
             elif isinstance(arg, DirectOptionalMatcherArg):
                 arg_cpp_type = self.cpp_type(arg.rule_name)
                 lines.append(f"\toptional<{arg_cpp_type}> {arg.var_name} {{}};")
-                lines.append(f"\tauto &{arg.var_name}_opt = {arg.parse_expr}.Cast<OptionalParseResult>();")
+                lines.append(f"\tauto {arg.var_name}_opt = {arg.parse_expr};")
                 lines.append(f"\tif ({arg.var_name}_opt.HasResult()) {{")
                 child_expr = arg.result_expr_template.format(opt=f"{arg.var_name}_opt")
                 value_expr = self.matcher_transform_expr(arg.rule_name, child_expr)
@@ -1298,22 +1288,18 @@ class UseGramPreviewEmitter:
                 arg_names.append(self.transform_arg_expr(arg.rule_name, arg.var_name))
             elif isinstance(arg, DirectOptionalPresenceArg):
                 lines.append(f"\tbool {arg.var_name} {{}};")
-                lines.append(f"\tauto &{arg.var_name}_opt = {arg.parse_expr}.Cast<OptionalParseResult>();")
+                lines.append(f"\tauto {arg.var_name}_opt = {arg.parse_expr};")
                 lines.append(f"\t{arg.var_name} = {arg.var_name}_opt.HasResult();")
                 arg_names.append(arg.var_name)
             elif isinstance(arg, DirectRepeatArg):
                 lines.append(f"\toptional<vector<Identifier>> {arg.var_name} {{}};")
-                lines.append(f"\tauto &{arg.var_name}_opt = {arg.parse_expr}.Cast<OptionalParseResult>();")
+                lines.append(f"\tauto {arg.var_name}_opt = {arg.parse_expr};")
                 lines.append(f"\tif ({arg.var_name}_opt.HasResult()) {{")
                 lines.append(f"\t\tvector<Identifier> {arg.var_name}_value;")
-                lines.append(
-                    f"\t\tauto &{arg.var_name}_repeat = {arg.var_name}_opt.GetResult().Cast<RepeatParseResult>();"
-                )
-                lines.append(f"\t\t{arg.var_name}_value.reserve({arg.var_name}_repeat.GetChildren().size());")
-                lines.append(f"\t\tfor (auto &{arg.var_name}_item : {arg.var_name}_repeat.GetChildren()) {{")
-                lines.append(
-                    f"\t\t\t{arg.var_name}_value.push_back({arg.var_name}_item.get().Cast<IdentifierParseResult>().identifier);"
-                )
+                lines.append(f"\t\tauto {arg.var_name}_repeat = {arg.var_name}_opt.GetResult().Repeat();")
+                lines.append(f"\t\t{arg.var_name}_value.reserve({arg.var_name}_repeat.size());")
+                lines.append(f"\t\tfor (auto {arg.var_name}_item : {arg.var_name}_repeat) {{")
+                lines.append(f"\t\t\t{arg.var_name}_value.push_back({arg.var_name}_item.GetIdentifier());")
                 lines.append("\t\t}")
                 lines.append(f"\t\t{arg.var_name} = {arg.var_name}_value;")
                 lines.append("\t}")
@@ -1321,20 +1307,15 @@ class UseGramPreviewEmitter:
             elif isinstance(arg, DirectListArg):
                 element_cpp_type = self.direct_matcher_cpp_type(arg.rule_name)
                 lines.append(f"\tvector<{element_cpp_type}> {arg.var_name};")
-                lines.append(
-                    f"\tauto {arg.var_name}_items = PEGTransformerFactory::ExtractParseResultsFromList({arg.parse_expr});"
-                )
+                lines.append(f"\tauto {arg.var_name}_items = {arg.parse_expr}.ListItems();")
                 lines.append(f"\t{arg.var_name}.reserve({arg.var_name}_items.size());")
                 lines.append(f"\tfor (auto {arg.var_name}_item : {arg.var_name}_items) {{")
                 if self.is_identifier_matcher(arg.rule_name):
-                    lines.append(
-                        f"\t\t{arg.var_name}.push_back("
-                        f"{arg.var_name}_item.get().Cast<IdentifierParseResult>().identifier);"
-                    )
+                    lines.append(f"\t\t{arg.var_name}.push_back(" f"{arg.var_name}_item.GetIdentifier());")
                 else:
                     lines.append(
                         f"\t\tauto {arg.var_name}_value = "
-                        f"{self.direct_matcher_value_expr(arg.rule_name, f'{arg.var_name}_item.get()')};"
+                        f"{self.direct_matcher_value_expr(arg.rule_name, f'{arg.var_name}_item')};"
                     )
                     lines.append(
                         f"\t\t{arg.var_name}.push_back("
@@ -1345,18 +1326,16 @@ class UseGramPreviewEmitter:
             elif isinstance(arg, DirectOptionalListArg):
                 element_cpp_type = self.direct_matcher_cpp_type(arg.rule_name)
                 lines.append(f"\toptional<vector<{element_cpp_type}>> {arg.var_name} {{}};")
-                lines.append(f"\tauto &{arg.var_name}_opt = {arg.parse_expr}.Cast<OptionalParseResult>();")
+                lines.append(f"\tauto {arg.var_name}_opt = {arg.parse_expr};")
                 lines.append(f"\tif ({arg.var_name}_opt.HasResult()) {{")
                 child_expr = arg.result_expr_template.format(opt=f"{arg.var_name}_opt")
                 lines.append(f"\t\tvector<{element_cpp_type}> {arg.var_name}_value;")
-                lines.append(
-                    f"\t\tauto {arg.var_name}_items = PEGTransformerFactory::ExtractParseResultsFromList({child_expr});"
-                )
+                lines.append(f"\t\tauto {arg.var_name}_items = {child_expr}.ListItems();")
                 lines.append(f"\t\t{arg.var_name}_value.reserve({arg.var_name}_items.size());")
                 lines.append(f"\t\tfor (auto {arg.var_name}_item : {arg.var_name}_items) {{")
                 lines.append(
                     f"\t\t\tauto {arg.var_name}_item_value = "
-                    f"{self.direct_matcher_value_expr(arg.rule_name, f'{arg.var_name}_item.get()')};"
+                    f"{self.direct_matcher_value_expr(arg.rule_name, f'{arg.var_name}_item')};"
                 )
                 lines.append(
                     f"\t\t\t{arg.var_name}_value.push_back("
@@ -1385,7 +1364,7 @@ class UseGramPreviewEmitter:
             elif isinstance(arg, TrailingOptionalStackChild):
                 var_name = arg.var_name
                 lines.append(f"\toptional<{self.cpp_type(arg.rule_name)}> {var_name} {{}};")
-                lines.append(f"\tauto &{var_name}_opt = {arg.parse_expr}.Cast<OptionalParseResult>();")
+                lines.append(f"\tauto {var_name}_opt = {arg.parse_expr};")
                 lines.append(f"\tif ({var_name}_opt.HasResult()) {{")
                 lines.append(f"\t\tauto slot_idx = process.child_results.size() - 1;")
                 value_expr = f"{self.process_take_result(rule_name)}<{self.cpp_type(arg.rule_name)}>(slot_idx)"
@@ -1410,7 +1389,7 @@ class UseGramPreviewEmitter:
             elif isinstance(arg, OptionalListStackChild):
                 var_name = arg.var_name
                 lines.append(f"\toptional<vector<{self.cpp_type(arg.rule_name)}>> {var_name} {{}};")
-                lines.append(f"\tauto &{var_name}_opt = {arg.parse_expr}.Cast<OptionalParseResult>();")
+                lines.append(f"\tauto {var_name}_opt = {arg.parse_expr};")
                 lines.append(f"\tif ({var_name}_opt.HasResult()) {{")
                 lines.append(f"\t\tvector<{self.cpp_type(arg.rule_name)}> {var_name}_value;")
                 lines.append(f"\t\t{var_name}_value.reserve(dynamic_child_count);")
@@ -1478,18 +1457,14 @@ class UseGramPreviewEmitter:
         if dynamic_child:
             logical_child_slots = max(logical_child_slots, dynamic_child.slot_start + 1)
         if frame_children or dynamic_child:
-            lines.append(f"\tauto &list_pr = {self.process_parse_result(rule_name)}.Cast<ListParseResult>();")
+            lines.append(f"\tauto elements = ParseElement({self.process_parse_result(rule_name)});")
         if dynamic_child:
             if plan.list_child:
                 list_child = plan.list_child
-                lines.append(
-                    f"\tauto list_items = PEGTransformerFactory::ExtractParseResultsFromList({list_child.parse_expr});"
-                )
+                lines.append(f"\tauto list_items = {list_child.parse_expr}.ListItems();")
                 lines.append("\tauto dynamic_child_count = list_items.size();")
                 if trailing_optional:
-                    lines.append(
-                        f"\tauto &{trailing_optional.var_name}_opt = {trailing_optional.parse_expr}.Cast<OptionalParseResult>();"
-                    )
+                    lines.append(f"\tauto {trailing_optional.var_name}_opt = {trailing_optional.parse_expr};")
                     lines.append(
                         f"\tprocess.ReserveChildSlots({logical_child_slots} + dynamic_child_count - 1 + ({trailing_optional.var_name}_opt.HasResult() ? 1 : 0));"
                     )
@@ -1498,7 +1473,7 @@ class UseGramPreviewEmitter:
                     lines.append(f"\tif ({trailing_optional.var_name}_opt.HasResult()) {{")
                     child_expr = trailing_optional.result_expr_template.format(opt=f"{trailing_optional.var_name}_opt")
                     lines.append(
-                        f"\t\tprocess.PushChild({{transformer.GetRule(PEGRuleId::{trailing_optional.rule_name}), {child_expr}}}, "
+                        f"\t\tprocess.PushChild({{transformer.GetRule(PEGRuleId::{trailing_optional.rule_name}), {child_expr}.Result()}}, "
                         f"{logical_child_slots} + dynamic_child_count - 1);"
                     )
                     lines.append("\t}")
@@ -1509,17 +1484,17 @@ class UseGramPreviewEmitter:
                 lines.append("\tfor (idx_t i = list_items.size(); i > 0; i--) {")
                 lines.append("\t\tauto child_idx = i - 1;")
                 lines.append(
-                    f"\t\tprocess.PushChild({{transformer.GetRule(PEGRuleId::{list_child.rule_name}), list_items[child_idx].get()}}, "
+                    f"\t\tprocess.PushChild({{transformer.GetRule(PEGRuleId::{list_child.rule_name}), list_items[child_idx].Result()}}, "
                     f"{list_child.slot_start} + child_idx);"
                 )
                 lines.append("\t}")
             elif plan.optional_list_child:
                 list_child = plan.optional_list_child
-                lines.append(f"\tauto &list_opt = {list_child.parse_expr}.Cast<OptionalParseResult>();")
+                lines.append(f"\tauto list_opt = {list_child.parse_expr};")
                 lines.append("\tidx_t dynamic_child_count = 0;")
                 lines.append("\tif (list_opt.HasResult()) {")
                 child_expr = list_child.result_expr_template.format(opt="list_opt")
-                lines.append(f"\t\tauto list_items = PEGTransformerFactory::ExtractParseResultsFromList({child_expr});")
+                lines.append(f"\t\tauto list_items = {child_expr}.ListItems();")
                 lines.append("\t\tdynamic_child_count = list_items.size();")
                 lines.append(f"\t\tprocess.ReserveChildSlots({logical_child_slots} + dynamic_child_count - 1);")
                 for stack_child in reversed(frame_children_after_dynamic):
@@ -1527,7 +1502,7 @@ class UseGramPreviewEmitter:
                 lines.append("\t\tfor (idx_t i = list_items.size(); i > 0; i--) {")
                 lines.append("\t\t\tauto child_idx = i - 1;")
                 lines.append(
-                    f"\t\t\tprocess.PushChild({{transformer.GetRule(PEGRuleId::{list_child.rule_name}), list_items[child_idx].get()}}, "
+                    f"\t\t\tprocess.PushChild({{transformer.GetRule(PEGRuleId::{list_child.rule_name}), list_items[child_idx].Result()}}, "
                     f"{list_child.slot_start} + child_idx);"
                 )
                 lines.append("\t\t}")
@@ -1538,13 +1513,10 @@ class UseGramPreviewEmitter:
                 lines.append("\t}")
             elif plan.required_repeat_child:
                 repeat_child = plan.required_repeat_child
-                lines.append(f"\tauto &repeat_pr = {repeat_child.parse_expr}.Cast<RepeatParseResult>();")
-                lines.append("\tauto repeat_children = repeat_pr.GetChildren();")
+                lines.append(f"\tauto repeat_children = {repeat_child.parse_expr}.Repeat();")
                 lines.append("\tauto dynamic_child_count = repeat_children.size();")
                 if trailing_optional:
-                    lines.append(
-                        f"\tauto &{trailing_optional.var_name}_opt = {trailing_optional.parse_expr}.Cast<OptionalParseResult>();"
-                    )
+                    lines.append(f"\tauto {trailing_optional.var_name}_opt = {trailing_optional.parse_expr};")
                     lines.append(
                         f"\tprocess.ReserveChildSlots({logical_child_slots} + dynamic_child_count - 1 + ({trailing_optional.var_name}_opt.HasResult() ? 1 : 0));"
                     )
@@ -1553,7 +1525,7 @@ class UseGramPreviewEmitter:
                     lines.append(f"\tif ({trailing_optional.var_name}_opt.HasResult()) {{")
                     child_expr = trailing_optional.result_expr_template.format(opt=f"{trailing_optional.var_name}_opt")
                     lines.append(
-                        f"\t\tprocess.PushChild({{transformer.GetRule(PEGRuleId::{trailing_optional.rule_name}), {child_expr}}}, "
+                        f"\t\tprocess.PushChild({{transformer.GetRule(PEGRuleId::{trailing_optional.rule_name}), {child_expr}.Result()}}, "
                         f"{logical_child_slots} + dynamic_child_count - 1);"
                     )
                     lines.append("\t}")
@@ -1564,17 +1536,16 @@ class UseGramPreviewEmitter:
                 lines.append("\tfor (idx_t i = repeat_children.size(); i > 0; i--) {")
                 lines.append("\t\tauto child_idx = i - 1;")
                 lines.append(
-                    f"\t\tprocess.PushChild({{transformer.GetRule(PEGRuleId::{repeat_child.rule_name}), repeat_children[child_idx].get()}}, "
+                    f"\t\tprocess.PushChild({{transformer.GetRule(PEGRuleId::{repeat_child.rule_name}), repeat_children[child_idx].Result()}}, "
                     f"{repeat_child.slot_start} + child_idx);"
                 )
                 lines.append("\t}")
             else:
                 repeat_child = plan.repeat_child
-                lines.append(f"\tauto &repeat_opt = {repeat_child.parse_expr}.Cast<OptionalParseResult>();")
+                lines.append(f"\tauto repeat_opt = {repeat_child.parse_expr};")
                 lines.append("\tidx_t dynamic_child_count = 0;")
                 lines.append("\tif (repeat_opt.HasResult()) {")
-                lines.append("\t\tauto &repeat_pr = repeat_opt.GetResult().Cast<RepeatParseResult>();")
-                lines.append("\t\tauto repeat_children = repeat_pr.GetChildren();")
+                lines.append("\t\tauto repeat_children = repeat_opt.GetResult().Repeat();")
                 lines.append("\t\tdynamic_child_count = repeat_children.size();")
                 lines.append(f"\t\tprocess.ReserveChildSlots({logical_child_slots} + dynamic_child_count - 1);")
                 for stack_child in reversed(frame_children_after_dynamic):
@@ -1582,7 +1553,7 @@ class UseGramPreviewEmitter:
                 lines.append("\t\tfor (idx_t i = repeat_children.size(); i > 0; i--) {")
                 lines.append("\t\t\tauto child_idx = i - 1;")
                 lines.append(
-                    f"\t\t\tprocess.PushChild({{transformer.GetRule(PEGRuleId::{repeat_child.rule_name}), repeat_children[child_idx].get()}}, "
+                    f"\t\t\tprocess.PushChild({{transformer.GetRule(PEGRuleId::{repeat_child.rule_name}), repeat_children[child_idx].Result()}}, "
                     f"{repeat_child.slot_start} + child_idx);"
                 )
                 lines.append("\t\t}")
@@ -1601,13 +1572,13 @@ class UseGramPreviewEmitter:
     def matcher_transform_expr(self, rule_name, parse_expr):
         matcher = self.matcher_overrides[rule_name].matcher
         if matcher == "string_literal":
-            return f"PEGTransformerFactory::TransformStringLiteral(transformer, {parse_expr})"
+            return f"PEGTransformerFactory::TransformStringLiteral(transformer, {parse_expr}.Result())"
         if matcher == "number_literal":
-            return f"PEGTransformerFactory::TransformNumberLiteral(transformer, {parse_expr})"
+            return f"PEGTransformerFactory::TransformNumberLiteral(transformer, {parse_expr}.Result())"
         if matcher in ("operator", "all_operators"):
-            return f"{parse_expr}.Cast<OperatorParseResult>().operator_token"
+            return f"{parse_expr}.Operator()"
         if matcher in ("identifier", "identifier_string"):
-            return f"{parse_expr}.Cast<IdentifierParseResult>().identifier.GetIdentifierName()"
+            return f"{parse_expr}.GetIdentifier().GetIdentifierName()"
         raise NotImplementedError(f"unsupported matcher override: {matcher}")
 
 

@@ -4,6 +4,7 @@
 #include "duckdb/parser/peg/ast/unpivot_name_values.hpp"
 #include "duckdb/parser/qualified_name_set.hpp"
 #include "duckdb/parser/peg/transformer/parse_result.hpp"
+#include "duckdb/parser/peg/transformer/parse_element.hpp"
 #include "duckdb/parser/peg/matcher.hpp"
 #include "duckdb/parser/peg/matcher_stack.hpp"
 #include "duckdb/parser/peg/transformer/transform_result.hpp"
