@@ -1318,9 +1318,7 @@ PEGTransformerFactory::TransformSelectClause(PEGTransformer &transformer, option
 	if (!target_list) {
 		throw ParserException("SELECT clause without selection list");
 	}
-	for (auto &expr_ptr : *target_list) {
-		result->select_list.push_back(std::move(expr_ptr));
-	}
+	result->select_list = std::move(*target_list);
 	return result;
 }
 

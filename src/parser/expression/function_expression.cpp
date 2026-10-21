@@ -12,49 +12,61 @@ namespace duckdb {
 FunctionExpression::FunctionExpression() : ParsedExpression(ExpressionType::FUNCTION, ExpressionClass::FUNCTION) {
 }
 
+//! The function's name lowered, keeping its qualification
+static QualifiedName LowerFunctionName(const QualifiedName &function_name) {
+	D_ASSERT(!function_name.Name().empty());
+	return function_name.WithName(Identifier(StringUtil::Lower(function_name.Name().GetIdentifierName())));
+}
+
+static QualifiedName LowerFunctionName(const Identifier &function_name) {
+	D_ASSERT(!function_name.empty());
+	return QualifiedName(Identifier(StringUtil::Lower(function_name.GetIdentifierName())));
+}
+
+static vector<FunctionArgument> ToFunctionArguments(vector<unique_ptr<ParsedExpression>> children) {
+	vector<FunctionArgument> arguments;
+	arguments.reserve(children.size());
+	for (auto &child : children) {
+		arguments.emplace_back(std::move(child));
+	}
+	return arguments;
+}
+
 FunctionExpression::FunctionExpression(const QualifiedName &function_name,
                                        vector<unique_ptr<ParsedExpression>> children_p,
                                        unique_ptr<ParsedExpression> filter, unique_ptr<OrderModifier> order_bys_p,
                                        bool distinct, bool is_operator, bool export_state_p)
-    : ParsedExpression(ExpressionType::FUNCTION, ExpressionClass::FUNCTION),
-      qualified_name(function_name.WithName(Identifier(StringUtil::Lower(function_name.Name().GetIdentifierName())))),
-      is_operator(is_operator), distinct(distinct), filter(std::move(filter)), order_bys(std::move(order_bys_p)),
-      export_state(export_state_p) {
-	arguments.reserve(children_p.size());
-	for (auto &child : children_p) {
-		arguments.emplace_back(std::move(child));
-	}
-	D_ASSERT(!function_name.Name().empty());
-	if (!order_bys) {
-		order_bys = make_uniq<OrderModifier>();
-	}
+    : FunctionExpression(function_name, ToFunctionArguments(std::move(children_p)), std::move(filter),
+                         std::move(order_bys_p), distinct, is_operator, export_state_p) {
 }
 
 FunctionExpression::FunctionExpression(const Identifier &function_name, vector<unique_ptr<ParsedExpression>> children_p,
                                        unique_ptr<ParsedExpression> filter, unique_ptr<OrderModifier> order_bys,
                                        bool distinct, bool is_operator, bool export_state_p)
-    : FunctionExpression(QualifiedName(function_name), std::move(children_p), std::move(filter), std::move(order_bys),
-                         distinct, is_operator, export_state_p) {
+    : FunctionExpression(function_name, ToFunctionArguments(std::move(children_p)), std::move(filter),
+                         std::move(order_bys), distinct, is_operator, export_state_p) {
 }
 
 FunctionExpression::FunctionExpression(const QualifiedName &function_name, vector<FunctionArgument> children,
                                        unique_ptr<ParsedExpression> filter, unique_ptr<OrderModifier> order_bys_p,
                                        bool distinct, bool is_operator, bool export_state)
     : ParsedExpression(ExpressionType::FUNCTION, ExpressionClass::FUNCTION),
-      qualified_name(function_name.WithName(Identifier(StringUtil::Lower(function_name.Name().GetIdentifierName())))),
-      is_operator(is_operator), arguments(std::move(children)), distinct(distinct), filter(std::move(filter)),
-      order_bys(std::move(order_bys_p)), export_state(export_state) {
-	D_ASSERT(!function_name.Name().empty());
+      qualified_name(LowerFunctionName(function_name)), is_operator(is_operator), arguments(std::move(children)),
+      distinct(distinct), filter(std::move(filter)), order_bys(std::move(order_bys_p)), export_state(export_state) {
 	if (!order_bys) {
 		this->order_bys = make_uniq<OrderModifier>();
 	}
 }
 
 FunctionExpression::FunctionExpression(const Identifier &function_name, vector<FunctionArgument> children,
-                                       unique_ptr<ParsedExpression> filter, unique_ptr<OrderModifier> order_bys,
+                                       unique_ptr<ParsedExpression> filter, unique_ptr<OrderModifier> order_bys_p,
                                        bool distinct, bool is_operator, bool export_state)
-    : FunctionExpression(QualifiedName(function_name), std::move(children), std::move(filter), std::move(order_bys),
-                         distinct, is_operator, export_state) {
+    : ParsedExpression(ExpressionType::FUNCTION, ExpressionClass::FUNCTION),
+      qualified_name(LowerFunctionName(function_name)), is_operator(is_operator), arguments(std::move(children)),
+      distinct(distinct), filter(std::move(filter)), order_bys(std::move(order_bys_p)), export_state(export_state) {
+	if (!order_bys) {
+		this->order_bys = make_uniq<OrderModifier>();
+	}
 }
 
 string FunctionExpression::ToString() const {

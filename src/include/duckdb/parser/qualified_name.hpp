@@ -98,6 +98,7 @@ struct QualifiedName {
 	QualifiedName WithName(Identifier name) const {
 		vector<Identifier> qualification;
 		if (!path.empty()) {
+			qualification.reserve(path.size());
 			qualification.insert(qualification.end(), path.begin(), path.end() - 1);
 		}
 		return QualifiedName(std::move(qualification), std::move(name));

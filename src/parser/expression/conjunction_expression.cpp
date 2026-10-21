@@ -22,6 +22,7 @@ ConjunctionExpression::ConjunctionExpression(ExpressionType type, vector<unique_
 ConjunctionExpression::ConjunctionExpression(ExpressionType type, unique_ptr<ParsedExpression> left,
                                              unique_ptr<ParsedExpression> right)
     : ParsedExpression(type, ExpressionClass::CONJUNCTION) {
+	children.reserve(2);
 	AddExpression(std::move(left));
 	AddExpression(std::move(right));
 }

@@ -1497,9 +1497,10 @@ PEGTransformerFactory::TransformBitwiseExpression(PEGTransformer &transformer,
 	}
 	auto bit_depth_guard = transformer.StackCheck(bitwise_expression_tail->size());
 	for (auto &bit_expr : *bitwise_expression_tail) {
-		vector<unique_ptr<ParsedExpression>> bit_children;
-		bit_children.push_back(std::move(expr));
-		bit_children.push_back(std::move(bit_expr.expression));
+		vector<FunctionArgument> bit_children;
+		bit_children.reserve(2);
+		bit_children.emplace_back(std::move(expr));
+		bit_children.emplace_back(std::move(bit_expr.expression));
 		auto func_expr = make_uniq<FunctionExpression>(Identifier(std::move(bit_expr.op)), std::move(bit_children));
 		func_expr->IsOperatorMutable() = true;
 		expr = std::move(func_expr);
@@ -1517,9 +1518,10 @@ PEGTransformerFactory::TransformAdditiveExpression(PEGTransformer &transformer,
 	}
 	auto add_depth_guard = transformer.StackCheck(additive_expression_tail->size());
 	for (auto &term_expr : *additive_expression_tail) {
-		vector<unique_ptr<ParsedExpression>> term_children;
-		term_children.push_back(std::move(expr));
-		term_children.push_back(std::move(term_expr.expression));
+		vector<FunctionArgument> term_children;
+		term_children.reserve(2);
+		term_children.emplace_back(std::move(expr));
+		term_children.emplace_back(std::move(term_expr.expression));
 		auto func_expr = make_uniq<FunctionExpression>(Identifier(std::move(term_expr.op)), std::move(term_children));
 		func_expr->IsOperatorMutable() = true;
 		if (term_expr.query_location.IsValid()) {
@@ -1543,9 +1545,10 @@ unique_ptr<ParsedExpression> PEGTransformerFactory::TransformMultiplicativeExpre
 		if (factor == "/" && transformer.options.integer_division) {
 			factor = "//";
 		}
-		vector<unique_ptr<ParsedExpression>> factor_children;
-		factor_children.push_back(std::move(expr));
-		factor_children.push_back(std::move(factor_expr.expression));
+		vector<FunctionArgument> factor_children;
+		factor_children.reserve(2);
+		factor_children.emplace_back(std::move(expr));
+		factor_children.emplace_back(std::move(factor_expr.expression));
 		auto func_expr = make_uniq<FunctionExpression>(Identifier(std::move(factor)), std::move(factor_children));
 		func_expr->IsOperatorMutable() = true;
 		expr = std::move(func_expr);
@@ -1561,9 +1564,10 @@ unique_ptr<ParsedExpression> PEGTransformerFactory::TransformExponentiationExpre
 		return expr;
 	}
 	for (auto &exponent_expr : *exponentiation_expression_tail) {
-		vector<unique_ptr<ParsedExpression>> exponent_children;
-		exponent_children.push_back(std::move(expr));
-		exponent_children.push_back(std::move(exponent_expr.expression));
+		vector<FunctionArgument> exponent_children;
+		exponent_children.reserve(2);
+		exponent_children.emplace_back(std::move(expr));
+		exponent_children.emplace_back(std::move(exponent_expr.expression));
 		auto func_expr =
 		    make_uniq<FunctionExpression>(Identifier(std::move(exponent_expr.op)), std::move(exponent_children));
 		func_expr->IsOperatorMutable() = true;
