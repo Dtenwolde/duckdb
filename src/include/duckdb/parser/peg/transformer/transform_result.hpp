@@ -74,13 +74,15 @@ struct DUCKDB_API TypedTransformResult : public TransformResultValue {
 	T value;
 };
 
-//! Returns a pointer to the contained value if the result holds exactly T, and nullptr otherwise
+//! Returns a pointer to the contained value if the result holds exactly T, and nullptr otherwise. The registered
+//! type names are unique per type, so a matching hash identifies the box; GetValuePointer stays for callers that
+//! only know the name.
 template <class T>
 T *TryGetTransformResult(TransformResultValue &result) {
 	if (result.type_hash != TransformResultTypeHash<T>()) {
 		return nullptr;
 	}
-	return reinterpret_cast<T *>(result.GetValuePointer(TransformResultTypeName<T>()));
+	return &static_cast<TypedTransformResult<T> &>(result).value;
 }
 
 } // namespace duckdb
