@@ -1297,13 +1297,13 @@ class UseGramPreviewEmitter:
                 lines.append(f"\tif ({arg.var_name}_opt.HasResult()) {{")
                 lines.append(f"\t\tvector<Identifier> {arg.var_name}_value;")
                 lines.append(f"\t\tauto {arg.var_name}_repeat = {arg.var_name}_opt.GetResult().Repeat();")
-                lines.append(f"\t\t{arg.var_name}_value.reserve({arg.var_name}_repeat.size());")
+                lines.append(f"\t\t{arg.var_name}_value.reserve({arg.var_name}_repeat.size() + 1);")
                 lines.append(f"\t\tfor (auto {arg.var_name}_item : {arg.var_name}_repeat) {{")
                 lines.append(f"\t\t\t{arg.var_name}_value.push_back({arg.var_name}_item.GetIdentifier());")
                 lines.append("\t\t}")
                 lines.append(f"\t\t{arg.var_name} = {arg.var_name}_value;")
                 lines.append("\t}")
-                arg_names.append(arg.var_name)
+                arg_names.append(f"std::move({arg.var_name})")
             elif isinstance(arg, DirectListArg):
                 element_cpp_type = self.direct_matcher_cpp_type(arg.rule_name)
                 lines.append(f"\tvector<{element_cpp_type}> {arg.var_name};")
@@ -1322,7 +1322,7 @@ class UseGramPreviewEmitter:
                         f"{self.direct_matcher_vector_push_expr(arg.rule_name, f'{arg.var_name}_value')});"
                     )
                 lines.append("\t}")
-                arg_names.append(arg.var_name)
+                arg_names.append(f"std::move({arg.var_name})")
             elif isinstance(arg, DirectOptionalListArg):
                 element_cpp_type = self.direct_matcher_cpp_type(arg.rule_name)
                 lines.append(f"\toptional<vector<{element_cpp_type}>> {arg.var_name} {{}};")
@@ -1344,7 +1344,7 @@ class UseGramPreviewEmitter:
                 lines.append("\t\t}")
                 lines.append(f"\t\t{arg.var_name} = std::move({arg.var_name}_value);")
                 lines.append("\t}")
-                arg_names.append(arg.var_name)
+                arg_names.append(f"std::move({arg.var_name})")
             elif isinstance(arg, StackChild):
                 var_name = arg.var_name
                 slot_expr = self.adjusted_slot_expr(plan, arg.slot_idx)
@@ -1376,7 +1376,7 @@ class UseGramPreviewEmitter:
                 lines.append(f"\toptional<vector<{self.cpp_type(arg.rule_name)}>> {var_name} {{}};")
                 lines.append("\tif (dynamic_child_count > 0) {")
                 lines.append(f"\t\tvector<{self.cpp_type(arg.rule_name)}> {var_name}_value;")
-                lines.append(f"\t\t{var_name}_value.reserve(dynamic_child_count);")
+                lines.append(f"\t\t{var_name}_value.reserve(dynamic_child_count + 1);")
                 loop_end = f"{arg.slot_start} + dynamic_child_count"
                 lines.append(f"\t\tfor (idx_t i = {arg.slot_start}; i < {loop_end}; i++) {{")
                 lines.append(
@@ -1385,14 +1385,14 @@ class UseGramPreviewEmitter:
                 lines.append("\t\t}")
                 lines.append(f"\t\t{var_name} = std::move({var_name}_value);")
                 lines.append("\t}")
-                arg_names.append(self.transform_arg_expr(arg.rule_name, var_name))
+                arg_names.append(f"std::move({var_name})")
             elif isinstance(arg, OptionalListStackChild):
                 var_name = arg.var_name
                 lines.append(f"\toptional<vector<{self.cpp_type(arg.rule_name)}>> {var_name} {{}};")
                 lines.append(f"\tauto {var_name}_opt = {arg.parse_expr};")
                 lines.append(f"\tif ({var_name}_opt.HasResult()) {{")
                 lines.append(f"\t\tvector<{self.cpp_type(arg.rule_name)}> {var_name}_value;")
-                lines.append(f"\t\t{var_name}_value.reserve(dynamic_child_count);")
+                lines.append(f"\t\t{var_name}_value.reserve(dynamic_child_count + 1);")
                 loop_end = f"{arg.slot_start} + dynamic_child_count"
                 lines.append(f"\t\tfor (idx_t i = {arg.slot_start}; i < {loop_end}; i++) {{")
                 lines.append(
@@ -1401,7 +1401,7 @@ class UseGramPreviewEmitter:
                 lines.append("\t\t}")
                 lines.append(f"\t\t{var_name} = std::move({var_name}_value);")
                 lines.append("\t}")
-                arg_names.append(self.transform_arg_expr(arg.rule_name, var_name))
+                arg_names.append(f"std::move({var_name})")
             elif isinstance(arg, RequiredRepeatStackChild):
                 var_name = arg.var_name
                 lines.append(f"\tvector<{self.cpp_type(arg.rule_name)}> {var_name};")
@@ -1412,7 +1412,7 @@ class UseGramPreviewEmitter:
                     f"\t\t{var_name}.push_back({self.process_take_result(rule_name)}<{self.cpp_type(arg.rule_name)}>(i));"
                 )
                 lines.append("\t}")
-                arg_names.append(self.transform_arg_expr(arg.rule_name, var_name))
+                arg_names.append(f"std::move({var_name})")
             elif isinstance(arg, ListStackChild):
                 var_name = arg.var_name
                 lines.append(f"\tvector<{self.cpp_type(arg.rule_name)}> {var_name};")
@@ -1423,7 +1423,7 @@ class UseGramPreviewEmitter:
                     f"\t\t{var_name}.push_back({self.process_take_result(rule_name)}<{self.cpp_type(arg.rule_name)}>(i));"
                 )
                 lines.append("\t}")
-                arg_names.append(self.transform_arg_expr(arg.rule_name, var_name))
+                arg_names.append(f"std::move({var_name})")
             else:
                 raise NotImplementedError(f"unsupported finalize argument: {type(arg).__name__}")
         transform_args = ["transformer"] + arg_names

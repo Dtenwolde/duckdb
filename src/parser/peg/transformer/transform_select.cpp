@@ -345,8 +345,9 @@ MacroParameter PEGTransformerFactory::TransformNamedParameter(PEGTransformer &tr
 
 unique_ptr<BaseTableRef> PEGTransformerFactory::TransformUnqualifiedBaseTableName(PEGTransformer &transformer,
                                                                                   const Identifier &table_name) {
-	const auto description = TableDescription(QualifiedName(table_name));
-	return make_uniq<BaseTableRef>(description);
+	auto result = make_uniq<BaseTableRef>();
+	result->SetQualifiedName(QualifiedName(table_name));
+	return result;
 }
 
 Identifier PEGTransformerFactory::TransformSchemaQualification(PEGTransformer &transformer,
@@ -1530,8 +1531,9 @@ unique_ptr<BaseTableRef> PEGTransformerFactory::TransformCatalogReservedSchemaTa
 	for (auto &schema : reserved_schema_qualification) {
 		qualification.push_back(schema);
 	}
-	const auto description = TableDescription(QualifiedName(std::move(qualification), reserved_table_name));
-	return make_uniq<BaseTableRef>(description);
+	auto result = make_uniq<BaseTableRef>();
+	result->SetQualifiedName(QualifiedName(std::move(qualification), reserved_table_name));
+	return result;
 }
 
 QualifiedName PEGTransformerFactory::TransformQualifiedTableFunction(

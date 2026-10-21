@@ -4522,7 +4522,7 @@ public:
 	                                                        unique_ptr<ColumnRefExpression> nested_column_name,
 	                                                        const Identifier &identifier);
 	static unique_ptr<ColumnRefExpression> TransformNestedColumnName(PEGTransformer &transformer,
-	                                                                 const optional<vector<Identifier>> &identifier_dot,
+	                                                                 optional<vector<Identifier>> identifier_dot,
 	                                                                 const Identifier &column_name);
 	static Identifier TransformIdentifierDot(PEGTransformer &transformer, const Identifier &identifier);
 	static unique_ptr<AlterTableInfo> TransformRenameAlter(PEGTransformer &transformer, const Identifier &identifier);

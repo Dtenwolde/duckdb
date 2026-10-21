@@ -12324,7 +12324,7 @@ PEGTransformerFactory::FinalizeAddColumnEntryTrampoline(PEGTransformer &transfor
 	optional<vector<ColumnConstraintEntry>> column_constraint {};
 	if (dynamic_child_count > 0) {
 		vector<ColumnConstraintEntry> column_constraint_value;
-		column_constraint_value.reserve(dynamic_child_count);
+		column_constraint_value.reserve(dynamic_child_count + 1);
 		for (idx_t i = 3; i < 3 + dynamic_child_count; i++) {
 			column_constraint_value.push_back(process.TakeResult<ColumnConstraintEntry>(i));
 		}
@@ -12440,7 +12440,7 @@ PEGTransformerFactory::FinalizeNestedColumnNameTrampoline(PEGTransformer &transf
 	optional<vector<Identifier>> identifier_dot {};
 	if (dynamic_child_count > 0) {
 		vector<Identifier> identifier_dot_value;
-		identifier_dot_value.reserve(dynamic_child_count);
+		identifier_dot_value.reserve(dynamic_child_count + 1);
 		for (idx_t i = 0; i < 0 + dynamic_child_count; i++) {
 			identifier_dot_value.push_back(process.TakeResult<Identifier>(i));
 		}
@@ -12448,7 +12448,7 @@ PEGTransformerFactory::FinalizeNestedColumnNameTrampoline(PEGTransformer &transf
 	}
 	auto column_name = elements.Child(1).GetIdentifier();
 	return transformer.MakeResult<unique_ptr<ColumnRefExpression>>(
-	    PEGTransformerFactory::TransformNestedColumnName(transformer, identifier_dot, column_name));
+	    PEGTransformerFactory::TransformNestedColumnName(transformer, std::move(identifier_dot), column_name));
 }
 
 template <class PROCESS>
@@ -13604,14 +13604,14 @@ arena_ptr<TransformResultValue> PEGTransformerFactory::FinalizeTypeTrampoline(PE
 	optional<vector<int64_t>> array_bounds {};
 	if (dynamic_child_count > 0) {
 		vector<int64_t> array_bounds_value;
-		array_bounds_value.reserve(dynamic_child_count);
+		array_bounds_value.reserve(dynamic_child_count + 1);
 		for (idx_t i = 1; i < 1 + dynamic_child_count; i++) {
 			array_bounds_value.push_back(process.TakeResult<int64_t>(i));
 		}
 		array_bounds = std::move(array_bounds_value);
 	}
 	return transformer.MakeResult<LogicalType>(
-	    PEGTransformerFactory::TransformType(transformer, std::move(type_variations), array_bounds));
+	    PEGTransformerFactory::TransformType(transformer, std::move(type_variations), std::move(array_bounds)));
 }
 
 template <class PROCESS>
@@ -14209,7 +14209,7 @@ arena_ptr<TransformResultValue> PEGTransformerFactory::FinalizeBitTypeTrampoline
 	auto expression_opt = elements.Child(2);
 	if (expression_opt.HasResult()) {
 		vector<unique_ptr<ParsedExpression>> expression_value;
-		expression_value.reserve(dynamic_child_count);
+		expression_value.reserve(dynamic_child_count + 1);
 		for (idx_t i = 0; i < 0 + dynamic_child_count; i++) {
 			expression_value.push_back(process.TakeResult<unique_ptr<ParsedExpression>>(i));
 		}
@@ -14596,7 +14596,7 @@ PEGTransformerFactory::FinalizeCatalogReservedSchemaTypeNameTrampoline(PEGTransf
 	}
 	auto reserved_type_name = elements.Child(2).GetIdentifier();
 	return transformer.MakeResult<QualifiedName>(PEGTransformerFactory::TransformCatalogReservedSchemaTypeName(
-	    transformer, catalog_qualification, reserved_schema_qualification, reserved_type_name));
+	    transformer, catalog_qualification, std::move(reserved_schema_qualification), reserved_type_name));
 }
 
 template <class PROCESS>
@@ -14651,7 +14651,7 @@ PEGTransformerFactory::FinalizeTypeModifiersTrampoline(PEGTransformer &transform
 	auto expression_opt = elements.Child(0).Unwrap();
 	if (expression_opt.HasResult()) {
 		vector<unique_ptr<ParsedExpression>> expression_value;
-		expression_value.reserve(dynamic_child_count);
+		expression_value.reserve(dynamic_child_count + 1);
 		for (idx_t i = 0; i < 0 + dynamic_child_count; i++) {
 			expression_value.push_back(process.TakeResult<unique_ptr<ParsedExpression>>(i));
 		}
@@ -14694,14 +14694,14 @@ PEGTransformerFactory::FinalizeNestedTypeTrampoline(PEGTransformer &transformer,
 	optional<vector<int64_t>> array_bounds {};
 	if (dynamic_child_count > 0) {
 		vector<int64_t> array_bounds_value;
-		array_bounds_value.reserve(dynamic_child_count);
+		array_bounds_value.reserve(dynamic_child_count + 1);
 		for (idx_t i = 1; i < 1 + dynamic_child_count; i++) {
 			array_bounds_value.push_back(process.TakeResult<int64_t>(i));
 		}
 		array_bounds = std::move(array_bounds_value);
 	}
 	return transformer.MakeResult<unique_ptr<ParsedExpression>>(
-	    PEGTransformerFactory::TransformNestedType(transformer, std::move(type_variations), array_bounds));
+	    PEGTransformerFactory::TransformNestedType(transformer, std::move(type_variations), std::move(array_bounds)));
 }
 
 template <class PROCESS>
@@ -14819,7 +14819,7 @@ arena_ptr<TransformResultValue> PEGTransformerFactory::FinalizeMapTypeTrampoline
 	auto nested_type_opt = elements.Child(1);
 	if (nested_type_opt.HasResult()) {
 		vector<unique_ptr<ParsedExpression>> nested_type_value;
-		nested_type_value.reserve(dynamic_child_count);
+		nested_type_value.reserve(dynamic_child_count + 1);
 		for (idx_t i = 0; i < 0 + dynamic_child_count; i++) {
 			nested_type_value.push_back(process.TakeResult<unique_ptr<ParsedExpression>>(i));
 		}
@@ -15481,7 +15481,7 @@ PEGTransformerFactory::FinalizeIdentifierColIdTrampoline(PEGTransformer &transfo
 		copy_file_name_suffix.push_back(process.TakeResult<Identifier>(i));
 	}
 	return transformer.MakeResult<Identifier>(
-	    PEGTransformerFactory::TransformIdentifierColId(transformer, identifier, copy_file_name_suffix));
+	    PEGTransformerFactory::TransformIdentifierColId(transformer, identifier, std::move(copy_file_name_suffix)));
 }
 
 template <class PROCESS>
@@ -15596,14 +15596,14 @@ PEGTransformerFactory::FinalizeSpecializedOptionListTrampoline(PEGTransformer &t
 	optional<vector<GenericCopyOption>> specialized_option_tail {};
 	if (dynamic_child_count > 0) {
 		vector<GenericCopyOption> specialized_option_tail_value;
-		specialized_option_tail_value.reserve(dynamic_child_count);
+		specialized_option_tail_value.reserve(dynamic_child_count + 1);
 		for (idx_t i = 1; i < 1 + dynamic_child_count; i++) {
 			specialized_option_tail_value.push_back(process.TakeResult<GenericCopyOption>(i));
 		}
 		specialized_option_tail = std::move(specialized_option_tail_value);
 	}
 	return transformer.MakeResult<vector<GenericCopyOption>>(PEGTransformerFactory::TransformSpecializedOptionList(
-	    transformer, specialized_option, specialized_option_tail));
+	    transformer, specialized_option, std::move(specialized_option_tail)));
 }
 
 template <class PROCESS>
@@ -16036,7 +16036,7 @@ PEGTransformerFactory::FinalizeCopyGenericOptionListTrampoline(PEGTransformer &t
 		copy_generic_option.push_back(process.TakeResult<GenericCopyOption>(i));
 	}
 	return transformer.MakeResult<vector<GenericCopyOption>>(
-	    PEGTransformerFactory::TransformCopyGenericOptionList(transformer, copy_generic_option));
+	    PEGTransformerFactory::TransformCopyGenericOptionList(transformer, std::move(copy_generic_option)));
 }
 
 template <class PROCESS>
@@ -16135,7 +16135,7 @@ PEGTransformerFactory::FinalizeGenericCopyOptionListTrampoline(PEGTransformer &t
 		generic_copy_option.push_back(process.TakeResult<GenericCopyOption>(i));
 	}
 	return transformer.MakeResult<vector<GenericCopyOption>>(
-	    PEGTransformerFactory::TransformGenericCopyOptionList(transformer, generic_copy_option));
+	    PEGTransformerFactory::TransformGenericCopyOptionList(transformer, std::move(generic_copy_option)));
 }
 
 template <class PROCESS>
@@ -16738,14 +16738,14 @@ PEGTransformerFactory::FinalizeDottedColLabelTrampoline(PEGTransformer &transfor
 	optional<vector<string>> dot_col_label {};
 	if (dynamic_child_count > 0) {
 		vector<string> dot_col_label_value;
-		dot_col_label_value.reserve(dynamic_child_count);
+		dot_col_label_value.reserve(dynamic_child_count + 1);
 		for (idx_t i = 1; i < 1 + dynamic_child_count; i++) {
 			dot_col_label_value.push_back(process.TakeResult<string>(i));
 		}
 		dot_col_label = std::move(dot_col_label_value);
 	}
 	return transformer.MakeResult<string>(
-	    PEGTransformerFactory::TransformDottedColLabel(transformer, col_label, dot_col_label));
+	    PEGTransformerFactory::TransformDottedColLabel(transformer, col_label, std::move(dot_col_label)));
 }
 
 template <class PROCESS>
@@ -17256,7 +17256,7 @@ PEGTransformerFactory::FinalizeCreateSequenceStmtTrampoline(PEGTransformer &tran
 	optional<vector<pair<string, unique_ptr<SequenceOption>>>> sequence_option {};
 	if (dynamic_child_count > 0) {
 		vector<pair<string, unique_ptr<SequenceOption>>> sequence_option_value;
-		sequence_option_value.reserve(dynamic_child_count);
+		sequence_option_value.reserve(dynamic_child_count + 1);
 		for (idx_t i = 2; i < 2 + dynamic_child_count; i++) {
 			sequence_option_value.push_back(process.TakeResult<pair<string, unique_ptr<SequenceOption>>>(i));
 		}
@@ -17918,7 +17918,8 @@ GeneratedSingleChildTransform::FinalizeIdentifierListTrampoline(PEGTransformer &
 	for (auto identifier_item : identifier_items) {
 		identifier.push_back(identifier_item.GetIdentifier());
 	}
-	return transformer.MakeResult<ColumnList>(PEGTransformerFactory::TransformIdentifierList(transformer, identifier));
+	return transformer.MakeResult<ColumnList>(
+	    PEGTransformerFactory::TransformIdentifierList(transformer, std::move(identifier)));
 }
 
 void PEGTransformerFactory::InitializeCreateColumnListTrampoline(PEGTransformer &transformer,
@@ -18046,7 +18047,8 @@ PEGTransformerFactory::FinalizeCatalogReservedSchemaIdentifierTrampoline(PEGTran
 	}
 	auto reserved_identifier_or_string_literal = process.TakeResult<Identifier>(2 + dynamic_child_count - 1);
 	return transformer.MakeResult<QualifiedName>(PEGTransformerFactory::TransformCatalogReservedSchemaIdentifier(
-	    transformer, catalog_qualification, reserved_schema_qualification, reserved_identifier_or_string_literal));
+	    transformer, catalog_qualification, std::move(reserved_schema_qualification),
+	    reserved_identifier_or_string_literal));
 }
 
 template <class PROCESS>
@@ -18357,7 +18359,7 @@ PEGTransformerFactory::FinalizeColumnDefinitionTrampoline(PEGTransformer &transf
 	optional<vector<ColumnConstraintEntry>> column_constraint {};
 	if (dynamic_child_count > 0) {
 		vector<ColumnConstraintEntry> column_constraint_value;
-		column_constraint_value.reserve(dynamic_child_count);
+		column_constraint_value.reserve(dynamic_child_count + 1);
 		for (idx_t i = 2; i < 2 + dynamic_child_count; i++) {
 			column_constraint_value.push_back(process.TakeResult<ColumnConstraintEntry>(i));
 		}
@@ -19037,7 +19039,8 @@ PEGTransformerFactory::FinalizeColumnIdListTrampoline(PEGTransformer &transforme
 	for (idx_t i = 0; i < 0 + dynamic_child_count; i++) {
 		col_id.push_back(process.TakeResult<Identifier>(i));
 	}
-	return transformer.MakeResult<vector<string>>(PEGTransformerFactory::TransformColumnIdList(transformer, col_id));
+	return transformer.MakeResult<vector<string>>(
+	    PEGTransformerFactory::TransformColumnIdList(transformer, std::move(col_id)));
 }
 
 void PEGTransformerFactory::InitializeDottedIdentifierTrampoline(PEGTransformer &transformer,
@@ -19073,14 +19076,14 @@ PEGTransformerFactory::FinalizeDottedIdentifierTrampoline(PEGTransformer &transf
 	optional<vector<string>> dot_col_label {};
 	if (dynamic_child_count > 0) {
 		vector<string> dot_col_label_value;
-		dot_col_label_value.reserve(dynamic_child_count);
+		dot_col_label_value.reserve(dynamic_child_count + 1);
 		for (idx_t i = 0; i < 0 + dynamic_child_count; i++) {
 			dot_col_label_value.push_back(process.TakeResult<string>(i));
 		}
 		dot_col_label = std::move(dot_col_label_value);
 	}
 	return transformer.MakeResult<vector<string>>(
-	    PEGTransformerFactory::TransformDottedIdentifier(transformer, identifier, dot_col_label));
+	    PEGTransformerFactory::TransformDottedIdentifier(transformer, identifier, std::move(dot_col_label)));
 }
 
 template <class PROCESS>
@@ -19944,7 +19947,7 @@ PEGTransformerFactory::FinalizeTriggerColumnListTrampoline(PEGTransformer &trans
 		col_id.push_back(process.TakeResult<Identifier>(i));
 	}
 	return transformer.MakeResult<vector<string>>(
-	    PEGTransformerFactory::TransformTriggerColumnList(transformer, col_id));
+	    PEGTransformerFactory::TransformTriggerColumnList(transformer, std::move(col_id)));
 }
 
 template <class PROCESS>
@@ -20122,14 +20125,14 @@ PEGTransformerFactory::FinalizeEnumStringLiteralListTrampoline(PEGTransformer &t
 	optional<vector<int64_t>> array_bounds {};
 	if (dynamic_child_count > 0) {
 		vector<int64_t> array_bounds_value;
-		array_bounds_value.reserve(dynamic_child_count);
+		array_bounds_value.reserve(dynamic_child_count + 1);
 		for (idx_t i = 0; i < 0 + dynamic_child_count; i++) {
 			array_bounds_value.push_back(process.TakeResult<int64_t>(i));
 		}
 		array_bounds = std::move(array_bounds_value);
 	}
-	return transformer.MakeResult<unique_ptr<CreateTypeInfo>>(
-	    PEGTransformerFactory::TransformEnumStringLiteralList(transformer, string_literal, array_bounds));
+	return transformer.MakeResult<unique_ptr<CreateTypeInfo>>(PEGTransformerFactory::TransformEnumStringLiteralList(
+	    transformer, std::move(string_literal), std::move(array_bounds)));
 }
 
 void PEGTransformerFactory::InitializeCreateViewStmtTrampoline(PEGTransformer &transformer,
@@ -21018,7 +21021,7 @@ PEGTransformerFactory::FinalizeDropTableFunctionTrampoline(PEGTransformer &trans
 		qualified_table_function.push_back(process.TakeResult<QualifiedName>(i));
 	}
 	return transformer.MakeResult<unique_ptr<DropStatement>>(PEGTransformerFactory::TransformDropTableFunction(
-	    transformer, comment_macro_table, if_exists, qualified_table_function));
+	    transformer, comment_macro_table, if_exists, std::move(qualified_table_function)));
 }
 
 void PEGTransformerFactory::InitializeDropFunctionTrampoline(PEGTransformer &transformer,
@@ -21053,8 +21056,8 @@ PEGTransformerFactory::FinalizeDropFunctionTrampoline(PEGTransformer &transforme
 	for (idx_t i = 2; i < 2 + dynamic_child_count; i++) {
 		function_identifier.push_back(process.TakeResult<QualifiedName>(i));
 	}
-	return transformer.MakeResult<unique_ptr<DropStatement>>(
-	    PEGTransformerFactory::TransformDropFunction(transformer, function_type_macro, if_exists, function_identifier));
+	return transformer.MakeResult<unique_ptr<DropStatement>>(PEGTransformerFactory::TransformDropFunction(
+	    transformer, function_type_macro, if_exists, std::move(function_identifier)));
 }
 
 void PEGTransformerFactory::InitializeDropSchemaTrampoline(PEGTransformer &transformer,
@@ -21088,7 +21091,7 @@ PEGTransformerFactory::FinalizeDropSchemaTrampoline(PEGTransformer &transformer,
 		qualified_name.push_back(process.TakeResult<QualifiedName>(i));
 	}
 	return transformer.MakeResult<unique_ptr<DropStatement>>(
-	    PEGTransformerFactory::TransformDropSchema(transformer, if_exists, qualified_name));
+	    PEGTransformerFactory::TransformDropSchema(transformer, if_exists, std::move(qualified_name)));
 }
 
 void PEGTransformerFactory::InitializeDropIndexTrampoline(PEGTransformer &transformer,
@@ -21122,7 +21125,7 @@ arena_ptr<TransformResultValue> PEGTransformerFactory::FinalizeDropIndexTrampoli
 		qualified_index_name.push_back(process.TakeResult<QualifiedName>(i));
 	}
 	return transformer.MakeResult<unique_ptr<DropStatement>>(
-	    PEGTransformerFactory::TransformDropIndex(transformer, if_exists, qualified_index_name));
+	    PEGTransformerFactory::TransformDropIndex(transformer, if_exists, std::move(qualified_index_name)));
 }
 
 template <class PROCESS>
@@ -21234,7 +21237,7 @@ PEGTransformerFactory::FinalizeDropSequenceTrampoline(PEGTransformer &transforme
 		qualified_sequence_name.push_back(process.TakeResult<QualifiedName>(i));
 	}
 	return transformer.MakeResult<unique_ptr<DropStatement>>(
-	    PEGTransformerFactory::TransformDropSequence(transformer, if_exists, qualified_sequence_name));
+	    PEGTransformerFactory::TransformDropSequence(transformer, if_exists, std::move(qualified_sequence_name)));
 }
 
 void PEGTransformerFactory::InitializeDropCollationTrampoline(PEGTransformer &transformer,
@@ -21269,7 +21272,7 @@ PEGTransformerFactory::FinalizeDropCollationTrampoline(PEGTransformer &transform
 		collation_name.push_back(process.TakeResult<Identifier>(i));
 	}
 	return transformer.MakeResult<unique_ptr<DropStatement>>(
-	    PEGTransformerFactory::TransformDropCollation(transformer, if_exists, collation_name));
+	    PEGTransformerFactory::TransformDropCollation(transformer, if_exists, std::move(collation_name)));
 }
 
 void PEGTransformerFactory::InitializeDropTypeTrampoline(PEGTransformer &transformer,
@@ -21303,7 +21306,7 @@ arena_ptr<TransformResultValue> PEGTransformerFactory::FinalizeDropTypeTrampolin
 		qualified_type_name.push_back(process.TakeResult<QualifiedName>(i));
 	}
 	return transformer.MakeResult<unique_ptr<DropStatement>>(
-	    PEGTransformerFactory::TransformDropType(transformer, if_exists, qualified_type_name));
+	    PEGTransformerFactory::TransformDropType(transformer, if_exists, std::move(qualified_type_name)));
 }
 
 void PEGTransformerFactory::InitializeDropSecretTrampoline(PEGTransformer &transformer,
@@ -21589,7 +21592,7 @@ PEGTransformerFactory::FinalizeExplainOptionListTrampoline(PEGTransformer &trans
 		explain_option.push_back(process.TakeResult<GenericCopyOption>(i));
 	}
 	return transformer.MakeResult<vector<GenericCopyOption>>(
-	    PEGTransformerFactory::TransformExplainOptionList(transformer, explain_option));
+	    PEGTransformerFactory::TransformExplainOptionList(transformer, std::move(explain_option)));
 }
 
 void PEGTransformerFactory::InitializeExplainOptionTrampoline(PEGTransformer &transformer,
@@ -21811,7 +21814,7 @@ PEGTransformerFactory::FinalizeNestedSchemaTableColumnNameTrampoline(PEGTransfor
 	return transformer.MakeResult<unique_ptr<ColumnRefExpression>>(
 	    PEGTransformerFactory::TransformNestedSchemaTableColumnName(
 	        transformer, catalog_qualification, reserved_schema_qualification, reserved_schema_qualification_1,
-	        reserved_schema_qualification_2, reserved_column_name));
+	        std::move(reserved_schema_qualification_2), reserved_column_name));
 }
 
 void PEGTransformerFactory::InitializeCatalogReservedSchemaTableColumnNameTrampoline(
@@ -22092,7 +22095,7 @@ PEGTransformerFactory::FinalizeCatalogReservedSchemaFunctionNameTrampoline(PEGTr
 	optional<vector<Identifier>> reserved_schema_qualification {};
 	if (dynamic_child_count > 0) {
 		vector<Identifier> reserved_schema_qualification_value;
-		reserved_schema_qualification_value.reserve(dynamic_child_count);
+		reserved_schema_qualification_value.reserve(dynamic_child_count + 1);
 		for (idx_t i = 1; i < 1 + dynamic_child_count; i++) {
 			reserved_schema_qualification_value.push_back(process.TakeResult<Identifier>(i));
 		}
@@ -22100,7 +22103,7 @@ PEGTransformerFactory::FinalizeCatalogReservedSchemaFunctionNameTrampoline(PEGTr
 	}
 	auto reserved_function_name = elements.Child(2).GetIdentifier();
 	return transformer.MakeResult<QualifiedName>(PEGTransformerFactory::TransformCatalogReservedSchemaFunctionName(
-	    transformer, catalog_qualification, reserved_schema_qualification, reserved_function_name));
+	    transformer, catalog_qualification, std::move(reserved_schema_qualification), reserved_function_name));
 }
 
 template <class PROCESS>
@@ -22323,7 +22326,7 @@ PEGTransformerFactory::FinalizeParenthesisExpressionTrampoline(PEGTransformer &t
 	auto expression_opt = elements.Child(0).Unwrap();
 	if (expression_opt.HasResult()) {
 		vector<unique_ptr<ParsedExpression>> expression_value;
-		expression_value.reserve(dynamic_child_count);
+		expression_value.reserve(dynamic_child_count + 1);
 		for (idx_t i = 0; i < 0 + dynamic_child_count; i++) {
 			expression_value.push_back(process.TakeResult<unique_ptr<ParsedExpression>>(i));
 		}
@@ -22563,7 +22566,7 @@ PEGTransformerFactory::FinalizeStarQualifierListTrampoline(PEGTransformer &trans
 		col_id_dot.push_back(process.TakeResult<string>(i));
 	}
 	return transformer.MakeResult<vector<string>>(
-	    PEGTransformerFactory::TransformStarQualifierList(transformer, col_id_dot));
+	    PEGTransformerFactory::TransformStarQualifierList(transformer, std::move(col_id_dot)));
 }
 
 template <class PROCESS>
@@ -22627,7 +22630,7 @@ PEGTransformerFactory::FinalizeExcludeNameListTrampoline(PEGTransformer &transfo
 		exclude_name.push_back(process.TakeResult<QualifiedColumnName>(i));
 	}
 	return transformer.MakeResult<qualified_column_set_t>(
-	    PEGTransformerFactory::TransformExcludeNameList(transformer, exclude_name));
+	    PEGTransformerFactory::TransformExcludeNameList(transformer, std::move(exclude_name)));
 }
 
 template <class PROCESS>
@@ -22864,7 +22867,7 @@ PEGTransformerFactory::FinalizeRenameEntryListTrampoline(PEGTransformer &transfo
 		rename_entry.push_back(process.TakeResult<pair<QualifiedColumnName, string>>(i));
 	}
 	return transformer.MakeResult<qualified_column_map_t<string>>(
-	    PEGTransformerFactory::TransformRenameEntryList(transformer, rename_entry));
+	    PEGTransformerFactory::TransformRenameEntryList(transformer, std::move(rename_entry)));
 }
 
 template <class PROCESS>
@@ -23803,7 +23806,7 @@ PEGTransformerFactory::FinalizeBoundedListExpressionTrampoline(PEGTransformer &t
 	auto expression_opt = elements.Child(1);
 	if (expression_opt.HasResult()) {
 		vector<unique_ptr<ParsedExpression>> expression_value;
-		expression_value.reserve(dynamic_child_count);
+		expression_value.reserve(dynamic_child_count + 1);
 		for (idx_t i = 0; i < 0 + dynamic_child_count; i++) {
 			expression_value.push_back(process.TakeResult<unique_ptr<ParsedExpression>>(i));
 		}
@@ -23845,7 +23848,7 @@ PEGTransformerFactory::FinalizeStructExpressionTrampoline(PEGTransformer &transf
 	auto struct_field_opt = elements.Child(1);
 	if (struct_field_opt.HasResult()) {
 		vector<FunctionArgument> struct_field_value;
-		struct_field_value.reserve(dynamic_child_count);
+		struct_field_value.reserve(dynamic_child_count + 1);
 		for (idx_t i = 0; i < 0 + dynamic_child_count; i++) {
 			struct_field_value.push_back(process.TakeResult<FunctionArgument>(i));
 		}
@@ -23920,7 +23923,7 @@ PEGTransformerFactory::FinalizeMapStructExpressionTrampoline(PEGTransformer &tra
 	auto map_struct_field_opt = elements.Child(1);
 	if (map_struct_field_opt.HasResult()) {
 		vector<vector<unique_ptr<ParsedExpression>>> map_struct_field_value;
-		map_struct_field_value.reserve(dynamic_child_count);
+		map_struct_field_value.reserve(dynamic_child_count + 1);
 		for (idx_t i = 0; i < 0 + dynamic_child_count; i++) {
 			map_struct_field_value.push_back(process.TakeResult<vector<unique_ptr<ParsedExpression>>>(i));
 		}
@@ -23981,7 +23984,7 @@ PEGTransformerFactory::FinalizeGroupingExpressionTrampoline(PEGTransformer &tran
 	auto expression_opt = elements.Child(1).Unwrap();
 	if (expression_opt.HasResult()) {
 		vector<unique_ptr<ParsedExpression>> expression_value;
-		expression_value.reserve(dynamic_child_count);
+		expression_value.reserve(dynamic_child_count + 1);
 		for (idx_t i = 1; i < 1 + dynamic_child_count; i++) {
 			expression_value.push_back(process.TakeResult<unique_ptr<ParsedExpression>>(i));
 		}
@@ -24195,9 +24198,9 @@ PEGTransformerFactory::FinalizeListComprehensionExpressionTrampoline(PEGTransfor
 		list_comprehension_filter = process.TakeResult<unique_ptr<ParsedExpression>>(3 + dynamic_child_count - 1);
 	}
 	return transformer.MakeResult<unique_ptr<ParsedExpression>>(
-	    PEGTransformerFactory::TransformListComprehensionExpression(transformer, std::move(expression),
-	                                                                col_id_or_string, std::move(expression_1),
-	                                                                std::move(list_comprehension_filter)));
+	    PEGTransformerFactory::TransformListComprehensionExpression(
+	        transformer, std::move(expression), std::move(col_id_or_string), std::move(expression_1),
+	        std::move(list_comprehension_filter)));
 }
 
 template <class PROCESS>
@@ -24342,7 +24345,7 @@ PEGTransformerFactory::FinalizeLambdaArrowExpressionTrampoline(PEGTransformer &t
 	optional<vector<unique_ptr<ParsedExpression>>> single_arrow_pair {};
 	if (dynamic_child_count > 0) {
 		vector<unique_ptr<ParsedExpression>> single_arrow_pair_value;
-		single_arrow_pair_value.reserve(dynamic_child_count);
+		single_arrow_pair_value.reserve(dynamic_child_count + 1);
 		for (idx_t i = 1; i < 1 + dynamic_child_count; i++) {
 			single_arrow_pair_value.push_back(process.TakeResult<unique_ptr<ParsedExpression>>(i));
 		}
@@ -24404,7 +24407,7 @@ PEGTransformerFactory::FinalizeLogicalOrExpressionTrampoline(PEGTransformer &tra
 	optional<vector<unique_ptr<ParsedExpression>>> logical_or_expression_tail {};
 	if (dynamic_child_count > 0) {
 		vector<unique_ptr<ParsedExpression>> logical_or_expression_tail_value;
-		logical_or_expression_tail_value.reserve(dynamic_child_count);
+		logical_or_expression_tail_value.reserve(dynamic_child_count + 1);
 		for (idx_t i = 1; i < 1 + dynamic_child_count; i++) {
 			logical_or_expression_tail_value.push_back(process.TakeResult<unique_ptr<ParsedExpression>>(i));
 		}
@@ -24466,7 +24469,7 @@ PEGTransformerFactory::FinalizeColDefOrExprTrampoline(PEGTransformer &transforme
 	optional<vector<unique_ptr<ParsedExpression>>> col_def_or_expression_tail {};
 	if (dynamic_child_count > 0) {
 		vector<unique_ptr<ParsedExpression>> col_def_or_expression_tail_value;
-		col_def_or_expression_tail_value.reserve(dynamic_child_count);
+		col_def_or_expression_tail_value.reserve(dynamic_child_count + 1);
 		for (idx_t i = 1; i < 1 + dynamic_child_count; i++) {
 			col_def_or_expression_tail_value.push_back(process.TakeResult<unique_ptr<ParsedExpression>>(i));
 		}
@@ -24529,7 +24532,7 @@ PEGTransformerFactory::FinalizeLogicalAndExpressionTrampoline(PEGTransformer &tr
 	optional<vector<unique_ptr<ParsedExpression>>> logical_and_expression_tail {};
 	if (dynamic_child_count > 0) {
 		vector<unique_ptr<ParsedExpression>> logical_and_expression_tail_value;
-		logical_and_expression_tail_value.reserve(dynamic_child_count);
+		logical_and_expression_tail_value.reserve(dynamic_child_count + 1);
 		for (idx_t i = 1; i < 1 + dynamic_child_count; i++) {
 			logical_and_expression_tail_value.push_back(process.TakeResult<unique_ptr<ParsedExpression>>(i));
 		}
@@ -24592,7 +24595,7 @@ PEGTransformerFactory::FinalizeColDefAndExprTrampoline(PEGTransformer &transform
 	optional<vector<unique_ptr<ParsedExpression>>> col_def_and_expression_tail {};
 	if (dynamic_child_count > 0) {
 		vector<unique_ptr<ParsedExpression>> col_def_and_expression_tail_value;
-		col_def_and_expression_tail_value.reserve(dynamic_child_count);
+		col_def_and_expression_tail_value.reserve(dynamic_child_count + 1);
 		for (idx_t i = 1; i < 1 + dynamic_child_count; i++) {
 			col_def_and_expression_tail_value.push_back(process.TakeResult<unique_ptr<ParsedExpression>>(i));
 		}
@@ -24668,7 +24671,7 @@ PEGTransformerFactory::FinalizeNotExpressionTrampoline(PEGTransformer &transform
 		not_keyword.push_back(process.TakeResult<bool>(i));
 	}
 	return transformer.MakeResult<vector<bool>>(
-	    PEGTransformerFactory::TransformNotExpression(transformer, not_keyword));
+	    PEGTransformerFactory::TransformNotExpression(transformer, std::move(not_keyword)));
 }
 
 template <class PROCESS>
@@ -24742,7 +24745,7 @@ PEGTransformerFactory::FinalizeIsExpressionContinuationTrampoline(PEGTransformer
 	optional<vector<IsExpressionTail>> is_expression_tail {};
 	if (dynamic_child_count > 0) {
 		vector<IsExpressionTail> is_expression_tail_value;
-		is_expression_tail_value.reserve(dynamic_child_count);
+		is_expression_tail_value.reserve(dynamic_child_count + 1);
 		for (idx_t i = 1; i < 1 + dynamic_child_count; i++) {
 			is_expression_tail_value.push_back(process.TakeResult<IsExpressionTail>(i));
 		}
@@ -25051,7 +25054,7 @@ PEGTransformerFactory::FinalizeIsDistinctFromExpressionTrampoline(PEGTransformer
 	optional<vector<IsDistinctFromTail>> is_distinct_from_tail {};
 	if (dynamic_child_count > 0) {
 		vector<IsDistinctFromTail> is_distinct_from_tail_value;
-		is_distinct_from_tail_value.reserve(dynamic_child_count);
+		is_distinct_from_tail_value.reserve(dynamic_child_count + 1);
 		for (idx_t i = 1; i < 1 + dynamic_child_count; i++) {
 			is_distinct_from_tail_value.push_back(process.TakeResult<IsDistinctFromTail>(i));
 		}
@@ -25132,7 +25135,7 @@ PEGTransformerFactory::FinalizeComparisonExpressionTrampoline(PEGTransformer &tr
 	optional<vector<ComparisonExpressionTail>> comparison_expression_tail {};
 	if (dynamic_child_count > 0) {
 		vector<ComparisonExpressionTail> comparison_expression_tail_value;
-		comparison_expression_tail_value.reserve(dynamic_child_count);
+		comparison_expression_tail_value.reserve(dynamic_child_count + 1);
 		for (idx_t i = 1; i < 1 + dynamic_child_count; i++) {
 			comparison_expression_tail_value.push_back(process.TakeResult<ComparisonExpressionTail>(i));
 		}
@@ -25345,7 +25348,7 @@ PEGTransformerFactory::FinalizeBetweenInLikeExpressionTrampoline(PEGTransformer 
 	optional<vector<BetweenInLikeOperator>> in_predicate {};
 	if (dynamic_child_count > 0) {
 		vector<BetweenInLikeOperator> in_predicate_value;
-		in_predicate_value.reserve(dynamic_child_count);
+		in_predicate_value.reserve(dynamic_child_count + 1);
 		for (idx_t i = 1; i < 1 + dynamic_child_count; i++) {
 			in_predicate_value.push_back(process.TakeResult<BetweenInLikeOperator>(i));
 		}
@@ -25395,7 +25398,7 @@ PEGTransformerFactory::FinalizeInPredicateTrampoline(PEGTransformer &transformer
 	optional<vector<unique_ptr<ParsedExpression>>> cast_operator {};
 	if (dynamic_child_count > 0) {
 		vector<unique_ptr<ParsedExpression>> cast_operator_value;
-		cast_operator_value.reserve(dynamic_child_count);
+		cast_operator_value.reserve(dynamic_child_count + 1);
 		for (idx_t i = 1; i < 1 + dynamic_child_count; i++) {
 			cast_operator_value.push_back(process.TakeResult<unique_ptr<ParsedExpression>>(i));
 		}
@@ -25842,7 +25845,7 @@ PEGTransformerFactory::FinalizeInfixOtherOperatorExpressionTrampoline(PEGTransfo
 	optional<vector<OtherOperatorTail>> other_operator_tail {};
 	if (dynamic_child_count > 0) {
 		vector<OtherOperatorTail> other_operator_tail_value;
-		other_operator_tail_value.reserve(dynamic_child_count);
+		other_operator_tail_value.reserve(dynamic_child_count + 1);
 		for (idx_t i = 1; i < 1 + dynamic_child_count; i++) {
 			other_operator_tail_value.push_back(process.TakeResult<OtherOperatorTail>(i));
 		}
@@ -26119,15 +26122,15 @@ PEGTransformerFactory::FinalizeQualifiedOperatorContentsTrampoline(PEGTransforme
 	optional<vector<string>> col_id_dot {};
 	if (dynamic_child_count > 0) {
 		vector<string> col_id_dot_value;
-		col_id_dot_value.reserve(dynamic_child_count);
+		col_id_dot_value.reserve(dynamic_child_count + 1);
 		for (idx_t i = 0; i < 0 + dynamic_child_count; i++) {
 			col_id_dot_value.push_back(process.TakeResult<string>(i));
 		}
 		col_id_dot = std::move(col_id_dot_value);
 	}
 	auto any_operator_literal = elements.Child(1).Operator();
-	return transformer.MakeResult<string>(
-	    PEGTransformerFactory::TransformQualifiedOperatorContents(transformer, col_id_dot, any_operator_literal));
+	return transformer.MakeResult<string>(PEGTransformerFactory::TransformQualifiedOperatorContents(
+	    transformer, std::move(col_id_dot), any_operator_literal));
 }
 
 void PEGTransformerFactory::InitializeBitwiseExpressionTrampoline(PEGTransformer &transformer,
@@ -26165,7 +26168,7 @@ PEGTransformerFactory::FinalizeBitwiseExpressionTrampoline(PEGTransformer &trans
 	optional<vector<BinaryExpressionTail>> bitwise_expression_tail {};
 	if (dynamic_child_count > 0) {
 		vector<BinaryExpressionTail> bitwise_expression_tail_value;
-		bitwise_expression_tail_value.reserve(dynamic_child_count);
+		bitwise_expression_tail_value.reserve(dynamic_child_count + 1);
 		for (idx_t i = 1; i < 1 + dynamic_child_count; i++) {
 			bitwise_expression_tail_value.push_back(process.TakeResult<BinaryExpressionTail>(i));
 		}
@@ -26244,7 +26247,7 @@ PEGTransformerFactory::FinalizeTildeExpressionTrampoline(PEGTransformer &transfo
 	optional<vector<string>> tilde_prefix_operator {};
 	if (dynamic_child_count > 0) {
 		vector<string> tilde_prefix_operator_value;
-		tilde_prefix_operator_value.reserve(dynamic_child_count);
+		tilde_prefix_operator_value.reserve(dynamic_child_count + 1);
 		for (idx_t i = 0; i < 0 + dynamic_child_count; i++) {
 			tilde_prefix_operator_value.push_back(process.TakeResult<string>(i));
 		}
@@ -26252,7 +26255,7 @@ PEGTransformerFactory::FinalizeTildeExpressionTrampoline(PEGTransformer &transfo
 	}
 	auto additive_expression = process.TakeResult<unique_ptr<ParsedExpression>>(1 + dynamic_child_count - 1);
 	return transformer.MakeResult<unique_ptr<ParsedExpression>>(PEGTransformerFactory::TransformTildeExpression(
-	    transformer, tilde_prefix_operator, std::move(additive_expression)));
+	    transformer, std::move(tilde_prefix_operator), std::move(additive_expression)));
 }
 
 void PEGTransformerFactory::InitializeAdditiveExpressionTrampoline(PEGTransformer &transformer,
@@ -26290,7 +26293,7 @@ PEGTransformerFactory::FinalizeAdditiveExpressionTrampoline(PEGTransformer &tran
 	optional<vector<BinaryExpressionTail>> additive_expression_tail {};
 	if (dynamic_child_count > 0) {
 		vector<BinaryExpressionTail> additive_expression_tail_value;
-		additive_expression_tail_value.reserve(dynamic_child_count);
+		additive_expression_tail_value.reserve(dynamic_child_count + 1);
 		for (idx_t i = 1; i < 1 + dynamic_child_count; i++) {
 			additive_expression_tail_value.push_back(process.TakeResult<BinaryExpressionTail>(i));
 		}
@@ -26367,7 +26370,7 @@ PEGTransformerFactory::FinalizeMultiplicativeExpressionTrampoline(PEGTransformer
 	optional<vector<BinaryExpressionTail>> multiplicative_expression_tail {};
 	if (dynamic_child_count > 0) {
 		vector<BinaryExpressionTail> multiplicative_expression_tail_value;
-		multiplicative_expression_tail_value.reserve(dynamic_child_count);
+		multiplicative_expression_tail_value.reserve(dynamic_child_count + 1);
 		for (idx_t i = 1; i < 1 + dynamic_child_count; i++) {
 			multiplicative_expression_tail_value.push_back(process.TakeResult<BinaryExpressionTail>(i));
 		}
@@ -26445,7 +26448,7 @@ PEGTransformerFactory::FinalizeExponentiationExpressionTrampoline(PEGTransformer
 	optional<vector<BinaryExpressionTail>> exponentiation_expression_tail {};
 	if (dynamic_child_count > 0) {
 		vector<BinaryExpressionTail> exponentiation_expression_tail_value;
-		exponentiation_expression_tail_value.reserve(dynamic_child_count);
+		exponentiation_expression_tail_value.reserve(dynamic_child_count + 1);
 		for (idx_t i = 1; i < 1 + dynamic_child_count; i++) {
 			exponentiation_expression_tail_value.push_back(process.TakeResult<BinaryExpressionTail>(i));
 		}
@@ -26523,7 +26526,7 @@ PEGTransformerFactory::FinalizeCollateExpressionTrampoline(PEGTransformer &trans
 	optional<vector<unique_ptr<ParsedExpression>>> collate_expression_tail {};
 	if (dynamic_child_count > 0) {
 		vector<unique_ptr<ParsedExpression>> collate_expression_tail_value;
-		collate_expression_tail_value.reserve(dynamic_child_count);
+		collate_expression_tail_value.reserve(dynamic_child_count + 1);
 		for (idx_t i = 1; i < 1 + dynamic_child_count; i++) {
 			collate_expression_tail_value.push_back(process.TakeResult<unique_ptr<ParsedExpression>>(i));
 		}
@@ -26586,7 +26589,7 @@ PEGTransformerFactory::FinalizeAtTimeZoneExpressionTrampoline(PEGTransformer &tr
 	optional<vector<unique_ptr<ParsedExpression>>> at_time_zone_expression_tail {};
 	if (dynamic_child_count > 0) {
 		vector<unique_ptr<ParsedExpression>> at_time_zone_expression_tail_value;
-		at_time_zone_expression_tail_value.reserve(dynamic_child_count);
+		at_time_zone_expression_tail_value.reserve(dynamic_child_count + 1);
 		for (idx_t i = 1; i < 1 + dynamic_child_count; i++) {
 			at_time_zone_expression_tail_value.push_back(process.TakeResult<unique_ptr<ParsedExpression>>(i));
 		}
@@ -27293,8 +27296,8 @@ PEGTransformerFactory::FinalizeLambdaExpressionTrampoline(PEGTransformer &transf
 		col_id_or_string.push_back(process.TakeResult<Identifier>(i));
 	}
 	auto expression = process.TakeResult<unique_ptr<ParsedExpression>>(1 + dynamic_child_count - 1);
-	return transformer.MakeResult<unique_ptr<ParsedExpression>>(
-	    PEGTransformerFactory::TransformLambdaExpression(transformer, col_id_or_string, std::move(expression)));
+	return transformer.MakeResult<unique_ptr<ParsedExpression>>(PEGTransformerFactory::TransformLambdaExpression(
+	    transformer, std::move(col_id_or_string), std::move(expression)));
 }
 
 template <class PROCESS>
@@ -27399,7 +27402,7 @@ PEGTransformerFactory::FinalizeRowExpressionTrampoline(PEGTransformer &transform
 	auto expression_opt = elements.Child(1).Unwrap();
 	if (expression_opt.HasResult()) {
 		vector<unique_ptr<ParsedExpression>> expression_value;
-		expression_value.reserve(dynamic_child_count);
+		expression_value.reserve(dynamic_child_count + 1);
 		for (idx_t i = 0; i < 0 + dynamic_child_count; i++) {
 			expression_value.push_back(process.TakeResult<unique_ptr<ParsedExpression>>(i));
 		}
@@ -28465,7 +28468,8 @@ PEGTransformerFactory::FinalizeColumnListTrampoline(PEGTransformer &transformer,
 	for (idx_t i = 0; i < 0 + dynamic_child_count; i++) {
 		col_id.push_back(process.TakeResult<Identifier>(i));
 	}
-	return transformer.MakeResult<vector<string>>(PEGTransformerFactory::TransformColumnList(transformer, col_id));
+	return transformer.MakeResult<vector<string>>(
+	    PEGTransformerFactory::TransformColumnList(transformer, std::move(col_id)));
 }
 
 template <class PROCESS>
@@ -28829,7 +28833,7 @@ arena_ptr<TransformResultValue> GeneratedSingleChildTransform::FinalizeUpdateExt
 		identifier = std::move(identifier_value);
 	}
 	return transformer.MakeResult<unique_ptr<SQLStatement>>(
-	    PEGTransformerFactory::TransformUpdateExtensionsStatement(transformer, identifier));
+	    PEGTransformerFactory::TransformUpdateExtensionsStatement(transformer, std::move(identifier)));
 }
 
 template <class PROCESS>
@@ -29010,7 +29014,7 @@ GeneratedSingleChildTransform::FinalizeRepositoryPublicKeyTrampoline(PEGTransfor
 		string_literal.push_back(string_literal_value);
 	}
 	return transformer.MakeResult<vector<string>>(
-	    PEGTransformerFactory::TransformRepositoryPublicKey(transformer, has_result, string_literal));
+	    PEGTransformerFactory::TransformRepositoryPublicKey(transformer, has_result, std::move(string_literal)));
 }
 
 void PEGTransformerFactory::InitializeDropExtensionRepositoryStmtTrampoline(PEGTransformer &transformer,
@@ -29636,7 +29640,7 @@ PEGTransformerFactory::FinalizeRowPatternTrampoline(PEGTransformer &transformer,
 	optional<vector<unique_ptr<ParsedExpression>>> row_pattern_alternative {};
 	if (dynamic_child_count > 0) {
 		vector<unique_ptr<ParsedExpression>> row_pattern_alternative_value;
-		row_pattern_alternative_value.reserve(dynamic_child_count);
+		row_pattern_alternative_value.reserve(dynamic_child_count + 1);
 		for (idx_t i = 1; i < 1 + dynamic_child_count; i++) {
 			row_pattern_alternative_value.push_back(process.TakeResult<unique_ptr<ParsedExpression>>(i));
 		}
@@ -30133,8 +30137,8 @@ PEGTransformerFactory::FinalizeSubsetElementTrampoline(PEGTransformer &transform
 	for (idx_t i = 1; i < 1 + dynamic_child_count; i++) {
 		col_label_or_string_1.push_back(process.TakeResult<Identifier>(i));
 	}
-	return transformer.MakeResult<MatchRecognizeSubset>(
-	    PEGTransformerFactory::TransformSubsetElement(transformer, col_label_or_string, col_label_or_string_1));
+	return transformer.MakeResult<MatchRecognizeSubset>(PEGTransformerFactory::TransformSubsetElement(
+	    transformer, col_label_or_string, std::move(col_label_or_string_1)));
 }
 
 void PEGTransformerFactory::InitializeDefineClauseTrampoline(PEGTransformer &transformer,
@@ -30899,7 +30903,7 @@ PEGTransformerFactory::FinalizeParenthesizedNameListTrampoline(PEGTransformer &t
 		col_id_or_string.push_back(process.TakeResult<Identifier>(i));
 	}
 	return transformer.MakeResult<vector<string>>(
-	    PEGTransformerFactory::TransformParenthesizedNameList(transformer, col_id_or_string));
+	    PEGTransformerFactory::TransformParenthesizedNameList(transformer, std::move(col_id_or_string)));
 }
 
 void PEGTransformerFactory::InitializeBareNameListTrampoline(PEGTransformer &transformer,
@@ -30925,7 +30929,7 @@ PEGTransformerFactory::FinalizeBareNameListTrampoline(PEGTransformer &transforme
 		col_id_or_string.push_back(process.TakeResult<Identifier>(i));
 	}
 	return transformer.MakeResult<vector<string>>(
-	    PEGTransformerFactory::TransformBareNameList(transformer, col_id_or_string));
+	    PEGTransformerFactory::TransformBareNameList(transformer, std::move(col_id_or_string)));
 }
 
 template <class PROCESS>
@@ -31039,7 +31043,7 @@ PEGTransformerFactory::FinalizeUnpivotHeaderListTrampoline(PEGTransformer &trans
 		col_id_or_string.push_back(process.TakeResult<Identifier>(i));
 	}
 	return transformer.MakeResult<vector<string>>(
-	    PEGTransformerFactory::TransformUnpivotHeaderList(transformer, col_id_or_string));
+	    PEGTransformerFactory::TransformUnpivotHeaderList(transformer, std::move(col_id_or_string)));
 }
 
 template <class PROCESS>
@@ -31198,7 +31202,8 @@ arena_ptr<TransformResultValue> PEGTransformerFactory::FinalizeTypeListTrampolin
 	for (idx_t i = 0; i < 0 + dynamic_child_count; i++) {
 		type.push_back(process.TakeResult<LogicalType>(i));
 	}
-	return transformer.MakeResult<vector<LogicalType>>(PEGTransformerFactory::TransformTypeList(transformer, type));
+	return transformer.MakeResult<vector<LogicalType>>(
+	    PEGTransformerFactory::TransformTypeList(transformer, std::move(type)));
 }
 
 template <class PROCESS>
@@ -31253,7 +31258,7 @@ PEGTransformerFactory::FinalizeSelectSetOpChainTrampoline(PEGTransformer &transf
 	optional<vector<pair<unique_ptr<SetOperationNode>, unique_ptr<SelectStatement>>>> select_set_op_chain_tail {};
 	if (dynamic_child_count > 0) {
 		vector<pair<unique_ptr<SetOperationNode>, unique_ptr<SelectStatement>>> select_set_op_chain_tail_value;
-		select_set_op_chain_tail_value.reserve(dynamic_child_count);
+		select_set_op_chain_tail_value.reserve(dynamic_child_count + 1);
 		for (idx_t i = 1; i < 1 + dynamic_child_count; i++) {
 			select_set_op_chain_tail_value.push_back(
 			    process.TakeResult<pair<unique_ptr<SetOperationNode>, unique_ptr<SelectStatement>>>(i));
@@ -31316,7 +31321,7 @@ PEGTransformerFactory::FinalizeIntersectChainTrampoline(PEGTransformer &transfor
 	optional<vector<pair<unique_ptr<SetOperationNode>, unique_ptr<SelectStatement>>>> intersect_chain_tail {};
 	if (dynamic_child_count > 0) {
 		vector<pair<unique_ptr<SetOperationNode>, unique_ptr<SelectStatement>>> intersect_chain_tail_value;
-		intersect_chain_tail_value.reserve(dynamic_child_count);
+		intersect_chain_tail_value.reserve(dynamic_child_count + 1);
 		for (idx_t i = 1; i < 1 + dynamic_child_count; i++) {
 			intersect_chain_tail_value.push_back(
 			    process.TakeResult<pair<unique_ptr<SetOperationNode>, unique_ptr<SelectStatement>>>(i));
@@ -31988,7 +31993,7 @@ PEGTransformerFactory::FinalizeColumnAliasesTrampoline(PEGTransformer &transform
 		col_id_or_string.push_back(process.TakeResult<Identifier>(i));
 	}
 	return transformer.MakeResult<vector<string>>(
-	    PEGTransformerFactory::TransformColumnAliases(transformer, col_id_or_string));
+	    PEGTransformerFactory::TransformColumnAliases(transformer, std::move(col_id_or_string)));
 }
 
 template <class PROCESS>
@@ -32713,7 +32718,7 @@ PEGTransformerFactory::FinalizeCatalogReservedSchemaTableTrampoline(PEGTransform
 	}
 	auto reserved_table_name = elements.Child(2).GetIdentifier();
 	return transformer.MakeResult<unique_ptr<BaseTableRef>>(PEGTransformerFactory::TransformCatalogReservedSchemaTable(
-	    transformer, catalog_qualification, reserved_schema_qualification, reserved_table_name));
+	    transformer, catalog_qualification, std::move(reserved_schema_qualification), reserved_table_name));
 }
 
 template <class PROCESS>
@@ -32880,7 +32885,7 @@ PEGTransformerFactory::FinalizeQualifiedTableFunctionTrampoline(PEGTransformer &
 	optional<vector<Identifier>> schema_qualification {};
 	if (dynamic_child_count > 0) {
 		vector<Identifier> schema_qualification_value;
-		schema_qualification_value.reserve(dynamic_child_count);
+		schema_qualification_value.reserve(dynamic_child_count + 1);
 		for (idx_t i = 1; i < 1 + dynamic_child_count; i++) {
 			schema_qualification_value.push_back(process.TakeResult<Identifier>(i));
 		}
@@ -32888,7 +32893,7 @@ PEGTransformerFactory::FinalizeQualifiedTableFunctionTrampoline(PEGTransformer &
 	}
 	auto table_function_name = elements.Child(2).GetIdentifier();
 	return transformer.MakeResult<QualifiedName>(PEGTransformerFactory::TransformQualifiedTableFunction(
-	    transformer, catalog_qualification, schema_qualification, table_function_name));
+	    transformer, catalog_qualification, std::move(schema_qualification), table_function_name));
 }
 
 void PEGTransformerFactory::InitializeTableFunctionArgumentsTrampoline(PEGTransformer &transformer,
@@ -32923,7 +32928,7 @@ PEGTransformerFactory::FinalizeTableFunctionArgumentsTrampoline(PEGTransformer &
 	auto function_argument_opt = elements.Child(0).Unwrap();
 	if (function_argument_opt.HasResult()) {
 		vector<FunctionArgument> function_argument_value;
-		function_argument_value.reserve(dynamic_child_count);
+		function_argument_value.reserve(dynamic_child_count + 1);
 		for (idx_t i = 0; i < 0 + dynamic_child_count; i++) {
 			function_argument_value.push_back(process.TakeResult<FunctionArgument>(i));
 		}
@@ -33699,7 +33704,7 @@ PEGTransformerFactory::FinalizeUsingClauseTrampoline(PEGTransformer &transformer
 		using_column_name.push_back(process.TakeResult<Identifier>(i));
 	}
 	return transformer.MakeResult<JoinQualifier>(
-	    PEGTransformerFactory::TransformUsingClause(transformer, using_column_name));
+	    PEGTransformerFactory::TransformUsingClause(transformer, std::move(using_column_name)));
 }
 
 template <class PROCESS>
@@ -34470,7 +34475,7 @@ PEGTransformerFactory::FinalizeCubeOrRollupClauseTrampoline(PEGTransformer &tran
 	auto expression_opt = elements.Child(1).Unwrap();
 	if (expression_opt.HasResult()) {
 		vector<unique_ptr<ParsedExpression>> expression_value;
-		expression_value.reserve(dynamic_child_count);
+		expression_value.reserve(dynamic_child_count + 1);
 		for (idx_t i = 1; i < 1 + dynamic_child_count; i++) {
 			expression_value.push_back(process.TakeResult<unique_ptr<ParsedExpression>>(i));
 		}
@@ -35909,7 +35914,7 @@ GeneratedSingleChildTransform::FinalizeUpdateSetTupleTrampoline(PEGTransformer &
 	}
 	auto expression = process.template TakeResult<unique_ptr<ParsedExpression>>(0);
 	return transformer.MakeResult<unique_ptr<UpdateSetInfo>>(
-	    PEGTransformerFactory::TransformUpdateSetTuple(transformer, column_name, std::move(expression)));
+	    PEGTransformerFactory::TransformUpdateSetTuple(transformer, std::move(column_name), std::move(expression)));
 }
 
 void PEGTransformerFactory::InitializeUpdateSetElementTrampoline(PEGTransformer &transformer,
@@ -35962,14 +35967,14 @@ PEGTransformerFactory::FinalizeUpdateSetColumnTargetTrampoline(PEGTransformer &t
 	optional<vector<Identifier>> dot_identifier {};
 	if (dynamic_child_count > 0) {
 		vector<Identifier> dot_identifier_value;
-		dot_identifier_value.reserve(dynamic_child_count);
+		dot_identifier_value.reserve(dynamic_child_count + 1);
 		for (idx_t i = 0; i < 0 + dynamic_child_count; i++) {
 			dot_identifier_value.push_back(process.TakeResult<Identifier>(i));
 		}
 		dot_identifier = std::move(dot_identifier_value);
 	}
 	return transformer.MakeResult<string>(
-	    PEGTransformerFactory::TransformUpdateSetColumnTarget(transformer, column_name, dot_identifier));
+	    PEGTransformerFactory::TransformUpdateSetColumnTarget(transformer, column_name, std::move(dot_identifier)));
 }
 
 template <class PROCESS>
@@ -36138,14 +36143,14 @@ PEGTransformerFactory::FinalizeUseTargetCatalogSchemaTrampoline(PEGTransformer &
 	optional<vector<Identifier>> dot_identifier {};
 	if (dynamic_child_count > 0) {
 		vector<Identifier> dot_identifier_value;
-		dot_identifier_value.reserve(dynamic_child_count);
+		dot_identifier_value.reserve(dynamic_child_count + 1);
 		for (idx_t i = 0; i < 0 + dynamic_child_count; i++) {
 			dot_identifier_value.push_back(process.TakeResult<Identifier>(i));
 		}
 		dot_identifier = std::move(dot_identifier_value);
 	}
 	return transformer.MakeResult<QualifiedName>(PEGTransformerFactory::TransformUseTargetCatalogSchema(
-	    transformer, catalog_name, reserved_schema_name, dot_identifier));
+	    transformer, catalog_name, reserved_schema_name, std::move(dot_identifier)));
 }
 
 template <class PROCESS>
@@ -36237,7 +36242,7 @@ PEGTransformerFactory::FinalizeVacuumParensOptionsTrampoline(PEGTransformer &tra
 		vacuum_option.push_back(process.TakeResult<string>(i));
 	}
 	return transformer.MakeResult<VacuumOptions>(
-	    PEGTransformerFactory::TransformVacuumParensOptions(transformer, vacuum_option));
+	    PEGTransformerFactory::TransformVacuumParensOptions(transformer, std::move(vacuum_option)));
 }
 
 void PEGTransformerFactory::InitializeVacuumLegacyOptionsTrampoline(PEGTransformer &transformer,
@@ -36406,7 +36411,7 @@ arena_ptr<TransformResultValue> PEGTransformerFactory::FinalizeNameListTrampolin
 		col_id_or_string.push_back(process.TakeResult<Identifier>(i));
 	}
 	return transformer.MakeResult<vector<string>>(
-	    PEGTransformerFactory::TransformNameList(transformer, col_id_or_string));
+	    PEGTransformerFactory::TransformNameList(transformer, std::move(col_id_or_string)));
 }
 
 void PEGTransformerFactory::InitializeStatementTrampoline(PEGTransformer &transformer,

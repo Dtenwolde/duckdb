@@ -512,11 +512,11 @@ PEGTransformerFactory::TransformResetOptions(PEGTransformer &transformer,
 }
 
 unique_ptr<ColumnRefExpression> PEGTransformerFactory::TransformNestedColumnName(
-    PEGTransformer &transformer, const optional<vector<Identifier>> &identifier_dot, const Identifier &column_name) {
+    PEGTransformer &transformer, optional<vector<Identifier>> identifier_dot, const Identifier &column_name) {
+	// the qualifiers arrive with room for the column name
 	vector<Identifier> column_names;
-	column_names.reserve((identifier_dot ? identifier_dot->size() : 0) + 1);
 	if (identifier_dot) {
-		column_names.insert(column_names.end(), identifier_dot->begin(), identifier_dot->end());
+		column_names = std::move(*identifier_dot);
 	}
 	column_names.push_back(column_name);
 	return make_uniq<ColumnRefExpression>(std::move(column_names));
