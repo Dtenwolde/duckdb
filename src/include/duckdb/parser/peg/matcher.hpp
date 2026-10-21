@@ -194,10 +194,10 @@ struct MatchState {
 	}
 
 	template <class RESULT, class... ARGS>
-	MatcherResult AllocateParseResult(ARGS &&...args);
+	MatcherResult AllocateParseResult(ARGS &&... args);
 
 	template <class PROCESS, class... ARGS>
-	arena_ptr<MatchProcess> Make(ARGS &&...args);
+	arena_ptr<MatchProcess> Make(ARGS &&... args);
 
 	void UpdateMaxTokenIndex() {
 		if (token_iterator.Position() > context.max_token_index) {
@@ -333,6 +333,20 @@ struct MatcherSequenceCheck {
 //! Over-approximation of the tokens a matcher can start with (its FIRST set), computed once per grammar, together with
 //! the tokens for which it can match exactly one token (ONE) and the tokens it can see second (SECOND). Lets the
 //! matcher skip sub-matchers that certainly cannot match at the current token.
+//! The current token as a scan over several alternatives sees it: class read once, literal id looked up on demand
+struct TokenLookahead {
+	explicit TokenLookahead(optional_ptr<const MatcherToken> token_p) : token(token_p) {
+		if (token) {
+			token_class = token->token_class;
+		}
+	}
+
+	optional_ptr<const MatcherToken> token;
+	uint8_t token_class = 0;
+	uint16_t literal_id = 0;
+	bool literal_known = false;
+};
+
 struct MatcherFirstSet : public MatcherTokenSet {
 	bool computed = false;
 	//! the matcher can succeed without consuming a token
@@ -386,6 +400,32 @@ struct MatcherFirstSet : public MatcherTokenSet {
 			return MightMatchSecond(state);
 		}
 		if (first_suffices || (token_class & one.class_mask)) {
+			return true;
+		}
+		return MightMatchSecond(state);
+	}
+	//! MightMatch for a scan over several alternatives at one token: the token's class and literal id are read once
+	bool MightMatch(MatchState &state, TokenLookahead &lookahead) const {
+		if (!computed || any || nullable) {
+			return true;
+		}
+		if (!lookahead.token) {
+			return false;
+		}
+		if (!(lookahead.token_class & class_mask)) {
+			if (!lookahead.literal_known) {
+				lookahead.literal_id = state.token_iterator.CurrentLiteralInfo(*table).LiteralId();
+				lookahead.literal_known = true;
+			}
+			if (!lookahead.literal_id || !HasLiteral(lookahead.literal_id)) {
+				return false;
+			}
+			if (first_suffices || one.HasLiteral(lookahead.literal_id)) {
+				return true;
+			}
+			return MightMatchSecond(state);
+		}
+		if (first_suffices || (lookahead.token_class & one.class_mask)) {
 			return true;
 		}
 		return MightMatchSecond(state);
@@ -558,7 +598,7 @@ public:
 	void Reset();
 
 	template <class RESULT, class... ARGS>
-	optional_ptr<ParseResult> Make(ARGS &&...args) {
+	optional_ptr<ParseResult> Make(ARGS &&... args) {
 		static_assert(std::is_base_of<ParseResult, RESULT>::value, "Expected a parse result");
 		auto result = arena.Make<RESULT>(std::forward<ARGS>(args)...);
 		if (ParseResultNeedsDestructor<RESULT>::value) {
@@ -601,7 +641,7 @@ private:
 };
 
 template <class PROCESS, class... ARGS>
-arena_ptr<MatchProcess> MatchState::Make(ARGS &&...args) {
+arena_ptr<MatchProcess> MatchState::Make(ARGS &&... args) {
 	static_assert(std::is_base_of<MatchProcess, PROCESS>::value, "Expected a matcher process");
 	return arena_ptr<MatchProcess>(context.process_allocator.Make<PROCESS>(std::forward<ARGS>(args)...));
 }
@@ -615,7 +655,7 @@ void ParseResult::SetNameFrom(const Matcher &matcher_p) {
 }
 
 template <class RESULT, class... ARGS>
-MatcherResult MatchState::AllocateParseResult(ARGS &&...args) {
+MatcherResult MatchState::AllocateParseResult(ARGS &&... args) {
 	if (!BuildParseResult()) {
 		return MatcherResult::Success();
 	}

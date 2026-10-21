@@ -35,9 +35,10 @@ namespace {
 
 static idx_t FindChoiceChild(const ChoiceMatcher &matcher, MatchState &state, idx_t index, bool single_child) {
 	if (!single_child && state.BuildParseResult()) {
+		TokenLookahead lookahead(state.token_iterator.Current());
 		while (index < matcher.matchers.size()) {
 			auto &child = matcher.matchers[index].get();
-			if (!child.IsStructural() || child.first_set.MightMatch(state)) {
+			if (!child.IsStructural() || child.first_set.MightMatch(state, lookahead)) {
 				break;
 			}
 			index++;
