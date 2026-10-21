@@ -32,6 +32,11 @@ uint8_t ComputeMatcherTokenClass(TokenType type, const string &text) {
 	}
 }
 
+void MatcherToken::RefreshLiteralInfo(const GrammarLiteralTable &table) {
+	literal_info = table.Lookup(text);
+	literal_table_id = table.CacheId();
+}
+
 TokenizerBehavior::TokenizerBehavior(const string &sql, vector<MatcherToken> &tokens) : sql(sql), tokens(tokens) {
 }
 

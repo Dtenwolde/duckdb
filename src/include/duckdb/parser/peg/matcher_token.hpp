@@ -60,11 +60,12 @@ struct MatcherToken {
 	}
 	LiteralInfo GetLiteralInfo(const GrammarLiteralTable &table) {
 		if (literal_table_id != table.CacheId()) {
-			literal_info = table.Lookup(text);
-			literal_table_id = table.CacheId();
+			RefreshLiteralInfo(table);
 		}
 		return literal_info;
 	}
+	//! The table lookup on a cache miss, kept out of line so the lookahead tests that call GetLiteralInfo stay small
+	DUCKDB_API void RefreshLiteralInfo(const GrammarLiteralTable &table);
 
 	void ResetLiteralInfo() {
 		literal_table_id = 0;
