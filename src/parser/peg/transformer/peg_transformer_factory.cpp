@@ -58,7 +58,8 @@ PEGStatementResources::~PEGStatementResources() = default;
 PEGTransformer &PEGStatementResources::GetTransformer(TokenIterator &token_iterator, ParserOptions &options,
                                                       const CompiledGrammar &grammar) {
 	if (!transformer) {
-		transformer = make_uniq<PEGTransformer>(transformer_allocator, token_iterator, options, grammar);
+		transformer =
+		    make_uniq<PEGTransformer>(transformer_allocator, token_iterator, options, grammar, transform_stacks);
 	}
 	return *transformer;
 }

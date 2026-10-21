@@ -471,13 +471,13 @@ struct TransformStackFrame {
 
 class TransformStack {
 public:
-	explicit TransformStack(PEGTransformer &transformer);
+	TransformStack();
 	~TransformStack();
-	arena_ptr<TransformResultValue> Execute(TransformInput input);
+	arena_ptr<TransformResultValue> Execute(PEGTransformer &transformer, TransformInput input);
 
 	template <class T>
-	T Execute(TransformInput input) {
-		auto base_result = Execute(input);
+	T Execute(PEGTransformer &transformer, TransformInput input) {
+		auto base_result = Execute(transformer, input);
 		auto *result_value = TryGetTransformResult<T>(*base_result);
 		if (!result_value) {
 			throw InternalException("Unexpected transformer result type for root rule '%s'", input.parse_result.Name());
@@ -496,7 +496,8 @@ private:
 	arena_ptr<TransformResultValue> ExecuteFrame(TransformStackFrame &frame);
 
 private:
-	PEGTransformer &transformer;
+	//! The transformer of the running execution; frames only remain on the stack while it is set
+	optional_ptr<PEGTransformer> transformer;
 	vector<TransformStackFrame> frames;
 };
 
@@ -504,8 +505,13 @@ class PEGTransformer {
 public:
 	PEGTransformer(ArenaAllocator &allocator, TokenIterator &token_iterator, ParserOptions &options_p,
 	               const CompiledGrammar &grammar_p)
-	    : allocator(allocator), token_iterator(token_iterator), options(options_p), grammar(grammar_p),
-	      process_allocator(allocator.GetUnderlyingAllocator()) {
+	    : PEGTransformer(allocator, token_iterator, options_p, grammar_p, nullptr) {
+	}
+	//! A stack pool that outlives the transformer keeps the frame storage of the stacks for the next query
+	PEGTransformer(ArenaAllocator &allocator, TokenIterator &token_iterator, ParserOptions &options_p,
+	               const CompiledGrammar &grammar_p, optional_ptr<vector<unique_ptr<TransformStack>>> stack_pool)
+	    : free_stacks(stack_pool ? *stack_pool : owned_stacks), allocator(allocator), token_iterator(token_iterator),
+	      options(options_p), grammar(grammar_p), process_allocator(allocator.GetUnderlyingAllocator()) {
 	}
 
 	const CompiledGrammarRule &GetRule(const string &rule_name) const;
@@ -599,7 +605,8 @@ public:
 private:
 	arena_ptr<TransformResultValue> TransformInternal(ParseResult &parse_result);
 	//! Stacks of completed transforms, reused for the next statement
-	vector<unique_ptr<TransformStack>> free_stacks;
+	vector<unique_ptr<TransformStack>> owned_stacks;
+	vector<unique_ptr<TransformStack>> &free_stacks;
 	void SetResultLocation(ParseResult &parse_result, TransformResultValue &result);
 
 	template <typename T>
@@ -694,6 +701,8 @@ public:
 	MatchStack match_stack;
 
 private:
+	//! Transform stacks of previous queries, handed to the transformer so their frame storage is reused
+	vector<unique_ptr<TransformStack>> transform_stacks;
 	unique_ptr<PEGTransformer> transformer;
 };
 

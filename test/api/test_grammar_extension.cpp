@@ -592,11 +592,11 @@ TEST_CASE("Transform stack growth preserves processes and unwinds expression dep
 		lifetime.throw_in_factory = true;
 	}
 	{
-		TransformStack stack(transformer);
+		TransformStack stack;
 		if (lifetime.throw_at_leaf || lifetime.throw_in_factory) {
-			REQUIRE_THROWS_AS(stack.Execute<bool>({*nodes.back()}), InvalidInputException);
+			REQUIRE_THROWS_AS(stack.Execute<bool>(transformer, {*nodes.back()}), InvalidInputException);
 		} else {
-			REQUIRE(stack.Execute<bool>({*nodes.back()}));
+			REQUIRE(stack.Execute<bool>(transformer, {*nodes.back()}));
 			REQUIRE(lifetime.started == 1 + 2 * (lifetime.depth - 1));
 		}
 	}
@@ -609,8 +609,8 @@ TEST_CASE("Transform stack growth preserves processes and unwinds expression dep
 	// Reusing the transformer at its exact depth limit also checks exceptional depth accounting.
 	lifetime.throw_at_leaf = false;
 	lifetime.throw_in_factory = false;
-	TransformStack stack(transformer);
-	REQUIRE(stack.Execute<bool>({*nodes.back()}));
+	TransformStack stack;
+	REQUIRE(stack.Execute<bool>(transformer, {*nodes.back()}));
 	REQUIRE(lifetime.active == 0);
 }
 
@@ -671,8 +671,8 @@ public:
 	TransformStep Resume(arena_ptr<TransformResultValue> child_result) override {
 		if (state.reentrant && input.HasResult()) {
 			for (idx_t i = 0; i < 4096; i++) {
-				TransformStack nested(transformer);
-				if (!nested.Execute<bool>({input.GetResult()})) {
+				TransformStack nested;
+				if (!nested.Execute<bool>(transformer, {input.GetResult()})) {
 					throw InternalException("Reentrant scratch transform returned false");
 				}
 			}
@@ -730,8 +730,8 @@ static idx_t MeasureTransformScratchMemory(bool throws, bool reentrant) {
 			state.throw_after = throws && attempt == 0 ? 2048 : 0;
 			bool caught = false;
 			try {
-				TransformStack stack(transformer);
-				if (!stack.Execute<bool>({root})) {
+				TransformStack stack;
+				if (!stack.Execute<bool>(transformer, {root})) {
 					throw InternalException("Scratch transform returned false");
 				}
 			} catch (InvalidInputException &) {

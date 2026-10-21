@@ -143,7 +143,7 @@ TransformStackFrame::TransformStackFrame(TransformInput input)
     : rule(input.GetRule()), parse_result(input.parse_result) {
 }
 
-TransformStack::TransformStack(PEGTransformer &transformer_p) : transformer(transformer_p) {
+TransformStack::TransformStack() {
 	frames.reserve(32);
 }
 
@@ -171,11 +171,11 @@ void TransformStack::PushFrame(TransformInput input) {
 	optional_ptr<const CompiledGrammarRule> rule = input.GetRule();
 	reference<ParseResult> parse_result(input.parse_result);
 	while (true) {
-		weight += transformer.ExpressionDepthWeight(rule, parse_result.get());
+		weight += transformer->ExpressionDepthWeight(rule, parse_result.get());
 		if (!rule || !rule->generated_ops || !rule->generated_ops->forward) {
 			break;
 		}
-		auto child = rule->generated_ops->forward(transformer, parse_result.get());
+		auto child = rule->generated_ops->forward(*transformer, parse_result.get());
 		if (!ForwardsLocation(parse_result.get(), child.parse_result)) {
 			break;
 		}
@@ -188,21 +188,21 @@ void TransformStack::PushFrame(TransformInput input) {
 		frames.emplace_back(input);
 	}
 	auto &frame = frames.back();
-	frame.process_arena_position = transformer.process_allocator.GetPosition();
+	frame.process_arena_position = transformer->process_allocator.GetPosition();
 	if (weight) {
 		// recorded first: the frame is released (and the weight subtracted) when entering throws
 		frame.expression_depth_weight = weight;
-		transformer.EnterExpression(weight);
+		transformer->EnterExpression(weight);
 	}
 }
 
 void TransformStack::PopFrame() {
 	const auto process_arena_position = frames.back().process_arena_position;
 	if (frames.back().expression_depth_weight) {
-		transformer.ExitExpression(frames.back().expression_depth_weight);
+		transformer->ExitExpression(frames.back().expression_depth_weight);
 	}
 	frames.pop_back();
-	transformer.process_allocator.Rewind(process_arena_position);
+	transformer->process_allocator.Rewind(process_arena_position);
 }
 
 void TransformStack::InitializeFrame(TransformStackFrame &frame) {
@@ -213,10 +213,10 @@ void TransformStack::InitializeFrame(TransformStackFrame &frame) {
 	if (ops && ops->single_child) {
 		frame.single_child = ops->single_child;
 	} else if (ops) {
-		frame.process =
-		    transformer.MakeProcess<GeneratedTransformProcess>(transformer, TransformInput {frame.parse_result}, *ops);
+		frame.process = transformer->MakeProcess<GeneratedTransformProcess>(*transformer,
+		                                                                    TransformInput {frame.parse_result}, *ops);
 	} else {
-		frame.process = frame.rule->StartTransform(transformer, frame.parse_result);
+		frame.process = frame.rule->StartTransform(*transformer, frame.parse_result);
 	}
 }
 
@@ -224,7 +224,7 @@ arena_ptr<TransformResultValue> TransformStack::ExecuteFrame(TransformStackFrame
 	if (!frame.process && !frame.single_child) {
 		InitializeFrame(frame);
 	}
-	auto step = frame.single_child ? frame.single_child(transformer, frame.parse_result, std::move(frame.child_result))
+	auto step = frame.single_child ? frame.single_child(*transformer, frame.parse_result, std::move(frame.child_result))
 	                               : frame.process->Resume(std::move(frame.child_result));
 	auto child = step.GetChild();
 	if (!child) {
@@ -234,8 +234,9 @@ arena_ptr<TransformResultValue> TransformStack::ExecuteFrame(TransformStackFrame
 	return nullptr;
 }
 
-arena_ptr<TransformResultValue> TransformStack::Execute(TransformInput input) {
+arena_ptr<TransformResultValue> TransformStack::Execute(PEGTransformer &transformer_p, TransformInput input) {
 	D_ASSERT(frames.empty());
+	transformer = transformer_p;
 	if (!input.GetRule()) {
 		throw InternalException("No registered data exists for rule '%s'", input.parse_result.Name());
 	}
@@ -245,7 +246,7 @@ arena_ptr<TransformResultValue> TransformStack::Execute(TransformInput input) {
 		if (!result) {
 			continue;
 		}
-		transformer.SetResultLocation(frames.back().parse_result, *result);
+		transformer->SetResultLocation(frames.back().parse_result, *result);
 		PopFrame();
 		if (frames.empty()) {
 			return result;
@@ -283,13 +284,13 @@ arena_ptr<TransformResultValue> PEGTransformer::TransformInternal(ParseResult &p
 	TransformInput input {*rule, parse_result};
 	unique_ptr<TransformStack> stack;
 	if (free_stacks.empty()) {
-		stack = make_uniq<TransformStack>(*this);
+		stack = make_uniq<TransformStack>();
 	} else {
 		stack = std::move(free_stacks.back());
 		free_stacks.pop_back();
 	}
 	// a stack that threw is destroyed with its frames instead of being reused
-	auto result = stack->Execute(input);
+	auto result = stack->Execute(*this, input);
 	free_stacks.push_back(std::move(stack));
 	return result;
 }
