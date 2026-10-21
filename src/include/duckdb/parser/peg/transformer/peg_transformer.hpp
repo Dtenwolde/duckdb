@@ -341,11 +341,22 @@ struct TransformInput {
 //! Produced by TransformProcess::Resume to control the next execution step.
 class TransformStep {
 public:
-	static TransformStep Child(TransformInput input);
-	static TransformStep Complete(arena_ptr<TransformResultValue> result);
+	static TransformStep Child(TransformInput input) {
+		return TransformStep(input, nullptr);
+	}
+	static TransformStep Complete(arena_ptr<TransformResultValue> result) {
+		D_ASSERT(result);
+		return TransformStep(nullopt, std::move(result));
+	}
 
-	optional<TransformInput> GetChild();
-	arena_ptr<TransformResultValue> TakeResult();
+	optional<TransformInput> GetChild() {
+		return child;
+	}
+	arena_ptr<TransformResultValue> TakeResult() {
+		D_ASSERT(!child);
+		D_ASSERT(result);
+		return std::move(result);
+	}
 
 private:
 	TransformStep(optional<TransformInput> child_p, arena_ptr<TransformResultValue> result_p)

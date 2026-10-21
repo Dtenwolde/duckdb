@@ -8,25 +8,6 @@
 
 namespace duckdb {
 
-TransformStep TransformStep::Child(TransformInput input) {
-	return TransformStep(input, nullptr);
-}
-
-TransformStep TransformStep::Complete(arena_ptr<TransformResultValue> result) {
-	D_ASSERT(result);
-	return TransformStep(nullopt, std::move(result));
-}
-
-optional<TransformInput> TransformStep::GetChild() {
-	return child;
-}
-
-arena_ptr<TransformResultValue> TransformStep::TakeResult() {
-	D_ASSERT(!child);
-	D_ASSERT(result);
-	return std::move(result);
-}
-
 GeneratedTransformProcess::GeneratedTransformProcess(PEGTransformer &transformer_p, TransformInput input,
                                                      const TransformFrameOps &info_p)
     : parse_result(input.parse_result), info(info_p), transformer(transformer_p) {
