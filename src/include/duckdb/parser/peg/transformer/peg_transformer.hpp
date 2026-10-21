@@ -7,6 +7,7 @@
 #include "duckdb/parser/peg/transformer/parse_element.hpp"
 #include "duckdb/parser/peg/matcher.hpp"
 #include "duckdb/parser/peg/matcher_stack.hpp"
+#include "duckdb/parser/peg/compiled_grammar.hpp"
 #include "duckdb/parser/peg/transformer/transform_result.hpp"
 #include "duckdb/parser/peg/ast/add_column_entry.hpp"
 #include "duckdb/parser/peg/ast/column_constraint_entry.hpp"
@@ -526,7 +527,13 @@ public:
 	}
 
 	const CompiledGrammarRule &GetRule(const string &rule_name) const;
-	const CompiledGrammarRule &GetRule(PEGRuleId rule_id) const;
+	const CompiledGrammarRule &GetRule(PEGRuleId rule_id) const {
+		auto rule = grammar.GetRule(rule_id);
+		if (!rule) {
+			ThrowMissingRule(rule_id);
+		}
+		return *rule;
+	}
 
 public:
 	template <typename T>
@@ -615,6 +622,7 @@ public:
 
 private:
 	arena_ptr<TransformResultValue> TransformInternal(ParseResult &parse_result);
+	[[noreturn]] static void ThrowMissingRule(PEGRuleId rule_id);
 	//! Stacks of completed transforms, reused for the next statement
 	vector<unique_ptr<TransformStack>> owned_stacks;
 	vector<unique_ptr<TransformStack>> &free_stacks;
@@ -661,7 +669,22 @@ public:
 	//! stacks: every nested expression, nested type and link of an operator chain counts while it is transformed
 	idx_t expression_depth = 0;
 	//! The depth a frame of this rule adds while it is on the stack (see ParsedGrammar::SetExpressionDepth)
-	static idx_t ExpressionDepthWeight(optional_ptr<const CompiledGrammarRule> rule, ParseResult &parse_result);
+	static idx_t ExpressionDepthWeight(optional_ptr<const CompiledGrammarRule> rule, ParseResult &parse_result) {
+		idx_t weight = parse_result.collapsed_nesting;
+		if (!rule) {
+			return weight;
+		}
+		switch (rule->expression_depth) {
+		case ExpressionDepthKind::NESTING:
+			return weight + 1;
+		case ExpressionDepthKind::CHAIN:
+			return weight + CountChainLinks(parse_result);
+		default:
+			return weight;
+		}
+	}
+	//! The number of repeated elements directly in a rule's match: the links of an operator chain
+	static idx_t CountChainLinks(ParseResult &parse_result);
 	void EnterExpression(idx_t weight);
 	void ExitExpression(idx_t weight);
 
@@ -686,6 +709,30 @@ private:
 	friend class FinalizeTransformProcess;
 	friend class TransformStack;
 };
+
+inline void GeneratedTransformProcess::ReserveChildSlots(idx_t count) {
+	if (child_results.slots) {
+		throw InternalException("Transformer process for rule '%s' reserved its child slots twice", info.name);
+	}
+	// a rule pushes at most one child per slot, so one allocation holds the slots and the pending children
+	auto slot_bytes = AlignValue<idx_t>(count * sizeof(arena_ptr<TransformResultValue>));
+	auto memory = transformer.process_allocator.AllocateAligned(slot_bytes + count * sizeof(PendingChild));
+	child_results.slots = reinterpret_cast<arena_ptr<TransformResultValue> *>(memory);
+	child_results.count = count;
+	for (idx_t i = 0; i < count; i++) {
+		new (child_results.slots + i) arena_ptr<TransformResultValue>();
+	}
+	pending_children = reinterpret_cast<PendingChild *>(memory + slot_bytes);
+	pending_count = 0;
+}
+
+inline void GeneratedTransformProcess::PushChild(TransformInput input, idx_t slot) {
+	if (slot >= child_results.size() || pending_count >= child_results.size()) {
+		throw InternalException("Invalid transformer child slot %llu for rule '%s'", slot, info.name);
+	}
+	new (pending_children + pending_count) PendingChild {input, slot};
+	pending_count++;
+}
 
 //! Matching and transformation storage shared by the statements of one query: the arenas keep their first block
 //! and the stacks their frame capacity, so a statement does not pay for them again

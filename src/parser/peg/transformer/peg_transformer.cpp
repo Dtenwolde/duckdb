@@ -27,22 +27,6 @@ arena_ptr<TransformProcess> GeneratedTransformFactory::operator()(PEGTransformer
 	return transformer.MakeProcess<GeneratedTransformProcess>(transformer, TransformInput {parse_result}, info);
 }
 
-void GeneratedTransformProcess::ReserveChildSlots(idx_t count) {
-	if (child_results.slots) {
-		throw InternalException("Transformer process for rule '%s' reserved its child slots twice", info.name);
-	}
-	// a rule pushes at most one child per slot, so one allocation holds the slots and the pending children
-	auto slot_bytes = AlignValue<idx_t>(count * sizeof(arena_ptr<TransformResultValue>));
-	auto memory = transformer.process_allocator.AllocateAligned(slot_bytes + count * sizeof(PendingChild));
-	child_results.slots = reinterpret_cast<arena_ptr<TransformResultValue> *>(memory);
-	child_results.count = count;
-	for (idx_t i = 0; i < count; i++) {
-		new (child_results.slots + i) arena_ptr<TransformResultValue>();
-	}
-	pending_children = reinterpret_cast<PendingChild *>(memory + slot_bytes);
-	pending_count = 0;
-}
-
 void GeneratedTransformProcess::SetChildResult(idx_t slot, arena_ptr<TransformResultValue> result) {
 	if (slot >= child_results.size()) {
 		throw InternalException("Invalid transformer result slot %llu for rule '%s'", slot, info.name);
@@ -56,30 +40,23 @@ void GeneratedTransformProcess::SetChildResult(idx_t slot, arena_ptr<TransformRe
 	child_results[slot] = std::move(result);
 }
 
-void GeneratedTransformProcess::PushChild(TransformInput input, idx_t slot) {
-	if (slot >= child_results.size() || pending_count >= child_results.size()) {
-		throw InternalException("Invalid transformer child slot %llu for rule '%s'", slot, info.name);
-	}
-	new (pending_children + pending_count) PendingChild {input, slot};
-	pending_count++;
-}
-
 TransformStep GeneratedTransformProcess::NextStep() {
-	if (pending_count > 0) {
-		auto &child = pending_children[--pending_count];
-		child_result_slot = child.slot;
-		return TransformStep::Child(child.input);
+	while (true) {
+		if (pending_count > 0) {
+			auto &child = pending_children[--pending_count];
+			child_result_slot = child.slot;
+			return TransformStep::Child(child.input);
+		}
+		auto result = info.finalize(transformer, *this);
+		if (result) {
+			completed = true;
+			return TransformStep::Complete(std::move(result));
+		}
+		if (pending_count == 0) {
+			throw InternalException("Transformer process for rule '%s' returned nullptr without requesting a child",
+			                        info.name);
+		}
 	}
-	auto result = info.finalize(transformer, *this);
-	if (result) {
-		completed = true;
-		return TransformStep::Complete(std::move(result));
-	}
-	if (pending_count == 0) {
-		throw InternalException("Transformer process for rule '%s' returned nullptr without requesting a child",
-		                        info.name);
-	}
-	return NextStep();
 }
 
 FinalizeTransformProcess::FinalizeTransformProcess(PEGTransformer &transformer_p, ParseResult &parse_result_p,
@@ -276,8 +253,7 @@ arena_ptr<TransformResultValue> PEGTransformer::TransformInternal(ParseResult &p
 	return result;
 }
 
-//! The number of repeated elements directly in a rule's match: the links of an operator chain
-static idx_t CountChainLinks(ParseResult &parse_result) {
+idx_t PEGTransformer::CountChainLinks(ParseResult &parse_result) {
 	switch (parse_result.type) {
 	case ParseResultType::REPEAT:
 		return parse_result.Cast<RepeatParseResult>().GetChildren().size();
@@ -300,21 +276,6 @@ static idx_t CountChainLinks(ParseResult &parse_result) {
 	}
 }
 
-idx_t PEGTransformer::ExpressionDepthWeight(optional_ptr<const CompiledGrammarRule> rule, ParseResult &parse_result) {
-	idx_t weight = parse_result.collapsed_nesting;
-	if (!rule) {
-		return weight;
-	}
-	switch (rule->expression_depth) {
-	case ExpressionDepthKind::NESTING:
-		return weight + 1;
-	case ExpressionDepthKind::CHAIN:
-		return weight + CountChainLinks(parse_result);
-	default:
-		return weight;
-	}
-}
-
 void PEGTransformer::EnterExpression(idx_t weight) {
 	// the transformer does not recurse, but binding the resulting expressions does - reject them early
 	expression_depth += weight;
@@ -330,13 +291,9 @@ void PEGTransformer::ExitExpression(idx_t weight) {
 	expression_depth -= weight;
 }
 
-const CompiledGrammarRule &PEGTransformer::GetRule(PEGRuleId rule_id) const {
-	auto rule = grammar.GetRule(rule_id);
-	if (!rule) {
-		auto rule_name = PEGRuleIdToString(rule_id);
-		throw InternalException("No registered data exists for rule '%s'", rule_name ? rule_name : "<runtime rule>");
-	}
-	return *rule;
+void PEGTransformer::ThrowMissingRule(PEGRuleId rule_id) {
+	auto rule_name = PEGRuleIdToString(rule_id);
+	throw InternalException("No registered data exists for rule '%s'", rule_name ? rule_name : "<runtime rule>");
 }
 
 const CompiledGrammarRule &PEGTransformer::GetRule(const string &rule_name) const {

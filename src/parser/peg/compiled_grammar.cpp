@@ -223,14 +223,6 @@ shared_ptr<CompiledGrammar> CompiledGrammar::Create() {
 	return Create({});
 }
 
-optional_ptr<const CompiledGrammarRule> CompiledGrammar::GetRule(PEGRuleId rule_id) const {
-	auto index = static_cast<idx_t>(rule_id);
-	if (index >= rules_by_id.size()) {
-		return nullptr;
-	}
-	return rules_by_id[index];
-}
-
 optional_ptr<const CompiledGrammarRule> CompiledGrammar::GetRule(const string &rule_name) const {
 	auto entry = rules.find(rule_name);
 	if (entry == rules.end()) {

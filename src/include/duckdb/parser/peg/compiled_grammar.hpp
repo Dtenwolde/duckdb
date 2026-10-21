@@ -43,7 +43,13 @@ public:
 		return *tokenizer;
 	}
 	optional_ptr<const CompiledGrammarRule> GetRule(const string &rule_name) const;
-	optional_ptr<const CompiledGrammarRule> GetRule(PEGRuleId rule_id) const;
+	optional_ptr<const CompiledGrammarRule> GetRule(PEGRuleId rule_id) const {
+		auto index = static_cast<idx_t>(rule_id);
+		if (index >= rules_by_id.size()) {
+			return nullptr;
+		}
+		return rules_by_id[index];
+	}
 
 public:
 	static shared_ptr<CompiledGrammar> Get(ClientContext &context);
