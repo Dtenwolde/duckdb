@@ -137,7 +137,8 @@ public:
 		}
 		return reinterpret_cast<TARGET &>(*this);
 	}
-	DUCKDB_API void ThrowCastError(ParseResultType target) const;
+	[[noreturn]] DUCKDB_API void ThrowCastError(ParseResultType target) const;
+	[[noreturn]] DUCKDB_API void ThrowChildIndexOutOfBounds(idx_t index) const;
 
 	optional_ptr<const CompiledGrammarRule> rule;
 	ParseResultType type;
@@ -315,7 +316,7 @@ public:
 
 	ParseResult &GetChild(idx_t index) {
 		if (index >= children.size()) {
-			throw InternalException("Child index out of bounds");
+			ThrowChildIndexOutOfBounds(index);
 		}
 		return children[index].get();
 	}

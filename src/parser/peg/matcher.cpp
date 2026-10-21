@@ -59,6 +59,10 @@ void ParseResult::ThrowCastError(ParseResultType target) const {
 	                        ParseResultToString(target), ParseResultToString(type), Name());
 }
 
+void ParseResult::ThrowChildIndexOutOfBounds(idx_t index) const {
+	throw InternalException("Child index %llu out of bounds for parse result '%s'", index, Name());
+}
+
 void Matcher::ThrowCastError() const {
 	throw InternalException("Failed to cast matcher to type - matcher type mismatch");
 }

@@ -296,25 +296,34 @@ struct GeneratedTransformFactory {
 template <typename T>
 unique_ptr<TypedTransformResult<T>> TryBridgeTransformResultValue(TransformResultValue &base_result);
 
+//! The bridged and failing cases of TakeTransformChildResult, kept apart so the common case stays small
 template <class T>
-T TakeTransformChildResult(unsafe_array_ptr<arena_ptr<TransformResultValue>> child_results,
-                           const TransformFrameOps &info, idx_t slot) {
+T TakeBridgedTransformChildResult(unsafe_array_ptr<arena_ptr<TransformResultValue>> child_results,
+                                  const TransformFrameOps &info, idx_t slot) {
 	if (slot >= child_results.size() || !child_results[slot]) {
 		throw InternalException("Missing transformer result for slot %llu in rule '%s'", slot, info.name);
 	}
-	auto *result_value = TryGetTransformResult<T>(*child_results[slot]);
-	if (!result_value) {
-		auto bridged = TryBridgeTransformResultValue<T>(*child_results[slot]);
-		if (bridged) {
-			auto bridged_result = std::move(bridged->value);
-			child_results[slot].reset();
-			return bridged_result;
-		}
+	auto bridged = TryBridgeTransformResultValue<T>(*child_results[slot]);
+	if (!bridged) {
 		throw InternalException("Unexpected transformer result type for slot %llu in rule '%s'", slot, info.name);
 	}
-	auto result = std::move(*result_value);
+	auto bridged_result = std::move(bridged->value);
 	child_results[slot].reset();
-	return result;
+	return bridged_result;
+}
+
+template <class T>
+T TakeTransformChildResult(unsafe_array_ptr<arena_ptr<TransformResultValue>> child_results,
+                           const TransformFrameOps &info, idx_t slot) {
+	if (slot < child_results.size() && child_results[slot]) {
+		auto *result_value = TryGetTransformResult<T>(*child_results[slot]);
+		if (result_value) {
+			auto result = std::move(*result_value);
+			child_results[slot].reset();
+			return result;
+		}
+	}
+	return TakeBridgedTransformChildResult<T>(child_results, info, slot);
 }
 
 //! Input to start a transformer execution. The rule can be supplied explicitly for transparent parse nodes.
@@ -441,6 +450,8 @@ private:
 	};
 
 	TransformStep NextStep();
+	[[noreturn]] void ThrowSlotError(const char *format, idx_t slot) const;
+	[[noreturn]] void ThrowProcessError(const char *format) const;
 
 private:
 	PEGTransformer &transformer;
@@ -468,7 +479,8 @@ private:
 };
 
 struct TransformStackFrame {
-	explicit TransformStackFrame(TransformInput input);
+	explicit TransformStackFrame(TransformInput input) : rule(input.GetRule()), parse_result(input.parse_result) {
+	}
 
 	optional_ptr<const CompiledGrammarRule> rule;
 	ParseResult &parse_result;
@@ -712,7 +724,7 @@ private:
 
 inline void GeneratedTransformProcess::ReserveChildSlots(idx_t count) {
 	if (child_results.slots) {
-		throw InternalException("Transformer process for rule '%s' reserved its child slots twice", info.name);
+		ThrowProcessError("Transformer process for rule '%s' reserved its child slots twice");
 	}
 	// a rule pushes at most one child per slot, so one allocation holds the slots and the pending children
 	auto slot_bytes = AlignValue<idx_t>(count * sizeof(arena_ptr<TransformResultValue>));
@@ -728,7 +740,7 @@ inline void GeneratedTransformProcess::ReserveChildSlots(idx_t count) {
 
 inline void GeneratedTransformProcess::PushChild(TransformInput input, idx_t slot) {
 	if (slot >= child_results.size() || pending_count >= child_results.size()) {
-		throw InternalException("Invalid transformer child slot %llu for rule '%s'", slot, info.name);
+		ThrowSlotError("Invalid transformer child slot %llu for rule '%s'", slot);
 	}
 	new (pending_children + pending_count) PendingChild {input, slot};
 	pending_count++;

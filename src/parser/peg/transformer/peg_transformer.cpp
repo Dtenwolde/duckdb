@@ -12,9 +12,17 @@ GeneratedTransformProcess::GeneratedTransformProcess(PEGTransformer &transformer
                                                      const TransformFrameOps &info_p)
     : parse_result(input.parse_result), info(info_p), transformer(transformer_p) {
 	if (!info.initialize || !info.finalize) {
-		throw InternalException("Incomplete transformer process for rule '%s'", info.name);
+		ThrowProcessError("Incomplete transformer process for rule '%s'");
 	}
 	info.initialize(transformer, *this);
+}
+
+void GeneratedTransformProcess::ThrowSlotError(const char *format, idx_t slot) const {
+	throw InternalException(format, slot, info.name);
+}
+
+void GeneratedTransformProcess::ThrowProcessError(const char *format) const {
+	throw InternalException(format, info.name);
 }
 
 GeneratedTransformProcess::~GeneratedTransformProcess() {
@@ -29,13 +37,13 @@ arena_ptr<TransformProcess> GeneratedTransformFactory::operator()(PEGTransformer
 
 void GeneratedTransformProcess::SetChildResult(idx_t slot, arena_ptr<TransformResultValue> result) {
 	if (slot >= child_results.size()) {
-		throw InternalException("Invalid transformer result slot %llu for rule '%s'", slot, info.name);
+		ThrowSlotError("Invalid transformer result slot %llu for rule '%s'", slot);
 	}
 	if (!result) {
-		throw InternalException("Cannot set nullptr transformer result for slot %llu in rule '%s'", slot, info.name);
+		ThrowSlotError("Cannot set nullptr transformer result for slot %llu in rule '%s'", slot);
 	}
 	if (child_results[slot]) {
-		throw InternalException("Duplicate transformer result for slot %llu in rule '%s'", slot, info.name);
+		ThrowSlotError("Duplicate transformer result for slot %llu in rule '%s'", slot);
 	}
 	child_results[slot] = std::move(result);
 }
@@ -53,8 +61,7 @@ TransformStep GeneratedTransformProcess::NextStep() {
 			return TransformStep::Complete(std::move(result));
 		}
 		if (pending_count == 0) {
-			throw InternalException("Transformer process for rule '%s' returned nullptr without requesting a child",
-			                        info.name);
+			ThrowProcessError("Transformer process for rule '%s' returned nullptr without requesting a child");
 		}
 	}
 }
@@ -95,10 +102,6 @@ TransformStep GeneratedTransformProcess::Resume(arena_ptr<TransformResultValue> 
 		child_result_slot = optional_idx();
 	}
 	return NextStep();
-}
-
-TransformStackFrame::TransformStackFrame(TransformInput input)
-    : rule(input.GetRule()), parse_result(input.parse_result) {
 }
 
 TransformStack::TransformStack() {
