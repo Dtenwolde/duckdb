@@ -260,6 +260,7 @@ PEGTransformerFactory::PEGTransformerFactory(ParsedGrammar &grammar_p) : grammar
 	collapsible_rules.insert("ExcludeName");
 	collapsible_rules.insert("ExcludeNames");
 	collapsible_rules.insert("ExplainableStatements");
+	collapsible_rules.insert("ExportOptions");
 	collapsible_rules.insert("ExtensionRepositoryStatement");
 	collapsible_rules.insert("ExternalResourceCreationOptions");
 	collapsible_rules.insert("ExternalResourceSource");
@@ -348,6 +349,7 @@ PEGTransformerFactory::PEGTransformerFactory(ParsedGrammar &grammar_p) : grammar
 	collapsible_rules.insert("RelOptionOrOids");
 	collapsible_rules.insert("RenameEntries");
 	collapsible_rules.insert("ReplaceEntries");
+	collapsible_rules.insert("ResetTarget");
 	collapsible_rules.insert("RowPatternAlternative");
 	collapsible_rules.insert("RowPatternAnchor");
 	collapsible_rules.insert("RowPatternPrimary");
@@ -388,6 +390,7 @@ PEGTransformerFactory::PEGTransformerFactory(ParsedGrammar &grammar_p) : grammar
 	collapsible_rules.insert("TriggerTiming");
 	collapsible_rules.insert("TruncateOptions");
 	collapsible_rules.insert("TypeVariations");
+	collapsible_rules.insert("UnaryExpression");
 	collapsible_rules.insert("UnpivotHeader");
 	collapsible_rules.insert("UpdateMatchInfo");
 	collapsible_rules.insert("UpdateMatchSetClause");
@@ -418,6 +421,7 @@ PEGTransformerFactory::PEGTransformerFactory(ParsedGrammar &grammar_p) : grammar
 	grammar.SetExpressionDepth("Type", ExpressionDepthKind::NESTING);
 	grammar.SetExpressionDepth("NestedType", ExpressionDepthKind::NESTING);
 	grammar.SetExpressionDepth("SubqueryReference", ExpressionDepthKind::NESTING);
+	grammar.SetExpressionDepth("CustomPrefixExpression", ExpressionDepthKind::NESTING);
 	grammar.SetExpressionDepth("LambdaArrowExpression", ExpressionDepthKind::CHAIN);
 	grammar.SetExpressionDepth("NotExpression", ExpressionDepthKind::CHAIN);
 	grammar.SetExpressionDepth("IsExpressionContinuation", ExpressionDepthKind::CHAIN);

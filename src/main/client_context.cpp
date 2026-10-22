@@ -176,7 +176,7 @@ void ClientContext::ConnectToCatalog(const shared_ptr<AttachedDatabase> &target)
 	// return true MUST implement RemoteExecute(string). Validation runs before mutation so a throw
 	// leaves the client unbound.
 	if (!target->GetCatalog().Supports(RemoteCapability::CONNECT)) {
-		throw InvalidInputException("Database \"%s\" does not support CONNECT", target->GetName());
+		throw InvalidInputException("Database %s does not support CONNECT", target->GetName());
 	}
 	connected_to_database = target;
 	is_connected = true;
@@ -237,8 +237,7 @@ void ClientContext::ProcessError(ErrorData &error, const string &query) const {
 	}
 }
 
-template <class T>
-unique_ptr<T> ClientContext::ErrorResult(ErrorData error, const string &query) {
+void ClientContext::ApplyInvalidationPolicy(const ErrorData &error) {
 	bool invalidates_transaction = true;
 	if (!ErrorInvalidatesTransaction(error.Type())) {
 		// standard exceptions don't invalidate the transaction
@@ -250,7 +249,11 @@ unique_ptr<T> ClientContext::ErrorResult(ErrorData error, const string &query) {
 	if (invalidates_transaction && HasActiveTransaction()) {
 		ValidChecker::Invalidate(ActiveTransaction(), error.RawMessage());
 	}
+}
 
+template <class T>
+unique_ptr<T> ClientContext::ErrorResult(ErrorData error, const string &query) {
+	ApplyInvalidationPolicy(error);
 	ProcessError(error, query);
 	return make_uniq<T>(std::move(error));
 }
@@ -405,6 +408,10 @@ QueryProgress ClientContext::GetQueryProgress() {
 	return query_progress;
 }
 
+profiler_metrics_t ClientContext::GetLiveQueryMetrics() {
+	return QueryProfiler::Get(*this).GetLiveMetrics();
+}
+
 void ClientContext::CheckIfPreparedStatementIsExecutable(PreparedStatementData &statement) {
 	if (ValidChecker::IsInvalidated(ActiveTransaction()) && statement.properties.requires_valid_transaction) {
 		throw ErrorManager::InvalidatedTransaction(*this);
@@ -417,7 +424,7 @@ void ClientContext::CheckIfPreparedStatementIsExecutable(PreparedStatementData &
 		auto entry = manager.GetDatabase(*this, modified_database);
 		if (!entry) {
 			// database has been detached
-			throw InvalidInputException("Database \"%s\" not found", modified_database);
+			throw InvalidInputException("Database %s not found", modified_database);
 		}
 		if (entry->IsReadOnly()) {
 			throw InvalidInputException(StringUtil::Format(
@@ -447,19 +454,23 @@ bool ClientContext::ErrorInvalidatesTransaction(ExceptionType type) {
 	}
 }
 
-StatementIterator ClientContext::IterateStatements(const string &query) {
-	return StatementIterator(ParseIterator(*this, query));
+StatementIterator ClientContext::IterateStatements(const string &query, bool apply_invalidation_policy) {
+	return StatementIterator(ParseIterator(*this, query, apply_invalidation_policy));
 }
 
-vector<unique_ptr<SQLStatement>> ClientContext::ParseStatementsInternal(ClientContextLock &lock, const string &query) {
+vector<unique_ptr<SQLStatement>> ClientContext::ParseStatementsInternal(ClientContextLock &lock, const string &query,
+                                                                        bool profile) {
 	try {
-		QueryProfiler::Get(*this).StartQuery(query);
+		if (profile) {
+			QueryProfiler::Get(*this).StartQuery(query);
+		}
 
-		// Drain the lazy iterator into a vector for callers that want the eager shape.
-		StatementIterator iterator {ParseIterator(*this, query)};
+		// Drain the lazy iterator into a vector for callers that want the eager shape. The callers that run the
+		// statements apply the invalidation policy through ErrorResult.
+		StatementIterator iterator {ParseIterator(*this, query, false, lock)};
 		vector<unique_ptr<SQLStatement>> result;
 		while (iterator.Peek()) {
-			result.push_back(iterator.GetStatementForExecution());
+			result.push_back(profile ? iterator.GetStatementForExecution() : iterator.GetStatement());
 		}
 		return result;
 	} catch (std::exception &ex) {
@@ -472,7 +483,7 @@ vector<unique_ptr<SQLStatement>> ClientContext::ParseStatementsInternal(ClientCo
 unique_ptr<LogicalOperator> ClientContext::ExtractPlan(const string &query) {
 	auto lock = LockContext();
 
-	auto statements = ParseStatementsInternal(*lock, query);
+	auto statements = ParseStatementsInternal(*lock, query, false);
 	if (statements.size() != 1) {
 		throw InvalidInputException("ExtractPlan can only prepare a single statement");
 	}
@@ -658,7 +669,10 @@ unique_ptr<PreparedStatement> ClientContext::Prepare(const string &query) {
 		}
 		return PrepareInternal(*lock, std::move(statements[0]));
 	} catch (std::exception &ex) {
-		return ErrorResult<PreparedStatement>(ErrorData(ex), query);
+		ErrorData error(ex);
+		// a parse error has started the profiler without running a statement
+		EndQueryProfiling(error);
+		return ErrorResult<PreparedStatement>(std::move(error), query);
 	}
 }
 
@@ -882,18 +896,31 @@ unique_ptr<QueryResult> ClientContext::Query(unique_ptr<SQLStatement> statement,
 
 unique_ptr<QueryResult> ClientContext::Query(const string &query, QueryParameters query_parameters) {
 	auto lock = LockContext();
+	auto result = QueryInternal(*lock, query, std::move(query_parameters));
+	// a query that fails before any statement runs, e.g. with a parser error, has started the profiler
+	ErrorData error;
+	EndQueryProfiling(error);
+	if (error.HasError() && !result->HasError()) {
+		return ErrorResult<QueryResult>(std::move(error), query);
+	}
+	return result;
+}
+
+unique_ptr<QueryResult> ClientContext::QueryInternal(ClientContextLock &lock, const string &query,
+                                                     QueryParameters query_parameters) {
 	// The lazy path drives its own parse iterator, so it clears leftover query state (interrupt flag, etc.) itself
-	if (auto refusal = InitialCleanup<QueryResult>(*lock)) {
+	if (auto refusal = InitialCleanup<QueryResult>(lock)) {
 		return refusal;
 	}
 	auto &profiler = QueryProfiler::Get(*this);
 	profiler.StartQuery(query);
 	// ParseIterator's constructor runs UTF-8 validation / Unicode-space strip and can throw — route
-	// through ErrorResult so the source location attaches the same way Peek failures do.
+	// through ErrorResult so the source location attaches the same way Peek failures do. ErrorResult also applies
+	// the invalidation policy.
 	optional_ptr<StatementIterator> iterator_ptr;
 	unique_ptr<StatementIterator> iterator_storage;
 	try {
-		iterator_storage = make_uniq<StatementIterator>(ParseIterator(*this, query));
+		iterator_storage = make_uniq<StatementIterator>(ParseIterator(*this, query, false, lock));
 		iterator_ptr = *iterator_storage;
 	} catch (const std::exception &ex) {
 		return ErrorResult<QueryResult>(ErrorData(ex), query);
@@ -949,9 +976,9 @@ unique_ptr<QueryResult> ClientContext::Query(const string &query, QueryParameter
 			// Every statement completes before the call returns, so none of them leaves a producer parked for the
 			// consumer's choice
 			auto current_result =
-			    SubmitInternal(*lock, std::move(statement), query_parameters, true, Retention::RETAINED_AT_SUBMISSION);
+			    SubmitInternal(lock, std::move(statement), query_parameters, true, Retention::RETAINED_AT_SUBMISSION);
 			if (!current_result->HasError()) {
-				current_result = CompleteInternal(*lock, std::move(current_result));
+				current_result = CompleteInternal(lock, std::move(current_result));
 			}
 			if (current_result->HasError()) {
 				if (transaction.HasActiveTransaction() && transaction.GetAutoRollback()) {
@@ -1009,8 +1036,9 @@ unique_ptr<QueryResult> ClientContext::Submit(const string &query, const QueryPa
 		return SubmitInternal(*lock, std::move(statements[0]), parameters, true);
 	} catch (std::exception &ex) {
 		ErrorData error(ex);
-		ProcessError(error, query);
-		return make_uniq<QueryResult>(std::move(error));
+		// a parse error has started the profiler without running a statement
+		EndQueryProfiling(error);
+		return ErrorResult<QueryResult>(std::move(error), query);
 	}
 }
 
@@ -1353,7 +1381,7 @@ unordered_set<string> ClientContext::GetTableNames(const string &query, const bo
 	// Preprocess before binding so PRAGMA reparse / macro expansion happens up front — GetTableNames
 	// extracts names from the *underlying* query (e.g. `PRAGMA tpch(1)` -> the TPC-H SELECT, whose
 	// tables are what the caller wants). A raw, un-preprocessed PRAGMA would never surface them.
-	auto statements = ParseStatementsInternal(*lock, query);
+	auto statements = ParseStatementsInternal(*lock, query, false);
 	if (statements.size() != 1) {
 		throw InvalidInputException("Expected a single statement");
 	}
