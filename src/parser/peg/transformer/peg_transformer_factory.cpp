@@ -120,7 +120,6 @@ PEGTransformerFactory::PEGTransformerFactory(ParsedGrammar &grammar_p) : grammar
 	//===--------------------------------------------------------------------===//
 	collapsible_rules.insert("Expression");
 	collapsible_rules.insert("ColumnDefaultExpr");
-	collapsible_rules.insert("LambdaArrowExpression");
 	collapsible_rules.insert("LogicalOrExpression");
 	collapsible_rules.insert("ColDefOrExpr");
 	collapsible_rules.insert("LogicalAndExpression");
@@ -163,7 +162,6 @@ PEGTransformerFactory::PEGTransformerFactory(ParsedGrammar &grammar_p) : grammar
 	grammar.SetExpressionDepth("SingleExpression", ExpressionDepthKind::NESTING);
 	grammar.SetExpressionDepth("Type", ExpressionDepthKind::NESTING);
 	grammar.SetExpressionDepth("NestedType", ExpressionDepthKind::NESTING);
-	grammar.SetExpressionDepth("LambdaArrowExpression", ExpressionDepthKind::CHAIN);
 	grammar.SetExpressionDepth("LogicalOrExpression", ExpressionDepthKind::CHAIN);
 	grammar.SetExpressionDepth("LogicalAndExpression", ExpressionDepthKind::CHAIN);
 	grammar.SetExpressionDepth("NotExpression", ExpressionDepthKind::CHAIN);
@@ -172,6 +170,7 @@ PEGTransformerFactory::PEGTransformerFactory(ParsedGrammar &grammar_p) : grammar
 	grammar.SetExpressionDepth("ComparisonExpression", ExpressionDepthKind::CHAIN);
 	grammar.SetExpressionDepth("BetweenInLikeExpression", ExpressionDepthKind::CHAIN);
 	grammar.SetExpressionDepth("InfixOtherOperatorExpression", ExpressionDepthKind::CHAIN);
+	grammar.SetExpressionDepth("ArrowChainBody", ExpressionDepthKind::CHAIN);
 	grammar.SetExpressionDepth("BitwiseExpression", ExpressionDepthKind::CHAIN);
 	grammar.SetExpressionDepth("TildeExpression", ExpressionDepthKind::CHAIN);
 	grammar.SetExpressionDepth("AdditiveExpression", ExpressionDepthKind::CHAIN);
