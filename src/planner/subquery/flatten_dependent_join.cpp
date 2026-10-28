@@ -85,7 +85,10 @@ FlattenDependentJoins::GetCurrentBindings(const vector<ColumnBinding> &state) co
 }
 
 void FlattenDependentJoins::RewriteCorrelatedBindings(LogicalOperator &op, const vector<ColumnBinding> &state) {
-	RewriteCorrelatedExpressions::Rewrite(op, GetCurrentBindings(state), correlated_aliases);
+	if (!correlated_aliases.empty()) {
+		// only references to correlated columns are rewritten, without any there is nothing to visit
+		RewriteCorrelatedExpressions::Rewrite(op, GetCurrentBindings(state), correlated_aliases);
+	}
 	InvalidateAccessCache();
 }
 
@@ -646,7 +649,6 @@ FlattenDependentJoins::UnnestingState FlattenDependentJoins::FinalizeDependentJo
 	for (idx_t i = 0; i < op.correlated_columns.size(); i++) {
 		auto &col = op.correlated_columns[i];
 		duplicate_eliminated_columns.push_back(make_uniq<BoundColumnRefExpression>(col.type, col.binding));
-		mark_types.push_back(col.type);
 	}
 	outer_state.replacement_graph.Merge(right_state.replacement_graph);
 	for (auto &binding : output.left_payload) {
@@ -655,6 +657,23 @@ FlattenDependentJoins::UnnestingState FlattenDependentJoins::FinalizeDependentJo
 	for (auto &binding : output.right_payload) {
 		binding = outer_state.replacement_graph.Resolve(binding);
 	}
+	// Correlated aggregate rewrites reference marker columns that must survive the projection maps below
+	auto keep_rewrite_inputs = [&](vector<ColumnBinding> &payload) {
+		for (idx_t i = 0, count = payload.size(); i < count; i++) {
+			auto entry = replacement_map.find(payload[i]);
+			if (entry == replacement_map.end()) {
+				continue;
+			}
+			for (auto &extra : {entry->second.marker, entry->second.empty_result}) {
+				auto resolved = outer_state.replacement_graph.Resolve(extra);
+				if (std::find(payload.begin(), payload.end(), resolved) == payload.end()) {
+					payload.push_back(resolved);
+				}
+			}
+		}
+	};
+	keep_rewrite_inputs(output.left_payload);
+	keep_rewrite_inputs(output.right_payload);
 	for (auto &binding : outer_state.bindings) {
 		binding = outer_state.replacement_graph.Resolve(binding);
 	}
@@ -701,6 +720,9 @@ FlattenDependentJoins::UnnestingState FlattenDependentJoins::FinalizeDependentJo
 
 	vector<JoinCondition> conditions;
 	CreateDelimJoinConditions(conditions, op.correlated_columns, right_state.bindings, op.perform_delim);
+	for (auto &condition : conditions) {
+		mark_types.push_back(condition.GetLHS().GetReturnType());
+	}
 	if (op.condition) {
 		if (op.any_join) {
 			D_ASSERT(BoundComparisonExpression::IsComparison(*op.condition));
@@ -799,8 +821,8 @@ void FlattenDependentJoins::AddCorrelatedFirstAggregates(LogicalAggregate &aggr,
 
 		auto first_aggregate = GetBuiltinAggregateFunction(binder.context, FirstFun::Name, {col.type});
 		FunctionBinder function_binder(binder.context);
-		auto first_fun = function_binder.BindAggregateFunction(std::move(first_aggregate), std::move(aggr_children),
-		                                                       nullptr, AggregateType::NON_DISTINCT);
+		auto first_fun = function_binder.BindAggregateFunction(first_aggregate, std::move(aggr_children), nullptr,
+		                                                       AggregateType::NON_DISTINCT);
 		aggr.expressions.push_back(std::move(first_fun));
 	}
 }
@@ -1107,12 +1129,22 @@ FlattenDependentJoins::UnnestingState FlattenDependentJoins::PushDownJoin(unique
 	}
 
 	if (join_type == JoinType::MARK) {
-		if (!left_requires_domain && right_requires_domain) {
+		if (right_requires_domain) {
 			auto right_state = PushDownChild(plan, propagate_null_values, state, false, 1);
 
 			auto left_state = PushDownChild(plan, propagate_null_values, right_state.bindings, false, 0);
 
-			AddCorrelatedJoinConditions(plan->Cast<LogicalJoin>(), left_state.bindings, right_state.bindings);
+			auto &comparison_join = plan->Cast<LogicalComparisonJoin>();
+			auto conditions = std::move(comparison_join.conditions);
+			comparison_join.conditions.clear();
+			AddCorrelatedJoinConditions(comparison_join, left_state.bindings, right_state.bindings);
+			// Keep the correlation keys before the IN predicate for per-group NULL and empty-set handling.
+			comparison_join.mark_types.insert(comparison_join.mark_types.begin(), delim_types.begin(),
+			                                  delim_types.end());
+			for (auto &condition : conditions) {
+				comparison_join.conditions.push_back(std::move(condition));
+			}
+			RewriteCorrelatedBindings(*plan, left_state.bindings);
 			left_state.replacement_graph.Merge(right_state.replacement_graph);
 			return left_state;
 		}

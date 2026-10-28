@@ -189,7 +189,7 @@ struct ParquetLoggerPrefetchMetrics {
 
 	//! Build a prefetch group
 	void GeneratePrefetchGroup(ThriftFileTransport &trans, vector<ParquetPrefetchColumn> &requested_columns,
-	                           const vector<duckdb_parquet::ColumnChunk> &all_chunks);
+	                           const duckdb_parquet::ColumnChunkList &all_chunks);
 };
 
 struct ParquetPrefetchMetrics {
@@ -260,6 +260,10 @@ public:
 	//! profiling metrics (the profiler sums them across threads).
 	idx_t row_groups_read = 0;
 	idx_t row_groups_skipped = 0;
+	//! Compressed size of the column chunks of the row groups read, surfaced as bytes_scanned the same way
+	idx_t bytes_scanned = 0;
+	//! Compressed size of the column chunks of the registered row group, counted once its scan starts
+	idx_t pending_bytes_scanned = 0;
 
 	//! Prefetch cost model
 	PrefetchCostModelState cost_model_state;
@@ -475,6 +479,9 @@ private:
 	idx_t GetGroupOffset(ParquetReaderScanState &state);
 	//! Group span is the distance between the min page offset and the max page offset plus the max page compressed size
 	uint64_t GetGroupSpan(ParquetReaderScanState &state);
+	FilterPropagateResult CheckRowGroupFilterStatistics(ClientContext &context, ParquetReaderScanState &state,
+	                                                    ColumnReader &column_reader, const TableFilter &filter);
+	bool DynamicFiltersExcludeRowGroup(ClientContext &context, ParquetReaderScanState &state);
 	void PrepareRowGroupBuffer(ClientContext &context, ParquetReaderScanState &state, idx_t out_col_idx);
 	//! Whole-group prefetch strategy.
 	ParquetPrefetchStrategy WholeGroupPrefetch(ParquetReaderScanState &state, ThriftFileTransport &trans,

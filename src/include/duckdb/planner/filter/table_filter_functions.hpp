@@ -9,6 +9,7 @@
 #pragma once
 
 #include "duckdb/common/common.hpp"
+#include "duckdb/common/mutex.hpp"
 #include "duckdb/common/optional_ptr.hpp"
 #include "duckdb/common/enums/expression_type.hpp"
 #include "duckdb/common/enums/filter_propagate_result.hpp"
@@ -121,6 +122,13 @@ public:
 		D_ASSERT(sealed);
 		return useful;
 	}
+	bool IsPublished() const {
+		return published;
+	}
+	//! Marks the filter as handed to a probe-side consumer: it must stay immutable afterwards
+	void MarkPublished() {
+		published = true;
+	}
 
 	static idx_t GetNumberOfSectors(idx_t number_of_rows);
 
@@ -134,11 +142,14 @@ private:
 
 private:
 	idx_t num_sectors;
+	//! Sector capacity of buf_, so an unpublished filter can be reused across recursive iterations
+	idx_t allocated_sectors = 0;
 	uint64_t bitmask; // num_sectors - 1 -> used to get the sector offset
 
 	bool initialized = false;
 	bool sealed = false;
 	bool useful = false;
+	bool published = false;
 	AllocatedData buf_;
 	uint64_t *bf;
 };
@@ -219,9 +230,9 @@ struct DynamicFilterData {
 public:
 	DynamicFilterData(ExpressionType comparison_type, Value constant);
 
-	mutex lock;
+	mutable annotated_shared_mutex lock;
 	ExpressionType comparison_type;
-	Value constant;
+	Value constant DUCKDB_GUARDED_BY(lock);
 	atomic<bool> initialized = {false};
 
 	unique_ptr<Expression> ToExpression(const Expression &column) const;

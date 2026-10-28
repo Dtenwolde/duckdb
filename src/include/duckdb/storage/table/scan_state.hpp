@@ -295,8 +295,6 @@ public:
 	//! Whether the column scans of the current assignment still have to be initialized
 	bool column_scans_pending = false;
 
-	RandomEngine random;
-
 	//! The amount of tuples considered by a scan, before applying filters
 	idx_t rows_scanned = 0;
 
@@ -308,6 +306,7 @@ public:
 	const vector<StorageIndex> &GetColumnIds();
 	ScanFilterInfo &GetFilterInfo();
 	ScanSamplingInfo &GetSamplingInfo();
+	RandomEngine &GetRandomEngine();
 	TableScanOptions &GetOptions();
 	optional_ptr<SegmentNode<RowGroup>> GetRowGroup() const;
 	void SetRowGroup(optional_ptr<SegmentNode<RowGroup>> row_group);
@@ -326,6 +325,8 @@ public:
 	void InitializeColumnScans();
 	//! Processes the vector prepared by PrepareScanIO
 	void ProcessPreparedScan(DuckTransaction &transaction, DataChunk &result);
+	//! Drops the prepared row group and returns false when the current filters prune it
+	bool RecheckPreparedRowGroup();
 	//! Releases the row group and the blocks the column scans pin, the next assignment initializes them again
 	void ReleasePins();
 
@@ -338,6 +339,8 @@ private:
 	optional_ptr<SegmentNode<RowGroup>> row_group;
 	shared_ptr<RowGroup> pinned_row_group;
 	TableScanState &parent;
+	//! The random engine for system sampling
+	unique_ptr<RandomEngine> random;
 };
 
 struct ScanSamplingInfo {
@@ -358,15 +361,6 @@ struct TableScanOptions {
 	bool force_fetch_row = false;
 };
 
-class CheckpointLock {
-public:
-	explicit CheckpointLock(unique_ptr<StorageLockKey> lock_p) : lock(std::move(lock_p)) {
-	}
-
-private:
-	unique_ptr<StorageLockKey> lock;
-};
-
 class TableScanState {
 public:
 	TableScanState();
@@ -378,8 +372,6 @@ public:
 	CollectionScanState local_state;
 	//! Options for scanning
 	TableScanOptions options;
-	//! Shared lock over the checkpoint to prevent checkpoints while reading
-	shared_ptr<CheckpointLock> checkpoint_lock;
 	//! Filter info
 	ScanFilterInfo filters;
 	//! Sampling info
@@ -442,8 +434,6 @@ struct ParallelTableScanState {
 	ParallelCollectionScanState scan_state;
 	//! Parallel scan state for the transaction-local state
 	ParallelCollectionScanState local_state;
-	//! Shared lock over the checkpoint to prevent checkpoints while reading
-	shared_ptr<CheckpointLock> checkpoint_lock;
 };
 
 struct PrefetchState {

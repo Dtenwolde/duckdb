@@ -86,7 +86,8 @@ static void DiscoverExternalResources(ClientContext &context, const ExternalReso
                                       const set<string> &managed_handles, vector<ExternalResourceRow> &rows) {
 	// Separate internal connection (the current connection's context lock is held here), resolving the
 	// callback in the type's registration-time search path.
-	Connection con(DatabaseInstance::GetDatabase(context));
+	auto callback_con = CreateExternalResourceCallbackConnection(DatabaseInstance::GetDatabase(context), &context);
+	auto &con = *callback_con;
 	if (!type.search_path.empty()) {
 		auto set_res = con.Query("SET search_path = " + Value(type.search_path).ToSQLString());
 		if (set_res->HasError()) {
@@ -240,6 +241,9 @@ static unique_ptr<FunctionData> RegisterExternalResourceBind(ClientContext &cont
 	auto &resource = result->resource;
 	if (input.inputs[0].IsNull() || input.inputs[1].IsNull()) {
 		throw InvalidInputException("register_external_resource: the type and name must not be NULL");
+	}
+	if (input.inputs[2].IsNull()) {
+		throw InvalidInputException("register_external_resource: the handle must not be NULL");
 	}
 	resource.type = StringValue::Get(input.inputs[0]);
 	resource.name = StringValue::Get(input.inputs[1]);

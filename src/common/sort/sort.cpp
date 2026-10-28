@@ -2,6 +2,7 @@
 #include "duckdb/main/client_context.hpp"
 
 #include "duckdb/main/settings.hpp"
+#include "duckdb/common/sorting/buffered_merge.hpp"
 #include "duckdb/common/sorting/sort_key.hpp"
 #include "duckdb/common/sorting/sorted_run.hpp"
 #include "duckdb/common/sorting/sorted_run_merger.hpp"
@@ -164,7 +165,7 @@ public:
 		}
 
 		// Double until it fits
-		auto required = num_threads * lstate.sorted_run->SizeInBytes();
+		auto required = num_threads * lstate.sorted_run->SizeInBytesForSorting();
 		if (is_index_sort) {
 			required *= 4; // Index creation is pretty intense, so we are very conservative here
 		}
@@ -205,7 +206,7 @@ public:
 	MonotonicProgress sink_progress;
 
 	//! Whether this is an external sort
-	bool external;
+	atomic<bool> external;
 	//! Whether any thread has called Combine yet
 	bool any_combined;
 
@@ -225,8 +226,8 @@ unique_ptr<GlobalSinkState> Sort::GetGlobalSinkState(ClientContext &context) con
 
 //! Returns true if the Sink call is done (either because run size is small or because run was finalized)
 static bool TryFinishSink(SortGlobalSinkState &gstate, SortLocalSinkState &lstate, unique_lock<mutex> &guard) {
-	// Check if we exceed the limit
-	const auto sorted_run_size = lstate.sorted_run->SizeInBytes();
+	// Check if we exceed the limit (sorting the run needs a merge buffer on top of the run itself)
+	const auto sorted_run_size = lstate.sorted_run->SizeInBytesForSorting();
 	if (sorted_run_size < lstate.maximum_run_size) {
 		return true; // Sink is done
 	}
@@ -311,6 +312,34 @@ SinkCombineResultType Sort::Combine(ExecutionContext &context, OperatorSinkCombi
 	return SinkCombineResultType::FINISHED;
 }
 
+static bool CanUseLargerPartitions(const SortGlobalSinkState &gstate, idx_t partition_size) {
+	D_ASSERT(partition_size <= 4 * DEFAULT_ROW_GROUP_SIZE);
+	if (partition_size == 0) {
+		return false;
+	}
+
+	// Leave half the worker's reservation share for block rounding, iterator pins and output.
+	const auto budget = gstate.temporary_memory_state->GetReservation() / gstate.num_threads / 2;
+	const auto key_size = gstate.sorted_runs[0]->key_data->GetLayout().GetRowWidth();
+	const auto buffer_keys = partition_size + SortMergeBuffer::MaximumKeyCount(partition_size);
+	if (key_size > budget / buffer_keys) {
+		return false;
+	}
+	const auto buffer_size = partition_size * key_size + SortMergeBuffer::MaximumSize(partition_size, key_size);
+	const auto row_size_limit = (budget - buffer_size) / partition_size;
+
+	for (const auto &run : gstate.sorted_runs) {
+		const auto key_row_size = run->key_data->GetMaxChunkPartRowSize();
+		if (key_row_size > row_size_limit) {
+			return false;
+		}
+		if (run->payload_data && run->payload_data->GetMaxChunkPartRowSize() > row_size_limit - key_row_size) {
+			return false;
+		}
+	}
+	return true;
+}
+
 SinkFinalizeType Sort::Finalize(ClientContext &context, OperatorSinkFinalizeInput &input) const {
 	auto &gstate = input.global_state.Cast<SortGlobalSinkState>();
 	if (gstate.sorted_runs.empty()) {
@@ -326,6 +355,15 @@ SinkFinalizeType Sort::Finalize(ClientContext &context, OperatorSinkFinalizeInpu
 		gstate.partition_size = STANDARD_VECTOR_SIZE;
 	} else {
 		gstate.partition_size = MinValue<idx_t>(gstate.total_count, DEFAULT_ROW_GROUP_SIZE);
+	}
+
+	// Amortize external boundary searches while keeping enough parallel work and estimated memory headroom.
+	if (gstate.external && !is_index_sort && !context.config.verify_parallelism) {
+		const auto partition_size = gstate.partition_size * 4;
+		if (gstate.total_count / gstate.num_threads >= partition_size &&
+		    CanUseLargerPartitions(gstate, partition_size)) {
+			gstate.partition_size = partition_size;
+		}
 	}
 
 	return SinkFinalizeType::READY;

@@ -695,6 +695,19 @@ string LogicalType::ToString() const {
 			result += StringUtil::Format("GEOMETRY(%s)", SQLString(crs.GetDefinition()));
 			break;
 		}
+		case LogicalTypeId::VARCHAR: {
+			// a collation is part of the type's identity: the constructor form parses in type position
+			auto &string_type_info = type.GetTypeInfo();
+			if (string_type_info.type == LogicalTypeInfoType::STRING_TYPE_INFO) {
+				auto &string_info = string_type_info.Cast<StringTypeInfo>();
+				if (!string_info.collation.empty()) {
+					result += StringUtil::Format("VARCHAR(%s)", SQLString(string_info.collation));
+					break;
+				}
+			}
+			result += "VARCHAR";
+			break;
+		}
 		default:
 			result += EnumUtil::ToString(type.id());
 			break;
@@ -1905,6 +1918,13 @@ LogicalType ArrayType::ConvertToList(const LogicalType &type) {
 			child.second = ConvertToList(child.second);
 		}
 		return LogicalType::STRUCT(children);
+	}
+	case LogicalTypeId::TUPLE: {
+		auto children = StructType::GetChildTypes(type);
+		for (auto &child : children) {
+			child.second = ConvertToList(child.second);
+		}
+		return LogicalType::TUPLE(children);
 	}
 	case LogicalTypeId::MAP: {
 		auto key_type = ConvertToList(MapType::KeyType(type));

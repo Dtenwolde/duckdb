@@ -37,6 +37,20 @@ struct ReadSingleParquetFileData : public TableFunctionData {
 		}
 	}
 
+	unique_ptr<FunctionData> Copy() const override {
+		// the copy does not take over the reader the bind opened - its scans open the file themselves
+		auto result = make_uniq<ReadSingleParquetFileData>();
+		result->file = file;
+		result->options = options;
+		result->parquet_names = parquet_names;
+		result->parquet_types = parquet_types;
+		result->columns = columns;
+		result->metadata = metadata;
+		result->cardinality = cardinality;
+		result->projection_expressions = projection_expressions;
+		return std::move(result);
+	}
+
 	//! The reader the bind opened for this file, handed to the first scan of this bind data so that the file does
 	//! not have to be opened again. Only set when the bind data is used to read the file
 	shared_ptr<ParquetReader> TakeBindReader() const {
@@ -397,6 +411,12 @@ static virtual_column_map_t ReadSingleParquetFileVirtualColumns(ClientContext &c
 	return result;
 }
 
+//! The row number within the file identifies a row of a single file
+static vector<column_t> ReadSingleParquetFileRowIdColumns(ClientContext &context,
+                                                          optional_ptr<FunctionData> bind_data) {
+	return {MultiFileReader::COLUMN_IDENTIFIER_FILE_ROW_NUMBER};
+}
+
 //! The statistics of a column of this file, read from its metadata
 static unique_ptr<BaseStatistics>
 ReadSingleParquetFileStatistics(ClientContext &context, const FunctionData *bind_data_p, column_t column_index) {
@@ -417,9 +437,10 @@ static void ReadSingleParquetFileGetMetrics(TableFunctionGetMetricsInput &input)
 		return;
 	}
 	auto &gstate = input.global_state->Cast<ReadSingleParquetFileGlobalState>();
-	// the row groups scanned are drained, so each is reported once; the number to scan is the size of this file,
-	// which our caller reports as-is
+	// the row groups and bytes scanned are drained, so each is reported once; the number to scan is the size of this
+	// file, which our caller reports as-is
 	input.operator_metrics.row_groups_scanned += gstate.state.row_groups_scanned_unreported.exchange(0);
+	input.operator_metrics.bytes_scanned += gstate.state.bytes_scanned_unreported.exchange(0);
 	input.operator_metrics.total_row_groups_to_scan += gstate.state.total_row_groups_to_scan.load();
 }
 
@@ -530,6 +551,7 @@ TableFunction ParquetScanFunction::GetSingleFileFunction() {
 	read_parquet.get_metrics = ReadSingleParquetFileGetMetrics;
 	read_parquet.projection_pushdown = true;
 	read_parquet.late_materialization = true;
+	read_parquet.get_row_id_columns = ReadSingleParquetFileRowIdColumns;
 	read_parquet.filter_pushdown = true;
 	read_parquet.filter_prune = true;
 	ParquetScanFunction::AddNamedParameters(read_parquet);
@@ -549,6 +571,7 @@ TableFunctionMultiFileSettings ParquetScanFunction::GetMultiFileSettings() {
 	settings.get_file_columns = ReadSingleParquetFileColumns;
 	// the order the filters are best applied in is learned while reading, and carries over to the next file
 	settings.reuses_local_state = true;
+	settings.reports_bytes_scanned = true;
 	return settings;
 }
 

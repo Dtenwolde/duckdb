@@ -245,8 +245,7 @@ static unique_ptr<FunctionData> ParquetWriteBind(ClientContext &context, CopyFun
 				const auto &struct_children = StructValue::GetChildren(shredding_types_value);
 				D_ASSERT(StructType::GetChildTypes(struct_type).size() == struct_children.size());
 				for (idx_t i = 0; i < struct_children.size(); i++) {
-					const auto &col_name =
-					    StringUtil::Lower(StructType::GetChildName(struct_type, i).GetIdentifierName());
+					const auto &col_name = StructType::GetChildName(struct_type, i).GetIdentifierName();
 					auto it = variant_names.find(Identifier(col_name));
 					if (it == variant_names.end()) {
 						string names;
@@ -269,8 +268,7 @@ static unique_ptr<FunctionData> ParquetWriteBind(ClientContext &context, CopyFun
 						}
 					}
 					const auto &child_value = struct_children[i];
-					bind_data->shredding_types.AddChild(Identifier(col_name),
-					                                    ShreddingType::GetShreddingTypes(child_value, context));
+					bind_data->shredding_types.AddChild(*it, ShreddingType::GetShreddingTypes(child_value, context));
 				}
 			}
 		} else if (option_name == "kv_metadata") {
@@ -283,6 +281,9 @@ static unique_ptr<FunctionData> ParquetWriteBind(ClientContext &context, CopyFun
 			for (idx_t i = 0; i < values.size(); i++) {
 				auto &value = values[i];
 				auto key = StructType::GetChildName(kv_struct_type, i);
+				if (value.IsNull()) {
+					throw BinderException("kv_metadata value for key %s cannot be NULL", key);
+				}
 				// If the value is a blob, write the raw blob bytes
 				// otherwise, cast to string
 				if (value.type().id() == LogicalTypeId::BLOB) {
@@ -419,7 +420,8 @@ static unique_ptr<GlobalFunctionData> ParquetWriteInitializeGlobal(ClientContext
 	options.not_null_columns = parquet_bind.not_null_columns;
 
 	auto flags = FileFlags::FILE_FLAGS_WRITE | FileFlags::FILE_FLAGS_FILE_CREATE_NEW;
-	if (!fs.FileExists(file_path) && !fs.IsPipe(file_path)) {
+	// checking a remote path costs a request, so a remote output is opened like one that may exist
+	if (!fs.IsRemoteFile(file_path) && !fs.FileExists(file_path) && !fs.IsPipe(file_path)) {
 		flags |= FileFlags::FILE_FLAGS_EXCLUSIVE_CREATE;
 	}
 	options.open_flags = flags;
@@ -882,6 +884,9 @@ static void ParquetWriteInitializeOperator(GlobalFunctionData &gstate, const Phy
 // Prepare Batch
 //===--------------------------------------------------------------------===//
 struct ParquetWriteBatchData : public PreparedBatchData {
+	explicit ParquetWriteBatchData(Allocator &allocator) : prepared_row_group(allocator) {
+	}
+
 	PreparedRowGroup prepared_row_group;
 };
 
@@ -889,7 +894,7 @@ static unique_ptr<PreparedBatchData> ParquetWritePrepareBatch(ClientContext &con
                                                               GlobalFunctionData &gstate,
                                                               unique_ptr<ColumnDataCollection> collection) {
 	auto &global_state = gstate.Cast<ParquetWriteGlobalState>();
-	auto result = make_uniq<ParquetWriteBatchData>();
+	auto result = make_uniq<ParquetWriteBatchData>(BufferAllocator::Get(context));
 	unique_ptr<ParquetWriteTransformData> transform_data;
 	global_state.writer->PrepareRowGroup(*collection, result->prepared_row_group, transform_data);
 	return std::move(result);
@@ -1086,6 +1091,7 @@ static void LoadInternal(ExtensionLoader &loader) {
 	loader.RegisterFunction(MultiFileReader::CreateFunctionSet(full_meta_fun));
 
 	// variant_to_parquet_variant
+	loader.RegisterType("PARQUET_VARIANT", VariantColumnWriter::GetParquetVariantType());
 	loader.RegisterFunction(VariantColumnWriter::GetTransformFunction());
 
 	// bytes_to_variant
