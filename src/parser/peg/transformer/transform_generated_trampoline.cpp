@@ -2815,6 +2815,16 @@ static const TransformFrameOps WITH_ORDINALITY_OPS = {"WithOrdinality",
 static const TransformFrameOps QUALIFIED_TABLE_FUNCTION_OPS = {
     "QualifiedTableFunction", &PEGTransformerFactory::InitializeQualifiedTableFunctionTrampoline,
     &PEGTransformerFactory::FinalizeQualifiedTableFunctionTrampoline};
+static const TransformFrameOps TABLE_FUNCTION_NAME_AS_QUALIFIED_NAME_OPS = {
+    "TableFunctionNameAsQualifiedName", &PEGTransformerFactory::InitializeTableFunctionNameAsQualifiedNameTrampoline,
+    &PEGTransformerFactory::FinalizeTableFunctionNameAsQualifiedNameTrampoline};
+static const TransformFrameOps CATALOG_RESERVED_SCHEMA_TABLE_FUNCTION_NAME_OPS = {
+    "CatalogReservedSchemaTableFunctionName",
+    &PEGTransformerFactory::InitializeCatalogReservedSchemaTableFunctionNameTrampoline,
+    &PEGTransformerFactory::FinalizeCatalogReservedSchemaTableFunctionNameTrampoline};
+static const TransformFrameOps SCHEMA_RESERVED_TABLE_FUNCTION_NAME_OPS = {
+    "SchemaReservedTableFunctionName", &PEGTransformerFactory::InitializeSchemaReservedTableFunctionNameTrampoline,
+    &PEGTransformerFactory::FinalizeSchemaReservedTableFunctionNameTrampoline};
 static const TransformFrameOps TABLE_FUNCTION_ARGUMENTS_OPS = {
     "TableFunctionArguments", &PEGTransformerFactory::InitializeTableFunctionArgumentsTrampoline,
     &PEGTransformerFactory::FinalizeTableFunctionArgumentsTrampoline};
@@ -4268,6 +4278,9 @@ const case_insensitive_map_t<const TransformFrameOps *> &PEGTransformerFactory::
 	    {"TableFunctionAliasColon", &TABLE_FUNCTION_ALIAS_COLON_OPS},
 	    {"WithOrdinality", &WITH_ORDINALITY_OPS},
 	    {"QualifiedTableFunction", &QUALIFIED_TABLE_FUNCTION_OPS},
+	    {"TableFunctionNameAsQualifiedName", &TABLE_FUNCTION_NAME_AS_QUALIFIED_NAME_OPS},
+	    {"CatalogReservedSchemaTableFunctionName", &CATALOG_RESERVED_SCHEMA_TABLE_FUNCTION_NAME_OPS},
+	    {"SchemaReservedTableFunctionName", &SCHEMA_RESERVED_TABLE_FUNCTION_NAME_OPS},
 	    {"TableFunctionArguments", &TABLE_FUNCTION_ARGUMENTS_OPS},
 	    {"FunctionArgument", &FUNCTION_ARGUMENT_OPS},
 	    {"NamedFunctionArgument", &NAMED_FUNCTION_ARGUMENT_OPS},
@@ -24154,6 +24167,41 @@ PEGTransformerFactory::FinalizeWithOrdinalityTrampoline(PEGTransformer &transfor
 void PEGTransformerFactory::InitializeQualifiedTableFunctionTrampoline(PEGTransformer &transformer,
                                                                        GeneratedTransformProcess &process) {
 	auto &list_pr = process.parse_result.Cast<ListParseResult>();
+	auto &choice_pr = list_pr.Child<ChoiceParseResult>(0);
+	auto &choice_result = choice_pr.GetResult();
+	process.ReserveChildSlots(1);
+	auto child_rule = choice_result.GetRule();
+	auto has_transform_process = child_rule && child_rule->transform_process;
+	if (!has_transform_process) {
+		throw InternalException("No transform process registered for rule '%s'", choice_result.Name());
+	}
+	process.PushChild({*child_rule, choice_result}, 0);
+}
+
+arena_ptr<TransformResultValue>
+PEGTransformerFactory::FinalizeQualifiedTableFunctionTrampoline(PEGTransformer &transformer,
+                                                                GeneratedTransformProcess &process) {
+	auto result = process.TakeResult<QualifiedName>(0);
+	return transformer.MakeResult<QualifiedName>(result);
+}
+
+void PEGTransformerFactory::InitializeTableFunctionNameAsQualifiedNameTrampoline(PEGTransformer &transformer,
+                                                                                 GeneratedTransformProcess &process) {
+	process.ReserveChildSlots(0);
+}
+
+arena_ptr<TransformResultValue>
+PEGTransformerFactory::FinalizeTableFunctionNameAsQualifiedNameTrampoline(PEGTransformer &transformer,
+                                                                          GeneratedTransformProcess &process) {
+	auto &list_pr = process.parse_result.Cast<ListParseResult>();
+	auto table_function_name = list_pr.GetChild(0).Cast<IdentifierParseResult>().identifier;
+	auto result = TransformTableFunctionNameAsQualifiedName(transformer, table_function_name);
+	return transformer.MakeResult<QualifiedName>(result);
+}
+
+void PEGTransformerFactory::InitializeCatalogReservedSchemaTableFunctionNameTrampoline(
+    PEGTransformer &transformer, GeneratedTransformProcess &process) {
+	auto &list_pr = process.parse_result.Cast<ListParseResult>();
 	auto &repeat_opt = list_pr.GetChild(1).Cast<OptionalParseResult>();
 	idx_t dynamic_child_count = 0;
 	if (repeat_opt.HasResult()) {
@@ -24163,22 +24211,19 @@ void PEGTransformerFactory::InitializeQualifiedTableFunctionTrampoline(PEGTransf
 		process.ReserveChildSlots(2 + dynamic_child_count - 1);
 		for (idx_t i = repeat_children.size(); i > 0; i--) {
 			auto child_idx = i - 1;
-			process.PushChild({transformer.GetRule(PEGRuleId::SchemaQualification), repeat_children[child_idx].get()},
-			                  1 + child_idx);
+			process.PushChild(
+			    {transformer.GetRule(PEGRuleId::ReservedSchemaQualification), repeat_children[child_idx].get()},
+			    1 + child_idx);
 		}
 	} else {
 		process.ReserveChildSlots(2 - 1);
 	}
-	auto &catalog_qualification_opt = list_pr.GetChild(0).Cast<OptionalParseResult>();
-	if (catalog_qualification_opt.HasResult()) {
-		process.PushChild({transformer.GetRule(PEGRuleId::CatalogQualification), catalog_qualification_opt.GetResult()},
-		                  0);
-	}
+	process.PushChild({transformer.GetRule(PEGRuleId::CatalogQualification), list_pr.GetChild(0)}, 0);
 }
 
 arena_ptr<TransformResultValue>
-PEGTransformerFactory::FinalizeQualifiedTableFunctionTrampoline(PEGTransformer &transformer,
-                                                                GeneratedTransformProcess &process) {
+PEGTransformerFactory::FinalizeCatalogReservedSchemaTableFunctionNameTrampoline(PEGTransformer &transformer,
+                                                                                GeneratedTransformProcess &process) {
 	auto &list_pr = process.parse_result.Cast<ListParseResult>();
 	idx_t dynamic_child_count = 0;
 	auto &dynamic_repeat_opt = list_pr.GetChild(1).Cast<OptionalParseResult>();
@@ -24187,22 +24232,37 @@ PEGTransformerFactory::FinalizeQualifiedTableFunctionTrampoline(PEGTransformer &
 		auto dynamic_repeat_children = dynamic_repeat_pr.GetChildren();
 		dynamic_child_count = dynamic_repeat_children.size();
 	}
-	optional<Identifier> catalog_qualification {};
-	if (process.child_results[0]) {
-		catalog_qualification = process.TakeResult<Identifier>(0);
-	}
-	optional<vector<Identifier>> schema_qualification {};
+	auto catalog_qualification = process.TakeResult<Identifier>(0);
+	optional<vector<Identifier>> reserved_schema_qualification {};
 	if (dynamic_child_count > 0) {
-		vector<Identifier> schema_qualification_value;
-		schema_qualification_value.reserve(dynamic_child_count);
+		vector<Identifier> reserved_schema_qualification_value;
+		reserved_schema_qualification_value.reserve(dynamic_child_count);
 		for (idx_t i = 1; i < 1 + dynamic_child_count; i++) {
-			schema_qualification_value.push_back(process.TakeResult<Identifier>(i));
+			reserved_schema_qualification_value.push_back(process.TakeResult<Identifier>(i));
 		}
-		schema_qualification = std::move(schema_qualification_value);
+		reserved_schema_qualification = std::move(reserved_schema_qualification_value);
 	}
-	auto table_function_name = list_pr.GetChild(2).Cast<IdentifierParseResult>().identifier;
+	auto reserved_table_function_name = list_pr.GetChild(2).Cast<IdentifierParseResult>().identifier;
+	auto result = TransformCatalogReservedSchemaTableFunctionName(
+	    transformer, catalog_qualification, reserved_schema_qualification, reserved_table_function_name);
+	return transformer.MakeResult<QualifiedName>(result);
+}
+
+void PEGTransformerFactory::InitializeSchemaReservedTableFunctionNameTrampoline(PEGTransformer &transformer,
+                                                                                GeneratedTransformProcess &process) {
+	auto &list_pr = process.parse_result.Cast<ListParseResult>();
+	process.ReserveChildSlots(1);
+	process.PushChild({transformer.GetRule(PEGRuleId::SchemaQualification), list_pr.GetChild(0)}, 0);
+}
+
+arena_ptr<TransformResultValue>
+PEGTransformerFactory::FinalizeSchemaReservedTableFunctionNameTrampoline(PEGTransformer &transformer,
+                                                                         GeneratedTransformProcess &process) {
+	auto &list_pr = process.parse_result.Cast<ListParseResult>();
+	auto schema_qualification = process.TakeResult<Identifier>(0);
+	auto reserved_table_function_name = list_pr.GetChild(1).Cast<IdentifierParseResult>().identifier;
 	auto result =
-	    TransformQualifiedTableFunction(transformer, catalog_qualification, schema_qualification, table_function_name);
+	    TransformSchemaReservedTableFunctionName(transformer, schema_qualification, reserved_table_function_name);
 	return transformer.MakeResult<QualifiedName>(result);
 }
 

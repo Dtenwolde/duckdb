@@ -1,0 +1,169 @@
+# name: test/sql/parser/qualified_table_function_reserved_name.test
+# description: Reserved keywords are valid table function names after a schema or catalog qualification
+# group: [parser]
+
+statement ok
+CREATE SCHEMA g;
+
+statement ok
+CREATE MACRO g.describe(x) AS TABLE SELECT x AS v;
+
+statement ok
+CREATE MACRO g.summarize(x) AS TABLE SELECT x AS v;
+
+statement ok
+CREATE MACRO g.show(x) AS TABLE SELECT x AS v;
+
+statement ok
+CREATE MACRO g.pivot(x) AS TABLE SELECT x AS v;
+
+statement ok
+CREATE MACRO g.unpivot(x) AS TABLE SELECT x AS v;
+
+statement ok
+CREATE MACRO g.select(x) AS TABLE SELECT x AS v;
+
+statement ok
+CREATE MACRO g.table(x) AS TABLE SELECT x AS v;
+
+statement ok
+CREATE MACRO g.desc(x) AS TABLE SELECT x AS v;
+
+# schema-qualified
+query I
+SELECT * FROM g.describe('a');
+----
+a
+
+query I
+SELECT * FROM g.summarize('a');
+----
+a
+
+query I
+SELECT * FROM g.show('a');
+----
+a
+
+query I
+SELECT * FROM g.pivot('a');
+----
+a
+
+query I
+SELECT * FROM g.unpivot('a');
+----
+a
+
+query I
+SELECT * FROM g.select('a');
+----
+a
+
+query I
+SELECT * FROM g.table('a');
+----
+a
+
+query I
+SELECT * FROM g.desc('a');
+----
+a
+
+# catalog-qualified
+query I
+SELECT * FROM memory.g.describe('a');
+----
+a
+
+query I
+SELECT * FROM memory.g.pivot('a');
+----
+a
+
+# quoting keeps working
+query I
+SELECT * FROM g."describe"('a');
+----
+a
+
+# aliases
+query I
+SELECT t.v FROM g.describe('a') AS t;
+----
+a
+
+query I
+SELECT t.v FROM g.describe('a') t;
+----
+a
+
+query I
+SELECT c FROM g.describe('a') t(c);
+----
+a
+
+query I
+SELECT t.v FROM t: g.describe('a');
+----
+a
+
+# joins
+query II
+SELECT * FROM (SELECT 1 AS i) JOIN g.describe('a') ON true;
+----
+1	a
+
+query II
+SELECT * FROM (SELECT 1 AS i) s, LATERAL g.describe('a');
+----
+1	a
+
+# reserved schema name after a catalog qualification
+statement ok
+CREATE SCHEMA "select";
+
+statement ok
+CREATE MACRO memory.select.describe(x) AS TABLE SELECT x AS v;
+
+query I
+SELECT * FROM memory.select.describe('a');
+----
+a
+
+# CALL and DROP MACRO TABLE share the same qualified table function rule
+query I
+CALL g.describe('a');
+----
+a
+
+query I
+CALL memory.g.summarize('a');
+----
+a
+
+statement ok
+COMMENT ON MACRO TABLE g.show IS 'x';
+
+statement ok
+DROP MACRO TABLE g.show;
+
+statement ok
+DROP MACRO TABLE memory.g.pivot;
+
+statement error
+SELECT * FROM g.show('a');
+----
+<REGEX>:Catalog Error:.*show.*
+
+# the statement keywords themselves still work
+query IIIIII
+DESCRIBE SELECT * FROM g.describe('a');
+----
+v	VARCHAR	YES	NULL	NULL	NULL
+
+# an unqualified reserved keyword is still not a table function
+statement error
+SELECT * FROM describe('a');
+----
+<REGEX>:Parser Error:.*syntax error.*
