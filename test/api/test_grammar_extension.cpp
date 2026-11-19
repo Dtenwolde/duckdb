@@ -3735,3 +3735,33 @@ TEST_CASE("The parser's tokens keep the literal info the tokenizer cached", "[ap
 	REQUIRE_FALSE(borrowing_iterator.GetToken(0).HasLiteralInfo(table));
 	REQUIRE(borrowed[0].GetLiteralInfo(table).LiteralId() == table.Lookup("SELECT").LiteralId());
 }
+
+TEST_CASE("Statement resources keep their arena chunks from one statement to the next", "[api][grammar_extension]") {
+	auto options = ParserOptions::Builtin();
+	auto &grammar = *options.compiled_grammar;
+	const string sql = "SELECT a + 1 AS x FROM t WHERE b = 2; SELECT count(*) FROM u GROUP BY c; SELECT 3;";
+	ParserTokenizerBehavior behavior(sql);
+	grammar.GetTokenizer().TokenizeInput(behavior);
+	TokenIterator iterator(behavior);
+	PEGStatementResources resources;
+	Parser parser(options);
+	vector<ArenaChunk *> process_chunks, packrat_chunks, transformer_chunks;
+	idx_t statements = 0;
+	while (iterator.Current()) {
+		auto statement = parser.ParseTopLevelStatement(iterator, sql, resources);
+		if (!statement) {
+			continue;
+		}
+		statements++;
+		process_chunks.push_back(resources.process_allocator.GetHead());
+		packrat_chunks.push_back(resources.packrat_allocator.GetHead());
+		transformer_chunks.push_back(resources.transformer_allocator.GetHead());
+	}
+	REQUIRE(statements == 3);
+	for (auto chunks : {&process_chunks, &packrat_chunks, &transformer_chunks}) {
+		// a statement that fits the chunk of the previous one allocates no new chunk
+		REQUIRE((*chunks)[0]);
+		REQUIRE((*chunks)[1] == (*chunks)[0]);
+		REQUIRE((*chunks)[2] == (*chunks)[0]);
+	}
+}

@@ -128,8 +128,8 @@ data_ptr_t ArenaAllocator::ReallocateAligned(data_ptr_t pointer, idx_t old_size,
 
 void ArenaAllocator::RewindSlow(const Position &position) {
 	if (!position.chunk) {
-		// nothing was allocated when the position was taken
-		FreeAll();
+		// nothing was allocated when the position was taken: release everything, but keep a chunk for reuse
+		Reset();
 		return;
 	}
 	// destroy the chunks that were allocated after the position was taken, newest first

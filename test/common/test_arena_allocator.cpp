@@ -84,6 +84,35 @@ TEST_CASE("Arena rewind reuses discarded storage and preserves live containers",
 	REQUIRE((*live)[1] == 84);
 }
 
+TEST_CASE("Arena rewind to an empty position keeps a chunk for reuse", "[arena_allocator]") {
+	ArenaAllocator arena(Allocator::DefaultAllocator());
+	REQUIRE(arena.IsEmpty());
+	const auto empty_position = arena.GetPosition();
+	REQUIRE_FALSE(empty_position.chunk);
+	memset(arena.Allocate(64), 42, 64);
+	SECTION("within one chunk") {
+	}
+	SECTION("across chunks") {
+		auto size = arena.GetHead()->maximum_size * 2;
+		memset(arena.Allocate(size), 42, size);
+		REQUIRE(arena.GetHead()->next);
+	}
+	arena.Rewind(empty_position);
+	// everything is released, but the newest chunk stays and is handed out again
+	auto head = arena.GetHead();
+	REQUIRE(head);
+	REQUIRE_FALSE(head->next);
+	REQUIRE(arena.SizeInBytes() == 0);
+	const auto position = arena.GetPosition();
+	REQUIRE(position.chunk == head);
+	REQUIRE(position.current_position == 0);
+	memset(arena.Allocate(64), 13, 64);
+	REQUIRE(arena.GetHead() == head);
+	arena.Rewind(position);
+	REQUIRE(arena.GetHead() == head);
+	REQUIRE(arena.SizeInBytes() == 0);
+}
+
 TEST_CASE("Arena tail shrinking makes discarded capacity reusable", "[arena_allocator]") {
 	ArenaAllocator arena(Allocator::DefaultAllocator());
 	auto values = arena.Make<arena_vector<uint64_t>>(arena);
