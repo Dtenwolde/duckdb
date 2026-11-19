@@ -166,7 +166,7 @@ TransformStackFrame::TransformStackFrame(TransformInput input)
     : rule(input.GetRule()), parse_result(input.parse_result) {
 }
 
-TransformStack::TransformStack(PEGTransformer &transformer_p) : transformer(transformer_p) {
+TransformStack::TransformStack() {
 	frames.reserve(32);
 }
 
@@ -181,28 +181,28 @@ void TransformStack::PushFrame(TransformInput input) {
 	// inline fast path: in-tree frames always carry a rule
 	frames.emplace_back(input.GetRule() ? input : input.Unwrap());
 	auto &frame = frames.back();
-	frame.process_arena_position = transformer.process_allocator.GetPosition();
-	auto weight = transformer.ExpressionDepthWeight(frame.rule, frame.parse_result);
+	frame.process_arena_position = transformer->process_allocator.GetPosition();
+	auto weight = transformer->ExpressionDepthWeight(frame.rule, frame.parse_result);
 	if (weight) {
 		// recorded first: the frame is released (and the weight subtracted) when entering throws
 		frame.expression_depth_weight = weight;
-		transformer.EnterExpression(weight);
+		transformer->EnterExpression(weight);
 	}
 }
 
 void TransformStack::PopFrame() {
 	const auto process_arena_position = frames.back().process_arena_position;
 	if (frames.back().expression_depth_weight) {
-		transformer.ExitExpression(frames.back().expression_depth_weight);
+		transformer->ExitExpression(frames.back().expression_depth_weight);
 	}
 	frames.pop_back();
-	transformer.process_allocator.Rewind(process_arena_position);
+	transformer->process_allocator.Rewind(process_arena_position);
 }
 
 void TransformStack::InitializeFrame(TransformStackFrame &frame) {
 	// PushFrame unwraps every input to a rule-bearing node or throws
 	D_ASSERT(frame.rule);
-	frame.process = frame.rule->StartTransform(transformer, frame.parse_result);
+	frame.process = frame.rule->StartTransform(*transformer, frame.parse_result);
 }
 
 arena_ptr<TransformResultValue> TransformStack::ExecuteFrame(TransformStackFrame &frame) {
@@ -219,15 +219,16 @@ arena_ptr<TransformResultValue> TransformStack::ExecuteFrame(TransformStackFrame
 	return nullptr;
 }
 
-arena_ptr<TransformResultValue> TransformStack::Execute(TransformInput input) {
+arena_ptr<TransformResultValue> TransformStack::Execute(PEGTransformer &transformer_p, TransformInput input) {
 	D_ASSERT(frames.empty());
+	transformer = transformer_p;
 	PushFrame(input);
 	while (!frames.empty()) {
 		auto result = ExecuteFrame(frames.back());
 		if (!result) {
 			continue;
 		}
-		transformer.SetResultLocation(frames.back().parse_result, *result);
+		transformer->SetResultLocation(frames.back().parse_result, *result);
 		PopFrame();
 		if (frames.empty()) {
 			return result;
@@ -258,8 +259,17 @@ string TransformStack::FormatStack() const {
 #endif
 
 arena_ptr<TransformResultValue> PEGTransformer::TransformInternal(ParseResult &parse_result) {
-	TransformStack stack(*this);
-	return stack.Execute(TransformInput(parse_result));
+	unique_ptr<TransformStack> stack;
+	if (free_stacks.empty()) {
+		stack = make_uniq<TransformStack>();
+	} else {
+		stack = std::move(free_stacks.back());
+		free_stacks.pop_back();
+	}
+	// a stack that threw is destroyed with its frames instead of being reused
+	auto result = stack->Execute(*this, TransformInput(parse_result));
+	free_stacks.push_back(std::move(stack));
+	return result;
 }
 
 //! The number of repeated elements directly in a rule's match: the links of an operator chain
