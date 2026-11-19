@@ -253,6 +253,21 @@ string Parser::NormalizeSQLString(const string &query) {
 	return query;
 }
 
+namespace {
+//! Borrows the pooled statement resources of a grammar for one query
+struct PooledStatementResources {
+	explicit PooledStatementResources(CompiledGrammar &grammar_p)
+	    : grammar(grammar_p), resources(grammar_p.AcquireStatementResources()) {
+	}
+	~PooledStatementResources() {
+		grammar.ReleaseStatementResources(std::move(resources));
+	}
+
+	CompiledGrammar &grammar;
+	unique_ptr<PEGStatementResources> resources;
+};
+} // namespace
+
 void Parser::ParseQuery(const string &query_p) {
 	const string query = NormalizeSQLString(query_p);
 	if (options.extensions) {
@@ -287,14 +302,20 @@ void Parser::ParseQuery(const string &query_p) {
 	// PEG parser: tokenize, then peel one TopLevelStatement at a time. On per-statement PEG
 	// failure, hand the rest of the query to parse_function extensions; the extension reports
 	// how many bytes it consumed and we advance the token cursor past them.
+	auto &grammar = GetGrammar();
+	PooledStatementResources pooled(grammar);
+	auto &resources = *pooled.resources;
 	ParserTokenizerBehavior behavior(query);
-	auto &tokenizer = GetGrammar().GetTokenizer();
-	tokenizer.TokenizeInput(behavior);
+	if (resources.tokens) {
+		// reuse the token storage of the previous query
+		behavior.tokens = std::move(*resources.tokens);
+		behavior.tokens.clear();
+	}
+	grammar.GetTokenizer().TokenizeInput(behavior);
 	TokenIterator token_iterator(behavior);
 	// A statement's text starts where the previous one ended, so comments and whitespace before its
 	// first token belong to it; the last statement runs to the end of the input.
 	idx_t stmt_start = 0;
-	PEGStatementResources resources;
 	while (token_iterator.Current()) {
 		auto stmt = ParseTopLevelStatement(token_iterator, query, resources);
 		auto stmt_end = token_iterator.ConsumedEndOffset();
@@ -304,6 +325,7 @@ void Parser::ParseQuery(const string &query_p) {
 		}
 		stmt_start = stmt_end;
 	}
+	resources.tokens = token_iterator.ReleaseTokens();
 
 	if (!statements.empty()) {
 		auto &last_location = statements.back()->stmt_location;
