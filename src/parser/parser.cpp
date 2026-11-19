@@ -294,8 +294,9 @@ void Parser::ParseQuery(const string &query_p) {
 	// A statement's text starts where the previous one ended, so comments and whitespace before its
 	// first token belong to it; the last statement runs to the end of the input.
 	idx_t stmt_start = 0;
+	PEGStatementResources resources;
 	while (token_iterator.Current()) {
-		auto stmt = ParseTopLevelStatement(token_iterator, query);
+		auto stmt = ParseTopLevelStatement(token_iterator, query, resources);
 		auto stmt_end = token_iterator.ConsumedEndOffset();
 		if (stmt) {
 			stmt->stmt_location = QueryLocation(stmt_start, stmt_end - stmt_start);
@@ -362,6 +363,12 @@ unique_ptr<SQLStatement> Parser::TryParseExtensionStatement(TokenIterator &token
 }
 
 unique_ptr<SQLStatement> Parser::ParseTopLevelStatement(TokenIterator &token_iterator, const string &query) {
+	PEGStatementResources resources;
+	return ParseTopLevelStatement(token_iterator, query, resources);
+}
+
+unique_ptr<SQLStatement> Parser::ParseTopLevelStatement(TokenIterator &token_iterator, const string &query,
+                                                        PEGStatementResources &resources) {
 	if (!token_iterator.Current()) {
 		return nullptr;
 	}
@@ -370,8 +377,8 @@ unique_ptr<SQLStatement> Parser::ParseTopLevelStatement(TokenIterator &token_ite
 	optional_idx failure_index;
 	unique_ptr<SQLStatement> stmt;
 	try {
-		stmt =
-		    PEGTransformerFactory::TransformTopLevelStatement(token_iterator, options, compiled_grammar, failure_index);
+		stmt = PEGTransformerFactory::TransformTopLevelStatement(token_iterator, options, compiled_grammar,
+		                                                         failure_index, resources);
 	} catch (ParserException &) {
 		// the statement matched but could not be transformed - an extension may still claim it
 		token_iterator.SetPosition(statement_start);

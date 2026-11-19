@@ -35,6 +35,8 @@ struct UnicodeSpace {
 //! The parser is responsible for parsing the query and converting it into a set
 //! of parsed statements. The parsed statements can then be converted into a
 //! plan and executed.
+class PEGStatementResources;
+
 class Parser {
 public:
 	//! Snapshot the connection's parser settings, extensions and cached grammar.
@@ -67,6 +69,9 @@ public:
 	//! Does NOT populate `stmt->query` — the caller owns the source string and can slice it
 	//! using `stmt->stmt_location` if needed.
 	DUCKDB_API unique_ptr<SQLStatement> ParseTopLevelStatement(TokenIterator &token_iterator, const string &query);
+	//! The same, with storage that the statements of one query share
+	DUCKDB_API unique_ptr<SQLStatement> ParseTopLevelStatement(TokenIterator &token_iterator, const string &query,
+	                                                           PEGStatementResources &resources);
 
 	//! Whether `query` is a complete, semicolon-terminated statement sequence under this parser's
 	//! grammar. Interactive frontends use this to decide between submitting the buffer and reading

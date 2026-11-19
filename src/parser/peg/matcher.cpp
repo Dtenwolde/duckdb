@@ -21,8 +21,12 @@
 namespace duckdb {
 
 MatcherResult Matcher::MatchParseResult(MatchState &state) const {
-	MatchInput input {*this, state};
 	MatchStack stack;
+	return MatchParseResult(state, stack);
+}
+
+MatcherResult Matcher::MatchParseResult(MatchState &state, MatchStack &stack) const {
+	MatchInput input {*this, state};
 	return stack.Execute(input);
 }
 
@@ -217,10 +221,14 @@ void MatcherAllocator::InitializeListChains() {
 	}
 }
 
-ParseResultAllocator::ParseResultAllocator()
-    : arena(Allocator::DefaultAllocator(), PARSER_ARENA_INITIAL_CAPACITY), pending_destructors(arena) {
+ParseResultAllocator::ParseResultAllocator() : arena(Allocator::DefaultAllocator(), PARSER_ARENA_INITIAL_CAPACITY) {
 }
 
 ParseResultAllocator::~ParseResultAllocator() = default;
+
+void ParseResultAllocator::Reset() {
+	pending_destructors.clear();
+	arena.Reset();
+}
 
 } // namespace duckdb
