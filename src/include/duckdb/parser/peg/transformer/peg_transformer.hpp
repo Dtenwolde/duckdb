@@ -795,9 +795,6 @@ public:
 	                                                           const CompiledGrammar &grammar,
 	                                                           optional_idx &failure_index,
 	                                                           PEGStatementResources &resources);
-	static unique_ptr<SQLStatement> TransformTopLevelStatement(TokenIterator &token_iterator, ParserOptions &options,
-	                                                           const CompiledGrammar &grammar,
-	                                                           optional_idx &failure_index);
 	static ParseResult &ExtractResultFromParens(ParseResult &parse_result);
 	static vector<reference<ParseResult>> ExtractParseResultsFromList(ParseResult &parse_result);
 	static bool ExpressionIsEmptyStar(const ParsedExpression &expr);

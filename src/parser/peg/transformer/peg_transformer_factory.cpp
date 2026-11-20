@@ -85,14 +85,6 @@ void PEGStatementResources::Reset() {
 unique_ptr<SQLStatement> PEGTransformerFactory::TransformTopLevelStatement(TokenIterator &token_iterator,
                                                                            ParserOptions &options,
                                                                            const CompiledGrammar &grammar,
-                                                                           optional_idx &failure_index) {
-	PEGStatementResources resources;
-	return TransformTopLevelStatement(token_iterator, options, grammar, failure_index, resources);
-}
-
-unique_ptr<SQLStatement> PEGTransformerFactory::TransformTopLevelStatement(TokenIterator &token_iterator,
-                                                                           ParserOptions &options,
-                                                                           const CompiledGrammar &grammar,
                                                                            optional_idx &failure_index,
                                                                            PEGStatementResources &resources) {
 	if (!token_iterator.Current()) {

@@ -384,11 +384,6 @@ unique_ptr<SQLStatement> Parser::TryParseExtensionStatement(TokenIterator &token
 	return nullptr;
 }
 
-unique_ptr<SQLStatement> Parser::ParseTopLevelStatement(TokenIterator &token_iterator, const string &query) {
-	PEGStatementResources resources;
-	return ParseTopLevelStatement(token_iterator, query, resources);
-}
-
 unique_ptr<SQLStatement> Parser::ParseTopLevelStatement(TokenIterator &token_iterator, const string &query,
                                                         PEGStatementResources &resources) {
 	if (!token_iterator.Current()) {

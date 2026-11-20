@@ -9,11 +9,25 @@
 #include "duckdb/parser/peg/matcher.hpp"
 #include "duckdb/parser/peg/compiled_grammar.hpp"
 #include "duckdb/parser/peg/tokenizer/parser_tokenizer.hpp"
+#include "duckdb/parser/peg/transformer/peg_transformer.hpp"
 #include "duckdb/parser/sql_statement.hpp"
 #include "duckdb/parser/statement/create_statement.hpp"
 #include "duckdb/parser/parsed_data/create_info.hpp"
 
 namespace duckdb {
+
+namespace {
+//! Drops what the statement resources bound to a parser when that parser goes out of scope
+struct StatementResourcesRelease {
+	explicit StatementResourcesRelease(PEGStatementResources &resources_p) : resources(resources_p) {
+	}
+	~StatementResourcesRelease() {
+		resources.ReleaseQuery();
+	}
+
+	PEGStatementResources &resources;
+};
+} // namespace
 
 ParseIterator::ParseIterator(ClientContext &context_p, const string &sql_p, bool apply_invalidation_policy_p,
                              optional_ptr<ClientContextLock> held_lock_p)
@@ -117,6 +131,11 @@ bool ParseIterator::PeekInternal() {
 	// integer_division or active_grammar_extensions), so each statement gets a parser with fresh options
 	Parser parser(options);
 	EnsureTokenized();
+	if (!statement_resources) {
+		statement_resources = make_uniq<PEGStatementResources>();
+	}
+	// the transformer refers to the options of this parser, so only the storage is kept for the next statement
+	StatementResourcesRelease release_resources(*statement_resources);
 	// Walk the token cursor through the cached `tokens`, calling Parser::ParseTopLevelStatement
 	// repeatedly. A nullptr return with cursor advanced means a separator-only TopLevelStatement
 	// (e.g. between statements or trailing ';'s); we loop past it. A nullptr return with cursor
@@ -126,7 +145,7 @@ bool ParseIterator::PeekInternal() {
 			exhausted = true;
 			return false;
 		}
-		auto stmt = parser.ParseTopLevelStatement(*token_iterator, sql);
+		auto stmt = parser.ParseTopLevelStatement(*token_iterator, sql, *statement_resources);
 		// ParseTopLevelStatement doesn't populate stmt->query (it operates on tokens, not the
 		// source string). Mirror Parser::ParseQuery's slicing: a statement's text starts where the
 		// previous one ended and runs through its own terminators, so comments before a statement

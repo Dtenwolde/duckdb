@@ -17,6 +17,7 @@ namespace duckdb {
 class ClientContext;
 class ClientContextLock;
 class ErrorData;
+class PEGStatementResources;
 class SQLStatement;
 class TokenIterator;
 
@@ -82,6 +83,8 @@ private:
 	optional_ptr<ClientContextLock> held_lock;
 	//! Tokenized view of `sql` and its current position. Populated once on the first Peek.
 	unique_ptr<TokenIterator> token_iterator;
+	//! Matching and transformation storage, reused by the statements of the input
+	unique_ptr<PEGStatementResources> statement_resources;
 	//! Byte offset in `sql` where the next statement's text starts: just past the previous one.
 	idx_t next_statement_offset = 0;
 	//! Single-statement buffer holding the result of the most recent Peek. Cleared by
